@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 58). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 64). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -378,7 +378,7 @@ Licensing: the Sanskrit originals are public domain; most English translations i
 
 ## Data schema — the chart object
 
-One JSON document per chart, versioned by engine release, so a reading can always be reproduced. Top-level keys map one-to-one to the layers. Values below are the reference chart's where the worked example fixes them (karakas, arudhas, dispositors, KP cusp, Ashtakavarga) and illustrative elsewhere (Shadbala, scores).
+One JSON document per chart, versioned by engine release, so a reading can always be reproduced. Top-level keys map one-to-one to the layers. Values below are the reference chart's where the worked example fixes them (karakas, arudhas, dispositors, KP cusp, Ashtakavarga, Shadbala) and illustrative elsewhere (Bhava Bala, scores).
 
 ```json
 {
@@ -404,8 +404,8 @@ One JSON document per chart, versioned by engine release, so a reading can alway
     "lordship": {"Saturn": {"houses": [9, 10], "role": "yogakaraka"}, "Mars": {"houses": [7, 12], "role": "maraka"}},
     "aspects": [{"from": "Saturn", "to": "Sun", "kind": "10th", "virupa": 45.2}],
     "rashi_aspects": [{"from": 2, "to": [8, 5, 11]}],
-    "strength": {"shadbala": {"Saturn": {"sthana": 0, "dig": 0, "kala": 0, "chesta": 0, "naisargika": 0, "drik": 0,
-                                           "total": 412.3, "required": 300, "ratio": 1.37}},
+    "strength": {"shadbala": {"Saturn": {"sthana": 178.04, "dig": 1.35, "kala": 28.54, "chesta": 23.47, "naisargika": 8.57, "drik": -32.71,
+                                           "total": 207.26, "required": 300, "ratio": 0.69}},
                  "bhava_bala": {"10": 0}, "vimsopaka": {"Saturn": {"shadvarga": 0, "dasavarga": 0, "shodasavarga": 0}},
                  "ishta_kashta": {"Saturn": {"ishta": 0, "kashta": 0}}},
     "ashtakavarga": {"SAV": [22, 24, 23, 30, 33, 26, 28, 27, 37, 24, 29, 34],
@@ -563,12 +563,26 @@ The Taurus-lagna chart from the app screenshots is the engine's reference case, 
 
 Reading for the chart: the strongest signs are Sagittarius (H8, 37), Pisces (H11, 34) and Leo (H4, 33); the weakest are Aries (H12, 22), Gemini (H2, 23), Taurus (H1, 24) and Capricorn (H9, 24). The 10th house, Aquarius, holds 29, just above the 28 mean. After Trikona and Ekadhipatya reduction (occupants = seven planets, no zero exemption, BPHS ch. 68) the Sodhya Pindas are Sun 122, Moon 85, Mars 130, Mercury 122, Jupiter 198, Venus 121, Saturn 233. Kakshya: the Sun sits in the Lagna's kakshya with a bindu, the Moon in Saturn's with a bindu, Mars in Venus's without, Saturn in its own without.
 
+**Shadbala (computed 2026-10-21 at 10:10:00; every Sthana, Dig and Kala component checked by hand)**
+
+| Planet | Sthana | Dig | Kala | Chesta | Naisargika | Drik | Total | Required | Ratio |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Sun | 219.9 | 47.5 | 125.8 | 51.6 | 60.0 | −24.9 | 479.8 | 390 | 1.23 |
+| Moon | 70.5 | 36.3 | 197.1 | 97.6 | 51.4 | 5.5 | 458.3 | 360 | 1.27 |
+| Mars | 211.9 | 39.5 | 84.6 | 37.3 | 17.1 | 0.7 | 391.1 | 300 | 1.30 |
+| Mercury | 209.9 | 28.1 | 208.4 | 33.9 | 25.7 | −5.8 | 500.2 | 420 | 1.19 |
+| Jupiter | 180.9 | 58.5 | 213.8 | 25.9 | 34.3 | −35.9 | 477.4 | 390 | 1.22 |
+| Venus | 207.9 | 21.2 | 135.6 | 52.1 | 42.9 | −20.3 | 439.4 | 330 | 1.33 |
+| Saturn | 178.0 | 1.4 | 28.5 | 23.5 | 8.6 | −32.7 | 207.3 | 300 | 0.69 |
+
+Saturn is the only planet below its required minimum: 4° from the ascendant, its weakest Dig point, with low Kala (nocturnal planet, day birth) and Mars's full aspect in Drik. Conventions used: BPHS Drekkana sex assignment and Saptavargaja scale, Dig from the ascendant and MC, apparent noon, Mercury malefic by association, Moon's Paksha and Sun's Ayana doubled, 24° obliquity, Chesta by the BPHS kendra method with modern mean motions, Abda and Masa lords by ahargana from the Kali epoch. Each is a `Meta` setting. Not yet compared with Jagannatha Hora; the Abda/Masa and Yuddha rules are the ones to check there.
+
 **Layer 3 expected rule fires**
 
 - `yoga.ruchaka` (Mars own sign in H7 kendra, basis lagna) — scale 0.6 after the Marana Karaka Sthana modifier.
 - `yoga.parivartana` (Venus–Jupiter) — see below.
 - `yoga.budhaditya` (Sun + Mercury, H10) — scale 0.9: Mercury at 0°22' is in Bala avastha and carries a boundary flag; not combust (27° apart).
-- `lord.yogakaraka_in_lagna` (Saturn) — scale 0.6 × 0.8: Marana Karaka Sthana and Mrita avastha.
+- `lord.yogakaraka_in_lagna` (Saturn) — scale 0.6 × 0.8 × 0.5: Marana Karaka Sthana, Mrita avastha, and Shadbala below its required minimum (0.69).
 - `lord.lagna_exalted` (Venus) — full scale.
 - `affliction.mangal_dosha` — fires from the Lagna (Mars in H7) and from the Moon (Mars 2nd from Libra), not from Venus (9th from Pisces); cancellation modifiers apply for Mars in own sign and for Jupiter's aspect, so the net scale is small and the reading names the dosha and its cancellations together.
 - `yoga.gaja_kesari` — does **not** fire: Jupiter is 8th from the Moon.
@@ -584,7 +598,7 @@ Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` 
 
 **Layer 5 expected ranking (classical weights, before calibration)**
 
-- Driver planet: Saturn leads on lordship (yogakaraka, H1, aspects H10, own sign in D9) but carries Marana Karaka Sthana and Mrita avastha, so the reading presents it as "strong role, weakened condition"; Venus (exalted lagna lord, AmK) and Mars (own-sign kendra, the only self-disposited planet, final nakshatra dispositor with Mercury) are the alternates, and all three are shown with the dispositor graph that produced them.
+- Driver planet: Saturn leads on lordship (yogakaraka, H1, aspects H10, own sign in D9, largest Sodhya Pinda) but carries Marana Karaka Sthana, Mrita avastha and a Shadbala ratio of 0.69 — the only planet below its minimum — so the reading presents it as "strong role, weakened condition"; Venus (exalted lagna lord, AmK) and Mars (own-sign kendra, the only self-disposited planet, final nakshatra dispositor with Mercury) are the alternates, and all three are shown with the dispositor graph that produced them.
 - Top areas: career (H10 with Sun and Mercury, 10th lord Saturn in H1, Budhaditya, AmK Venus exalted, A10 on the lagna itself) → strong, with a sensitivity note for Mercury's boundary flag; wealth (lagna lord exalted in H11, the 1st–11th Parivartana, 2nd lord with the Sun in H10) → strong; marriage (Ruchaka in H7 but Mars in MKS, 7th lord in own sign, Saturn's aspect on H7, Mars's on H1, Rahu in the Upapada and in a Pushkara navamsa, DK Mercury in Bala avastha, Mangal dosha with cancellations) → moderate with a "delay or intensity" polarity flag.
 
 The first engineering milestone is making the code print exactly this section. As of 2026-10-21 it does: \`tests/test\_reference\_chart.py\` in the repo encodes every value above and passes, and \`jyotish recover\` finds the instant behind the printed positions (2001-03-12 04:40 UTC), at which the engine matches the app within 0.4 arc-seconds on all seven planets; the app uses the mean node.
