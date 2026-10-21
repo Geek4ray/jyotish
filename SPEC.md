@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 67). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 69). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -582,7 +582,7 @@ Saturn is the only planet below its required minimum: 4° from the ascendant, it
 - `yoga.ruchaka` fires twice: from the lagna (Mars own sign in H7) and from the Sun (Mars is 10th from Aquarius), not from the Moon (2nd from Libra). Scale 0.408 both times: Saturn's aspect 0.8 × Pratyak tara 0.85 × Marana Karaka Sthana 0.6; the Shadbala modifier does not apply, Mars's ratio being 1.30.
 - `yoga.parivartana` (Venus–Jupiter) fires at 0.8 — see below.
 - `yoga.budhaditya` (Sun + Mercury, H10) fires at 0.9: Mercury at 0°22' is in Bala avastha and carries a boundary flag; not combust (27° apart).
-- `yoga.kendra_trikona_raja` fires twice: Sun (4th lord) with Mercury (5th lord) in H10, scale 1.0; and Mars (7th lord) in mutual aspect with Saturn (9th lord), scale 0.75 because Mars also owns the 12th.
+- `yoga.kendra_trikona_raja` fires once under BPHS 34.15 as read with ch. 7 vv. 33–36 (a lord who also owns the 6th, 8th or 12th makes no Raja yoga): Sun (4th lord) with Mercury (5th lord) in H10, scale 1.0. The Mars–Saturn mutual aspect (7th and 9th lords) is excluded because Mars owns the 12th; it fires only under the uncited, \`experimental\` rule yoga.kendra\_trikona\_raja\_weak at 0.75, which is outside default scoring. yoga.gaja\_kesari\_bphs (BPHS 36.3–4, stricter than Phaladeepika's Kesari) does not fire either: Jupiter is in an enemy's sign.
 - `lord.yogakaraka_in_lagna` (Saturn) — not yet a rule file; expected scale 0.6 × 0.8 × 0.5: Marana Karaka Sthana, Mrita avastha, and Shadbala below its required minimum (0.69).
 - `lord.lagna_exalted` (Venus) — not yet a rule file; expected full scale.
 - `affliction.mangal_dosha` — not yet a rule file; expected to fire from the Lagna (Mars in H7) and from the Moon (Mars 2nd from Libra), not from Venus (9th from Pisces), with cancellation modifiers for Mars in own sign and for Jupiter's aspect.
@@ -602,6 +602,12 @@ Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` 
 - Yogini: Chitra gives Mangala (Moon, 1 y) first, 0.393 y left at birth — the same fraction as the Vimshottari balance; the Siddha antardasha runs at birth. Then Pingala 2, Dhanya 3, Bhramari 4, Bhadrika 5, Ulka 6, Siddha 7, Sankata 8.
 - Chara, K.N. Rao variant (default): the 9th from Taurus is Capricorn, not a savya sign, so the sequence runs anti-zodiacally — Taurus 10, Aries 7, Pisces 10, … Gemini 8, first cycle 85 years; the second cycle repeats the first (his worked example, not a stated rule). Raman's variant gives 87 (exalted Venus adds a year to Taurus and Libra); Rath's Narayana form gives 88 and runs zodiacally because Saturn sits in the starting sign. Every variant caps a sign at 12 years; only Rath states the cap. All three are `Meta.chara_variant` settings.
 - Citations: 16 of the 17 rule sources are now `checked: true` against the scanned editions. Two corrections came out of that: Budhaditya is not named in Phaladeepika and is cited to 18.1 (effects of the Sun with Mercury) with a note; the kendra-trikona Raja yoga is BPHS 34.11–12 with 34.15, not ch. 39.
+
+**Transits (computed 2026-10-21; ingress dates checked against published Lahiri ephemerides)**
+
+- Sade Sati: 2009-09-09 to 2017-01-26, again 2017-06-21 to 2017-10-26 (Saturn's retrograde slip back into Scorpio), and from 2038. Nodal returns 2019 and 2038 (mean node); Saturn return 2029–2031. Returns count only after half a revolution, which stopped them registering at birth.
+- On 2026-10-21: Saturn in Pisces (6th from the Moon, good, BAV 6, SAV 34, Murthi gold), Jupiter in Cancer until 2026-10-31 (10th from the Moon, not good), Rahu in Aquarius / Ketu in Leo (Ketu's 11th is good but Vedha'd by the Moon), Mars in Cancer, Sun in Libra. No named window active.
+- Sources: gochara and Vedha tables from Phaladeepika 26.3–8 and the Ashtakavarga transit grading from 23.11, both read in the 1937 edition; Vipareeta Vedha and Murthi Nirnaya are from later texts and marked unverified; a 0-bindu transit is reported as "severe" and no further, because 23.11's reading of it concerns death. Rahu and Ketu are exempted from Vedha on each other (always 7th apart; the text never names the nodes), an engine choice recorded in the table.
 
 **Layer 5 expected ranking (classical weights, before calibration)**
 
