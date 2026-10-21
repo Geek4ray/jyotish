@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 66). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 67). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -589,13 +589,19 @@ Saturn is the only planet below its required minimum: 4° from the ascendant, it
 - `yoga.gaja_kesari`, `yoga.neecha_bhanga`, and the other four Mahapurusha yogas (Bhadra, Hamsa, Malavya, Sasa) do **not** fire; Gaja Kesari because Jupiter is 8th from the Moon.
 - `affliction.kala_sarpa` — not yet a rule file; must not fire: planets on both sides of the Rahu–Ketu axis.
 
-Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` fires between Venus (in Pisces, Jupiter's sign) and Jupiter (in Taurus, Venus's sign). Classified both ways, because the texts define it both ways: by the houses exchanged it is the 1st and the 11th → **Maha Parivartana**; by the lordships of the exchanging planets (Venus 6th, Jupiter 8th) it is **Dainya** under Uttara Kalamrita. The fire carries `class_by_houses: maha`, `class_by_lordship: dainya` and a 0.8 scale for the Dainya reading, and the narration states both. This is exactly the kind of signal a human reader skips and a graph engine cannot.
+Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` fires between Venus (in Pisces, Jupiter's sign) and Jupiter (in Taurus, Venus's sign). Classified both ways, because the modern texts define it both ways: by the houses exchanged it is the 1st and the 11th → **Maha Parivartana**; by the lordships of the exchanging planets (Venus 6th, Jupiter 8th) it is **Dainya**. The Dainya/Khala/Maha classification is from B.V. Raman's *Three Hundred Important Combinations*; its attribution to Uttara Kalamrita, common in secondary literature, could not be confirmed in the Sastri edition and is not claimed. The fire carries `class_by_houses: maha`, `class_by_lordship: dainya` and a 0.8 scale for the Dainya reading, and the narration states both. This is exactly the kind of signal a human reader skips and a graph engine cannot.
 
 **Layer 4 expected timing**
 
 - Vimshottari starts in Mars dasha (Moon in Chitra). Chitra runs Virgo 23°20' to Libra 6°40'; the Moon has covered 8°05'19" of its 13°20', so 39.3% remains → Mars balance at birth ≈ 2 years 9 months (365.25-day year).
 - Order: Mars 7y → Rahu 18 → Jupiter 16 → Saturn 19 → Mercury 17 → Ketu 7 → Venus 20 → Sun 6 → Moon 10.
 - Navatara of the dasha lords: Mars Pratyak, Rahu Sampat, Jupiter Ati-mitra, Saturn Mitra, Mercury Janma, Ketu Vadha, Venus Pratyak (2nd cycle), Sun Vipat (2nd cycle), Moon Janma.
+
+**Other dashas (computed 2026-10-21)**
+
+- Yogini: Chitra gives Mangala (Moon, 1 y) first, 0.393 y left at birth — the same fraction as the Vimshottari balance; the Siddha antardasha runs at birth. Then Pingala 2, Dhanya 3, Bhramari 4, Bhadrika 5, Ulka 6, Siddha 7, Sankata 8.
+- Chara, K.N. Rao variant (default): the 9th from Taurus is Capricorn, not a savya sign, so the sequence runs anti-zodiacally — Taurus 10, Aries 7, Pisces 10, … Gemini 8, first cycle 85 years; the second cycle repeats the first (his worked example, not a stated rule). Raman's variant gives 87 (exalted Venus adds a year to Taurus and Libra); Rath's Narayana form gives 88 and runs zodiacally because Saturn sits in the starting sign. Every variant caps a sign at 12 years; only Rath states the cap. All three are `Meta.chara_variant` settings.
+- Citations: 16 of the 17 rule sources are now `checked: true` against the scanned editions. Two corrections came out of that: Budhaditya is not named in Phaladeepika and is cited to 18.1 (effects of the Sun with Mercury) with a note; the kendra-trikona Raja yoga is BPHS 34.11–12 with 34.15, not ch. 39.
 
 **Layer 5 expected ranking (classical weights, before calibration)**
 
