@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reading — desktop</title>
+<!-- design-canvas runtime script removed; the page is plain HTML with inline styles -->
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#0F1230;color:#F3EEE2;font-family:Inter,system-ui,sans-serif}
+a{color:#E8A33D}a:hover{color:#F3C06A}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0F1230; color: #F3EEE2; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5">
+
+  <!-- top bar -->
+  <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 16px 40px; border-bottom: 1px solid #2E3260">
+    <a href="Home.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #F3EEE2; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#E8A33D" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"></rect><path d="M2 2l20 20M22 2L2 22M12 2l10 10-10 10L2 12z"></path></svg>
+      Jyotish Engine
+    </a>
+    <nav style="display: flex; gap: 24px; flex-wrap: wrap; font-size: 14px">
+      <a href="Main.html" style="color: #F3EEE2; text-decoration: none; font-weight: 600; border-bottom: 2px solid #E8A33D; padding-bottom: 2px">Reading</a>
+      <a href="Timing.html" style="color: #B3B0C4; text-decoration: none">When</a>
+      <a href="#vargas" style="color: #B3B0C4; text-decoration: none">Vargas</a>
+      <a href="#rules" style="color: #B3B0C4; text-decoration: none">Rules</a>
+      <a href="#learn" style="color: #B3B0C4; text-decoration: none">Learn</a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 12px">
+      <label for="mode" style="color: #B3B0C4; font-size: 13px">Depth</label>
+      <select id="mode" style="background: #181B3C; color: #F3EEE2; border: 1px solid #2E3260; border-radius: 8px; padding: 8px 12px; font-size: 13px; min-height: 44px">
+        <option>Learner</option><option>Curious</option><option>Astrologer</option>
+      </select>
+      <button style="background: #E8A33D; color: #0F1230; border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 600; font-size: 13px; min-height: 44px">Share reading</button>
+    </div>
+  </header>
+
+  <!-- chart identity strip -->
+  <section style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 28px 40px 8px">
+    <div>
+      <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 34px; font-weight: 500; line-height: 1.15">Taurus lagna · Moon in Chitra</h1>
+      <p style="margin: 6px 0 0; color: #B3B0C4">Lahiri ayanamsa · true nodes · whole-sign houses · birth time: exact · engine 1.0.0</p>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <span style="background: #181B3C; border: 1px solid #2E3260; border-radius: 999px; padding: 6px 12px; font-size: 12px; color: #B3B0C4">Driver planet: <strong style="color: #F3EEE2">Saturn</strong></span>
+      <span style="background: #181B3C; border: 1px solid #2E3260; border-radius: 999px; padding: 6px 12px; font-size: 12px; color: #B3B0C4">Rules fired: <strong style="color: #F3EEE2">14</strong></span>
+      <span style="background: #181B3C; border: 1px solid #2E3260; border-radius: 999px; padding: 6px 12px; font-size: 12px; color: #B3B0C4">Current dasha: <strong style="color: #F3EEE2">[maha]–[antar]</strong></span>
+    </div>
+  </section>
+
+  <!-- three-column body -->
+  <main style="display: flex; flex-wrap: wrap; gap: 24px; padding: 16px 40px 40px; align-items: flex-start">
+
+    <!-- LEFT: chart -->
+    <section style="flex: 1 1 380px; min-width: 0; background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <h2 style="margin: 0; font-size: 15px; font-weight: 600">Chart</h2>
+        <div style="display: flex; gap: 4px; background: #0F1230; border-radius: 8px; padding: 4px">
+          <button style="background: #E8A33D; color: #0F1230; border: 0; border-radius: 6px; padding: 8px 12px; font-weight: 600; font-size: 12px; min-height: 36px">D1</button>
+          <button style="background: transparent; color: #B3B0C4; border: 0; border-radius: 6px; padding: 8px 12px; font-size: 12px; min-height: 36px">D9</button>
+          <button style="background: transparent; color: #B3B0C4; border: 0; border-radius: 6px; padding: 8px 12px; font-size: 12px; min-height: 36px">D10</button>
+          <button style="background: transparent; color: #B3B0C4; border: 0; border-radius: 6px; padding: 8px 12px; font-size: 12px; min-height: 36px">All 16</button>
+        </div>
+      </div>
+
+      <svg viewBox="0 0 360 360" role="img" aria-label="North Indian D1 chart, Taurus lagna" style="width: 100%; height: auto; display: block" font-family="Inter, system-ui, sans-serif">
+        <rect x="1" y="1" width="358" height="358" fill="#0F1230" stroke="#4A4E80" stroke-width="1.5"></rect>
+        <g stroke="#4A4E80" stroke-width="1.5" fill="none">
+          <path d="M1 1L359 359M359 1L1 359M180 1L359 180L180 359L1 180Z"></path>
+        </g>
+        <!-- sign numbers -->
+        <g fill="#7E82AE" font-size="11" text-anchor="middle">
+          <text x="180" y="52">2</text><text x="128" y="26">3</text><text x="26" y="128">4</text><text x="52" y="184">5</text><text x="26" y="240">6</text><text x="128" y="342">7</text><text x="180" y="316">8</text><text x="232" y="342">9</text><text x="336" y="240">10</text><text x="308" y="184">11</text><text x="336" y="128">12</text><text x="232" y="26">1</text>
+        </g>
+        <!-- planets -->
+        <g font-size="13" font-weight="600" text-anchor="middle">
+          <text x="180" y="100" fill="#E8A33D">Ju 10°</text><text x="180" y="118" fill="#E8A33D">Sa 02°</text>
+          <text x="90" y="56" fill="#F3EEE2">Ra 18°</text>
+          <text x="90" y="326" fill="#F3EEE2">Mo 01°</text>
+          <text x="180" y="282" fill="#E8A33D">Ma 18°</text>
+          <text x="270" y="326" fill="#F3EEE2">Ke 18°</text>
+          <text x="270" y="176" fill="#E8A33D">Su 27°</text><text x="270" y="194" fill="#E8A33D">Me 00°</text>
+          <text x="318" y="72" fill="#5ED1B6">Ve 23° ↑</text>
+        </g>
+        <text x="180" y="78" fill="#B3B0C4" font-size="10" text-anchor="middle">LAGNA</text>
+      </svg>
+
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #B3B0C4">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E8A33D; display: inline-block"></span>in a rule that fired</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #5ED1B6; display: inline-block"></span>exalted</span>
+        <span>↑ exalted · R retrograde · # combust</span>
+      </div>
+
+      <div style="border-top: 1px solid #2E3260; padding-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; font-size: 12px">
+        <div><div style="color: #B3B0C4">Lagna lord</div><div style="font-weight: 600">Venus · exalted · H11</div></div>
+        <div><div style="color: #B3B0C4">Yogakaraka</div><div style="font-weight: 600">Saturn · H1</div></div>
+        <div><div style="color: #B3B0C4">Atmakaraka</div><div style="font-weight: 600">Sun 27°47'</div></div>
+        <div><div style="color: #B3B0C4">Vargottama</div><div style="font-weight: 600">Moon (Libra)</div></div>
+        <div><div style="color: #B3B0C4">Shadbala</div><div style="font-weight: 600">Venus 1.33× · Saturn 0.69×</div></div>
+        <div><div style="color: #B3B0C4">SAV of H10</div><div style="font-weight: 600">29 of 56</div></div>
+      </div>
+    </section>
+
+    <!-- MIDDLE: dominance + why -->
+    <section style="flex: 2 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+
+      <div style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600">What is dominant</h2>
+          <span style="font-size: 12px; color: #B3B0C4">Confidence = independent signal families that agree</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 70px; gap: 12px; align-items: center">
+            <div style="font-weight: 600">Career</div>
+            <div style="background: #0F1230; border-radius: 999px; height: 10px; overflow: hidden"><div style="width: 78%; height: 100%; background: #E8A33D; border-radius: 999px"></div></div>
+            <div style="font-size: 12px; color: #E8A33D; font-weight: 600">Strong</div>
+            <div style="font-size: 12px; color: #B3B0C4; text-align: right">5 of 7</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 70px; gap: 12px; align-items: center">
+            <div style="font-weight: 600">Wealth</div>
+            <div style="background: #0F1230; border-radius: 999px; height: 10px; overflow: hidden"><div style="width: 74%; height: 100%; background: #E8A33D; border-radius: 999px"></div></div>
+            <div style="font-size: 12px; color: #E8A33D; font-weight: 600">Strong</div>
+            <div style="font-size: 12px; color: #B3B0C4; text-align: right">4 of 7</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 70px; gap: 12px; align-items: center">
+            <div style="font-weight: 600">Marriage</div>
+            <div style="background: #0F1230; border-radius: 999px; height: 10px; overflow: hidden"><div style="width: 61%; height: 100%; background: #C9A266; border-radius: 999px"></div></div>
+            <div style="font-size: 12px; color: #C9A266; font-weight: 600">Moderate</div>
+            <div style="font-size: 12px; color: #B3B0C4; text-align: right">3 of 7</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 70px; gap: 12px; align-items: center">
+            <div style="font-weight: 600">Health</div>
+            <div style="background: #0F1230; border-radius: 999px; height: 10px; overflow: hidden"><div style="width: 55%; height: 100%; background: #C9A266; border-radius: 999px"></div></div>
+            <div style="font-size: 12px; color: #C9A266; font-weight: 600">Moderate</div>
+            <div style="font-size: 12px; color: #B3B0C4; text-align: right">3 of 6</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 70px; gap: 12px; align-items: center">
+            <div style="font-weight: 600">Children</div>
+            <div style="background: #0F1230; border-radius: 999px; height: 10px; overflow: hidden"><div style="width: 42%; height: 100%; background: #7E82AE; border-radius: 999px"></div></div>
+            <div style="font-size: 12px; color: #B3B0C4; font-weight: 600">Mixed</div>
+            <div style="font-size: 12px; color: #B3B0C4; text-align: right">2 of 6</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 90px 70px; gap: 12px; align-items: center">
+            <div style="font-weight: 600; color: #B3B0C4">Foreign</div>
+            <div style="background: #0F1230; border-radius: 999px; height: 10px; overflow: hidden"><div style="width: 30%; height: 100%; background: #4A4E80; border-radius: 999px"></div></div>
+            <div style="font-size: 12px; color: #B3B0C4">Not emphasised</div>
+            <div style="font-size: 12px; color: #B3B0C4; text-align: right">1 of 6</div>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: #B3B0C4">Marriage carries a polarity flag: intensity and delay (Saturn aspects H7; Mars aspects H1). Scores shown are example values from the reference chart.</p>
+      </div>
+
+      <div id="rules" style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600">Why — rules that fired</h2>
+          <a href="#rules" style="font-size: 12px">Show the 9 that did not fire</a>
+        </div>
+
+        <article style="border: 1px solid #2E3260; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center">
+            <strong>Ruchaka yoga</strong>
+            <div style="display: flex; gap: 6px"><span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #B3B0C4">yoga.ruchaka</span><span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #E8A33D">scale 1.0</span></div>
+          </div>
+          <p style="margin: 0; color: #B3B0C4">Mars in its own sign Scorpio in the 7th house, a kendra. Contributes courage +3, leadership +3, conflict +1 to marriage and career. <a href="#rules">BPHS 75.2 · Phaladeepika 6.1</a></p>
+        </article>
+
+        <article style="border: 1px solid #2E3260; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center">
+            <strong>Yogakaraka in lagna</strong>
+            <div style="display: flex; gap: 6px"><span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #B3B0C4">lord.yogakaraka_in_lagna</span><span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #E8A33D">scale 0.24</span></div>
+          </div>
+          <p style="margin: 0; color: #B3B0C4">Saturn rules the 9th and 10th from Taurus and sits in the 1st, aspecting the 10th where Sun and Mercury sit. Scaled down: Marana Karaka Sthana, Mrita avastha, Shadbala 0.69 of required. <a href="#rules">BPHS 34.3</a></p>
+        </article>
+
+        <article style="border: 1px solid #2E3260; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center">
+            <strong>Budhaditya yoga</strong>
+            <div style="display: flex; gap: 6px"><span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #B3B0C4">yoga.budhaditya</span><span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #E8A33D">scale 0.9</span></div>
+          </div>
+          <p style="margin: 0; color: #B3B0C4">Sun and Mercury together in the 10th. Scaled 0.9: Mercury at 0°22' is in infant avastha. Not combust (27° apart). <a href="#rules">Saravali 14.1</a></p>
+        </article>
+
+        <article style="border: 1px dashed #2E3260; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; opacity: 0.85">
+          <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center">
+            <strong style="color: #B3B0C4">Gaja Kesari — did not fire</strong>
+            <span style="font-size: 11px; background: #0F1230; border-radius: 999px; padding: 3px 9px; color: #B3B0C4">yoga.gaja_kesari</span>
+          </div>
+          <p style="margin: 0; color: #B3B0C4">Jupiter is 8th from the Moon, not in a kendra. Learner mode shows what was checked and why it failed.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- RIGHT: time + ask -->
+    <aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+      <div style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 15px; font-weight: 600">Vimshottari sequence</h2>
+        <p style="margin: 0; font-size: 12px; color: #B3B0C4">Starts in Mars (Moon in Chitra). Widths are years.</p>
+        <div style="display: flex; height: 28px; border-radius: 8px; overflow: hidden; gap: 2px" role="img" aria-label="Dasha sequence Mars 7, Rahu 18, Jupiter 16, Saturn 19, Mercury 17, Ketu 7, Venus 20, Sun 6, Moon 10">
+          <div style="flex: 7; background: #4A4E80"></div>
+          <div style="flex: 18; background: #E8A33D"></div>
+          <div style="flex: 16; background: #4A4E80"></div>
+          <div style="flex: 19; background: #4A4E80"></div>
+          <div style="flex: 17; background: #4A4E80"></div>
+          <div style="flex: 7; background: #4A4E80"></div>
+          <div style="flex: 20; background: #4A4E80"></div>
+          <div style="flex: 6; background: #4A4E80"></div>
+          <div style="flex: 10; background: #4A4E80"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #B3B0C4"><span>Ma 7</span><span>Ra 18</span><span>Ju 16</span><span>Sa 19</span><span>Me 17</span><span>Ke 7</span><span>Ve 20</span><span>Su 6</span><span>Mo 10</span></div>
+        <div style="background: #0F1230; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+          <div style="font-size: 12px; color: #B3B0C4">Now · [maha] – [antar] · until [date]</div>
+          <div style="font-weight: 600">Activates: H2, H10 · themes: career, speech, money</div>
+          <div style="font-size: 12px; color: #B3B0C4">Quality 0.62 · Saturn transit over H10 from [month]</div>
+        </div>
+        <a href="Timing.html" style="font-size: 13px; font-weight: 600">Open full timeline →</a>
+      </div>
+
+      <div style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 15px; font-weight: 600">Ask the chart</h2>
+        <label for="q" style="font-size: 12px; color: #B3B0C4">Questions route to the engine first; the answer cites the rules it used.</label>
+        <textarea id="q" rows="3" placeholder="When is a good window to change jobs?" style="background: #0F1230; color: #F3EEE2; border: 1px solid #2E3260; border-radius: 10px; padding: 12px; font-family: inherit; font-size: 14px; resize: vertical"></textarea>
+        <button style="background: #E8A33D; color: #0F1230; border: 0; border-radius: 8px; padding: 12px 16px; font-weight: 600; font-size: 13px; min-height: 44px">Ask</button>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap">
+          <button style="background: transparent; color: #B3B0C4; border: 1px solid #2E3260; border-radius: 999px; padding: 8px 12px; font-size: 12px; min-height: 36px">Marriage timing</button>
+          <button style="background: transparent; color: #B3B0C4; border: 1px solid #2E3260; border-radius: 999px; padding: 8px 12px; font-size: 12px; min-height: 36px">Why Saturn?</button>
+          <button style="background: transparent; color: #B3B0C4; border: 1px solid #2E3260; border-radius: 999px; padding: 8px 12px; font-size: 12px; min-height: 36px">Explain D9</button>
+        </div>
+      </div>
+
+      <div id="learn" style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-size: 15px; font-weight: 600">Help calibrate</h2>
+        <p style="margin: 0; font-size: 12px; color: #B3B0C4">Add dated life events. They test the engine against outcomes and are never shown to anyone.</p>
+        <a href="#learn" style="font-size: 13px; font-weight: 600">Add an event →</a>
+      </div>
+    </aside>
+  </main>
+
+  <footer style="padding: 16px 40px 28px; border-top: 1px solid #2E3260; font-size: 12px; color: #B3B0C4; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px">
+    <span>Classical signals computed exactly; confidence words come from the engine, not the writer. Probability language appears only for calibrated areas.</span>
+    <span>Not medical, legal or financial advice.</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

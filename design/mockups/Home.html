@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home — landing</title>
+<!-- design-canvas runtime script removed; the page is plain HTML with inline styles -->
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+<style>
+body{margin:0;background:#0F1230;color:#F3EEE2;font-family:Inter,system-ui,sans-serif}
+a{color:#E8A33D}a:hover{color:#F3C06A}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0F1230; color: #F3EEE2; font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.55">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 16px 40px; border-bottom: 1px solid #2E3260">
+    <a href="Home.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #F3EEE2; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#E8A33D" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"></rect><path d="M2 2l20 20M22 2L2 22M12 2l10 10-10 10L2 12z"></path></svg>
+      Jyotish Engine
+    </a>
+    <nav style="display: flex; gap: 24px; flex-wrap: wrap; font-size: 14px">
+      <a href="#how" style="color: #B3B0C4; text-decoration: none">How it works</a>
+      <a href="#honest" style="color: #B3B0C4; text-decoration: none">Accuracy</a>
+      <a href="#learn" style="color: #B3B0C4; text-decoration: none">Learn</a>
+      <a href="#pricing" style="color: #B3B0C4; text-decoration: none">Pricing</a>
+    </nav>
+    <div style="display: flex; gap: 10px">
+      <a href="Main.html" style="color: #F3EEE2; text-decoration: none; border: 1px solid #2E3260; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; box-sizing: border-box">Sign in</a>
+      <a href="#start" style="background: #E8A33D; color: #0F1230; text-decoration: none; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; box-sizing: border-box">Get your chart</a>
+    </div>
+  </header>
+
+  <!-- hero -->
+  <section id="start" style="max-width: 1180px; margin: 0 auto; padding: 72px 40px 56px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+    <div style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+      <span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #E8A33D; font-weight: 600">Vedic astrology, computed exactly</span>
+      <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 56px; font-weight: 500; line-height: 1.05">Every classical signal in your chart. Weighed, cited, and honest about its confidence.</h1>
+      <p style="margin: 0; color: #B3B0C4; font-size: 17px; max-width: 540px">All 16 vargas, Shadbala, Ashtakavarga, three dasha systems and 300+ cited rules — then a reading that shows its working, and a confidence score we test against real outcomes.</p>
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; color: #B3B0C4">
+        <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#5ED1B6" stroke-width="2"><path d="M5 12l5 5L20 7"></path></svg>Rules cite the shloka</span>
+        <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#5ED1B6" stroke-width="2"><path d="M5 12l5 5L20 7"></path></svg>Matches Jagannatha Hora to 1 arc-minute</span>
+        <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#5ED1B6" stroke-width="2"><path d="M5 12l5 5L20 7"></path></svg>Validation results published</span>
+      </div>
+    </div>
+
+    <form style="flex: 0 1 400px; min-width: 0; background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600">Your birth details</h2>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="dob" style="font-size: 13px; color: #B3B0C4">Date of birth</label>
+        <input id="dob" type="date" style="background: #0F1230; color: #F3EEE2; border: 1px solid #2E3260; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; min-height: 44px; box-sizing: border-box">
+      </div>
+      <div style="display: flex; gap: 12px">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+          <label for="tob" style="font-size: 13px; color: #B3B0C4">Time</label>
+          <input id="tob" type="time" style="background: #0F1230; color: #F3EEE2; border: 1px solid #2E3260; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; min-height: 44px; box-sizing: border-box; width: 100%">
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+          <label for="acc" style="font-size: 13px; color: #B3B0C4">Time accuracy</label>
+          <select id="acc" style="background: #0F1230; color: #F3EEE2; border: 1px solid #2E3260; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; min-height: 44px; box-sizing: border-box; width: 100%">
+            <option>Exact</option><option>Within 15 min</option><option>Approximate</option><option>Unknown</option>
+          </select>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="place" style="font-size: 13px; color: #B3B0C4">Place of birth</label>
+        <input id="place" type="text" placeholder="City, country" style="background: #0F1230; color: #F3EEE2; border: 1px solid #2E3260; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; min-height: 44px; box-sizing: border-box">
+      </div>
+      <button type="button" style="background: #E8A33D; color: #0F1230; border: 0; border-radius: 8px; padding: 14px; font-weight: 600; font-size: 14px; min-height: 48px; margin-top: 4px">Compute my chart</button>
+      <p style="margin: 0; font-size: 12px; color: #B3B0C4">Free: D1, D9, dasha and the top three life areas. No account needed.</p>
+    </form>
+  </section>
+
+  <!-- three users -->
+  <section style="max-width: 1180px; margin: 0 auto; padding: 24px 40px 56px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <div style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; color: #E8A33D; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Curious</span>
+      <h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">A plain-language reading</h3>
+      <p style="margin: 0; color: #B3B0C4; font-size: 14px">Your driver planet, your three strongest life areas, and what the current period is activating — in words, with the confidence stated.</p>
+    </div>
+    <div style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; color: #E8A33D; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Learner</span>
+      <h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">See every rule that fired</h3>
+      <p style="margin: 0; color: #B3B0C4; font-size: 14px">Each claim opens to the rule, the shloka, and the feature values that satisfied it. Rules that did not fire are shown too, with why.</p>
+    </div>
+    <div style="background: #181B3C; border: 1px solid #2E3260; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; color: #E8A33D; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Astrologer</span>
+      <h3 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 500">The full workbench</h3>
+      <p style="margin: 0; color: #B3B0C4; font-size: 14px">16 vargas, Shadbala and Ashtakavarga tables, Vimshottari to five levels, Chara and Yogini, Varshaphal, KP sub-lords. Export everything.</p>
+    </div>
+  </section>
+
+  <!-- how it works -->
+  <section id="how" style="max-width: 1180px; margin: 0 auto; padding: 24px 40px 56px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px">
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 36px; font-weight: 500">How a reading is made</h2>
+      <span style="color: #B3B0C4; font-size: 14px">Deterministic until the last step</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+      <div style="border-top: 2px solid #E8A33D; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #B3B0C4">01</span>
+        <strong>Compute</strong>
+        <p style="margin: 0; color: #B3B0C4; font-size: 14px">Swiss Ephemeris positions, lagna, 16 vargas, nakshatras, special lagnas.</p>
+      </div>
+      <div style="border-top: 2px solid #E8A33D; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #B3B0C4">02</span>
+        <strong>Measure</strong>
+        <p style="margin: 0; color: #B3B0C4; font-size: 14px">Dignity, lordship, aspects, Shadbala, Ashtakavarga, Jaimini karakas, KP sub-lords.</p>
+      </div>
+      <div style="border-top: 2px solid #E8A33D; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #B3B0C4">03</span>
+        <strong>Score</strong>
+        <p style="margin: 0; color: #B3B0C4; font-size: 14px">300+ cited rules run on the chart graph; each life area gets a score and a confidence from how many signal families agree.</p>
+      </div>
+      <div style="border-top: 2px solid #E8A33D; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #B3B0C4">04</span>
+        <strong>Narrate</strong>
+        <p style="margin: 0; color: #B3B0C4; font-size: 14px">The writer never sees the raw chart — only the scored result and the texts — and cites a rule for every sentence.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- honesty band -->
+  <section id="honest" style="background: #181B3C; border-top: 1px solid #2E3260; border-bottom: 1px solid #2E3260">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 48px 40px; display: flex; flex-wrap: wrap; gap: 40px; align-items: center">
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">We test it, and we publish the results either way</h2>
+        <p style="margin: 0; color: #B3B0C4">Users can add dated life events. The engine is scored against them and against shuffled charts. An area is allowed to use probability language only after its calibration bin passes. Until then it says "classical signals point to…" — and means exactly that.</p>
+      </div>
+      <div style="flex: 0 1 380px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <div style="background: #0F1230; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #B3B0C4">Charts in validation set</span>
+          <strong style="font-size: 24px; font-family: Fraunces, Georgia, serif; font-weight: 500">[count]</strong>
+        </div>
+        <div style="background: #0F1230; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #B3B0C4">Dated outcomes</span>
+          <strong style="font-size: 24px; font-family: Fraunces, Georgia, serif; font-weight: 500">[count]</strong>
+        </div>
+        <div style="background: #0F1230; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #B3B0C4">Areas calibrated</span>
+          <strong style="font-size: 24px; font-family: Fraunces, Georgia, serif; font-weight: 500; color: #5ED1B6">[n] of 18</strong>
+        </div>
+        <div style="background: #0F1230; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #B3B0C4">Last run</span>
+          <strong style="font-size: 24px; font-family: Fraunces, Georgia, serif; font-weight: 500">[date]</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- learn + pricing -->
+  <section id="learn" style="max-width: 1180px; margin: 0 auto; padding: 56px 40px; display: flex; flex-wrap: wrap; gap: 32px">
+    <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500">Learn to read charts on your own</h2>
+      <p style="margin: 0; color: #B3B0C4">A seven-layer method, taught on your own chart: layout, lagna lord, lordships, dignity, house groups, yogas, D9, dasha. Practise on charts you know; the engine checks your reading against its own.</p>
+      <a href="Main.html" style="font-weight: 600">Start the first lesson →</a>
+    </div>
+    <div id="pricing" style="flex: 1 1 420px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+      <div style="border: 1px solid #2E3260; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+        <strong>Free</strong>
+        <span style="font-family: Fraunces, Georgia, serif; font-size: 28px">₹0</span>
+        <span style="color: #B3B0C4; font-size: 14px">D1, D9, dasha, top three areas, learner mode on one chart.</span>
+      </div>
+      <div style="border: 1px solid #E8A33D; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+        <strong>Full</strong>
+        <span style="font-family: Fraunces, Georgia, serif; font-size: 28px">[YOUR PRICE]<span style="font-size: 14px; color: #B3B0C4"> / month</span></span>
+        <span style="color: #B3B0C4; font-size: 14px">All vargas, all dashas, timing questions, exports, unlimited charts.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding: 24px 40px 32px; border-top: 1px solid #2E3260; font-size: 12px; color: #B3B0C4; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px">
+    <span>Jyotish Engine · Lahiri ayanamsa by default · Swiss Ephemeris</span>
+    <span>Not medical, legal or financial advice.</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1520}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

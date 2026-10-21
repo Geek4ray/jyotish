@@ -1,0 +1,814 @@
+{
+ "as_of": "2026-10-21",
+ "weights": "classical-1.0",
+ "engine": "0.1.0",
+ "question": "How will my career go, and when is the best time for a job change?",
+ "model": "claude-opus-5-5",
+ "attempts": 3,
+ "chart": {
+  "birth_utc": "2001-03-12T04:40:25+00:00",
+  "lat": 28.1989,
+  "lon": 76.617,
+  "tz": "Asia/Kolkata",
+  "accuracy": "exact",
+  "ayanamsa_value": 23.873755415153767,
+  "conventions": {
+   "ayanamsa": "lahiri",
+   "node": "mean",
+   "node_aspects": false,
+   "house_system": "whole_sign",
+   "kp_house_system": "placidus",
+   "dasha_year": 365.25,
+   "rising_signs": "bphs",
+   "twilight_minutes": 24.0,
+   "ishta_kashta": "bphs",
+   "argala_nodes": "rath",
+   "timing_formula": "v2.1",
+   "driver_formula": "v2",
+   "chara_variant": "kn_rao",
+   "karaka_scheme": 8,
+   "varga_term": "v2",
+   "kp_vote": "v2",
+   "ekadhipatya_nodes": false,
+   "ekadhipatya_zero_exempt": false,
+   "drekkana_bala": "bphs",
+   "saptavargaja_scale": "bphs",
+   "dig_bala_points": "cusps",
+   "nathonnata_noon": "apparent",
+   "mercury_nature": "association",
+   "paksha_moon_double": true,
+   "ayana_obliquity": "bphs",
+   "ayana_sun_double": true,
+   "chesta_luminaries": "bphs"
+  },
+  "sampler": {
+   "samples": 200,
+   "shape": "uniform",
+   "half_width_min": 2.0,
+   "ayanamsas": [
+    "lahiri",
+    "raman",
+    "kp"
+   ],
+   "house_systems": [
+    "whole_sign",
+    "sripati"
+   ]
+  },
+  "local_date": "2001-03-12",
+  "local_time": "10:10:25",
+  "tz_input": "Asia/Kolkata",
+  "place": "Rewari, Haryana",
+  "seed": 0,
+  "command": "jyotish read --date 2001-03-12 --time 10:10:25 --tz Asia/Kolkata --lat 28.1989 --lon 76.617 --accuracy exact --node mean --seed 0 --question 'How will my career go, and when is the best time for a job change?' --place 'Rewari, Haryana'"
+ },
+ "narration_source": "live",
+ "unchecked_sentences": 0,
+ "summary": {
+  "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, favouring intellect, communication and reputation, and a kendra-trikona raja yoga tied to authority, reputation and career [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The house, lord, karaka, varga and panchanga votes for career all come out in favour [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The weakest point is the 10th house from the lagna, which is the lowest in bhava bala among the career houses [vote:career.house].",
+  "cites": [
+   "rule:yoga.budhaditya",
+   "rule:yoga.kendra_trikona_raja",
+   "vote:career.house",
+   "vote:career.lord",
+   "vote:career.karaka",
+   "vote:career.varga",
+   "vote:career.panchanga",
+   "vote:career.house"
+  ],
+  "driver_planet": "Venus",
+  "driver_alternates": [
+   "Jupiter",
+   "Mars"
+  ],
+  "current_period": "Jupiter-Mercury",
+  "top_areas": [
+   "career",
+   "marriage",
+   "longevity"
+  ],
+  "time_window_min": 2.0,
+  "stable_findings": 5,
+  "unstable_findings": 0,
+  "abstained_areas": [
+   "children",
+   "father",
+   "gains",
+   "synastry"
+  ]
+ },
+ "areas": [
+  {
+   "name": "career",
+   "score_classical": 24.665237665536274,
+   "score_learned": null,
+   "model_disagreement": null,
+   "tier": "moderate",
+   "stability": {
+    "time": 1.0,
+    "ayanamsa": 1.0,
+    "house": 1.0,
+    "label": "stable"
+   },
+   "probability": null,
+   "calibrated": false,
+   "bin_n": 0,
+   "families_agree_w": 4.658337557296774,
+   "families_total_w": 6.660342167026543,
+   "polarity": [
+    "intensity"
+   ],
+   "polarity_touches": {
+    "intensity": [
+     "house H10",
+     "lord Saturn",
+     "karaka Sun"
+    ]
+   },
+   "claims": [
+    {
+     "finding_id": "yoga.kendra_trikona_raja@lagna",
+     "text": "The Sun, lord of the 4th, conjoins Mercury, lord of the 2nd and 5th, in the 10th house, forming a kendra-trikona raja yoga tied to authority, reputation and career [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12].",
+     "cites": [
+      "rule:yoga.kendra_trikona_raja",
+      "text:BPHS/Santhanam-1984/34/11-12"
+     ],
+     "kind": "rule",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.6
+    },
+    {
+     "finding_id": "yoga.budhaditya@lagna",
+     "text": "Sun and Mercury conjoined in the 10th house from the lagna form Budhaditya yoga, which favours intellect, communication and reputation, with a small reduction for avastha [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1].",
+     "cites": [
+      "rule:yoga.budhaditya",
+      "text:Phaladeepika/Sastri-1937/18/1"
+     ],
+     "kind": "rule",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.54
+    },
+    {
+     "finding_id": "yoga.ruchaka@lagna+sun",
+     "text": "Mars forms Ruchaka yoga from the lagna, in the 7th house, and from the Sun, in the 10th house, supporting courage and leadership, though it is weakened by Saturn's aspect, by its tara from the Moon and by its marana karaka sthana placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].",
+     "cites": [
+      "rule:yoga.ruchaka",
+      "text:BPHS/Santhanam-1984/75/1-2"
+     ],
+     "kind": "rule",
+     "school": "parashari",
+     "basis": "lagna, sun",
+     "stability": 1.0,
+     "confidence": 0.2856
+    },
+    {
+     "finding_id": "vote:career.house",
+     "text": "The house vote is for career: from the lagna the 2nd in Gemini (8.93 rupas), the 11th in Pisces (8.23) and the 6th in Libra (8.22) are strong while the 10th in Aquarius is the weakest at 4.51 rupas, and from the Moon the 11th in Leo (8.51) and from the Sun the 11th in Sagittarius (8.95) are strong [vote:career.house].",
+     "cites": [
+      "vote:career.house"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna, moon, sun 3:2:1",
+     "stability": 1.0,
+     "confidence": 0.9818743784975401
+    },
+    {
+     "finding_id": "vote:career.panchanga",
+     "text": "The panchanga vote is for career: Mars, ruling the tithi and nakshatra, rules the 7th from the lagna, the 2nd and 7th from the Moon and the 10th from the Sun with a shadbala ratio of 1.3, and the Moon, ruling the vara, rules the 10th from the Moon and the 6th from the Sun with a ratio of 1.27 [vote:career.panchanga].",
+     "cites": [
+      "vote:career.panchanga"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.9769953380345803
+    },
+    {
+     "finding_id": "vote:career.karaka",
+     "text": "The karaka vote is for career: the Sun (enemy sign, ratio 1.23) and Mercury (neutral, ratio 1.19) both sit in the 10th in Aquarius, Venus is exalted in Pisces in the 11th (1.33), and Saturn is in a friendly sign in the lagna (0.69) [vote:career.karaka].",
+     "cites": [
+      "vote:career.karaka"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.9358272478469318
+    },
+    {
+     "finding_id": "vote:career.lord",
+     "text": "The lord vote is for career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign with a shadbala ratio of 0.69, while the 6th lord Venus is exalted in Pisces in the 11th (1.33), Mars as 7th lord is in its own sign Scorpio (1.3), and the Moon, 10th lord from the Moon, sits in Libra in the 6th from the lagna (1.27) [vote:career.lord].",
+     "cites": [
+      "vote:career.lord"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna, moon, sun 3:2:1",
+     "stability": 1.0,
+     "confidence": 0.9249446442470166
+    },
+    {
+     "finding_id": "vote:career.varga",
+     "text": "The varga vote is for career: in the D10, Mars in Capricorn scores best, Saturn in Capricorn scores well, the Sun in Scorpio, Venus in Gemini and Jupiter in Aries score mildly positive, and the Moon in Libra and Mercury in Aquarius are neutral [vote:career.varga].",
+     "cites": [
+      "vote:career.varga"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.8386959486707044
+    }
+   ],
+   "school_conflicts": [],
+   "windows": [
+    {
+     "kind": "dasha+transit",
+     "start": "2029-10-23",
+     "end": "2032-06-23",
+     "score": 0.844,
+     "q": 0.821,
+     "q_terms": {
+      "tara": 0.0,
+      "relevance": 1.0,
+      "dignity": 1.0,
+      "shadbala": 1.0,
+      "ishta": 0.925,
+      "relation": 1.0
+     },
+     "t": 0.88,
+     "relevant_systems": [
+      "vimshottari",
+      "yogini",
+      "chara"
+     ],
+     "strongest_piece": {
+      "start": "2030-05-01",
+      "end": "2030-09-22",
+      "score": 0.892,
+      "t": 1.0
+     },
+     "confidence": "strong",
+     "stability": 7.493550627492368,
+     "sandhi": false,
+     "truncated": false,
+     "tags": [],
+     "why": [
+      {
+       "kind": "dasha",
+       "system": "vimshottari",
+       "lords": [
+        "Jupiter",
+        "Venus"
+       ]
+      },
+      {
+       "kind": "dasha",
+       "system": "yogini",
+       "lords": [
+        "Rahu",
+        "Jupiter"
+       ]
+      },
+      {
+       "kind": "dasha",
+       "system": "chara",
+       "lords": [
+        "Aquarius",
+        "Gemini"
+       ]
+      },
+      {
+       "kind": "transit",
+       "activation": 0.88,
+       "targets": {
+        "full": [
+         "Aquarius",
+         "Taurus"
+        ],
+        "secondary": [
+         "Gemini",
+         "Libra",
+         "Pisces"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "dasha+transit",
+     "start": "2027-10-20",
+     "end": "2028-02-23",
+     "score": 0.841,
+     "q": 0.734,
+     "q_terms": {
+      "tara": 0.5,
+      "relevance": 1.0,
+      "dignity": 0.5,
+      "shadbala": 1.0,
+      "ishta": 0.407,
+      "relation": 1.0
+     },
+     "t": 1.0,
+     "relevant_systems": [
+      "vimshottari",
+      "yogini",
+      "chara"
+     ],
+     "strongest_piece": {
+      "start": "2027-10-20",
+      "end": "2027-11-26",
+      "score": 0.841,
+      "t": 1.0
+     },
+     "confidence": "moderate",
+     "stability": null,
+     "sandhi": true,
+     "truncated": false,
+     "tags": [
+      "dasha_sandhi"
+     ],
+     "why": [
+      {
+       "kind": "dasha",
+       "system": "vimshottari",
+       "lords": [
+        "Jupiter",
+        "Mercury"
+       ]
+      },
+      {
+       "kind": "dasha",
+       "system": "yogini",
+       "lords": [
+        "Venus",
+        "Saturn"
+       ]
+      },
+      {
+       "kind": "dasha",
+       "system": "chara",
+       "lords": [
+        "Pisces",
+        "Pisces"
+       ]
+      },
+      {
+       "kind": "transit",
+       "activation": 1.0,
+       "targets": {
+        "full": [
+         "Aquarius",
+         "Taurus"
+        ],
+        "secondary": [
+         "Gemini",
+         "Libra",
+         "Pisces"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "dasha+transit",
+     "start": "2026-10-21",
+     "end": "2027-01-24",
+     "score": 0.834,
+     "q": 0.734,
+     "q_terms": {
+      "tara": 0.5,
+      "relevance": 1.0,
+      "dignity": 0.5,
+      "shadbala": 1.0,
+      "ishta": 0.407,
+      "relation": 1.0
+     },
+     "t": 0.982,
+     "relevant_systems": [
+      "vimshottari",
+      "yogini",
+      "chara"
+     ],
+     "strongest_piece": {
+      "start": "2026-10-31",
+      "end": "2026-12-05",
+      "score": 0.841,
+      "t": 1.0
+     },
+     "confidence": "strong",
+     "stability": null,
+     "sandhi": false,
+     "truncated": true,
+     "tags": [
+      "truncated"
+     ],
+     "why": [
+      {
+       "kind": "dasha",
+       "system": "vimshottari",
+       "lords": [
+        "Jupiter",
+        "Mercury"
+       ]
+      },
+      {
+       "kind": "dasha",
+       "system": "yogini",
+       "lords": [
+        "Venus",
+        "Mercury"
+       ]
+      },
+      {
+       "kind": "dasha",
+       "system": "chara",
+       "lords": [
+        "Pisces",
+        "Aquarius"
+       ]
+      },
+      {
+       "kind": "transit",
+       "activation": 0.982,
+       "targets": {
+        "full": [
+         "Aquarius",
+         "Taurus"
+        ],
+        "secondary": [
+         "Gemini",
+         "Libra",
+         "Pisces"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "avoid_window": {
+    "kind": "dasha+transit",
+    "start": "2028-11-17",
+    "end": "2029-08-08",
+    "score": 0.467,
+    "q": 0.333,
+    "q_terms": {
+     "tara": 0.0,
+     "relevance": 1.0,
+     "relation": 0.0
+    },
+    "t": 0.667,
+    "relevant_systems": [
+     "vimshottari",
+     "yogini",
+     "chara"
+    ],
+    "strongest_piece": {
+     "start": "2028-11-17",
+     "end": "2028-12-26",
+     "score": 0.467,
+     "t": 0.667
+    },
+    "confidence": "strong",
+    "stability": 7.493550627492368,
+    "sandhi": false,
+    "truncated": false,
+    "tags": [],
+    "why": [
+     {
+      "kind": "dasha",
+      "system": "vimshottari",
+      "lords": [
+       "Jupiter",
+       "Ketu"
+      ]
+     },
+     {
+      "kind": "dasha",
+      "system": "yogini",
+      "lords": [
+       "Rahu",
+       "Rahu"
+      ]
+     },
+     {
+      "kind": "dasha",
+      "system": "chara",
+      "lords": [
+       "Aquarius",
+       "Aries"
+      ]
+     },
+     {
+      "kind": "transit",
+      "activation": 0.667,
+      "targets": {
+       "full": [
+        "Aquarius",
+        "Taurus"
+       ],
+       "secondary": [
+        "Gemini",
+        "Libra",
+        "Pisces"
+       ]
+      }
+     }
+    ]
+   },
+   "disclaimer": null
+  },
+  {
+   "name": "marriage",
+   "score_classical": 18.090573049298985,
+   "score_learned": null,
+   "model_disagreement": null,
+   "tier": "moderate",
+   "stability": {
+    "time": 1.0,
+    "ayanamsa": 1.0,
+    "house": 1.0,
+    "label": "stable"
+   },
+   "probability": null,
+   "calibrated": false,
+   "bin_n": 0,
+   "families_agree_w": 5.557697261908227,
+   "families_total_w": 6.555505173442705,
+   "polarity": [
+    "delay"
+   ],
+   "polarity_touches": {
+    "delay": [
+     "house H7",
+     "lord Mars"
+    ]
+   },
+   "claims": [
+    {
+     "finding_id": "vote:marriage.kp",
+     "text": "The KP vote is for marriage: the 7th cusp lies in Saturn's star and its sub is ruled by Mercury, and Mars, ruler of the star Mercury occupies, sits in and rules the 7th, signifying 7 and 12 and meeting the marriage matter 7, which decides the vote, while Mercury itself signifies 2, 5 and 10 and gives a mixed result [vote:marriage.kp].",
+     "cites": [
+      "vote:marriage.kp"
+     ],
+     "kind": "vote",
+     "school": "kp",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 1.0
+    },
+    {
+     "finding_id": "vote:marriage.arudha",
+     "text": "The arudha vote is against marriage: the upapada falls in Gemini in the 2nd from the lagna, occupied by Rahu with no benefics, while the UL2 in the 3rd and the A7 in Leo in the 4th have no occupants or benefics [vote:marriage.arudha].",
+     "cites": [
+      "vote:marriage.arudha"
+     ],
+     "kind": "vote",
+     "school": "jaimini",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.997807911534478
+    },
+    {
+     "finding_id": "vote:marriage.house",
+     "text": "The house vote is for marriage: from the lagna the 8th in Sagittarius (8.95 rupas), 2nd in Gemini (8.93) and 11th in Pisces (8.23) are strong and the 7th in Scorpio is middling at 7.37, while from the Sun the 7th in Leo is strong (8.51) and from the Moon the 7th in Aries is weaker (6.7) [vote:marriage.house].",
+     "cites": [
+      "vote:marriage.house"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna, moon, sun 3:2:1",
+     "stability": 1.0,
+     "confidence": 0.9818743784975401
+    },
+    {
+     "finding_id": "vote:marriage.panchanga",
+     "text": "The panchanga vote is for marriage: Mars, ruling the tithi and nakshatra, rules the 7th from the lagna and the 7th and 2nd from the Moon, with a shadbala ratio of 1.3 [vote:marriage.panchanga].",
+     "cites": [
+      "vote:marriage.panchanga"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.9769953380345803
+    },
+    {
+     "finding_id": "vote:marriage.karaka",
+     "text": "The karaka vote is for marriage: Venus is exalted in Pisces in the 11th (ratio 1.33), Jupiter is in the lagna in Taurus in an enemy sign (1.22), and Mercury is in the 10th in Aquarius in a neutral sign (1.19) [vote:marriage.karaka].",
+     "cites": [
+      "vote:marriage.karaka"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.9358272478469318
+    },
+    {
+     "finding_id": "vote:marriage.lord",
+     "text": "The lord vote is for marriage: the 7th lord Mars sits in its own sign Scorpio in the 7th with a shadbala ratio of 1.3, the lagna lord Venus is exalted in Pisces in the 11th (1.33), and Jupiter, lord of the 8th and 11th, sits in the lagna in an enemy sign (1.22) [vote:marriage.lord].",
+     "cites": [
+      "vote:marriage.lord"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna, moon, sun 3:2:1",
+     "stability": 1.0,
+     "confidence": 0.9249446442470166
+    },
+    {
+     "finding_id": "vote:marriage.varga",
+     "text": "The varga vote is for marriage: in the D9, Saturn in Capricorn scores best, Mars in Sagittarius, Mercury in Libra, Venus in Aquarius and Jupiter in Aries score mildly positive, and the Sun in Gemini is neutral [vote:marriage.varga].",
+     "cites": [
+      "vote:marriage.varga"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.7338589550868664
+    }
+   ],
+   "school_conflicts": [
+    {
+     "schools": [
+      "parashari",
+      "jaimini"
+     ],
+     "families": [
+      "house/lord/karaka/varga",
+      "arudha"
+     ],
+     "parashari": "for",
+     "jaimini": "against"
+    }
+   ],
+   "windows": [],
+   "avoid_window": null,
+   "disclaimer": "This describes the relationship as seen from this chart, not the other person's own life."
+  },
+  {
+   "name": "longevity",
+   "score_classical": 15.44712227514289,
+   "score_learned": null,
+   "model_disagreement": null,
+   "tier": "moderate",
+   "stability": {
+    "time": 1.0,
+    "ayanamsa": 1.0,
+    "house": 1.0,
+    "label": "stable"
+   },
+   "probability": null,
+   "calibrated": false,
+   "bin_n": 0,
+   "families_agree_w": 4.716580331510016,
+   "families_total_w": 5.714388243044494,
+   "polarity": [
+    "intensity"
+   ],
+   "polarity_touches": {
+    "intensity": [
+     "house H1",
+     "karaka Saturn"
+    ]
+   },
+   "claims": [
+    {
+     "finding_id": "vote:longevity.arudha",
+     "text": "The arudha vote for this area is against, because Mars in the 7th and Saturn in the 1st from the lagna sit in marana karaka sthana [vote:longevity.arudha].",
+     "cites": [
+      "vote:longevity.arudha"
+     ],
+     "kind": "vote",
+     "school": "jaimini",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.997807911534478
+    },
+    {
+     "finding_id": "vote:longevity.house",
+     "text": "The house vote for this area is favourable: from the lagna the 8th in Sagittarius is strong at 8.95 rupas, the 3rd has 7.68 and the 1st in Taurus 7.16, while from the Sun the 1st in Aquarius is the weakest at 4.51 [vote:longevity.house].",
+     "cites": [
+      "vote:longevity.house"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna, moon, sun 3:2:1",
+     "stability": 1.0,
+     "confidence": 0.9818743784975401
+    },
+    {
+     "finding_id": "vote:longevity.panchanga",
+     "text": "The panchanga vote for this area is favourable: Mars, ruling the tithi and nakshatra, rules the 3rd from the Sun with a shadbala ratio of 1.3, and the Moon, ruling the vara, rules the 3rd from the lagna with a ratio of 1.27 [vote:longevity.panchanga].",
+     "cites": [
+      "vote:longevity.panchanga"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.9769953380345803
+    },
+    {
+     "finding_id": "vote:longevity.karaka",
+     "text": "The karaka vote for this area is favourable: Saturn (friendly sign, ratio 0.69) and Jupiter (enemy sign, ratio 1.22) both sit in the lagna in Taurus, and Venus is exalted in Pisces in the 11th (1.33) [vote:longevity.karaka].",
+     "cites": [
+      "vote:longevity.karaka"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.9358272478469318
+    },
+    {
+     "finding_id": "vote:longevity.lord",
+     "text": "The lord vote for this area is favourable: the lagna lord Venus is exalted in Pisces in the 11th (ratio 1.33), the 8th lord Jupiter sits in the lagna in an enemy sign (1.22), and the 3rd lord Moon sits in Libra in the 6th (1.27) [vote:longevity.lord].",
+     "cites": [
+      "vote:longevity.lord"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna, moon, sun 3:2:1",
+     "stability": 1.0,
+     "confidence": 0.9249446442470166
+    },
+    {
+     "finding_id": "vote:longevity.varga",
+     "text": "The varga vote for this area is favourable: the Moon is vargottama in Libra in the D9 and scores highest, Saturn in Capricorn in the D9 scores well, and Jupiter in Virgo in the D30 is the only negative placement [vote:longevity.varga].",
+     "cites": [
+      "vote:longevity.varga"
+     ],
+     "kind": "vote",
+     "school": "parashari",
+     "basis": "lagna",
+     "stability": 1.0,
+     "confidence": 0.8969387228839478
+    }
+   ],
+   "school_conflicts": [
+    {
+     "schools": [
+      "parashari",
+      "jaimini"
+     ],
+     "families": [
+      "house/lord/karaka/varga",
+      "arudha"
+     ],
+     "parashari": "for",
+     "jaimini": "against"
+    }
+   ],
+   "windows": [],
+   "avoid_window": null,
+   "disclaimer": "Classical longevity indications are shown as indications only; the engine does not time death."
+  }
+ ],
+ "fired_rules": [
+  {
+   "id": "yoga.budhaditya",
+   "basis": "lagna",
+   "scale": 0.9,
+   "stability": 1.0
+  },
+  {
+   "id": "yoga.kendra_trikona_raja",
+   "basis": "lagna",
+   "scale": 1.0,
+   "stability": 1.0
+  },
+  {
+   "id": "yoga.parivartana",
+   "basis": "lagna",
+   "scale": 0.8,
+   "stability": 1.0
+  },
+  {
+   "id": "yoga.ruchaka",
+   "basis": "lagna",
+   "scale": 0.408,
+   "stability": 1.0
+  },
+  {
+   "id": "yoga.ruchaka",
+   "basis": "sun",
+   "scale": 0.408,
+   "stability": 1.0
+  }
+ ],
+ "unstable": [],
+ "depends_on_birth_time": [],
+ "disclaimers": [
+  "longevity",
+  "third_party"
+ ]
+}
