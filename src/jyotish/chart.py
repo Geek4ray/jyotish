@@ -15,14 +15,16 @@ from .dignity import (
     pushkara_navamsa,
 )
 from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_chains
-from .ephemeris import compute_sky, julian_day, sunrise_sunset
+from .ephemeris import ayanamsa_value, compute_sky, julian_day, next_sunrise, sunrise_sunset
 from .jaimini import all_arudhas, chara_karakas, karakamsa
 from .models import (
     Ashtakavarga, Birth, Body, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
-    PanchangaInfo, Pinda, TaraInfo, TimePosterior,
+    KalaBala, PanchangaInfo, Pinda, PlanetShadbala, Shadbala, SthanaBala, TaraInfo,
+    TimePosterior, Yuddha,
 )
 from .nakshatra import kp_sub_lords, nakshatra_of, navatara
 from .panchanga import panchanga as compute_panchanga
+from .shadbala import ShadbalaSettings, shadbala as compute_shadbala
 from .vargas import PRODUCTION_VARGAS, VARGAS, is_vargottama
 
 ACCURACY_HALF_WIDTH_MIN = {"exact": 2.0, "within_15": 15.0, "approximate": 60.0, "unknown": 720.0}
@@ -37,7 +39,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             meta: Meta | None = None, birth: Birth | None = None, jd: float | None = None,
             mc: float | None = None, cusps: list[float] | None = None,
             sunrise: float | None = None, sunset: float | None = None,
-            dasha_levels: int = 2) -> Chart:
+            next_sunrise: float | None = None, dasha_levels: int = 2) -> Chart:
     """Build the chart object from sidereal longitudes (all nine grahas) and the ascendant."""
     meta = meta or Meta()
     birth = birth or Birth()
@@ -128,6 +130,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             pinda={p: Pinda(rasi=x.rasi, graha=x.graha, sodhya=x.sodhya) for p, x in av.pinda.items()},
             kakshya=av.kakshya, kakshya_bindu=av.kakshya_bindu),
         sudarshana_h10=sudarshana_h10,
+        shadbala=_shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise),
     )
 
     pinfo = None
@@ -151,6 +154,26 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
                  vargas=vargas, features=features, dashas=dashas)
 
 
+def _shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise) -> Shadbala | None:
+    """Shadbala needs the birth moment and the day's sunrises (Kala bala), and the MC
+    unless Dig bala is read from equal houses. Without them the field is absent."""
+    if None in (jd, sunrise, sunset, next_sunrise):
+        return None
+    if mc is None and meta.dig_bala_points == "cusps":
+        return None
+    aya = meta.ayanamsa_value if meta.ayanamsa_value is not None else ayanamsa_value(jd, meta.ayanamsa)
+    r = compute_shadbala(positions, asc, mc=mc, jd=jd, sunrise=sunrise, sunset=sunset,
+                         next_sunrise=next_sunrise, ayanamsa=aya, geo_lon=birth.lon,
+                         settings=ShadbalaSettings.from_obj(meta))
+    return Shadbala(
+        planets={p: PlanetShadbala(sthana=SthanaBala(**x.sthana), dig=x.dig, kala=KalaBala(**x.kala),
+                                   chesta=x.chesta, naisargika=x.naisargika, drik=x.drik,
+                                   total=x.total, required=x.required, ratio=x.ratio)
+                 for p, x in r.planets.items()},
+        lords=r.lords, tribhaga_lord=r.tribhaga_lord,
+        wars=[Yuddha(planets=list(w.planets), winner=w.winner, bala=w.bala) for w in r.wars])
+
+
 def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",
             true_node: bool = True, time_accuracy: str = "exact", tz: str | None = None,
             dasha_levels: int = 2) -> Chart:
@@ -160,6 +183,7 @@ def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",
     jd = julian_day(utc.year, utc.month, utc.day, hour)
     sky = compute_sky(jd, lat, lon, ayanamsa=ayanamsa, true_node=true_node)
     rise, sset = sunrise_sunset(jd, lat, lon)
+    rise_next = next_sunrise(sset, lat, lon)
     positions = {n: b.lon for n, b in sky.bodies.items()}
     speeds = {n: b.speed for n, b in sky.bodies.items()}
     meta = Meta(ayanamsa=ayanamsa, ayanamsa_value=sky.ayanamsa_value, jd=jd,
@@ -169,4 +193,5 @@ def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",
                                                half_width_min=ACCURACY_HALF_WIDTH_MIN[time_accuracy],
                                                samples=0))
     return analyse(positions, sky.asc, speeds=speeds, meta=meta, birth=birth, jd=jd, mc=sky.mc,
-                   cusps=sky.cusps_placidus, sunrise=rise, sunset=sset, dasha_levels=dasha_levels)
+                   cusps=sky.cusps_placidus, sunrise=rise, sunset=sset, next_sunrise=rise_next,
+                   dasha_levels=dasha_levels)

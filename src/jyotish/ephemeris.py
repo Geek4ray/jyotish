@@ -94,6 +94,13 @@ def sunrise_sunset(jd_ut: float, lat: float, lon: float) -> tuple[float, float]:
     return rise, t_set[0]
 
 
+def next_sunrise(after_jd: float, lat: float, lon: float) -> float:
+    """Julian day of the first sunrise after `after_jd` (the end of a birth night)."""
+    geopos = (lon, lat, 0.0)
+    _, t_rise = swe.rise_trans(after_jd, swe.SUN, swe.CALC_RISE, geopos, flags=_BASE_FLAGS & ~swe.FLG_SPEED)
+    return t_rise[0]
+
+
 def recover_instant(targets: dict[str, float], year_from: int, year_to: int,
                     ayanamsa: str = "lahiri", tolerance_deg: float = 0.1) -> list[float]:
     """Find Julian days in [year_from, year_to] at which the given sidereal longitudes

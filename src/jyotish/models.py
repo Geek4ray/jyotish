@@ -20,6 +20,16 @@ class Meta(BaseModel):
     karaka_scheme: int = 8
     ekadhipatya_nodes: bool = False
     ekadhipatya_zero_exempt: bool = False
+    # Shadbala conventions where texts differ (sources in constants.py, Shadbala section).
+    drekkana_bala: str = "bphs"            # bphs | phaladeepika
+    saptavargaja_scale: str = "bphs"       # bphs | raman
+    dig_bala_points: str = "cusps"         # cusps (asc, MC) | equal (asc + 90° steps)
+    nathonnata_noon: str = "apparent"      # apparent (mid sunrise-sunset) | mean (LMT noon)
+    mercury_nature: str = "association"    # association (malefic with a malefic) | benefic
+    paksha_moon_double: bool = True
+    ayana_obliquity: str = "bphs"          # bphs (24°) | true (mean obliquity of date)
+    ayana_sun_double: bool = True
+    chesta_luminaries: str = "bphs"        # bphs (Sun = ayana, Moon = paksha) | zero
     time_accuracy: str = "exact"
 
 
@@ -150,6 +160,54 @@ class Ashtakavarga(BaseModel):
     kakshya_bindu: dict[str, bool]
 
 
+class SthanaBala(BaseModel):
+    uchcha: float
+    saptavargaja: float
+    ojhayugma: float
+    kendra: float
+    drekkana: float
+    total: float
+
+
+class KalaBala(BaseModel):
+    nathonnata: float
+    paksha: float
+    tribhaga: float
+    abda: float
+    masa: float
+    vara: float
+    hora: float
+    ayana: float
+    yuddha: float
+    total: float
+
+
+class PlanetShadbala(BaseModel):
+    """Virupas (60 = 1 rupa). `ratio` is total / required."""
+    sthana: SthanaBala
+    dig: float
+    kala: KalaBala
+    chesta: float
+    naisargika: float
+    drik: float
+    total: float
+    required: float
+    ratio: float
+
+
+class Yuddha(BaseModel):
+    planets: list[str]
+    winner: str
+    bala: float
+
+
+class Shadbala(BaseModel):
+    planets: dict[str, PlanetShadbala]
+    lords: dict[str, str]          # abda, masa, vara, hora
+    tribhaga_lord: str
+    wars: list[Yuddha] = Field(default_factory=list)
+
+
 class Features(BaseModel):
     lordship: dict[str, list[int]]
     roles: dict[str, list[str]]
@@ -157,6 +215,7 @@ class Features(BaseModel):
     dispositors: Dispositors
     jaimini: Jaimini
     ashtakavarga: Ashtakavarga
+    shadbala: Shadbala | None = None   # needs the birth moment, sunrises and (by default) the MC
     sudarshana_h10: dict[str, list[str]]
 
 

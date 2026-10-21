@@ -44,3 +44,23 @@ REFERENCE_D9 = {
     "Asc": 10, "Sun": 2, "Moon": 6, "Mars": 8, "Mercury": 6, "Jupiter": 0,
     "Venus": 10, "Saturn": 9, "Rahu": 11, "Ketu": 5,
 }
+
+
+def reference_time_inputs() -> dict:
+    """Keyword arguments for `chart.analyse` that add the birth moment to the printed
+    positions: JD, sunrise, sunset, next sunrise, MC and the Lahiri ayanamsa, all at the
+    instant the app was given (10:10:00 IST), the instant those positions belong to.
+    Needs the ephemeris; used for Shadbala, panchanga and dashas on the reference chart."""
+    from .ephemeris import compute_sky, julian_day, next_sunrise, sunrise_sunset
+    from .models import Birth, Meta
+
+    u = REFERENCE_APP_UTC
+    jd = julian_day(u.year, u.month, u.day, u.hour + u.minute / 60 + u.second / 3600)
+    sky = compute_sky(jd, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    rise, sset = sunrise_sunset(jd, REFERENCE_LAT, REFERENCE_LON)
+    return {
+        "jd": jd, "mc": sky.mc, "sunrise": rise, "sunset": sset,
+        "next_sunrise": next_sunrise(sset, REFERENCE_LAT, REFERENCE_LON),
+        "meta": Meta(ayanamsa_value=sky.ayanamsa_value, jd=jd, node="mean"),
+        "birth": Birth(utc=u.isoformat(), lat=REFERENCE_LAT, lon=REFERENCE_LON, tz=REFERENCE_TZ),
+    }

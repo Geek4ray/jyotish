@@ -10,7 +10,7 @@ from .chart import analyse, compute
 from .constants import SIGNS
 from .ephemeris import recover_instant
 from .models import Chart
-from .reference import REFERENCE_ASC, REFERENCE_POSITIONS, REFERENCE_SPEEDS
+from .reference import REFERENCE_ASC, REFERENCE_POSITIONS, REFERENCE_SPEEDS, reference_time_inputs
 
 
 def _fmt_lon(lon: float) -> str:
@@ -50,6 +50,7 @@ def print_chart(chart: Chart) -> None:
     print("Sudarshana H10:", f.sudarshana_h10)
     print("KP cusp lords:", chart.lagnas.cusp_lords_kp)
     print_ashtakavarga(chart)
+    print_shadbala(chart)
     if chart.panchanga:
         print("\nPanchanga:", chart.panchanga.model_dump())
     if chart.dashas:
@@ -82,6 +83,28 @@ def print_ashtakavarga(chart: Chart) -> None:
           {p: f"{l}{' +' if av.kakshya_bindu[p] else ' -'}" for p, l in av.kakshya.items()})
 
 
+def print_shadbala(chart: Chart) -> None:
+    sb = chart.features.shadbala
+    if sb is None:
+        print("\nShadbala: not computed (needs the birth moment, sunrises and the MC)")
+        return
+    m = chart.meta
+    print("\nShadbala (virupas; ratio = total / required minimum)")
+    print(f"  {'':8}{'sthana':>8}{'dig':>7}{'kala':>8}{'chesta':>8}{'naisarg':>8}{'drik':>7}"
+          f"{'total':>8}{'req':>6}{'ratio':>7}")
+    for p, x in sb.planets.items():
+        print(f"  {p:8}{x.sthana.total:8.2f}{x.dig:7.2f}{x.kala.total:8.2f}{x.chesta:8.2f}"
+              f"{x.naisargika:8.2f}{x.drik:7.2f}{x.total:8.2f}{x.required:6.0f}{x.ratio:7.2f}")
+    print("  Sthana parts:", {p: {k: round(v, 2) for k, v in x.sthana.model_dump().items() if k != "total"}
+                              for p, x in sb.planets.items()})
+    print("  Kala parts:", {p: {k: round(v, 2) for k, v in x.kala.model_dump().items() if k != "total" and v}
+                            for p, x in sb.planets.items()})
+    print("  Lords:", sb.lords, "tribhaga:", sb.tribhaga_lord, "wars:", [w.model_dump() for w in sb.wars] or "none")
+    print(f"  Settings: drekkana={m.drekkana_bala} saptavargaja={m.saptavargaja_scale} dig={m.dig_bala_points} "
+          f"noon={m.nathonnata_noon} mercury={m.mercury_nature} moon_paksha_x2={m.paksha_moon_double} "
+          f"ayana={m.ayana_obliquity} sun_ayana_x2={m.ayana_sun_double} chesta_luminaries={m.chesta_luminaries}")
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="jyotish")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -104,7 +127,8 @@ def main(argv: list[str] | None = None) -> None:
     args = ap.parse_args(argv)
 
     if args.cmd == "reference":
-        chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS)
+        chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS,
+                        **reference_time_inputs())
         print_chart(chart)
     elif args.cmd == "compute":
         chart = compute(datetime.fromisoformat(args.utc), args.lat, args.lon,

@@ -230,3 +230,104 @@ GRAHA_GUNAKARA = {"Sun": 5, "Moon": 5, "Mars": 8, "Mercury": 5, "Jupiter": 10,
 # from the outermost, ending with the lagna (B.V. Raman, Ashtakavarga System of
 # Prediction, Kakshya chapter; the verse locus in the classical texts is not checked here).
 KAKSHYA_LORDS = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon", "Asc"]
+
+# --- Shadbala (BPHS ch. 27), all values in virupas (60 virupas = 1 rupa) ----------------
+# Required minimum per planet (BPHS 27, in rupas: 6.5, 6, 5, 7, 6.5, 5.5, 5).
+SHADBALA_REQUIRED = {"Sun": 390.0, "Moon": 360.0, "Mars": 300.0, "Mercury": 420.0,
+                     "Jupiter": 390.0, "Venus": 330.0, "Saturn": 300.0}
+# Naisargika: 60 * k / 7 in the order Saturn (1) ... Sun (7). Exact, not the truncated
+# two-decimal figures some tables print.
+NAISARGIKA = {p: 60.0 * k / 7.0 for p, k in
+              (("Sun", 7), ("Moon", 6), ("Venus", 5), ("Jupiter", 4), ("Mercury", 3),
+               ("Mars", 2), ("Saturn", 1))}
+
+# Saptavargaja: the seven vargas and the virupas per dignity in each. Moolatrikona is read
+# in D1 only, by its degree range; exaltation plays no part (it is Uchcha bala's job).
+# Two scales are in use (setting Meta.saptavargaja_scale):
+#  - "bphs": 45, 30, 20, 15, 10, 4, 2 (BPHS 27 as commonly translated);
+#  - "raman": 45, 30, 22.5, 15, 7.5, 3.75, 1.875 (halving from own; B.V. Raman, Graha and
+#    Bhava Balas). Neither verse locus is checked here.
+SAPTAVARGA = ["D1", "D2", "D3", "D7", "D9", "D12", "D30"]
+SAPTAVARGAJA_SCALES = {
+    "bphs": {"moolatrikona": 45.0, "own": 30.0, "great_friend": 20.0, "friend": 15.0,
+             "neutral": 10.0, "enemy": 4.0, "great_enemy": 2.0},
+    "raman": {"moolatrikona": 45.0, "own": 30.0, "great_friend": 22.5, "friend": 15.0,
+              "neutral": 7.5, "enemy": 3.75, "great_enemy": 1.875},
+}
+
+# Drekkana bala: 15 virupas to a planet in the decanate of its sex (setting
+# Meta.drekkana_bala). BPHS 27: male (Sun, Mars, Jupiter) 1st, female (Moon, Venus) 2nd,
+# neuter (Mercury, Saturn) 3rd. Phaladeepika (Mantreswara) puts the neuters in the middle
+# and the females at the end: male 1st, neuter 2nd, female 3rd.
+DREKKANA_BALA_DECANATE = {
+    "bphs": {"Sun": 0, "Mars": 0, "Jupiter": 0, "Moon": 1, "Venus": 1, "Mercury": 2, "Saturn": 2},
+    "phaladeepika": {"Sun": 0, "Mars": 0, "Jupiter": 0, "Mercury": 1, "Saturn": 1, "Moon": 2, "Venus": 2},
+}
+
+# Dig bala: the point of full strength (60); the opposite point gives 0.
+DIG_STRONG_POINT = {"Sun": "mc", "Mars": "mc", "Jupiter": "asc", "Mercury": "asc",
+                    "Saturn": "desc", "Moon": "ic", "Venus": "ic"}
+
+# Nathonnata (diva-ratri) bala: strong at midday, strong at midnight, always full.
+NATHONNATA_DAY = {"Sun", "Jupiter", "Venus"}
+NATHONNATA_NIGHT = {"Moon", "Mars", "Saturn"}
+
+# Tribhaga: the lord of the third of the day or night in which birth falls gets 60;
+# Jupiter always gets 60.
+TRIBHAGA_DAY = ["Mercury", "Sun", "Saturn"]
+TRIBHAGA_NIGHT = ["Moon", "Venus", "Mars"]
+
+# Abda, Masa, Vara, Hora bala: the lord of the year, month, weekday and hour.
+KALA_LORD_BALA = {"abda": 15.0, "masa": 30.0, "vara": 45.0, "hora": 60.0}
+# Abda and Masa lords from the Ahargana counted from the Kali epoch (JD 588465.5,
+# a Friday) in 360-day years and 30-day months: the lord is the weekday lord of the
+# day the current year or month began. Some software uses the weekday of the Sun's
+# ingress into Aries (and into its current sign) instead; that variant is not implemented.
+KALI_EPOCH_JDN = 588466
+# Hora lords descend the Chaldean order from the weekday lord at sunrise. Horas are
+# equal 60-minute hours from sunrise (BPHS: one hora = 2.5 ghatis); unequal day/night
+# horas are not implemented.
+CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
+
+# Ayana bala: (24 + d) / 48 * 60, d being the declination in degrees counted positive
+# north for the Sun, Mars, Jupiter and Venus, positive south for the Moon and Saturn, and
+# always positive for Mercury. The declination is the kranti from the sayana longitude
+# (ecliptic latitude ignored), with obliquity set by Meta.ayana_obliquity: "bphs" uses
+# the classical parama kranti of 24 degrees; "true" uses the mean obliquity of date. The
+# Sun's ayana bala is doubled (Meta.ayana_sun_double).
+AYANA_NORTH = {"Sun", "Mars", "Jupiter", "Venus"}
+AYANA_SOUTH = {"Moon", "Saturn"}
+PARAMA_KRANTI = 24.0
+
+# Chesta bala for Mars to Saturn: the cheshta kendra, seeghrochcha minus the mean of the
+# planet's mean and true longitudes, folded to 0-180 and divided by 3. Seeghrochcha is the
+# mean Sun for Mars, Jupiter and Saturn, and the planet's own heliocentric mean longitude
+# for Mercury and Venus, whose mean planet is the mean Sun. The mean longitudes are modern
+# (Meeus, Astronomical Algorithms, table 31.A, mean equinox of date), not Surya Siddhanta
+# mean motions, so values can differ by a few virupas from software using the latter.
+MEAN_LONGITUDE = {  # degrees at J2000 and per Julian century
+    "Mercury": (252.250906, 149474.0722491), "Venus": (181.979801, 58519.2130302),
+    "Sun": (280.466457, 36000.7698278), "Mars": (355.433000, 19141.6964471),
+    "Jupiter": (34.351519, 3036.3027748), "Saturn": (50.077444, 1223.5110686),
+}
+# Sun and Moon: BPHS 27 makes the Sun's chesta its ayana bala and the Moon's its paksha
+# bala ("bphs"); some software gives both 0 since they never retrograde ("zero").
+# Setting Meta.chesta_luminaries.
+
+# Paksha bala: elongation of the Moon from the Sun folded to 0-180, divided by 3, to the
+# benefics; 60 minus that to the malefics. The Moon takes the benefic value, doubled
+# (Meta.paksha_moon_double). Mercury is malefic when it shares a sign with the Sun, Mars,
+# Saturn, Rahu or Ketu ("association", BPHS) or always benefic ("benefic").
+# Setting Meta.mercury_nature. The Moon is benefic for Drik bala when waxing.
+PAKSHA_BENEFICS = {"Jupiter", "Venus"}
+PAKSHA_MALEFICS = {"Sun", "Mars", "Saturn"}
+MERCURY_SPOILERS = {"Sun", "Mars", "Saturn", "Rahu", "Ketu"}
+
+# Yuddha: two of Mars, Mercury, Jupiter, Venus, Saturn within 1 degree are at war. The
+# difference of their Sthana + Dig + Kala (before Yuddha) totals, divided by the
+# difference of their disc diameters, is added to the stronger and taken from the weaker.
+# The diameters (arc-seconds) are as Raman prints them for Shadbala; they are not checked
+# against the text here.
+YUDDHA_PLANETS = ["Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+YUDDHA_ORB = 1.0
+BIMBA_DIAMETER = {"Mars": 9.4, "Mercury": 6.6, "Jupiter": 190.4, "Venus": 16.6, "Saturn": 158.0}
