@@ -727,8 +727,12 @@ def _summary_checks(summary: str, finding_data: dict[str, dict]) -> list[tuple[s
 
 def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, checker: Checker | None = None,
             as_of: date | None = None, config: NarrationConfig = CONFIG,
-            recording: list | None = None, areas: list[str] | None = None) -> Reading:
-    """`areas` overrides the routed areas (the question's "when" is still read from it)."""
+            recording: list | None = None, areas: list[str] | None = None,
+            progress: Callable[[str, dict], None] | None = None) -> Reading:
+    """`areas` overrides the routed areas (the question's "when" is still read from it).
+    `progress(stage, info)` is told "draft" before each writer call and "check" before each
+    attempt's checker calls, with the attempt number (the service's job status)."""
+    progress = progress or (lambda stage, info: None)
     if chart.scored is None:
         raise ValueError("narration needs a scored chart (birth moment, Shadbala, Bhava Bala)")
     as_of = as_of or date.today()
@@ -748,6 +752,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
 
     draft, errors, attempts = None, [], 0
     for attempts in range(1, config.max_attempts + 1):
+        progress("draft", {"attempt": attempts})
         draft = drafter(SYSTEM_PROMPT, user, errors)
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
@@ -775,6 +780,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         checks = [(s, ids, data, "summary") for s, ids, data in _summary_checks(draft.summary, finding_data)]
         checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id)
                    for da in draft.areas for c in da.claims]
+        progress("check", {"attempt": attempts, "calls": len(checks)})
         # The checks of one attempt are independent: a checker with `check_many` runs them
         # concurrently (AnthropicChecker); any other checker is called one by one.
         if hasattr(checker, "check_many"):

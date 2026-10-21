@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `page` (the reading's Markdown page), `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -94,7 +94,9 @@ and a question) writes the reading JSON and the Markdown page; `--model-fixture`
 recording offline, and sentences with no recorded checker verdict are counted as unchecked. The checker
 calls of an attempt run concurrently (`CONFIG.checker_concurrency`, async SDK); `jyotish.cache`
 keeps assessed charts by birth data, conventions, seed and an engine hash (JYOTISH_CACHE_DIR;
-the suite points it at a temp dir). `scripts/time_reading.py` times a live reading. The offline suite replays the frozen first recording
+the suite points it at a temp dir). `scripts/time_reading.py` times a live reading. The service (`api.py`, FastAPI: POST /readings, GET
+/readings/{id} with progress; SQLAlchemy, SQLite by `JYOTISH_DATABASE_URL`, JSONB under Postgres)
+runs the shared pipeline in `service.py`; `pip install -e ".[api]"`, `uvicorn jyotish.api:app`. The offline suite replays the frozen first recording
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.

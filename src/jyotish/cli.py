@@ -296,42 +296,23 @@ def print_stability(chart: Chart) -> None:
         print(f"  {len(moved)} dasha periods do not exist in every sample (sequence changes)")
 
 
-def _birth_utc(day: str, clock: str, tz: str) -> tuple[datetime, str | None]:
-    """Local date and time in `tz` (an IANA name such as Asia/Kolkata, or an offset such as
-    +05:30) -> UTC, and the IANA name if one was given."""
-    from datetime import timezone, timedelta
-    from zoneinfo import ZoneInfo
-    local = datetime.fromisoformat(f"{day}T{clock}")
-    if tz[:1] in "+-" and ":" in tz:
-        sign = 1 if tz[0] == "+" else -1
-        h, m = tz[1:].split(":")
-        return local.replace(tzinfo=timezone(sign * timedelta(hours=int(h), minutes=int(m)))).astimezone(timezone.utc), None
-    return local.replace(tzinfo=ZoneInfo(tz)).astimezone(timezone.utc), tz
+def _birth_utc(day: str, clock: str, tz: str):
+    from .service import birth_utc
+    return birth_utc(day, clock, tz)
 
 
-def _read_command(args) -> str:
-    """The `jyotish read` invocation that reproduces this reading (output path left out)."""
-    import shlex
-    parts = ["jyotish", "read", "--date", args.date, "--time", args.time, "--tz", args.tz,
-             "--lat", repr(args.lat), "--lon", repr(args.lon), "--accuracy", args.accuracy, "--node", args.node,
-             "--seed", str(args.seed), "--question", args.question]
-    if args.place:
-        parts += ["--place", args.place]
-    if args.as_of:
-        parts += ["--as-of", args.as_of]
-    if args.model_fixture:
-        parts += ["--model-fixture", args.model_fixture]
-    return shlex.join(parts)
+def _birth(args):
+    from .service import BirthInput
+    return BirthInput(date=args.date, time=args.time, tz=args.tz, lat=args.lat, lon=args.lon,
+                      accuracy=args.accuracy, node=args.node, place=args.place, seed=args.seed)
 
 
 def _assess(args):
     """The assessed chart, from the cache when this birth data, these conventions and this
     seed have been run before (jyotish.cache)."""
     import sys
-    from .cache import cached_assess
-    utc, tz = _birth_utc(args.date, args.time, args.tz)
-    chart, source = cached_assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz,
-                                  true_node=args.node == "true", seed=args.seed)
+    from .service import assess_birth
+    chart, source, _ = assess_birth(_birth(args))
     print(f"chart: {source}" + (" (cached run of the 200-sample assess)" if source != "computed" else ""),
           file=sys.stderr)
     return chart
@@ -387,47 +368,27 @@ def cmd_page(args) -> int:
 def cmd_read(args) -> int:
     """assess -> score -> route -> narrate -> <out>.json and <out>.md. Returns the exit code."""
     import sys
-    from datetime import date
     from pathlib import Path
-    from .narrate import (CONFIG, FixtureChecker, FixtureDrafter, NarrationError, TAG, narrate, route,
-                          sentences)
-    from .page import render
+    from .narrate import CONFIG, NarrationError
+    from .service import make_reading
     chart = _assess(args)
-    if chart.scored is None:
-        print("this chart cannot be scored (no birth moment)", file=sys.stderr)
-        return 2
-    asked, _ = route(args.question, chart)
-    areas = list(dict.fromkeys(asked + list(chart.scored.top)))     # the question's areas, then the top three
-    as_of = date.fromisoformat(args.as_of) if args.as_of else date.today()
-    if args.model_fixture:
-        recording = json.loads(Path(args.model_fixture).read_text())
-        drafter, checker = FixtureDrafter(recording), FixtureChecker(recording)
-        source = f"fixture:{args.model_fixture}"
-    else:
-        drafter = checker = None
-        source = "live"
     try:
-        reading = narrate(chart, args.question, drafter=drafter, checker=checker, as_of=as_of, areas=areas)
+        reading, page = make_reading(_birth(args), args.question, chart=chart, as_of=args.as_of,
+                                     model_fixture=args.model_fixture)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 2
     except NarrationError as e:
         print(f"narration failed: {e}", file=sys.stderr)
         for err in e.errors:
             print(f"  - {err}", file=sys.stderr)
         return 2
-    header = dict(reading.chart, local_date=args.date, local_time=args.time, tz_input=args.tz,
-                  place=args.place, seed=args.seed,
-                  command=_read_command(args))
-    reading = reading.model_copy(update={"chart": header})
-    if args.model_fixture:
-        said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
-               [c.text for a in reading.areas for c in a.claims]
-        reading = reading.model_copy(update={"narration_source": source,
-                                             "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)})
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.with_suffix(".json").write_text(json.dumps(reading.model_dump(), indent=1, ensure_ascii=False, default=str) + "\n")
-    out.with_suffix(".md").write_text(render(reading, chart))
-    print(f"wrote {out.with_suffix('.json')} and {out.with_suffix('.md')} ({', '.join(areas)}; model "
-          f"{CONFIG.model if not args.model_fixture else 'replayed'}, {reading.attempts} attempt(s))")
+    out.with_suffix(".md").write_text(page)
+    print(f"wrote {out.with_suffix('.json')} and {out.with_suffix('.md')} ({', '.join(a.name for a in reading.areas)}; "
+          f"model {CONFIG.model if not args.model_fixture else 'replayed'}, {reading.attempts} attempt(s))")
     return 0
 
 
