@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 65). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 66). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -161,18 +161,18 @@ id: yoga.ruchaka
 family: pancha_mahapurusha
 school: parashari            # parashari | jaimini | kp | nadi | tajaka | regional:<name>
 source:
-  - {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 2}
-  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 1}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 2, checked: false}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 1, checked: false}
 status: classical_unconfirmed   # classical_unconfirmed | classical_rejected | experimental | not_testable_yet | data_confirmed
 when:
   planet: Mars
-  dignity_in: [own, exalted]
+  dignity_in: [own, moolatrikona, exalted]
   house_in: [1, 4, 7, 10]
   basis: [lagna, moon, sun]  # evaluated once per basis; each fire records which
-modifiers:
+modifiers:                   # applied in file order; scales are initial values until Layer 6 calibrates them
   - if: shadbala_ratio < 1.0      # weak Mars
     scale: 0.5
-  - if: aspected_by: [Saturn]
+  - if: {aspected_by: [Saturn]}
     scale: 0.8
   - if: tara_from_moon in [vipat, pratyak, vadha]
     scale: 0.85
@@ -185,7 +185,7 @@ stability_min: 0.5           # drop from default narration below this (Layer 1b)
 narration_key: ruchaka
 ```
 
-The engine evaluates every rule against the graph and emits a list of `fired_rules`, each with the rule id, the matched nodes, the applied scale and the theme contributions. The learner can see exactly why a theme scored what it did.
+The engine evaluates every rule against the graph and emits a list of `fired_rules`, each with the rule id, the basis, the matched nodes, the applied scale, which modifiers applied and the theme contributions; a modifier that needs a quantity the chart did not compute (Shadbala on a chart with no birth time) is reported as not evaluated, never silently skipped. Rule files are validated against `rules/rule.schema.json` on load, and a bad file stops the load naming the file and field. Two-planet rules (Raja yogas, Parivartana) use a `pair` condition with `related_by` ∈ {conjunction, mutual\_aspect, exchange}. Every `source` carries `checked: true|false`: a rule whose citations are unchecked still runs, but counts as cited only once a person has verified chapter and verse against the named edition. The learner can see exactly why a theme scored what it did.
 
 **Rule library, in build order:**
 
@@ -579,16 +579,17 @@ Saturn is the only planet below its required minimum: 4° from the ascendant, it
 
 **Layer 3 expected rule fires**
 
-- `yoga.ruchaka` (Mars own sign in H7 kendra, basis lagna) — scale 0.408: Saturn's aspect 0.8 × Pratyak tara 0.85 × Marana Karaka Sthana 0.6. The Shadbala modifier does not apply, Mars's ratio being 1.30.
-- `yoga.parivartana` (Venus–Jupiter) — see below.
-- `yoga.budhaditya` (Sun + Mercury, H10) — scale 0.9: Mercury at 0°22' is in Bala avastha and carries a boundary flag; not combust (27° apart).
-- `lord.yogakaraka_in_lagna` (Saturn) — scale 0.6 × 0.8 × 0.5: Marana Karaka Sthana, Mrita avastha, and Shadbala below its required minimum (0.69).
-- `lord.lagna_exalted` (Venus) — full scale.
-- `affliction.mangal_dosha` — fires from the Lagna (Mars in H7) and from the Moon (Mars 2nd from Libra), not from Venus (9th from Pisces); cancellation modifiers apply for Mars in own sign and for Jupiter's aspect, so the net scale is small and the reading names the dosha and its cancellations together.
-- `yoga.gaja_kesari` — does **not** fire: Jupiter is 8th from the Moon.
-- `affliction.kala_sarpa` — does **not** fire: planets on both sides of the Rahu–Ketu axis.
+- `yoga.ruchaka` fires twice: from the lagna (Mars own sign in H7) and from the Sun (Mars is 10th from Aquarius), not from the Moon (2nd from Libra). Scale 0.408 both times: Saturn's aspect 0.8 × Pratyak tara 0.85 × Marana Karaka Sthana 0.6; the Shadbala modifier does not apply, Mars's ratio being 1.30.
+- `yoga.parivartana` (Venus–Jupiter) fires at 0.8 — see below.
+- `yoga.budhaditya` (Sun + Mercury, H10) fires at 0.9: Mercury at 0°22' is in Bala avastha and carries a boundary flag; not combust (27° apart).
+- `yoga.kendra_trikona_raja` fires twice: Sun (4th lord) with Mercury (5th lord) in H10, scale 1.0; and Mars (7th lord) in mutual aspect with Saturn (9th lord), scale 0.75 because Mars also owns the 12th.
+- `lord.yogakaraka_in_lagna` (Saturn) — not yet a rule file; expected scale 0.6 × 0.8 × 0.5: Marana Karaka Sthana, Mrita avastha, and Shadbala below its required minimum (0.69).
+- `lord.lagna_exalted` (Venus) — not yet a rule file; expected full scale.
+- `affliction.mangal_dosha` — not yet a rule file; expected to fire from the Lagna (Mars in H7) and from the Moon (Mars 2nd from Libra), not from Venus (9th from Pisces), with cancellation modifiers for Mars in own sign and for Jupiter's aspect.
+- `yoga.gaja_kesari`, `yoga.neecha_bhanga`, and the other four Mahapurusha yogas (Bhadra, Hamsa, Malavya, Sasa) do **not** fire; Gaja Kesari because Jupiter is 8th from the Moon.
+- `affliction.kala_sarpa` — not yet a rule file; must not fire: planets on both sides of the Rahu–Ketu axis.
 
-Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` fires between Venus (in Pisces, Jupiter's sign) and Jupiter (in Taurus, Venus's sign). Classified both ways, because the texts define it both ways: by the houses exchanged it is the 1st and the 11th → **Maha Parivartana**; by the lordships of the exchanging planets (Venus 6th, Jupiter 8th) it is **Dainya** under Uttara Kalamrita. The fire carries `class_by_houses: maha`, `class_by_lordship: dainya`, and the narration states both. This is exactly the kind of signal a human reader skips and a graph engine cannot.
+Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` fires between Venus (in Pisces, Jupiter's sign) and Jupiter (in Taurus, Venus's sign). Classified both ways, because the texts define it both ways: by the houses exchanged it is the 1st and the 11th → **Maha Parivartana**; by the lordships of the exchanging planets (Venus 6th, Jupiter 8th) it is **Dainya** under Uttara Kalamrita. The fire carries `class_by_houses: maha`, `class_by_lordship: dainya` and a 0.8 scale for the Dainya reading, and the narration states both. This is exactly the kind of signal a human reader skips and a graph engine cannot.
 
 **Layer 4 expected timing**
 
