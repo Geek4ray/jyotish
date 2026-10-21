@@ -52,6 +52,7 @@ def print_chart(chart: Chart) -> None:
     print_ashtakavarga(chart)
     print_shadbala(chart)
     print_bhava_bala(chart)
+    print_vimsopaka_ishta(chart)
     print_fired_rules(chart)
     if chart.meta.jd is not None:
         print_current_transits(chart)
@@ -133,6 +134,18 @@ def print_shadbala(chart: Chart) -> None:
     print(f"  Settings: drekkana={m.drekkana_bala} saptavargaja={m.saptavargaja_scale} dig={m.dig_bala_points} "
           f"noon={m.nathonnata_noon} mercury={m.mercury_nature} moon_paksha_x2={m.paksha_moon_double} "
           f"ayana={m.ayana_obliquity} sun_ayana_x2={m.ayana_sun_double} chesta_luminaries={m.chesta_luminaries}")
+
+
+def print_vimsopaka_ishta(chart: Chart) -> None:
+    from .constants import vimsopaka_label
+    f = chart.features
+    print("\nVimsopaka (BPHS 7.17-25; 0-20)      shad  sapta  dasa  shodasa")
+    for p, row in f.vimsopaka.items():
+        print(f"  {p:8}" + " " * 26 + "".join(f"{row[s]:6.2f}" for s in ("shadvarga", "saptavarga", "dasavarga", "shodasavarga"))
+              + f"  {vimsopaka_label(row['shodasavarga'])}")
+    if f.ishta_kashta:
+        print(f"Ishta / Kashta ({chart.meta.ishta_kashta}):",
+              "  ".join(f"{p} {x.ishta:.1f}/{x.kashta:.1f}" for p, x in f.ishta_kashta.items()))
 
 
 def print_bhava_bala(chart: Chart) -> None:

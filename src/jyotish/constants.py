@@ -418,3 +418,25 @@ RISING_SIGNS = {
     "phaladeepika": {"head": {4, 5, 6, 7, 10}, "back": {0, 1, 3, 8, 9}, "both": {2, 11}},
 }
 DUAL_SIGNS = {2, 5, 8, 11}
+
+# --- Vimsopaka (BPHS 7.17-25, Santhanam 1984) --------------------------------------------
+# Full strength of each varga in each scheme; each scheme sums to 20.
+VIMSOPAKA_SCHEMES = {
+    "shadvarga": {"D1": 6, "D2": 2, "D3": 4, "D9": 5, "D12": 2, "D30": 1},
+    "saptavarga": {"D1": 5, "D2": 2, "D3": 3, "D7": 2.5, "D9": 4.5, "D12": 2, "D30": 1},
+    "dasavarga": {"D1": 3, "D2": 1.5, "D3": 1.5, "D7": 1.5, "D9": 1.5, "D10": 1.5, "D12": 1.5,
+                  "D16": 1.5, "D30": 1.5, "D60": 5},
+    "shodasavarga": {"D1": 3.5, "D2": 1, "D3": 1, "D4": 0.5, "D7": 0.5, "D9": 3, "D10": 0.5,
+                     "D12": 0.5, "D16": 2, "D20": 0.5, "D24": 0.5, "D27": 0.5, "D30": 1,
+                     "D40": 0.5, "D45": 0.5, "D60": 4},
+}
+# Varga Viswa (7.21-25): own 20, extreme friend 18, friend 15, equal 10, enemy 7, sworn
+# enemy 5, by the five-fold compound relation with the varga sign's lord (temporal half
+# from D1). A moolatrikona sign is an own sign. 7.21-25 gives no separate value for
+# exaltation (7.9-12 speaks of full strength in exaltation for a different, rule-of-three
+# reckoning), so an exalted planet is scored by its relation to the sign's lord.
+VARGA_VISWA = {"own": 20, "great_friend": 18, "friend": 15, "neutral": 10, "enemy": 7,
+               "great_enemy": 5}
+# 7.25: below 5 not capable of good results, 5-10 some good, 10-15 mediocre, above 15 fully.
+def vimsopaka_label(score: float) -> str:
+    return "weak" if score < 5 else "some" if score < 10 else "mediocre" if score <= 15 else "full"

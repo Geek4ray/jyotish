@@ -21,6 +21,7 @@ class Meta(BaseModel):
     dasha_year: float = 365.25
     rising_signs: str = "bphs"             # bphs | phaladeepika (Bhava Bala time bonus)
     twilight_minutes: float = 24.0         # one ghati either side of sunrise and sunset; BPHS 27.31 does not define it
+    ishta_kashta: str = "bphs"             # bphs (28.2-6, Rasmis) | raman (geometric mean; unverified)
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
     ekadhipatya_nodes: bool = False
@@ -229,6 +230,13 @@ class HouseStrength(BaseModel):
     rupas: float
 
 
+class IshtaKashta(BaseModel):
+    ishta: float
+    kashta: float
+    uchcha_rasmi: float | None = None
+    cheshta_rasmi: float | None = None
+
+
 class BhavaBala(BaseModel):
     birth_time: str                              # day | twilight | night
     whole_sign: dict[int, HouseStrength]         # madhyas equal from the lagna degree
@@ -244,6 +252,8 @@ class Features(BaseModel):
     ashtakavarga: Ashtakavarga
     shadbala: Shadbala | None = None   # needs the birth moment, sunrises and (by default) the MC
     bhava_bala: BhavaBala | None = None   # needs Shadbala and the MC
+    vimsopaka: dict[str, dict[str, float]]          # planet -> scheme -> 0-20 (BPHS 7.17-25)
+    ishta_kashta: dict[str, IshtaKashta] | None = None   # needs Shadbala
     sudarshana_h10: dict[str, list[str]]
 
 

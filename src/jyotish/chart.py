@@ -19,7 +19,7 @@ from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_ch
 from .ephemeris import ayanamsa_value, compute_sky, julian_day, next_sunrise, sunrise_sunset
 from .jaimini import all_arudhas, chara_karakas, karakamsa
 from .models import (
-    Ashtakavarga, BhavaBala, Birth, Body, HouseStrength, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
+    Ashtakavarga, BhavaBala, Birth, Body, HouseStrength, IshtaKashta, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
     KalaBala, PanchangaInfo, Pinda, PlanetShadbala, Shadbala, SthanaBala, TaraInfo,
     TimePosterior, Yuddha,
 )
@@ -27,7 +27,8 @@ from .nakshatra import kp_sub_lords, nakshatra_of, navatara
 from .houses import bhava_lordships, bhava_of, sripati_madhyas
 from .panchanga import panchanga as compute_panchanga
 from .rules import default_rules, evaluate_all
-from .shadbala import ShadbalaSettings, shadbala as compute_shadbala
+from .shadbala import ShadbalaSettings, ishta_kashta, shadbala as compute_shadbala
+from .vimsopaka import vimsopaka
 from .vargas import PRODUCTION_VARGAS, VARGAS, is_vargottama
 
 ACCURACY_HALF_WIDTH_MIN = {"exact": 2.0, "within_15": 15.0, "approximate": 60.0, "unknown": 720.0}
@@ -130,6 +131,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
         "from_moon": [n for n, b in bodies.items() if house_of(b.sign, moon_sign) == 10],
         "from_sun": [n for n, b in bodies.items() if house_of(b.sign, sun_sign) == 10],
     }
+    sb_model, sb_raw = _shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise)
     av = ashtakavarga(positions, asc, nodes_occupy=meta.ekadhipatya_nodes,
                       zero_exempt=meta.ekadhipatya_zero_exempt)
     features = Features(
@@ -144,7 +146,8 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             pinda={p: Pinda(rasi=x.rasi, graha=x.graha, sodhya=x.sodhya) for p, x in av.pinda.items()},
             kakshya=av.kakshya, kakshya_bindu=av.kakshya_bindu),
         sudarshana_h10=sudarshana_h10,
-        shadbala=_shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise),
+        shadbala=sb_model,
+        vimsopaka=vimsopaka(positions),
     )
 
     pinfo = None
@@ -175,6 +178,10 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
                            year_length=meta.dasha_year, variant=meta.chara_variant)
         ]
 
+    if sb_raw is not None:
+        aya = meta.ayanamsa_value if meta.ayanamsa_value is not None else ayanamsa_value(jd, meta.ayanamsa)
+        features.ishta_kashta = {p: IshtaKashta(**v) for p, v in
+                                 ishta_kashta(positions, jd, aya, sb_raw, meta.ishta_kashta).items()}
     if features.shadbala is not None and mc is not None:
         bb = compute_bhava_bala(
             positions, asc, mc, madhyas, {p: x.total for p, x in features.shadbala.planets.items()},
@@ -193,24 +200,25 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
     return chart
 
 
-def _shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise) -> Shadbala | None:
+def _shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise):
     """Shadbala needs the birth moment and the day's sunrises (Kala bala), and the MC
     unless Dig bala is read from equal houses. Without them the field is absent."""
     if None in (jd, sunrise, sunset, next_sunrise):
-        return None
+        return None, None
     if mc is None and meta.dig_bala_points == "cusps":
-        return None
+        return None, None
     aya = meta.ayanamsa_value if meta.ayanamsa_value is not None else ayanamsa_value(jd, meta.ayanamsa)
     r = compute_shadbala(positions, asc, mc=mc, jd=jd, sunrise=sunrise, sunset=sunset,
                          next_sunrise=next_sunrise, ayanamsa=aya, geo_lon=birth.lon,
                          settings=ShadbalaSettings.from_obj(meta))
-    return Shadbala(
+    model = Shadbala(
         planets={p: PlanetShadbala(sthana=SthanaBala(**x.sthana), dig=x.dig, kala=KalaBala(**x.kala),
                                    chesta=x.chesta, naisargika=x.naisargika, drik=x.drik,
                                    total=x.total, required=x.required, ratio=x.ratio)
                  for p, x in r.planets.items()},
         lords=r.lords, tribhaga_lord=r.tribhaga_lord,
         wars=[Yuddha(planets=list(w.planets), winner=w.winner, bala=w.bala) for w in r.wars])
+    return model, r
 
 
 def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",

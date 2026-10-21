@@ -379,3 +379,43 @@ def shadbala(positions: dict[str, float], asc: float, *, mc: float | None, jd: f
                                  naisargika=NAISARGIKA[p], drik=drik_bala(p, pos, settings),
                                  required=SHADBALA_REQUIRED[p]) for p in SEVEN}
     return ShadbalaResult(planets=planets, lords=lords, tribhaga_lord=tri, wars=wars)
+
+
+# --- Ishta and Kashta phala ------------------------------------------------------------
+
+def luminary_cheshta_kendra(planet: str, positions: dict[str, float], ayanamsa: float) -> float:
+    """BPHS 28.3-4: the Sun's Cheshta kendra is its sayana longitude + 3 signs; the Moon's
+    is the Moon minus the Sun (sidereal). Folded to 0-180."""
+    if planet == "Sun":
+        return _fold(positions["Sun"] + ayanamsa + 90.0)
+    return _fold(positions["Moon"] - positions["Sun"])
+
+
+def ishta_kashta(positions: dict[str, float], jd: float, ayanamsa: float, result: ShadbalaResult,
+                 method: str = "bphs") -> dict[str, dict[str, float]]:
+    """Ishta and Kashta phala (0-60) per planet.
+
+    "bphs" (BPHS 28.2-6, Santhanam 1984): Uchcha Rasmi = 1 + (distance from the debilitation
+    point)/30 and Cheshta Rasmi = 1 + (Cheshta kendra)/30, each 1-7. Ishta = half of
+    10(Cheshta Rasmi - 1) + 10(Uchcha Rasmi - 1); Kashta = 60 - Ishta. That is the mean of the
+    Uchcha bala and the Cheshta-kendra bala.
+    "raman" (B.V. Raman, Graha and Bhava Balas; not read here): Ishta = sqrt(Uchcha bala x
+    Chesta bala), Kashta = sqrt((60 - Uchcha) x (60 - Chesta)), with the Shadbala Chesta."""
+    out = {}
+    for p in SEVEN:
+        uchcha = result.planets[p].sthana["uchcha"]
+        if method == "bphs":
+            if p in ("Sun", "Moon"):
+                kendra = luminary_cheshta_kendra(p, positions, ayanamsa)
+            else:
+                kendra = chesta_kendra(p, positions[p] + ayanamsa, jd)
+            ur, cr = 1.0 + 3.0 * uchcha / 30.0, 1.0 + kendra / 30.0
+            ishta = (10.0 * (cr - 1.0) + 10.0 * (ur - 1.0)) / 2.0
+            out[p] = {"ishta": ishta, "kashta": 60.0 - ishta, "uchcha_rasmi": ur, "cheshta_rasmi": cr}
+        elif method == "raman":
+            chesta = min(result.planets[p].chesta, 60.0)
+            out[p] = {"ishta": (uchcha * chesta) ** 0.5,
+                      "kashta": ((60.0 - uchcha) * (60.0 - chesta)) ** 0.5}
+        else:
+            raise ValueError(method)
+    return out
