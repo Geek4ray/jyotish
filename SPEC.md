@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 47). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 57). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -8,7 +8,7 @@ Oct 21, 2026 · @Ray
 
 Build a Jyotish engine that computes every classical quantity from birth data, scores each life area with a stated confidence, narrates with cited rules, and measures its own accuracy against real outcomes. The thesis: Jyotish is already a rule system with numeric strengths (Shadbala, Ashtakavarga, dasha), so it can be implemented exactly, then calibrated on data.
 
-What the engine will not claim: "precise" prediction of anything about anyone. No system has demonstrated that, and an app that promises it will be wrong in public. The product promise is: *every classical signal, computed exactly, weighed transparently, with a confidence you can audit.* The validation layer (Layer 6) is what lets the promise grow only as far as the evidence does.
+What the engine will not claim: "precise" prediction of anything about anyone. No system has demonstrated that, and an app that promises it will be wrong in public. The product promise is: *every &#91;image: Screenshot 2026-10-21 at 13.24.44.png\]classical signal, computed exactly, weighed transparently, with a confidence you can audit.* The validation layer (Layer 6) is what lets the promise grow only as far as the evidence does.
 
 The precision ceiling is fixed by three things no engine removes: birth-time error (4 minutes moves D60 by a sign; most recorded times are rounded to 5–15 minutes), the texts disagreeing with each other across schools and recensions, and the absence of a demonstrated empirical signal. So the engine is precise in *computation and reproducibility*, and reports every finding with its stability under those three uncertainties (Layer 1b). It is never precise about outcomes, and the product wording enforces that.
 
@@ -378,7 +378,7 @@ Licensing: the Sanskrit originals are public domain; most English translations i
 
 ## Data schema — the chart object
 
-One JSON document per chart, versioned by engine release, so a reading can always be reproduced. Top-level keys map one-to-one to the layers. Values below are the reference chart's where the worked example fixes them (karakas, arudhas, dispositors, KP cusp) and illustrative elsewhere (Shadbala, Ashtakavarga, scores).
+One JSON document per chart, versioned by engine release, so a reading can always be reproduced. Top-level keys map one-to-one to the layers. Values below are the reference chart's where the worked example fixes them (karakas, arudhas, dispositors, KP cusp, Ashtakavarga) and illustrative elsewhere (Shadbala, scores).
 
 ```json
 {
@@ -408,7 +408,10 @@ One JSON document per chart, versioned by engine release, so a reading can alway
                                            "total": 412.3, "required": 300, "ratio": 1.37}},
                  "bhava_bala": {"10": 0}, "vimsopaka": {"Saturn": {"shadvarga": 0, "dasavarga": 0, "shodasavarga": 0}},
                  "ishta_kashta": {"Saturn": {"ishta": 0, "kashta": 0}}},
-    "ashtakavarga": {"SAV": [28, 31, 25, 30, 29, 27, 26, 33, 24, 30, 29, 25], "BAV": {"Saturn": [0]}, "kakshya": {"Saturn": "Jupiter"}},
+    "ashtakavarga": {"SAV": [22, 24, 23, 30, 33, 26, 28, 27, 37, 24, 29, 34],
+                     "BAV": {"Saturn": [2, 2, 0, 3, 5, 5, 5, 2, 3, 3, 3, 6]},
+                     "pinda": {"Saturn": {"rasi": 150, "graha": 83, "sodhya": 233}},
+                     "kakshya": {"Saturn": "Saturn"}, "kakshya_bindu": {"Saturn": false}},
     "dispositors": {
       "sign":      {"Sun": ["Saturn", "Venus", "Jupiter", "Venus"], "Mars": ["Mars"]},
       "nakshatra": {"Mars": ["Mercury", "Mars"], "Mercury": ["Mars", "Mercury"]},
@@ -491,7 +494,7 @@ The same phases as a table, so the plan survives export and the gates are quotab
 
 ## Worked example — the reference chart
 
-The Taurus-lagna chart from the app screenshots is the engine's first test case; every layer must reproduce the values below before anything else is built. Layer 1 values come from the app and are the target the ephemeris must match.
+The Taurus-lagna chart from the app screenshots is the engine's reference case, used with its owner's consent to test every feature as it is built: born 2001-03-12 at 10:10:25 IST in Rewari, Haryana (28.20 N, 76.62 E). Every layer must reproduce the values below before anything else is built. Layer 1 values come from the app and are the target the ephemeris must match; the app dropped the 25 seconds of the birth time (its Moon and ascendant correspond to 10:10:00), which moves the ascendant by 7 arc-minutes and is itself a demonstration of Layer 1b.
 
 **Layer 1 targets (D1, Lahiri)**
 
@@ -514,10 +517,10 @@ The Taurus-lagna chart from the app screenshots is the engine's first test case;
 - Dignity (natural friendships first; compound in brackets where it differs): Venus exalted (3°21' short of deep exaltation at 27° Pisces); Mars own sign; Saturn in a friend's sign (Venus); Mercury in a neutral sign (Saturn); Sun in an enemy's sign (Saturn); Jupiter in an enemy's sign (Venus); Moon in a neutral sign (Venus) \[compound: enemy, because Venus is 6th from the Moon\].
 - Baladi avasthas (forward in odd signs, reversed in even): Moon 1°25' Libra (odd) = Bala, infant; Mercury 0°22' Aquarius (odd) = Bala; Saturn 2°06' Taurus (even) = Mrita, dead; Jupiter 10°38' Taurus = Vriddha, old. The yogakaraka is in Mrita avastha, which the scoring must weigh against its placement.
 - Marana Karaka Sthana: Mars in the 7th and Saturn in the 1st are both in MKS; Ruchaka and the yogakaraka-in-lagna fires both carry the 0.6 modifier.
-- Boundary flags: Moon, Mercury and Saturn are within 3° of a sign edge; every fire that depends on their house or sign is marked sensitive.
+- Boundary flags: Moon, Mercury, Saturn and the Sun (27°48', within 3° of the Pisces edge) are flagged; every fire that depends on their house or sign is marked sensitive.
 - D9 dignity: Saturn own sign (Capricorn); Moon vargottama (Libra); Venus in Aquarius (friend's sign); Mars in Sagittarius (friend's); Jupiter in Aries (friend's); Mercury in Libra (friend's); Sun in Gemini (neutral).
 - Aspects: Saturn (H1) → H3, H7 (Mars), H10 (Sun, Mercury). Jupiter (H1) → H5, H7 (Mars), H9. Mars (H7) → H1 (Jupiter, Saturn), H10, H2 (Rahu). Mutual Mars–Saturn and Mars–Jupiter aspects across 1/7. Node aspects off by default.
-- Jaimini chara karakas, 8-karaka scheme (Rahu counted as 30° − 18°05' = 11°54'): AK Sun 27°47', AmK Venus 23°39', BK Mars 18°37', MK Rahu 11°54', PiK Jupiter 10°38', PK Saturn 2°06', GK Moon 1°25', DK Mercury 0°22'. 7-karaka scheme (no Rahu): AK Sun, AmK Venus, BK Mars, MK Jupiter, PiK Saturn, PK Moon, DK Mercury. DK is Mercury under both, sitting in the 10th with the Sun. Karakamsa (AK's navamsa) = Gemini.
+- Jaimini chara karakas, 8-karaka scheme (Rahu counted as 30° − 18°05' = 11°54'): AK Sun 27°47', AmK Venus 23°39', BK Mars 18°37', MK Rahu 11°54', PiK Jupiter 10°38', PK Saturn 2°06', GK Moon 1°25', DK Mercury 0°22'. 7-karaka scheme (no Rahu; Matri and Pitri karakas merge into MK): AK Sun, AmK Venus, BK Mars, MK Jupiter, PK Saturn, GK Moon, DK Mercury. DK is Mercury under both, sitting in the 10th with the Sun. Karakamsa (AK's navamsa) = Gemini.
 - Arudha padas, with the 1st/7th exception applied: AL = Capricorn (H9; Venus is 11th from Taurus, 11th from Pisces). UL = Gemini (H2, with Rahu in it; Mars is 8th from Aries, 8th from Scorpio). A7: Mars sits in the 7th itself, so the pada would be Scorpio — the exception takes the 10th from it → Leo (H4). A10: Saturn is 4th from Aquarius, 4th from Taurus = Leo, which is the 7th from Aquarius — the exception takes the 10th from Leo → **Taurus**, the lagna itself, with Jupiter and Saturn. A2 = Libra (H6, with the Moon).
 - Sudarshana 10th house: from the Lagna, Aquarius with Sun and Mercury; from the Moon, Cancer, empty; from the Sun, Scorpio, with Mars in own sign.
 - KP 7th cusp (Scorpio 06°09'50" under whole-sign; Placidus moves it slightly): Anuradha, star lord Saturn, sub lord Mercury (2°49'50" into the nakshatra, past Saturn's 2°06'40" sub), sub-sub lord Sun.
@@ -526,8 +529,8 @@ The Taurus-lagna chart from the app screenshots is the engine's first test case;
 **Dispositor chains on the reference chart**
 
 - Sign chain: every planet except Mars funnels into one loop. Sun, Mercury → Saturn (Aquarius lord) → Venus (Taurus lord) → Jupiter (Pisces lord) → Venus. Moon → Venus. Rahu → Mercury → Saturn → Venus. Ketu → Jupiter. Mars is self-disposited in Scorpio. Final sign dispositors: the Venus–Jupiter loop and Mars.
-- Nakshatra chain, followed to termination: Lagna and Saturn → Sun (Krittika) → Jupiter (PurvaBhadra) → Moon (Rohini) → Mars (Chitra) ⇄ Mercury (Jyestha / Dhanishtha, a mutual nakshatra exchange). Venus → Mercury (Revati). Ketu → Venus → Mercury. Rahu → Rahu (Ardra, self). So every body except Rahu ends in the Mars–Mercury loop: final nakshatra dispositors are Mars and Mercury.
-- Navamsa chain: Venus (Aquarius) → Saturn (Capricorn, own). Final navamsa dispositor Saturn.
+- Nakshatra chain, followed to termination: Lagna and Saturn → Sun (Krittika) → Jupiter (PurvaBhadra) → Moon (Rohini) → Mars (Chitra) ⇄ Mercury (Jyestha / Dhanishtha, a mutual nakshatra exchange). Venus → Mercury (Revati). Ketu → Venus → Mercury. Rahu → Rahu (Ardra, self). So every body except Rahu ends in the Mars–Mercury loop: final nakshatra dispositors are Mars and Mercury, with Rahu self-disposited.
+- Navamsa chain: Venus (Aquarius) → Saturn (Capricorn, own); Sun, Moon, Mercury and Ketu also end in Saturn through Mercury and Venus. Jupiter (Aries navamsa) and Mars (Sagittarius navamsa) are in mutual navamsa exchange — a D9 Parivartana — and Rahu (Pisces navamsa) feeds into it. Final navamsa dispositors: Saturn and the Jupiter–Mars loop.
 
 **Navatara from the Moon (Chitra = Janma).** Counted from Chitra as 1 through three cycles of nine. Special taras by absolute count are recorded as well: the Sun in PurvaBhadra is the 12th (Desha), Mercury in Dhanishtha the 10th (Karma), Jupiter in Rohini the 18th (Samudaya); none of the bodies falls on the 16th (Sanghatika), 19th (Adhana), 23rd (Vinasha), 25th (Manasa) or 27th (Jati). The "2nd and 3rd cycle milder" reading applies to the nine-fold class only, never to a special tara.
 
@@ -543,6 +546,22 @@ The Taurus-lagna chart from the app screenshots is the engine's first test case;
 | Saturn | Krittika | Mitra (8) | 2 | supportive |
 | Rahu | Ardra | Sampat (2) | 3 | supportive |
 | Ketu | PurvaAshadha | Vadha (7) | 1 | adverse; Ketu dasha flagged |
+
+**Ashtakavarga (computed 2026-10-21, verified by hand for the Sun and Saturn rows)**
+
+|  | Ari | Tau | Gem | Can | Leo | Vir | Lib | Sco | Sag | Cap | Aqu | Pis | Total |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Sun | 2 | 3 | 3 | 4 | 6 | 4 | 4 | 4 | 5 | 3 | 5 | 5 | 48 |
+| Moon | 5 | 3 | 2 | 6 | 5 | 5 | 3 | 4 | 6 | 2 | 3 | 5 | 49 |
+| Mars | 3 | 3 | 3 | 3 | 4 | 1 | 3 | 3 | 5 | 2 | 5 | 4 | 39 |
+| Mercury | 3 | 5 | 6 | 5 | 4 | 1 | 5 | 5 | 6 | 5 | 4 | 5 | 54 |
+| Jupiter | 4 | 5 | 5 | 4 | 6 | 4 | 4 | 7 | 5 | 2 | 6 | 4 | 56 |
+| Venus | 3 | 3 | 4 | 5 | 3 | 6 | 4 | 2 | 7 | 7 | 3 | 5 | 52 |
+| Saturn | 2 | 2 | 0 | 3 | 5 | 5 | 5 | 2 | 3 | 3 | 3 | 6 | 39 |
+| Lagna | 3 | 5 | 2 | 6 | 4 | 4 | 4 | 5 | 3 | 3 | 4 | 6 | 49 |
+| **SAV** | 22 | 24 | 23 | 30 | 33 | 26 | 28 | 27 | 37 | 24 | 29 | 34 | 337 |
+
+Reading for the chart: the strongest signs are Sagittarius (H8, 37), Pisces (H11, 34) and Leo (H4, 33); the weakest are Aries (H12, 22), Gemini (H2, 23), Taurus (H1, 24) and Capricorn (H9, 24). The 10th house, Aquarius, holds 29, just above the 28 mean. After Trikona and Ekadhipatya reduction (occupants = seven planets, no zero exemption, BPHS ch. 68) the Sodhya Pindas are Sun 122, Moon 85, Mars 130, Mercury 122, Jupiter 198, Venus 121, Saturn 233. Kakshya: the Sun sits in the Lagna's kakshya with a bindu, the Moon in Saturn's with a bindu, Mars in Venus's without, Saturn in its own without.
 
 **Layer 3 expected rule fires**
 
@@ -568,7 +587,7 @@ Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` 
 - Driver planet: Saturn leads on lordship (yogakaraka, H1, aspects H10, own sign in D9) but carries Marana Karaka Sthana and Mrita avastha, so the reading presents it as "strong role, weakened condition"; Venus (exalted lagna lord, AmK) and Mars (own-sign kendra, the only self-disposited planet, final nakshatra dispositor with Mercury) are the alternates, and all three are shown with the dispositor graph that produced them.
 - Top areas: career (H10 with Sun and Mercury, 10th lord Saturn in H1, Budhaditya, AmK Venus exalted, A10 on the lagna itself) → strong, with a sensitivity note for Mercury's boundary flag; wealth (lagna lord exalted in H11, the 1st–11th Parivartana, 2nd lord with the Sun in H10) → strong; marriage (Ruchaka in H7 but Mars in MKS, 7th lord in own sign, Saturn's aspect on H7, Mars's on H1, Rahu in the Upapada and in a Pushkara navamsa, DK Mercury in Bala avastha, Mangal dosha with cancellations) → moderate with a "delay or intensity" polarity flag.
 
-The first engineering milestone is making the code print exactly this section.
+The first engineering milestone is making the code print exactly this section. As of 2026-10-21 it does: \`tests/test\_reference\_chart.py\` in the repo encodes every value above and passes, and \`jyotish recover\` finds the instant behind the printed positions (2001-03-12 04:40 UTC), at which the engine matches the app within 0.4 arc-seconds on all seven planets; the app uses the mean node.
 
 ## Audit log
 
