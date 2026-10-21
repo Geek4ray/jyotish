@@ -19,9 +19,13 @@ def chart():
     return assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
 
 
+def v1(chart):
+    return chart.model_copy(update={"meta": chart.meta.model_copy(update={"timing_formula": "v1"})})
+
+
 @pytest.fixture(scope="module")
 def ans(chart):
-    return answer(chart, TimingQuery(**CAREER))
+    return answer(v1(chart), TimingQuery(**CAREER))
 
 
 def test_query_is_validated():
@@ -50,7 +54,7 @@ def test_tagged_timeline_merges_dashas_and_transits(chart):
     assert "Moon" in jup.activation and "Sun" in jup.activation
 
 
-def test_career_windows(ans, chart):
+def test_career_windows_v1(ans, chart):
     assert ans.area_tier == chart.scored.areas["career"].tier and ans.area_stability is not None
     ws = ans.windows
     assert 1 <= len(ws) <= 5 and [w.joint for w in ws] == sorted((w.joint for w in ws), reverse=True)
@@ -70,10 +74,10 @@ def test_career_windows(ans, chart):
     assert swe.julday(2030, 1, 1, 0) < top.start_jd < swe.julday(2031, 1, 1, 0)
 
 
-def test_sandhi_tags(chart):
+def test_sandhi_tags_v1(chart):
     # The Yogini maha boundary (Siddha -> Sankata, 2028-08-02) and the Chara one
     # (Pisces -> Aquarius, 2028-03-11) fall in the range: windows near them are tagged.
-    full = answer(chart, TimingQuery(**dict(CAREER, top=50)))
+    full = answer(v1(chart), TimingQuery(**dict(CAREER, top=50)))
     tagged = [w for w in full.windows if "dasha_sandhi" in w.tags]
     assert tagged
     marks = (swe.julday(2028, 3, 11, 0), swe.julday(2028, 8, 2, 0))
@@ -84,7 +88,7 @@ def test_systems_subset_and_no_uncertainty():
     from jyotish.chart import analyse
     from jyotish.reference import REFERENCE_ASC, REFERENCE_POSITIONS, REFERENCE_SPEEDS, reference_time_inputs
     c = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS, **reference_time_inputs())
-    a = answer(c, TimingQuery(**dict(CAREER, systems=["vimshottari"])))
+    a = answer(v1(c), TimingQuery(**dict(CAREER, systems=["vimshottari"])))
     assert all(set(w.periods) == {"vimshottari"} and w.stability is None for w in a.windows)
     assert a.area_stability is None
 
@@ -93,3 +97,48 @@ def test_dasha_rows_cover_the_range(chart):
     rows = [r for r in dasha_rows(chart, A, B) if r.system == "vimshottari" and r.level == 2]
     assert rows[0].start_jd <= A and rows[-1].end_jd >= B
     assert all(x.end_jd == pytest.approx(y.start_jd) for x, y in zip(rows, rows[1:]))
+
+
+# --- v2 ------------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def v2(chart):
+    return answer(chart, TimingQuery(**CAREER))
+
+
+def test_career_v2_windows(v2, chart):
+    assert v2.formula == "v2" and len(v2.windows) == 3 and v2.avoid is not None
+    assert v2.area_tier == chart.scored.areas["career"].tier          # narrated, not multiplied
+    for w in v2.windows + [v2.avoid]:
+        assert w.joint == pytest.approx(0.6 * w.dasha_quality + 0.4 * w.transit_activation)
+        assert 0 <= w.dasha_quality <= 1 and 0 <= w.transit_activation <= 1
+        assert w.end_jd - w.start_jd >= 30                               # short ones absorbed
+        assert "vimshottari" in w.derivation["relevant_systems"] or w.derivation["q_terms"]["relevance"] == 0
+        assert set(w.derivation["q_terms"]) <= {"dignity", "shadbala", "ishta", "tara", "relevance", "relation"}
+    top = v2.windows[0]
+    # Jupiter-Venus, Oct 2029 - Jun 2032: Venus exalted, Shadbala ratio above 1, high
+    # Ishta, and relevant as Amatyakaraka (a career karaka); every system's lords relevant.
+    assert top.periods["vimshottari"] == ["Jupiter", "Venus"]
+    assert swe.julday(2029, 10, 1, 0) < top.start_jd < swe.julday(2029, 11, 1, 0)
+    assert top.confidence == "strong" and top.derivation["pieces"] > 1    # merged across ingresses
+    # Avoid: Jupiter-Ketu (Ketu 8th from Jupiter: relation 0; Ketu in Vadha tara: 0).
+    assert v2.avoid.periods["vimshottari"] == ["Jupiter", "Ketu"]
+    assert v2.avoid.derivation["q_terms"]["relation"] == 0.0
+
+
+def test_v2_transit_term_saturates_for_career(v2):
+    # With four career houses and their lords, Saturn and Jupiter touch at least one of
+    # them nearly all the time, so t is 1 (the double transit) across the decade. Reported
+    # as a property of the v2 definition, not tuned.
+    assert all(w.transit_activation == pytest.approx(1.0) for w in v2.windows + [v2.avoid])
+
+
+def test_v2_sandhi_caps_confidence(chart):
+    full = answer(chart, TimingQuery(**dict(CAREER, top=50)))
+    allw = full.windows + [full.avoid]
+    sandhi = [w for w in allw if "dasha_sandhi" in w.tags]
+    assert sandhi and all(w.confidence in ("moderate", "weak") for w in sandhi)
+    # Jupiter-Mercury (Aug 2026 - Nov 2028) spans the Chara (2028-03-11) and Yogini
+    # (2028-08-02) maha changes.
+    jm = next(w for w in allw if w.periods["vimshottari"] == ["Jupiter", "Mercury"])
+    assert "dasha_sandhi" in jm.tags and jm.confidence == "moderate"

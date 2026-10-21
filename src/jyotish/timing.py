@@ -145,6 +145,15 @@ def _p90(area: str) -> float:
 
 
 def answer(chart: Chart, query: TimingQuery) -> TimingAnswer:
+    """The timing join under `chart.meta.timing_formula` ("v2" default, "v1" kept)."""
+    if chart.meta.timing_formula == "v2":
+        return answer_v2(chart, query)
+    if chart.meta.timing_formula != "v1":
+        raise ValueError(f"timing_formula must be v1 or v2, not {chart.meta.timing_formula!r}")
+    return answer_v1(chart, query)
+
+
+def answer_v1(chart: Chart, query: TimingQuery) -> TimingAnswer:
     if chart.scored is None:
         raise ValueError("the chart has no Layer 5 score (it needs the birth moment)")
     start, end = _jd(query.start), _jd(query.end)
@@ -211,5 +220,193 @@ def answer(chart: Chart, query: TimingQuery) -> TimingAnswer:
             derivation={"S_area": area.score_classical, "S_norm": s_norm, "systems": why,
                         "transit": act, "formula": "S_norm x dasha_quality + transit"}))
     windows.sort(key=lambda w: -w.joint)
-    return TimingAnswer(query=query, area_tier=area.tier, area_score=area.score_classical,
+    return TimingAnswer(query=query, formula="v1", area_tier=area.tier, area_score=area.score_classical,
                         area_stability=area.stability, windows=windows[:query.top], readings=READINGS)
+
+
+# --- v2 (SPEC Layer 5, timing join v2) ---------------------------------------------------
+
+READINGS_V2 = [
+    "q: mean of dignity (-2..2 -> 0..1), Shadbala ratio clipped 0..1, Ishta share, tara class "
+    "(adverse 0, Janma 0.5, else 1), relevance (0/1), maha-antar relation (6/8, 2/12 -> 0); "
+    "of the period's own lord; nodes average the components they have",
+    "relevance: the lord rules, occupies or aspects an area house (query basis), is an area "
+    "karaka, or its Nadi activation set does one of these; a Chara sign also when it is an area house",
+    "a window exists only where the Vimshottari maha or antar lord is relevant",
+    "t: share of Saturn, Jupiter and the nodal axis touching an area house or an area-house "
+    "lord's sign; Saturn and Jupiter together = 1; time-weighted",
+    "joint = 0.6 q + 0.4 t; the area tier is reported beside, not multiplied in",
+    "pieces: Vimshottari antars split at slow-mover ingresses; adjacent pieces with the same "
+    "maha/antar and joint within 0.1 merge; windows under 30 days are absorbed by the preceding "
+    "window (the following one at the start)",
+    "confidence: share of requested systems whose period lords are relevant (>0.7 strong, "
+    ">=0.4 moderate, else weak); a window overlapping the month either side of a maha "
+    "boundary of a requested system (dasha_sandhi) is capped at moderate",
+    "avoid: the window with the lowest joint",
+]
+SLOW_MOVERS = ("Saturn", "Jupiter", "Rahu", "Ketu")
+
+
+def _relevant(chart: Chart, planet: str, basis_sign: int, area_signs: set[int], karakas: set[str]) -> bool:
+    if planet in karakas:
+        return True
+    b = chart.bodies[planet]
+    if b.sign in area_signs or any(SIGN_LORD[s] == planet for s in area_signs):
+        return True
+    if planet in SEVEN:
+        h = house_of(b.sign, basis_sign)
+        if any(house_of(s, basis_sign) in aspected_houses(planet, h) for s in area_signs):
+            return True
+    return False
+
+
+def period_quality_v2(chart: Chart, lords: list[str], relevance: float) -> dict[str, float]:
+    p = lords[-1]
+    t = chart.bodies[p].tara
+    terms = {"tara": 0.0 if t.name in TARA_ADVERSE else 0.5 if t.name == "Janma" else 1.0,
+             "relevance": relevance}
+    if p in SEVEN:
+        terms["dignity"] = (DIGNITY_SCORE[chart.bodies[p].dignity or "node"] + 2.0) / 4.0
+        if chart.features.shadbala:
+            terms["shadbala"] = max(0.0, min(1.0, chart.features.shadbala.planets[p].ratio))
+        if chart.features.ishta_kashta:
+            ik = chart.features.ishta_kashta[p]
+            terms["ishta"] = ik.ishta / (ik.ishta + ik.kashta) if ik.ishta + ik.kashta else 0.5
+    if len(lords) == 2:
+        d = (chart.bodies[lords[1]].sign - chart.bodies[lords[0]].sign) % 12 + 1
+        terms["relation"] = 0.0 if d in (6, 8, 2, 12) else 1.0
+    else:
+        terms["relation"] = 1.0
+    return terms
+
+
+def _transit_share(rows, a: float, b: float, area_signs: set[int], lord_signs: set[int], lagna: int) -> float:
+    """Time-weighted t over [a, b]."""
+    edges = sorted({a, b} | {x for r in rows for x in (r.start_jd, r.end_jd) if a < x < b})
+    total = 0.0
+    for x, y in zip(edges, edges[1:]):
+        m = (x + y) / 2.0
+        on = {}
+        for r in rows:
+            if r.body in SLOW_MOVERS and r.start_jd <= m < r.end_jd:
+                hit = any(_touches(r.sign, r.body, s, lagna) for s in area_signs | lord_signs)
+                key = "nodes" if r.body in ("Rahu", "Ketu") else r.body
+                on[key] = on.get(key, False) or hit
+        share = sum(on.values()) / 3.0
+        if on.get("Saturn") and on.get("Jupiter"):
+            share = 1.0
+        total += share * (y - x)
+    return total / (b - a)
+
+
+def answer_v2(chart: Chart, query: TimingQuery) -> TimingAnswer:
+    if chart.scored is None:
+        raise ValueError("the chart has no Layer 5 score (it needs the birth moment)")
+    start, end = _jd(query.start), _jd(query.end)
+    area = chart.scored.areas[query.area]
+    spec = AREAS[query.area]
+    base = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign,
+            "sun": chart.bodies["Sun"].sign}[query.basis]
+    area_signs = {(base + h - 1) % 12 for h in spec["houses"]}
+    lord_signs = {chart.bodies[SIGN_LORD[s]].sign for s in area_signs}
+    karakas = set(_karakas(_View(chart), spec["karakas"]))
+    lagna = chart.lagnas.asc_sign
+
+    def relevant(system: str, lords: list[str]) -> bool:
+        planet = _lord_planet(system, lords[-1])
+        if system == "chara" and SIGNS.index(lords[-1]) in area_signs:
+            return True
+        return any(_relevant(chart, q, base, area_signs, karakas) for q in [planet] + activation_set(chart, planet))
+
+    periods = {s: [p for p in chart.dashas.get(s, []) if len(p.lords) == 2 and p.end_jd > start and p.start_jd < end]
+               for s in ("vimshottari",) + tuple(x for x in query.systems if x != "vimshottari")}
+    transit = transit_timeline(chart, start, end)
+    slow_edges = {r.start_jd for r in transit.rows if r.body in SLOW_MOVERS and start < r.start_jd < end}
+    mahas = [p for s in query.systems for p in chart.dashas.get(s, []) if len(p.lords) == 1]
+    bounds = {}
+    if chart.uncertainty is not None:
+        for bd in chart.uncertainty.boundaries:
+            bounds.setdefault(round(bd.start_jd, 6), []).append(bd)
+
+    # Pieces: gated Vimshottari antars, split at slow-mover ingresses.
+    pieces = []
+    for per in periods["vimshottari"]:
+        maha_rel = relevant("vimshottari", per.lords[:1])
+        antar_rel = relevant("vimshottari", per.lords)
+        if not (maha_rel or antar_rel):
+            continue
+        a, b = max(start, per.start_jd), min(end, per.end_jd)
+        cuts = sorted({a, b} | {x for x in slow_edges if a < x < b})
+        terms = period_quality_v2(chart, list(per.lords), 1.0 if antar_rel else 0.0)
+        q = sum(terms.values()) / len(terms)
+        for x, y in zip(cuts, cuts[1:]):
+            t = _transit_share(transit.rows, x, y, area_signs, lord_signs, lagna)
+            pieces.append({"a": x, "b": y, "lords": tuple(per.lords), "q": q, "t": t, "terms": terms,
+                           "joint": 0.6 * q + 0.4 * t})
+
+    def weighted(ws):
+        span = sum(w["b"] - w["a"] for w in ws)
+        return {k: sum(w[k] * (w["b"] - w["a"]) for w in ws) / span for k in ("q", "t", "joint")}
+
+    # Merge adjacent pieces with the same maha/antar and joint within 0.1.
+    merged = []
+    for pc in pieces:
+        last = merged[-1] if merged else None
+        if (last and last["lords"] == pc["lords"] and abs(last["b"] - pc["a"]) < 1e-9
+                and abs(last["joint"] - pc["joint"]) <= 0.1):
+            group = last["parts"] + [pc]
+            last.update(weighted(group), b=pc["b"], parts=group)
+        else:
+            merged.append(dict(pc, parts=[pc]))
+    # Absorb windows shorter than a month into the preceding (else the following) window.
+    changed = True
+    while changed and len(merged) > 1:
+        changed = False
+        for i, w in enumerate(merged):
+            if w["b"] - w["a"] < 30.0:
+                j = i - 1 if i > 0 else i + 1
+                host = merged[j]
+                group = (host["parts"] + w["parts"]) if j < i else (w["parts"] + host["parts"])
+                host.update(weighted(group), a=min(host["a"], w["a"]), b=max(host["b"], w["b"]), parts=group)
+                del merged[i]
+                changed = True
+                break
+
+    windows = []
+    for w in merged:
+        mid = (w["a"] + w["b"]) / 2.0
+        per_sys, rel = {}, {}
+        for system, rows in periods.items():
+            r = next((x for x in rows if x.start_jd <= mid < x.end_jd), None)
+            if r is not None:
+                per_sys[system] = list(r.lords)
+                rel[system] = relevant(system, list(r.lords)) or (system == "vimshottari" and relevant(system, list(r.lords[:1])))
+        share = sum(rel[s] for s in query.systems if s in rel) / len(query.systems)
+        conf = "strong" if share > 0.7 else "moderate" if share >= 0.4 else "weak"
+        tags = []
+        # Sandhi: the window overlaps the last or first month of adjoining maha periods.
+        junctions = {m.start_jd for m in mahas} | {m.end_jd for m in mahas}
+        if any(w["a"] < t0 + SANDHI_DAYS and w["b"] > t0 - SANDHI_DAYS for t0 in junctions
+               if start < t0 < end):
+            tags.append("dasha_sandhi")
+            if conf == "strong":
+                conf = "moderate"
+        stab = None
+        if chart.uncertainty is not None:
+            edge = [x for t0 in (w["a"], w["b"]) for x in bounds.get(round(t0, 6), [])]
+            if edge:
+                stab = {"time_range_days": max(x.time_range_days for x in edge),
+                        "ayanamsa_range_days": max((x.ayanamsa_range_days or 0.0) for x in edge),
+                        "boundaries": len(edge)}
+        windows.append(TimingWindow(
+            start_jd=w["a"], end_jd=w["b"], joint=w["joint"], dasha_quality=w["q"],
+            transit_activation=w["t"], periods={k: v for k, v in per_sys.items() if k in query.systems},
+            stability=stab, tags=tags, confidence=conf,
+            derivation={"formula": "0.6 q + 0.4 t", "q_terms": w["terms"], "pieces": len(w["parts"]),
+                        "relevant_systems": [s for s in query.systems if rel.get(s)],
+                        "area_tier": area.tier}))
+    ranked = sorted(windows, key=lambda x: -x.joint)
+    avoid = min(windows, key=lambda x: x.joint) if windows else None
+    return TimingAnswer(query=query, formula="v2", area_tier=area.tier, area_score=area.score_classical,
+                        area_stability=area.stability, windows=ranked[:3], avoid=avoid,
+                        readings=READINGS_V2)

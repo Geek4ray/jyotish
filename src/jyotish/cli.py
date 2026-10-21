@@ -238,15 +238,23 @@ def print_timing(chart: Chart, query) -> None:
     from .timing import answer
     ans = answer(chart, query)
     st = ans.area_stability
-    print(f"\nTiming: {query.area}, {query.start} to {query.end} ({', '.join(query.systems)}; basis {query.basis})")
+    print(f"\nTiming ({ans.formula}): {query.area}, {query.start} to {query.end} "
+          f"({', '.join(query.systems)}; basis {query.basis})")
     print(f"  area {ans.area_tier} (S {ans.area_score:.2f}"
-          + (f", stability {st.time:.2f}/{st.ayanamsa:.2f}/{st.house:.2f}" if st else "") + ")")
-    print("  joint = (S / population p90) x dasha quality + transit activation")
-    for w in ans.windows:
+          + (f", stability {st.time:.2f}/{st.ayanamsa:.2f}/{st.house:.2f}" if st else "") + "), narrated beside the windows")
+    print("  joint = 0.6 q + 0.4 t" if ans.formula == "v2" else "  joint = (S / population p90) x dasha quality + transit activation")
+
+    def line(w, label=""):
         per = "; ".join(f"{k} {'/'.join(v)}" for k, v in w.periods.items())
-        stab = f"  edges ±{w.stability['time_range_days'] / 2:.1f} d (ayanamsa {w.stability['ayanamsa_range_days']:.0f} d)" if w.stability else ""
-        print(f"  {_date(w.start_jd)} – {_date(w.end_jd)}  joint {w.joint:.2f} = dasha {w.dasha_quality:.2f}, "
-              f"transit {w.transit_activation:.2f}  [{per}]{stab}{'  sandhi' if 'dasha_sandhi' in w.tags else ''}")
+        stab = (f"  edges ±{w.stability['time_range_days'] / 2:.1f} d (ayanamsa {w.stability['ayanamsa_range_days']:.0f} d)"
+                if w.stability else "")
+        conf = f" {w.confidence}" if w.confidence else ""
+        print(f"  {label}{_date(w.start_jd)} – {_date(w.end_jd)}  joint {w.joint:.2f} (q {w.dasha_quality:.2f}, "
+              f"t {w.transit_activation:.2f}){conf}  [{per}]{stab}{'  sandhi' if 'dasha_sandhi' in w.tags else ''}")
+    for w in ans.windows:
+        line(w)
+    if ans.avoid is not None:
+        line(ans.avoid, "avoid: ")
 
 
 def print_stability(chart: Chart) -> None:

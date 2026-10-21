@@ -24,6 +24,7 @@ class Meta(BaseModel):
     twilight_minutes: float = 24.0         # one ghati either side of sunrise and sunset; BPHS 27.31 does not define it
     ishta_kashta: str = "bphs"             # bphs (28.2-6, Rasmis) | raman (geometric mean; unverified)
     argala_nodes: str = "rath"             # rath (Ketu in the sign: count backwards) | reverse_position | direct
+    timing_formula: str = "v2"             # v2 (0.6 q + 0.4 t, merged windows, SPEC) | v1
     driver_formula: str = "v2"             # v2 (sum of five 0-1 terms, SPEC) | v1 (product, rejected)
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
@@ -495,14 +496,17 @@ class TimingWindow(BaseModel):
     derivation: dict[str, Any]
     stability: dict[str, Any] | None = None
     tags: list[str] = Field(default_factory=list)
+    confidence: str | None = None      # v2: strong | moderate | weak (sandhi caps at moderate)
 
 
 class TimingAnswer(BaseModel):
     query: TimingQuery
+    formula: str = "v2"
     area_tier: str
     area_score: float | None
     area_stability: Stability | None
     windows: list[TimingWindow]
+    avoid: TimingWindow | None = None   # v2: the lowest joint window
     readings: list[str]
 
 
