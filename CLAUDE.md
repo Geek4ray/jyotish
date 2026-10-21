@@ -85,6 +85,9 @@ done. Layer 5 scoring (`scoring.py`, classical weights; rho table in
 are listed in `scoring.READINGS`. The tagged timeline and `TimingQuery` (`timing.py`) are
 done; their readings are in `timing.READINGS` / `READINGS_V2`. Layer 7 narration
 (`narrate.py`: Anthropic API with structured output, model and settings in `narrate.CONFIG`,
-a code validator on every sentence) is done; the offline suite replays
-`tests/fixtures/narration_career.json`, and `JYOTISH_LIVE_NARRATION=1` runs the one live test.
+a code validator on every sentence) is done, with the semantic checker (a second structured call per claim) after the
+validator. The offline suite replays the frozen first recording
+(`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
+`JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
+`tests/fixtures/narration_career.json`.
 Next: Layer 6 (validation), the retrieval corpus for Layer 7, and the synastry module.

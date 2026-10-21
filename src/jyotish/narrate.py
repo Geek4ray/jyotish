@@ -181,6 +181,11 @@ FORBIDDEN = {
     "trade": re.compile(r"(?=.*\b(buy|buying|bought|sell|selling|sold|invest|investing|invested|purchase|"
                         r"purchasing|short|shorting)\b)(?=.*\b(stocks?|shares|equit(?:y|ies)|crypto\w*|bitcoin|"
                         r"securities|bonds?|options|futures|commodit(?:y|ies)|mutual funds?|forex|etfs?)\b)", re.I),
+    # SPEC Layer 7 item 11: the engine states timing and windows itself.
+    "timing": re.compile(r"\b(timing|timed|time frame|window|windows|date|dates|dated|engine|dasha|"
+                         r"mahadasha|antardasha|bhukti|transits?|years?|months?|weeks?|"
+                         r"january|february|march|april|june|july|august|september|october|november|"
+                         r"december)\b|\b(?:19|20)\d{2}\b", re.I),
     "third_party": re.compile(r"\b(mother|father|parents?|partner|spouse|wife|husband|child|children|son|"
                               r"daughter|sibling|brother|sister)s?(?:'s)?\s+(?:\w+\s+){0,2}"
                               r"(will|is going to|shall|would|must|has to|gets?|suffers?)\b", re.I),
@@ -193,18 +198,62 @@ def sentences(text: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
-def validate(text: str, allowed: set[str]) -> list[str]:
-    """Every violation in a block of model text, as human-readable errors."""
+# A sentence "names" a family (SPEC Layer 7 item 11). Distinctive words count anywhere; the
+# ordinary words "house" and "lord" count only when the sentence speaks of a vote or family
+# with them, or (house) names Bhava Bala. "marana karaka" is a placement, not the family.
+FAMILY_WORDS = {
+    "house": re.compile(r"\bhouses?\b[^.\[]*\b(votes?|famil(?:y|ies))\b|\bbhava bala\b", re.I),
+    "lord": re.compile(r"\blords?\b[^.\[]*\b(votes?|famil(?:y|ies))\b", re.I),
+    "karaka": re.compile(r"(?<!marana )\bkarakas?\b", re.I),
+    "varga": re.compile(r"\bvargas?\b|\bD\d{1,2}\b|\bdasamsa\b|\bnavamsa\b", re.I),
+    "arudha": re.compile(r"\barudhas?\b|\bpadas?\b|\bupapada\b|\bA\d{1,2}\b|\bUL\b", re.I),
+    "kp": re.compile(r"\bKP\b|\bcusps?\b|\bsub-?lords?\b", re.I),
+    "panchanga": re.compile(r"\bpanchanga\b|\btithi\b|\bweekday\b|\bvara\b|\bnakshatra lord\b|"
+                            r"\bnitya[- ]yoga\b", re.I),
+}
+
+
+def families_named(sentence: str) -> set[str]:
+    bare = TAG.sub("", sentence)
+    return {f for f, rx in FAMILY_WORDS.items() if rx.search(bare)}
+
+
+def rule_names(rule_id: str) -> list[str]:
+    lib = {r.id: r for r in default_rules()}
+    rule = lib.get(rule_id)
+    names = rule.data.get("names") if rule else None
+    return names or [rule_id.split(".")[-1].replace("_", " ")]
+
+
+def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str] | None = None) -> list[str]:
+    """Every violation in a block of model text, as human-readable errors. `allowed` is the
+    set of tags this text may carry; `offered_votes` maps family -> vote tag for every vote
+    offered in the area (a sentence naming such a family must cite it)."""
+    offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
         bare = TAG.sub("", s)
-        tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
+        found = TAG.findall(s)
+        tags = {f"{k}:{v}" for k, v in found}
         if CLAIM_VERBS.search(bare) and not tags:
             errors.append(f"untagged claim: {s!r}")
         for t in tags - allowed:
             errors.append(f"tag not offered for this finding: [{t}] in {s!r}")
         if tags and not re.search(r"\]\s*[.!?]?\s*$", s):
             errors.append(f"tags must end the sentence: {s!r}")
+        named = families_named(s)
+        for kind, value in found:
+            if kind == "vote":
+                family = value.split(".", 1)[-1]
+                if family not in named:
+                    errors.append(f"[vote:{value}] on a sentence that does not name the {family} family: {s!r}")
+            elif kind == "rule":
+                if not any(n.lower() in bare.lower() for n in rule_names(value)):
+                    errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
+        for family in sorted(named):
+            tag = offered_votes.get(family)
+            if tag and tag not in tags:
+                errors.append(f"names the {family} family but does not cite [{tag}]: {s!r}")
         for kind, rx in FORBIDDEN.items():
             m = rx.search(bare)
             if m:
@@ -333,8 +382,12 @@ in words what the derivation shows. Put the tags at the very end of the sentence
 sentence that states something ends with a tag from the findings.
 
 The engine states the confidence tier, the stability and any timing windows itself, so do not \
-write confidence words (certain, definitely, guaranteed), probabilities or percentages, and do not \
-restate the tier. Never write about death or its timing, medical conditions, or buying and selling \
+write confidence words (certain, definitely, guaranteed), probabilities or percentages, do not \
+restate the tier, and do not mention timing, windows, dates, years, dashas, transits or the engine. \
+A sentence citing a vote names that family ("the KP vote", "the house vote"); a sentence naming a \
+family's vote cites it; a sentence citing a rule names the yoga. Say exactly what the derivation \
+states and attach each detail to the thing it belongs to: a cusp's star is the cusp's, not its \
+sub-lord's. Never write about death or its timing, medical conditions, or buying and selling \
 investments. For relationships (mother, father, partner, children, siblings), describe only what \
 this chart shows about the relationship, never what will happen to the other person."""
 
@@ -344,7 +397,6 @@ def payload(chart: Chart, question: str, areas: list[str]) -> tuple[str, dict[st
     allowed: dict[str, set[str]] = {}
     body = {"question": question, "areas": []}
     for name in areas:
-        a = chart.scored.areas[name]
         ok, _ = findings(chart, name)
         for f in ok:
             allowed[f["finding_id"]] = set(f["allowed_tags"])
@@ -352,9 +404,49 @@ def payload(chart: Chart, question: str, areas: list[str]) -> tuple[str, dict[st
     return json.dumps(body, indent=1, default=str), allowed
 
 
+def offered_votes(chart: Chart, areas: list[str]) -> dict[str, dict[str, str]]:
+    """area -> family -> vote tag, for the votes offered as findings."""
+    out = {}
+    for name in areas:
+        ok, _ = findings(chart, name)
+        out[name] = {f["family"]: f["finding_id"] for f in ok if f["kind"] == "vote"}
+    return out
+
+
 # --- the model call ----------------------------------------------------------------------
 
 Drafter = Callable[[str, str, list[str]], ReadingDraft]
+
+
+class Proposition(BaseModel):
+    text: str = Field(description="One proposition the sentence asserts, as a reader would take it.")
+    supported: bool = Field(description="True only if the derivation states it.")
+    evidence: str = Field(description="The derivation field that states it, or why it is not stated.")
+
+
+class CheckResult(BaseModel):
+    propositions: list[Proposition]
+
+
+Checker = Callable[[str, str], CheckResult]
+
+CHECKER_PROMPT = """You check one sentence of an astrology reading against the data it was written \
+from. List every proposition the sentence asserts, including what each appositive or relative \
+clause attaches to, read the way an ordinary reader would read it. For each, say whether the data \
+states it. Mark it unsupported if the data does not state it, if the sentence attaches a detail to \
+the wrong thing, or if the sentence is ambiguous between a supported and an unsupported reading. \
+Generic framing ("for career", "the vote is against") is supported when the data's direction or \
+area says so. Ignore the bracketed citation tags."""
+
+
+def _meta(response, kind: str, effort: str) -> dict:
+    from datetime import datetime, timezone
+    usage = getattr(response, "usage", None)
+    return {"kind": kind, "request_id": getattr(response, "_request_id", None),
+            "model": getattr(response, "model", None), "effort": effort,
+            "usage": usage.model_dump() if hasattr(usage, "model_dump") else usage,
+            "stop_reason": getattr(response, "stop_reason", None),
+            "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 class AnthropicDrafter:
@@ -366,6 +458,7 @@ class AnthropicDrafter:
         self.config = config
         self.client = client or anthropic.Anthropic()
         self.messages: list[dict] = []
+        self.last_meta: dict | None = None
 
     def __call__(self, system: str, user: str, errors: list[str]) -> ReadingDraft:
         if not self.messages:
@@ -379,11 +472,35 @@ class AnthropicDrafter:
             model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
             output_config={"effort": cfg.effort}, system=system, messages=self.messages,
             output_format=ReadingDraft)
+        self.last_meta = _meta(response, "writer", cfg.effort)
         if response.stop_reason == "refusal":
             raise NarrationError("the model declined the request", [str(getattr(response, "stop_details", ""))])
         self.messages.append({"role": "assistant", "content": response.content})
         if response.parsed_output is None:
             raise NarrationError("no structured output in the response", [response.stop_reason or ""])
+        return response.parsed_output
+
+
+class AnthropicChecker:
+    """The semantic checker (SPEC Layer 7 item 10): one structured call per claim with only the
+    sentence and that finding's derivation. Same model and config block as the writer."""
+
+    def __init__(self, config: NarrationConfig = CONFIG, client=None):
+        import anthropic
+        self.config = config
+        self.client = client or anthropic.Anthropic()
+        self.last_meta: dict | None = None
+
+    def __call__(self, sentence: str, derivation: str) -> CheckResult:
+        cfg = self.config
+        response = self.client.beta.messages.parse(
+            model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
+            output_config={"effort": cfg.effort}, system=CHECKER_PROMPT,
+            messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
+            output_format=CheckResult)
+        self.last_meta = _meta(response, "checker", cfg.effort)
+        if response.stop_reason == "refusal" or response.parsed_output is None:
+            raise NarrationError("the checker returned no result", [response.stop_reason or ""])
         return response.parsed_output
 
 
@@ -411,8 +528,16 @@ def _window(w) -> ReadingWindow:
             "targets": d.get("targets")}])
 
 
-def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, as_of: date | None = None,
-            config: NarrationConfig = CONFIG) -> Reading:
+def _check_payload(f: dict) -> str:
+    """What the checker sees for one finding: its derivation and nothing else."""
+    keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "school", "nodes", "scale",
+            "themes", "modifiers_applied", "details", "derivation")
+    return json.dumps({k: f[k] for k in keep if k in f}, indent=1, default=str)
+
+
+def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, checker: Checker | None = None,
+            as_of: date | None = None, config: NarrationConfig = CONFIG,
+            recording: list | None = None) -> Reading:
     if chart.scored is None:
         raise ValueError("narration needs a scored chart (birth moment, Shadbala, Bhava Bala)")
     as_of = as_of or date.today()
@@ -421,21 +546,46 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, as_o
     user, allowed = payload(chart, question, areas)
     all_tags = set().union(*allowed.values()) if allowed else set()
     drafter = drafter or AnthropicDrafter(config)
+    checker = checker or AnthropicChecker(config)
+    votes_offered = offered_votes(chart, areas)
+    finding_data = {f["finding_id"]: f for name in areas for f in findings(chart, name)[0]}
+    all_votes = {fam: tag for name in areas for fam, tag in votes_offered[name].items()}
 
     draft, errors, attempts = None, [], 0
     for attempts in range(1, config.max_attempts + 1):
         draft = drafter(SYSTEM_PROMPT, user, errors)
-        errors = validate(draft.summary, all_tags)
+        entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
+                     draft=draft.model_dump())
+        errors = validate(draft.summary, all_tags, offered_votes=all_votes if len(areas) == 1 else {})
         for da in draft.areas:
             if da.name not in areas:
                 errors.append(f"area not asked for: {da.name}")
+                continue
             for c in da.claims:
                 if c.finding_id not in allowed:
                     errors.append(f"unknown finding id {c.finding_id!r}")
                     continue
-                errors += validate(c.text, allowed[c.finding_id])
+                errors += validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name])
                 if not TAG.search(c.text):
                     errors.append(f"claim without a tag: {c.text!r}")
+        entry["validator_errors"] = list(errors)
+        if recording is not None:
+            recording.append(entry)
+        if errors:
+            continue
+        # The semantic check (SPEC Layer 7 item 10): only after the validator passes, one call
+        # per claim with that claim and its finding's derivation alone.
+        for da in draft.areas:
+            for c in da.claims:
+                result = checker(c.text, _check_payload(finding_data[c.finding_id]))
+                if recording is not None:
+                    recording.append(dict(getattr(checker, "last_meta", None) or {"kind": "checker"},
+                                          attempt=attempts, finding_id=c.finding_id, sentence=c.text,
+                                          result=result.model_dump()))
+                for prop in result.propositions:
+                    if not prop.supported:
+                        errors.append(f"unsupported by the derivation of {c.finding_id}: {prop.text!r} "
+                                      f"({prop.evidence}) in {c.text!r}")
         if not errors:
             break
     else:

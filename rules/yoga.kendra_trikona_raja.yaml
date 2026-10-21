@@ -1,5 +1,6 @@
 id: yoga.kendra_trikona_raja
 family: raja
+names: ["raja yoga", "kendra-trikona", "kendra trikona"]
 school: parashari
 source:
   - {text: BPHS, edition: Santhanam 1984, chapter: 34, verse: 11-12, checked: true,

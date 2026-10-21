@@ -1,9 +1,9 @@
 {
-  "note": "Recorded from claude-opus-5-5 by tests/test_narrate_live.py.",
+  "note": "HAND-EDITED from tests/fixtures/narration_career_opus55_r1.json (recorded from claude-opus-5-5). Two edits, both to pass SPEC Layer 7 items 10-11: the summary now cites every vote it names and no longer mentions timing or the engine; the KP claim no longer attaches the cusp's star (the Moon's) to the sub-lord Ketu. The other nine claims are the model's, verbatim. Replaced by the next live recording.",
   "question": "How will my career go, and when is the best time for a job change?",
   "drafts": [
     {
-      "summary": "Career is supported by a Sun-Mercury conjunction in the 10th house that links the 4th lord with the 2nd and 5th lord, forming a raja yoga oriented toward authority and reputation [rule:yoga.kendra_trikona_raja]. The house, lord, karaka, varga and panchanga votes lean in favour of career, while the KP vote leans against it because the 10th cusp sub-lord Ketu sits in the 8th house [vote:career.lord] [vote:career.kp]. Timing for a job change is set out by the engine separately from these chart factors [vote:career.house].",
+      "summary": "Career is supported by a Sun-Mercury conjunction in the 10th house that links the 4th lord with the 2nd and 5th lord, forming a raja yoga oriented toward authority and reputation [rule:yoga.kendra_trikona_raja]. The house, lord, karaka, varga and panchanga votes lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote leans against it, because the sub-lord of the 10th cusp, Ketu, sits in the 8th house [vote:career.kp].",
       "areas": [
         {
           "name": "career",
@@ -42,7 +42,7 @@
             },
             {
               "finding_id": "vote:career.kp",
-              "text": "The KP vote is against career, because the 10th cusp's sub-lord Ketu, in the star of the Moon, sits in the 8th house and owns none of the career houses 10, 6, 2 or 11 [vote:career.kp]."
+              "text": "The KP vote is against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns none of the career houses 10, 6, 2 or 11 [vote:career.kp]."
             },
             {
               "finding_id": "vote:career.panchanga",

@@ -1,5 +1,6 @@
 id: yoga.parivartana
 family: parivartana
+names: [Parivartana, exchange]
 school: parashari
 source:
   - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: true,

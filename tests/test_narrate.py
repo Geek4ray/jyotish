@@ -12,11 +12,37 @@ from jyotish.narrate import (
 from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.uncertainty import assess
 
-FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "narration_career.json").read_text())
-VALID = FIXTURE["drafts"][-1]          # the model's accepted draft (hand-authored until re-recorded)
+FIXTURES = Path(__file__).parent / "fixtures"
+# The first live recording (claude-opus-5-5), frozen: the live recorder writes
+# narration_career.json, so a re-run never changes what these tests assert.
+RECORDED = json.loads((FIXTURES / "narration_career_opus55_r1.json").read_text())
+EDITED = json.loads((FIXTURES / "narration_career_edited.json").read_text())  # two hand edits, see its note
+FIXTURE = EDITED
+QUESTION = RECORDED["question"]
+VALID = EDITED["drafts"][-1]
 AS_OF = date(2026, 10, 21)
-# A deliberately bad first draft: "likely", an untagged claim, an untagged summary sentence.
-INVALID = {"summary": "Career is likely to peak soon. The Sun and Mercury together in the 10th house form both Budhaditya yoga and a kendra-trikona Raja yoga [rule:yoga.kendra_trikona_raja]. Mars in its own sign in the 7th forms Ruchaka yoga, weakened by Saturn's aspect and its Marana Karaka Sthana [rule:yoga.ruchaka].", "areas": [{"name": "career", "claims": [{"finding_id": "yoga.budhaditya@lagna", "text": "The Sun and Mercury share Aquarius, the 10th house, which forms Budhaditya yoga."}, {"finding_id": "yoga.kendra_trikona_raja@lagna", "text": "The Sun, lord of the 4th, joins Mercury, lord of the 5th, in the 10th house, a kendra lord with a trikona lord [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."}]}]}
+# A deliberately bad draft: "likely", untagged sentences.
+INVALID = {"summary": "Career is likely to peak soon. The Sun and Mercury together in the 10th house form a "
+                      "kendra-trikona raja yoga [rule:yoga.kendra_trikona_raja].",
+           "areas": [{"name": "career", "claims": [{"finding_id": "yoga.budhaditya@lagna",
+                                                     "text": "The Sun and Mercury share Aquarius, which forms Budhaditya yoga."}]}]}
+
+
+class StubChecker:
+    """Offline stand-in for the semantic checker: supports every proposition unless a
+    sentence is listed in `reject` (sentence substring -> unsupported proposition)."""
+
+    def __init__(self, reject=None):
+        self.reject = reject or {}
+        self.calls = []
+        self.last_meta = None
+
+    def __call__(self, sentence, derivation):
+        from jyotish.narrate import CheckResult, Proposition
+        self.calls.append((sentence, derivation))
+        bad = [Proposition(text=p, supported=False, evidence="not in the derivation")
+               for frag, p in self.reject.items() if frag in sentence]
+        return CheckResult(propositions=bad or [Proposition(text=sentence, supported=True, evidence="stub")])
 
 
 class Replay:
@@ -38,8 +64,8 @@ def chart():
 
 @pytest.fixture(scope="module")
 def reading_and_drafter(chart):
-    d = Replay([INVALID, VALID])
-    return narrate(chart, FIXTURE["question"], drafter=d, as_of=AS_OF), d
+    d = Replay([RECORDED["drafts"][0], VALID])
+    return narrate(chart, QUESTION, drafter=d, checker=StubChecker(), as_of=AS_OF), d
 
 
 # --- the validator ---------------------------------------------------------------------
@@ -69,18 +95,33 @@ def test_validator_rejects(text, needle):
 def test_validator_accepts_tagged_claims_and_plain_lines():
     assert validate("Mars in its own sign forms Ruchaka yoga [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].", OK) == []
     # "trade" names a profession; only a buy/sell/invest verb with an instrument is advice.
-    assert validate("Mercury rules trade and trading careers [rule:yoga.ruchaka].", OK) == []
+    assert validate("Ruchaka yoga favours trade and trading careers [rule:yoga.ruchaka].", OK) == []
     assert validate("The KP family votes against career [vote:career.kp].", {"vote:career.kp"}) == []
     assert validate("Career.", OK) == []                       # no claim verb, no tag needed
 
 
 # --- the reading -----------------------------------------------------------------------
 
-def test_regenerates_until_valid(reading_and_drafter):
+def test_recorded_draft_is_rejected_then_edited_one_accepted(reading_and_drafter):
+    # The claude-opus-5-5 draft fails SPEC Layer 7 item 11 in its summary: it names four votes
+    # it does not cite, tags a timing sentence with the house vote, and mentions timing. Its
+    # ten claims pass the validator. The hand-edited draft is accepted on the second attempt.
     reading, d = reading_and_drafter
-    # INVALID says "likely" and has untagged sentences; the fixture draft is clean.
     assert reading.attempts == 2 and len(d.calls) == 2
-    assert d.calls[0]["errors"] == [] and d.calls[1]["errors"]
+    errs = d.calls[1]["errors"]
+    for fam in ("house", "karaka", "varga", "panchanga"):
+        assert any(f"names the {fam} family but does not cite [vote:career.{fam}]" in e for e in errs), fam
+    assert any("[vote:career.house] on a sentence that does not name the house family" in e for e in errs)
+    assert any(e.startswith("timing language") for e in errs)
+    from jyotish.narrate import sentences
+    summary = sentences(RECORDED["drafts"][0]["summary"])
+    assert len(errs) == 6 and all(any(x in e for x in summary) for e in errs)   # the claims were clean
+
+
+def test_regenerates_until_valid(chart):
+    d = Replay([INVALID, VALID])
+    r = narrate(chart, QUESTION, drafter=d, checker=StubChecker(), as_of=AS_OF)
+    assert r.attempts == 2 and d.calls[0]["errors"] == []
     assert any("probability" in e for e in d.calls[1]["errors"])
     assert any("untagged claim" in e for e in d.calls[1]["errors"])
 
@@ -88,7 +129,7 @@ def test_regenerates_until_valid(reading_and_drafter):
 def test_gives_up_after_max_attempts(chart):
     bad = Replay([INVALID])
     with pytest.raises(NarrationError) as e:
-        narrate(chart, FIXTURE["question"], drafter=bad, as_of=AS_OF)
+        narrate(chart, QUESTION, drafter=bad, checker=StubChecker(), as_of=AS_OF)
     assert len(bad.calls) == CONFIG.max_attempts and e.value.errors
 
 
@@ -156,7 +197,7 @@ def test_polarity_only_for_top_three_and_disclaimers(chart):
     # disclaimer and names the Jaimini family's disagreement with the Parashari ones.
     wealth_draft = {"summary": "Venus in Pisces and Jupiter in Taurus exchange signs, linking the 1st and "
                                "11th houses [rule:yoga.parivartana].", "areas": [{"name": "wealth", "claims": []}]}
-    r = narrate(chart, "What about money?", drafter=Replay([wealth_draft]), as_of=AS_OF)
+    r = narrate(chart, "What about money?", drafter=Replay([wealth_draft]), checker=StubChecker(), as_of=AS_OF)
     [w] = r.areas
     assert w.name == "wealth" and w.polarity == [] and chart.scored.areas["wealth"].polarity
     assert "finance" in r.disclaimers and w.disclaimer.startswith("This is a classical indication, not financial advice")
@@ -164,7 +205,7 @@ def test_polarity_only_for_top_three_and_disclaimers(chart):
     # Marriage has no rule-backed finding on this chart, so the only sentence the model may
     # write is one that makes no claim.
     m = narrate(chart, "Will I marry?", drafter=Replay([{"summary": "No rule-backed finding for marriage.", "areas": []}]),
-                as_of=AS_OF)
+                checker=StubChecker(), as_of=AS_OF)
     assert "third_party" in m.disclaimers and m.areas[0].disclaimer.startswith("This describes the relationship")
 
 
@@ -176,10 +217,11 @@ def test_unstable_findings_go_to_their_own_section(chart):
     assert "yoga.budhaditya@lagna" not in {x["finding_id"] for x in ok}
     assert [x["finding_id"] for x in held] == ["yoga.budhaditya@lagna"]
     draft = dict(VALID)
-    draft = {"summary": "The Sun, lord of the 4th, joins Mercury, lord of the 5th, in the 10th house [rule:yoga.kendra_trikona_raja].",
+    draft = {"summary": "The Sun, lord of the 4th, joins Mercury, lord of the 5th, in the 10th house, a kendra-trikona "
+                        "raja yoga [rule:yoga.kendra_trikona_raja].",
              "areas": [{"name": "career", "claims": [c for c in draft["areas"][0]["claims"]
                                                      if c["finding_id"] != "yoga.budhaditya@lagna"]}]}
-    r = narrate(shaky, FIXTURE["question"], drafter=Replay([draft]), as_of=AS_OF)
+    r = narrate(shaky, QUESTION, drafter=Replay([draft]), checker=StubChecker(), as_of=AS_OF)
     assert {"area": "career", "rule": "yoga.budhaditya", "basis": "lagna", "stability": 0.3} in r.depends_on_birth_time
     assert r.unstable == [{"id": "yoga.budhaditya", "basis": "lagna", "scale": 0.9, "stability": 0.3}]
 
@@ -204,11 +246,114 @@ def test_vote_rows_name_their_basis(chart):
     assert {"basis": "sun", "house": 10} in d["panchanga"][0]["rules"]     # Mars
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "Known gap: the recorded claude-opus-5-5 draft does not name the basis. It says 'Mars rules "
-    "several career houses from its own sign in the 7th' where SPEC Layer 7 item 8 wants 'Scorpio, "
-    "the 10th from the Sun'. The validator does not enforce basis naming; strict, so this fails "
-    "loudly once a re-recorded draft does name it."))
-def test_fixture_lord_sentence_names_the_basis():
-    lord = next(c for c in VALID["areas"][0]["claims"] if c["finding_id"] == "vote:career.lord")
-    assert "Scorpio, the 10th from the Sun" in lord["text"] and "lord of the 7th" not in lord["text"]
+
+
+# --- SPEC Layer 7 item 11 -----------------------------------------------------------
+
+VOTES = {"house": "vote:career.house", "lord": "vote:career.lord", "kp": "vote:career.kp",
+         "karaka": "vote:career.karaka"}
+
+
+@pytest.mark.parametrize("text,allowed,needle", [
+    ("Career leans favourably here [vote:career.kp].", {"vote:career.kp"}, "does not name the kp family"),
+    ("The KP vote is against career, while the karaka vote is for it [vote:career.kp].",
+     {"vote:career.kp", "vote:career.karaka"}, "names the karaka family but does not cite"),
+    ("Mars in its own sign gives courage [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}, "names none of ['Ruchaka']"),
+    ("Ruchaka yoga matters most in the coming years [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}, "timing"),
+    ("The engine places Ruchaka yoga first [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}, "timing"),
+    ("Ruchaka yoga is strongest in 2030 [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}, "timing"),
+])
+def test_item_11_rejects(text, allowed, needle):
+    errs = validate(text, allowed, offered_votes=VOTES)
+    assert any(needle in e for e in errs), errs
+
+
+def test_item_11_accepts_ordinary_words():
+    # "house", "lord" and "marana karaka" in a rule claim do not name a family; a vote claim
+    # that names its own family cites it.
+    assert validate("Mars in its own sign in the 7th house, lord of the 7th and 12th, forms Ruchaka yoga, "
+                    "weakened by a marana karaka placement [rule:yoga.ruchaka].",
+                    {"rule:yoga.ruchaka"}, offered_votes=VOTES) == []
+    assert validate("The KP vote is against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu "
+                    "sits in the 8th house [vote:career.kp].", {"vote:career.kp"}, offered_votes=VOTES) == []
+    assert validate("The house, lord and karaka votes lean for career [vote:career.house] [vote:career.lord] "
+                    "[vote:career.karaka].", set(VOTES.values()), offered_votes=VOTES) == []
+
+
+def test_rule_names_default_and_listed():
+    from jyotish.narrate import rule_names
+    assert rule_names("yoga.kendra_trikona_raja") == ["raja yoga", "kendra-trikona", "kendra trikona"]
+    assert rule_names("yoga.unknown_thing") == ["unknown thing"]       # default: the id's last segment
+    from jyotish.rules import load_rules
+    assert all(r.data.get("names") for r in load_rules())               # all twelve carry names
+
+
+# --- SPEC Layer 7 item 10: the checker ------------------------------------------------
+
+def test_checker_rejection_goes_back_to_the_writer(chart):
+    # The recorded KP sentence attaches the cusp's star (the Moon's) to Ketu, whose own star is
+    # Venus's (Purva Ashadha). The checker marks that unsupported; the writer gets it back.
+    recorded_kp = next(c["text"] for c in RECORDED["drafts"][0]["areas"][0]["claims"]
+                       if c["finding_id"] == "vote:career.kp")
+    first = json.loads(json.dumps(VALID))
+    for c in first["areas"][0]["claims"]:
+        if c["finding_id"] == "vote:career.kp":
+            c["text"] = recorded_kp
+    checker = StubChecker(reject={"Ketu, in the star of the Moon": "Ketu is in the Moon's star"})
+    d = Replay([first, VALID])
+    rec = []
+    r = narrate(chart, QUESTION, drafter=d, checker=checker, as_of=AS_OF, recording=rec)
+    assert r.attempts == 2
+    assert any("unsupported by the derivation of vote:career.kp" in e and "Ketu is in the Moon's star" in e
+               for e in d.calls[1]["errors"])
+    # One check per claim, each with only that finding's derivation (no question).
+    assert len(checker.calls) == 2 * len(VALID["areas"][0]["claims"])
+    sentence, derivation = checker.calls[0]
+    assert QUESTION not in derivation and '"finding_id"' in derivation
+    kinds = [e["kind"] for e in rec]
+    assert kinds.count("writer") == 2 and kinds.count("checker") == len(checker.calls)
+    assert rec[0]["validator_errors"] == [] and rec[0]["attempt"] == 1
+    assert not any("unsupported" in c.text for a in r.areas for c in a.claims)   # never narrated
+
+
+def test_recorder_saves_call_metadata(chart):
+    """AnthropicDrafter / AnthropicChecker against a fake SDK client: request id, usage, model,
+    effort and timestamp are recorded for every call, rejected drafts and checks included."""
+    from types import SimpleNamespace
+    from jyotish.narrate import AnthropicChecker, AnthropicDrafter, CheckResult, Proposition, ReadingDraft
+
+    class Usage:
+        def __init__(self, i, o):
+            self.input_tokens, self.output_tokens = i, o
+
+        def model_dump(self):
+            return {"input_tokens": self.input_tokens, "output_tokens": self.output_tokens}
+
+    drafts = [ReadingDraft(**RECORDED["drafts"][0]), ReadingDraft(**VALID)]
+    n = {"w": 0, "c": 0}
+
+    def parse(**kw):
+        if kw["output_format"] is ReadingDraft:
+            out = drafts[min(n["w"], 1)]
+            n["w"] += 1
+            rid = f"req_writer_{n['w']}"
+        else:
+            out = CheckResult(propositions=[Proposition(text="ok", supported=True, evidence="derivation")])
+            n["c"] += 1
+            rid = f"req_check_{n['c']}"
+        return SimpleNamespace(parsed_output=out, stop_reason="end_turn", content=[], _request_id=rid,
+                               model=kw["model"], usage=Usage(100, 20))
+
+    client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(parse=parse)))
+    rec = []
+    r = narrate(chart, QUESTION, drafter=AnthropicDrafter(CONFIG, client=client),
+                checker=AnthropicChecker(CONFIG, client=client), as_of=AS_OF, recording=rec)
+    assert r.attempts == 2
+    writers = [e for e in rec if e["kind"] == "writer"]
+    checks = [e for e in rec if e["kind"] == "checker"]
+    assert [w["request_id"] for w in writers] == ["req_writer_1", "req_writer_2"]
+    assert writers[0]["validator_errors"] and writers[1]["validator_errors"] == []   # rejected one kept
+    assert len(checks) == len(VALID["areas"][0]["claims"])
+    for e in rec:
+        assert e["model"] == CONFIG.model and e["effort"] == CONFIG.effort
+        assert e["usage"] == {"input_tokens": 100, "output_tokens": 20} and e["timestamp"].endswith("+00:00")

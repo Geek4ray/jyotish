@@ -91,6 +91,16 @@
     },
     "narration_key": {
       "type": "string"
+    },
+    "names": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Words a sentence must contain (any one, case-insensitive) to carry this rule's [rule:...] tag; default: the id's last segment"
     }
   },
   "$defs": {
