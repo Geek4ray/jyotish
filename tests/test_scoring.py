@@ -46,16 +46,34 @@ def test_wealth_is_moderate_not_strong(sc):
     assert a.tier == "moderate" and 0.4 <= a.confidence < 0.7
     assert a.votes["arudha"] == -1 and a.votes["varga"] == 0
     assert "volatility" in a.polarity                     # Rahu in the 2nd, as SPEC's example
+    assert a.polarity_touches["delay"] == ["lord Mercury", "karaka Jupiter"]
 
 
 def test_marriage_flags_and_tier(sc):
-    # The delay / intensity polarity comes out as SPEC says (Saturn aspects the 7th, Mars
-    # occupies it). The tier is "strong" by a hair (0.706) where SPEC expects "moderate":
-    # the Upapada family opposes, six others agree.
+    # Two-touch polarity: Saturn aspects the 7th and its lord Mars (in the 7th), so "delay";
+    # Mars occupies the 7th but is its own lord and does not touch Venus, so one touch and
+    # no "intensity" (SPEC's reader expected delay/intensity). The tier is "strong" by a
+    # hair (0.706) where the reader expected "moderate": the Upapada family opposes.
     a = sc.areas["marriage"]
-    assert set(a.polarity) == {"delay", "intensity"}
+    assert a.polarity == ["delay"]
+    assert a.polarity_touches == {"delay": ["house H7", "lord Mars"]}
     assert a.tier == "strong" and 0.70 < a.confidence < 0.72
     assert a.votes["arudha"] == -1 and a.votes["kp"] == 1
+
+
+def test_two_touch_rule(sc):
+    for name, a in sc.areas.items():
+        for flag, hits in a.polarity_touches.items():
+            assert flag in a.polarity
+            if flag in ("delay", "intensity"):
+                assert len(hits) >= 2 and len(set(hits)) == len(hits), (name, flag)
+            planet = {"delay": "Saturn", "intensity": "Mars"}.get(flag)
+            assert not any(h.endswith(" " + planet) for h in hits if planet), (name, flag)
+    # Gains: Jupiter is both the 11th lord and the main karaka, one object, one touch.
+    assert sc.areas["gains"].polarity == []
+    # The literal rule flags more of this chart than the one-touch rule did (13 vs 9 areas):
+    # Saturn in H1 and Mars in H7 aspect H1, H2, H3, H7, H10, where most planets sit.
+    assert sum(1 for a in sc.areas.values() if a.polarity) == 13
 
 
 def test_not_emphasised_is_reported_not_scored_low(chart, sc, capsys):

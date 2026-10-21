@@ -43,9 +43,12 @@ strong contradiction". Tier: > 0.7 strong, 0.4-0.7 moderate, else weak / mixed.
 Areas whose S x confidence is below the chart's median are "not emphasised": reported as
 such, not as a low score.
 
-Polarity (simplest named reading of SPEC's "signed contributions"): a malefic occupying
-or aspecting (whole-sign drishti) the area's first house from the lagna flags it: Saturn
-"delay", Mars "intensity", Rahu "volatility", Ketu "detachment".
+Polarity: Saturn "delay" and Mars "intensity" need at least two touches (occupy, conjoin
+or aspect, whole-sign) among the area's first house, that house's lord and the area's
+main karaka (its first listed); a planet does not touch itself, and a lord that is also
+the main karaka is one object, one touch (SPEC Layer 5 revision).
+Rahu "volatility" and Ketu "detachment" need one touch of the first house. Each flag
+records the touches that raised it.
 
 Driver (Meta.driver_formula). "v2", the default (SPEC hypothesis v2): the sum, equal
 weights, of five terms each scaled 0-1 across the chart's seven planets (min-max): Shadbala
@@ -91,7 +94,7 @@ READINGS = [
     "V: D1 vs varga dignity sign agreement, +1 vargottama in D9",
     "T_p: adverse tara -1, Janma 0, others +1, halved in cycles 2-3",
     "confidence: (agree - oppose) / applicable, 1 - rho weights; not emphasised below median S x confidence",
-    "polarity: Saturn/Mars/Rahu/Ketu on the first house from the lagna",
+    "polarity: Saturn/Mars need 2 of first house, its lord, main karaka; Rahu/Ketu 1 (first house)",
     "driver v2: sum of min-max scaled Shadbala ratio, Vimsopaka, rules share, Sodhya Pinda rank, role share",
 ]
 
@@ -326,18 +329,46 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
         "panchanga": _sgn(P) if touching else None,
     }
 
-    polarity = []
-    first = spec["houses"][0]
-    for planet, flag in POLARITY.items():
-        h = v.c.bodies[planet].house
-        on = h == first or (planet in SEVEN and first in aspected_houses(planet, h))
-        if on:
-            polarity.append(flag)
+    polarity, touches = _polarity(v, spec["houses"][0], karakas[0] if karakas else None)
     terms = {"house": house_term, "lord": lord_term, "karaka": karaka_term, "rules": rule_term,
              "varga": WEIGHTS["varga"] * V, "navatara": WEIGHTS["navatara"] * nav,
              "dispositor": disp_term, "panchanga": WEIGHTS["panchanga"] * P}
-    return {"S": S, "votes": votes, "polarity": polarity, "terms": terms,
+    return {"S": S, "votes": votes, "polarity": polarity, "touches": touches, "terms": terms,
             "lords": sorted(lords_all), "karakas": karakas}
+
+
+def _touches_sign(v: _View, planet: str, sign: int) -> bool:
+    """Occupies or conjoins (same sign) or aspects (whole-sign graha drishti) a sign."""
+    h = v.c.bodies[planet].house
+    target = v.lagna_house(sign)
+    return h == target or (planet in SEVEN and target in aspected_houses(planet, h))
+
+
+def _polarity(v: _View, first: int, main_karaka: str | None) -> tuple[list[str], dict[str, list[str]]]:
+    """Saturn (delay) and Mars (intensity) flag an area when they touch at least two of its
+    first house, that house's lord and its main karaka (SPEC Layer 5); a planet does not
+    touch itself. Rahu (volatility) and Ketu (detachment) keep the single touch of the
+    first house (SPEC's two-touch rule names delay/intensity only)."""
+    house_sign = v.sign_of_house(first, "lagna")
+    lord = v.lord_of(first, "lagna")
+    flags, record = [], {}
+    for planet, flag in POLARITY.items():
+        hits = []
+        if _touches_sign(v, planet, house_sign):
+            hits.append(f"house H{first}")
+        if planet in ("Saturn", "Mars"):
+            if lord != planet and _touches_sign(v, planet, v.sign[lord]):
+                hits.append(f"lord {lord}")
+            if (main_karaka and main_karaka not in (planet, lord)
+                    and _touches_sign(v, planet, v.sign[main_karaka])):
+                hits.append(f"karaka {main_karaka}")
+            needed = 2
+        else:
+            needed = 1
+        if len(hits) >= needed:
+            flags.append(flag)
+            record[flag] = hits
+    return flags, record
 
 
 def confidence(S: float, votes: dict[str, int | None], rho: dict[str, float]) -> tuple[float, float, float]:
@@ -448,7 +479,7 @@ def score(chart: Chart, rules=None) -> Scored | None:
             tier=tier(conf) if emphasised else "not emphasised", confidence=conf,
             direction={1: "supportive", -1: "adverse", 0: "neutral"}[_sgn(r["S"])],
             emphasised=emphasised, families_agree_w=agree, families_total_w=total,
-            votes=r["votes"], polarity=r["polarity"], terms=r["terms"],
+            votes=r["votes"], polarity=r["polarity"], polarity_touches=r["touches"], terms=r["terms"],
             lords=r["lords"], karakas=r["karakas"])
     areas["synastry"] = AreaScore(score_classical=None, score_learned=None, tier="needs two charts",
                                   confidence=None, direction="neutral", emphasised=False,

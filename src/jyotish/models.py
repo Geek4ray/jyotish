@@ -412,6 +412,7 @@ class AreaScore(BaseModel):
     families_total_w: float
     votes: dict[str, int | None]
     polarity: list[str]
+    polarity_touches: dict[str, list[str]] = Field(default_factory=dict)
     terms: dict[str, float]
     lords: list[str]
     karakas: list[str]
