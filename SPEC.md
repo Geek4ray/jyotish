@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 71). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 72). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -616,6 +616,12 @@ Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` 
 - Ayanamsa axis (Lahiri, Raman, KP): every fire holds; the D9 and D12 lagnas do not — under Raman the ascendant passes 6°40' Taurus and the navamsa lagna becomes Pisces. Vimshottari boundaries move 277 days across the three.
 - House axis (whole sign, Sripati): under Sripati the Sun moves to H11, Venus to H12, Rahu to H3, Ketu to H9; Saturn rules the 10th and 11th and is no longer yogakaraka; the Sun–Mercury kendra-trikona Raja yoga dissolves (house-robustness 0.50). Ruchaka, Budhaditya and the Parivartana hold.
 - Sripati convention: bhava madhyas at the ascendant, IC, descendant and MC with each quadrant trisected; sandhis at the midpoints; a house's lord is the lord of the sign on its madhya; houses from the Moon and Sun stay whole-sign. The rule follows the usual summary of Sripati Paddhati; the verse was not read.
+
+**Bhava Bala, Vimsopaka, Ishta/Kashta and Argala (computed 2026-10-21)**
+
+- Bhava Bala (BPHS 27.26–31 in Santhanam's edition — not ch. 28; the day/night term goes by the sign's rising type, not by the sex of planets, and each house gains 60 for Jupiter or Mercury in it and loses 60 for Saturn, Mars or the Sun), in rupas, whole sign: H1 7.2, H2 8.9, H3 7.7, H4 8.5, H5 9.0, H6 8.2, H7 7.4, H8 9.0, H9 4.6, H10 4.5, H11 8.2, H12 6.7. The 10th is the weakest house: its lord Saturn is weak and the Sun sits in it. Settings: rising-sign table (BPHS vs Phaladeepika) and twilight width (24 min default; the verse does not define it).
+- Vimsopaka (BPHS 7.17–25), Shadvarga/Saptavarga/Dasavarga/Shodasavarga: Venus 13.8/14.5/15.7/15.6 and Saturn 17.2/15.5/16.4/16.4 are "full"; Mercury 15.3/15.2/14.5/14.5 and Mars 13.8/13.3/11.7/11.8 "mediocre"; Sun, Moon and Jupiter "some". Ishta/Kashta by BPHS 28.2–6 (the mean of Uchcha and Chesta): Venus 55.5/4.5, Mars 37.1/22.9, Sun 36.6/23.4, Jupiter 33.9/26.1, Moon 29.7/30.3, Mercury 24.4/35.6, Saturn 13.8/46.2; the square-root form is a setting marked unverified.
+- Argala (Jaimini Upadesa Sutras 1.1.4–9 as read in Rath's srath.com article; BPHS 31.2–9 read in Santhanam): on H10, Venus from the 2nd and Ketu from the 11th unobstructed; Jupiter and Saturn from the 4th prevail over Mars's obstruction from the 10th; Rahu's secondary Argala from the 5th prevails over the Moon. The node rule is Rath's: when Ketu occupies the sign being judged, everything is counted backwards from it — which applies to H8 (Sagittarius) on this chart; BPHS's other reading is a setting. Which side prevails follows Rath's order (the Atmakaraka's sign, then more planets, dignity, dual over fixed over movable, Jupiter's aspect; a dead heat is Bandhana — H5 and H11 here), taken from Google Books snippets of his 1997 translation and so marked unverified. Rath's further pairs (8th obstructed from the 6th, 7th from the 1st) are not computed.
 
 **Layer 5 expected ranking (classical weights, before calibration)**
 
