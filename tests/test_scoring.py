@@ -58,12 +58,14 @@ def test_marriage_flags_and_tier(sc):
     # no "intensity" (SPEC's reader expected delay/intensity). Under varga v1 the tier was
     # "strong" by a hair (0.706); under v2 the varga family's weight is scaled by its
     # consistency (half the D9 pairs agree with D1, so x0.75) and the tier is "moderate",
-    # as SPEC's reader expected: the Upapada family opposes.
+    # as SPEC's reader expected: the Upapada family opposes. This chart is built from the
+    # printed longitudes with no place, so it has no Placidus cusps and KP v2 (occupation in
+    # the KP houses) is not applicable; v1 reads the fallback 7th cusp from the ascendant.
     a = sc.areas["marriage"]
     assert a.polarity == ["delay"]
     assert a.polarity_touches == {"delay": ["house H7", "lord Mars"]}
-    assert a.tier == "moderate" and 0.69 < a.confidence < 0.70 and a.varga_consistency == 0.5
-    assert a.votes["arudha"] == -1 and a.votes["kp"] == 1
+    assert a.tier == "moderate" and 0.64 < a.confidence < 0.65 and a.varga_consistency == 0.5
+    assert a.votes["arudha"] == -1 and a.votes["kp"] is None and a.vote_details["kp"] == []
 
 
 def test_two_touch_rule(sc):
@@ -284,17 +286,24 @@ def test_kp_v2_decides_at_the_star_lord_level_first(timed):
     star, _ = sc.areas["marriage"].vote_details["kp"]
     assert (star["planet"], star["meets_matter"], star["meets_denial"], star["decides"]) == ("Mars", [7], [], True)
     assert sc.areas["marriage"].votes["kp"] == 1
-    # The KP areas are the SPEC's six: mother_home gains the 4th cusp, mind has no KP vote.
+    # The KP areas are the SPEC's seven: the 4th cusp is read for mother_home (M 4 11 12,
+    # N 3 5 10) and for the mind (M 4 11, N 6 8 12).
     from jyotish.constants import KP_MATTER
     assert {n for n, a in sc.areas.items() if a.votes.get("kp") is not None} == set(KP_MATTER)
-    assert sc.areas["mind"].votes["kp"] is None and sc.areas["mother_home"].votes["kp"] == -1
+    assert sc.areas["mother_home"].votes["kp"] == -1
+    # Mind: sub-lord Venus; its star lord Mercury signifies 10, 2, 5 (neither M nor N), Venus
+    # itself 11 (matter) and 6 (denial): undecided at both levels, an abstention.
+    star, own = sc.areas["mind"].vote_details["kp"]
+    assert (star["sub"], star["matter_houses"], star["denial_houses"]) == ("Venus", [4, 11], [6, 8, 12])
+    assert (star["planet"], star["outcome"], own["outcome"]) == ("Mercury", "neither", "both")
+    assert sc.areas["mind"].votes["kp"] == 0
 
 
 def test_kp_v2_node_adds_conjoined_aspecting_and_sign_lord(timed):
     from jyotish.scoring import _View, _significations
     v = _View(timed)
     houses, me, via = _significations(v, "Rahu")                       # Rahu in Gemini, the 2nd, alone
-    assert me == {"planet": "Rahu", "occupies": 2, "owns": []}
+    assert me == {"planet": "Rahu", "occupies": 2, "occupies_by_sign": 2, "owns": []}
     assert [(x["planet"], x["as"]) for x in via] == [("Mercury", "sign lord")]
     asp = timed.model_copy(deep=True)
     asp.meta = asp.meta.model_copy(update={"node_aspects": True})
@@ -315,3 +324,25 @@ def test_reference_tiers_v1_and_v2(timed):
     car = timed.scored.areas["career"]
     assert car.tier == "moderate" and 0.699 < car.confidence < 0.7
     assert any("V v2" in r for r in timed.scored.readings) and any("KP v2" in r for r in timed.scored.readings)
+
+
+def test_kp_occupation_is_by_placidus_house(timed):
+    # Occupation counts in the KP houses (Placidus cusps); ownership stays by sign. Saturn at
+    # Taurus 2.1 lies before the 1st cusp (Taurus 6.3), so it is in the 12th KP house; the
+    # Sun at Aquarius 27.8 is past the 11th cusp (Aquarius 20.4).
+    from jyotish.scoring import _View, _significations
+    v = _View(timed)
+    moved = {p: (timed.bodies[p].house, v.kp_house(p)) for p in timed.bodies if v.kp_house(p) != timed.bodies[p].house}
+    assert moved == {"Sun": (10, 11), "Saturn": (1, 12)}
+    houses, me, _ = _significations(v, "Saturn")
+    assert (me["occupies"], me["occupies_by_sign"], me["owns"]) == (12, 1, [9, 10]) and houses == {9, 10, 12}
+    # Neither is a sub-lord, star lord or node sign lord in any KP derivation of this chart,
+    # so no KP vote changes with the switch from whole-sign occupation.
+    for a in timed.scored.areas.values():
+        for r in a.vote_details.get("kp") or []:
+            assert r["occupies"] == r["occupies_by_sign"] and all(
+                x["occupies"] == x["occupies_by_sign"] for x in r["via"])
+    bad = timed.model_copy(deep=True)
+    bad.meta = bad.meta.model_copy(update={"kp_house_system": "koch"})
+    with pytest.raises(ValueError, match="kp_house_system must be placidus"):
+        _View(bad).kp_house("Sun")

@@ -69,13 +69,14 @@ dispositors are shown as alternates; the current Vimshottari lords are reported 
 KP (Meta.kp_vote). v2, the default (SPEC revision 2026-10-21): the areas in
 constants.KP_MATTER have a cusp, matter houses M and denial houses N. The cusp's sub-lord
 signifies, in the KP four-fold order, the house its star lord occupies, the houses its star
-lord owns, the house it occupies, the houses it owns (whole-sign houses from the lagna); a
+lord owns, the house it occupies, the houses it owns (occupation in the KP houses, the
+Placidus cusps of Meta.kp_house_system; ownership by sign from the lagna, as before); a
 node adds the occupation and ownership of the planets conjoined with it (and, with
 Meta.node_aspects, of the planets aspecting its sign), then of its sign lord. Decided at the
 star-lord level first: +1 when its significations meet M and not N, -1 when N and not M;
 if both or neither, the same test at the sub-lord's own level; else 0 (an abstention). v1,
 kept for comparison: +1 if the sub-lord occupies or owns an area house, -1 if instead a
-6/8/12 house the area does not include; cusps from the area table (mind reads the 4th).
+6/8/12 house the area does not include (whole-sign occupation); cusps from the area table.
 
 The rho and percentile tables are measured per (varga_term, kp_vote): the v1 pair keeps
 family_rho.json / area_percentiles.json, other pairs add ".varga-<v>.kp-<v>" to the name.
@@ -116,7 +117,7 @@ READINGS_VARGA = {
 READINGS_KP = {
     "v1": "KP v1: sub-lord occupies/owns an area house +1, else a 6/8/12 outside them -1",
     "v2": "KP v2: KP matter/denial houses, four-fold significations, star-lord level then own level, else abstain; "
-          "whole-sign occupation and ownership",
+          "occupation in the Placidus KP houses, ownership by sign",
 }
 READINGS = [
     "weights lord 3, occupant 2, karaka 2, rule 1, varga 1, navatara/dispositor/panchanga 0.5",
@@ -253,6 +254,19 @@ class _View:
         self.D = {p: DIGNITY_SCORE[chart.bodies[p].dignity or "node"] for p in GRAHAS}
         self.benefics = natural_benefics(self.lon, chart.meta.mercury_nature)
 
+    def kp_house(self, p: str) -> int:
+        """The KP house a planet occupies: the cusp interval (Meta.kp_house_system) holding
+        its sidereal longitude, cusp n up to cusp n+1."""
+        if self.c.meta.kp_house_system != "placidus":
+            raise ValueError(f"kp_house_system must be placidus, not {self.c.meta.kp_house_system!r}")
+        cusps = self.c.lagnas.cusps_placidus
+        lon = self.lon[p]
+        for n in range(1, 13):
+            start, end = cusps[n], cusps[n % 12 + 1]
+            if (lon - start) % 360.0 < (end - start) % 360.0:
+                return n
+        raise ValueError(f"{p} at {lon} is in no KP house")
+
     def lagna_house(self, sign: int) -> int:
         return house_of(sign, self.lagna)
 
@@ -327,11 +341,12 @@ def _arudha_signs(v: _View, names: list[str]) -> list[int]:
 
 
 def _significations(v: _View, p: str) -> tuple[set[int], dict, list[dict]]:
-    """A planet's own occupation and ownership (whole-sign houses from the lagna); for a
-    node, plus those of the planets conjoined with it (and aspecting its sign, with
-    Meta.node_aspects) and then of its sign lord. Returns (houses, own, via)."""
+    """A planet's own occupation (its KP house, Placidus) and ownership (by sign from the
+    lagna); for a node, plus those of the planets conjoined with it (same sign; and aspecting
+    its sign, with Meta.node_aspects) and then of its sign lord. Returns (houses, own, via)."""
     def own(q):
-        return {"planet": q, "occupies": v.c.bodies[q].house, "owns": list(v.f.lordship.get(q, []))}
+        return {"planet": q, "occupies": v.kp_house(q), "occupies_by_sign": v.c.bodies[q].house,
+                "owns": list(v.f.lordship.get(q, []))}
     me = own(p)
     houses = {me["occupies"], *me["owns"]}
     via = []
@@ -352,7 +367,8 @@ def _kp_level(v: _View, level: str, p: str, M: set[int], N: set[int]) -> dict:
     sig, me, via = _significations(v, p)
     m, n = sig & M, sig & N
     vote = 1 if m and not n else -1 if n and not m else 0
-    return {"level": level, "planet": p, "occupies": me["occupies"], "owns": me["owns"], "via": via,
+    return {"level": level, "planet": p, "occupies": me["occupies"], "occupies_by_sign": me["occupies_by_sign"],
+            "owns": me["owns"], "via": via,
             "significations": sorted(sig), "meets_matter": sorted(m), "meets_denial": sorted(n),
             "outcome": {1: "for", -1: "against"}[vote] if vote else ("both" if m else "neither"), "vote": vote}
 
@@ -364,8 +380,8 @@ def _kp_vote_v2(v: _View, area: str) -> tuple[int | None, list[dict]]:
     if spec is None:
         return None, []
     lords = v.c.lagnas.cusp_lords_kp.get(spec["cusp"])
-    if not lords:
-        return None, []
+    if not lords or not v.c.lagnas.cusps_placidus:
+        return None, []         # no KP houses (no Placidus cusps without a place): not applicable
     sub = lords["sub"]
     M, N = set(spec["matter"]), set(spec["denial"])
     levels = [_kp_level(v, "star lord", v.c.bodies[sub].nak_lord, M, N), _kp_level(v, "own", sub, M, N)]

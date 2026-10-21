@@ -445,9 +445,9 @@ def vimsopaka_label(score: float) -> str:
 # A cusp sub-lord promises the area when its significations meet the matter houses M and not
 # the denial houses N. Source: K.S. Krishnamurti, KP Readers (house groupings per matter);
 # checked: false — not yet read in a named edition. Where N is the 12th from each house of M
-# it is Krishnamurti's own principle that the 12th to a house denies it. The SPEC table also
-# names the 4th cusp for "mind"; the revised paragraph gives M/N for the 4th cusp only as
-# mother/home (property), so under v2 the mind area has no KP vote and mother_home has one.
+# it is Krishnamurti's own principle that the 12th to a house denies it. The 4th cusp is read
+# twice: for mother and home (property) and for the mind (peace of mind). Occupation is
+# counted in the KP houses (Placidus cusps, Meta.kp_house_system); ownership by sign.
 KP_MATTER_SOURCE = {"text": "KP Readers", "edition": "K.S. Krishnamurti", "checked": False}
 KP_MATTER = {
     "personality": {"cusp": 1, "matter": [1, 5, 9, 11], "denial": [6, 8, 12]},
@@ -456,4 +456,5 @@ KP_MATTER = {
     "health": {"cusp": 6, "matter": [1, 5, 11], "denial": [6, 8, 12]},          # recovery / disease
     "marriage": {"cusp": 7, "matter": [2, 7, 11], "denial": [1, 6, 10]},
     "career": {"cusp": 10, "matter": [2, 6, 10, 11], "denial": [1, 5, 9]},
+    "mind": {"cusp": 4, "matter": [4, 11], "denial": [6, 8, 12]},               # peace of mind
 }
