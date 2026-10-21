@@ -187,8 +187,9 @@ FORBIDDEN = {
                              r"surely|assuredly|inevitabl[ey]|without doubt|no doubt)\b", re.I),
     "death": re.compile(r"\b(die|dies|died|dying|death|demise|lifespan|life span|fatal|mortality|"
                         r"passing away|pass away)\b", re.I),
-    "medical": re.compile(r"\b(diagnos\w*|cancer|diabetes|tumou?r|disorder|syndrome|prescri\w*|"
-                          r"medication|surgery)\b", re.I),
+    # "cancer" the disease only in lowercase: capitalised Cancer is the sign ("UL2 in Cancer").
+    "medical": re.compile(r"(?i:\b(diagnos\w*|diabetes|tumou?r|disorder|syndrome|prescri\w*|"
+                          r"medication|surgery)\b)|\b(cancers?)\b"),
     "trade": re.compile(r"(?=.*\b(buy|buying|bought|sell|selling|sold|invest|investing|invested|purchase|"
                         r"purchasing|short|shorting)\b)(?=.*\b(stocks?|shares|equit(?:y|ies)|crypto\w*|bitcoin|"
                         r"securities|bonds?|options|futures|commodit(?:y|ies)|mutual funds?|forex|etfs?)\b)", re.I),

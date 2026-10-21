@@ -83,6 +83,8 @@ OK = {"rule:yoga.ruchaka", "text:BPHS/Santhanam-1984/75/1-2"}
     ("Mars definitely forms Ruchaka yoga [rule:yoga.ruchaka].", "confidence"),
     ("Mars in the 7th shows when you will die [rule:yoga.ruchaka].", "death"),
     ("Mars indicates a blood disorder [rule:yoga.ruchaka].", "medical"),
+    ("Mars in the 7th indicates cancer [rule:yoga.ruchaka].", "medical"),
+    ("Mars in the 7th shows cancers [rule:yoga.ruchaka].", "medical"),
     ("Mars favours buying stocks this year [rule:yoga.ruchaka].", "trade"),
     ("Mars says to sell your shares [rule:yoga.ruchaka].", "trade"),
     ("The KP vote [vote:career.house] is against career.", "must end"),
@@ -540,3 +542,18 @@ def test_checker_concurrency_one_is_sequential_and_works_inside_a_running_loop()
         c = AnthropicChecker(CONFIG, client=SimpleNamespace(), async_client=_slow_async_client(0.01, log))
         return c.check_many([("a", "{}"), ("b", "{}")])
     assert len(asyncio.run(inside())) == 2
+
+
+def test_cancer_the_sign_is_not_the_disease():
+    # Capitalised Cancer is the sign and passes; lowercase cancer is the disease and is rejected.
+    votes = {"arudha": "vote:marriage.arudha", "house": "vote:career.house"}
+    assert validate("The arudha vote is against marriage: UL2 in Cancer holds no benefic [vote:marriage.arudha].",
+                    {"vote:marriage.arudha"}, offered_votes=votes) == []
+    assert validate("The house vote is for career: the 3rd in Cancer is strong in bhava bala [vote:career.house].",
+                    {"vote:career.house"}, offered_votes=votes) == []
+    errs = validate("The house vote is for career, though Saturn shows cancer in the 3rd [vote:career.house].",
+                    {"vote:career.house"}, offered_votes=votes)
+    assert errs == ["medical language ('cancer') in 'The house vote is for career, though Saturn shows cancer in "
+                    "the 3rd [vote:career.house].'"]
+    # The rest of the medical list stays case-insensitive.
+    assert any("medical" in e for e in validate("Mars shows a Disorder [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}))
