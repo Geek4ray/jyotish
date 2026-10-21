@@ -16,7 +16,7 @@ class Meta(BaseModel):
     jd: float | None = None
     node: str = "true"
     node_aspects: bool = False
-    house_system: str = "whole_sign"
+    house_system: str = "whole_sign"      # whole_sign | sripati (bhava chalit; needs the MC)
     kp_house_system: str = "placidus"
     dasha_year: float = 365.25
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
@@ -96,6 +96,7 @@ class Lagnas(BaseModel):
     asc_tara: str
     mc: float | None = None
     cusps_placidus: dict[int, float] = Field(default_factory=dict)
+    bhava_madhya_sripati: list[float] = Field(default_factory=list)   # houses 1-12, when the MC is known
     cusp_lords_kp: dict[int, dict[str, str]] = Field(default_factory=dict)
 
 
@@ -224,6 +225,16 @@ class Features(BaseModel):
     sudarshana_h10: dict[str, list[str]]
 
 
+class Stability(BaseModel):
+    """SPEC Layer 1b's three numbers, never pooled. `time`: share of the birth-time samples
+    in which the finding holds. `ayanamsa`: share of Lahiri, Raman, KP. `house`: share of
+    whole sign, Sripati. `label` is from `time`: unstable < 0.5 <= sensitive <= 0.8 < stable."""
+    time: float
+    ayanamsa: float
+    house: float
+    label: str
+
+
 class FiredRule(BaseModel):
     """One rule fired from one basis (SPEC Layer 3). `scale` is the product of the
     modifiers in `applied`; `themes` are the rule's themes times that scale. Modifiers
@@ -240,6 +251,43 @@ class FiredRule(BaseModel):
     applied: list[str] = Field(default_factory=list)
     unknown: list[str] = Field(default_factory=list)
     details: dict[str, Any] = Field(default_factory=dict)
+    stability: Stability | None = None   # set by the uncertainty sampler (uncertainty.assess)
+
+
+class BoundaryStability(BaseModel):
+    """A dasha period's start under the three axes, in days. `time_share` is the share of
+    birth-time samples in which the period exists at all (Chara and Yogini sequences can
+    change with the lagna or the nakshatra)."""
+    system: str
+    lords: list[str]
+    start_jd: float
+    time_share: float
+    time_range_days: float        # max - min over the samples
+    time_sd_days: float
+    ayanamsa_range_days: float | None   # None when the period is missing under some ayanamsa
+    house_range_days: float | None
+
+
+class RuleShare(BaseModel):
+    """A rule that fires in some samples but not at the recorded time."""
+    id: str
+    basis: str
+    planets: list[str]
+    time: float
+
+
+class Uncertainty(BaseModel):
+    samples: int
+    half_width_min: float
+    shape: str
+    center_jd: float
+    ayanamsas: list[str]
+    house_systems: list[str]
+    varga_stability: dict[str, float]                  # the lagna's sign per varga, time axis
+    placements: dict[str, dict[str, Stability]]        # varga -> body (and Asc) -> stability
+    boundaries: list[BoundaryStability]
+    rules_elsewhere: list[RuleShare]
+    seconds: float
 
 
 class KakshyaSpan(BaseModel):
@@ -309,4 +357,4 @@ class Chart(BaseModel):
     features: Features
     dashas: dict[str, list[DashaPeriod]] = Field(default_factory=dict)
     fired_rules: list[FiredRule] = Field(default_factory=list)
-    uncertainty: dict | None = None
+    uncertainty: Uncertainty | None = None   # set by uncertainty.assess

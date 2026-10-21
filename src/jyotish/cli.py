@@ -176,6 +176,35 @@ def print_current_transits(chart: Chart, now_jd: float | None = None) -> None:
         print(f"    {w.kind:18} {_date(w.start_jd)} – {_date(w.end_jd)}  {' '.join(w.tags[1:])}")
 
 
+def print_stability(chart: Chart) -> None:
+    """Layer 1b summary: three numbers per finding (time / ayanamsa / house), never pooled."""
+    u = chart.uncertainty
+    if u is None:
+        return
+    print(f"\nStability (Layer 1b): {u.samples} birth times, {u.shape} ±{u.half_width_min:g} min; "
+          f"ayanamsas {', '.join(u.ayanamsas)}; houses {', '.join(u.house_systems)}; {u.seconds:.1f} s")
+    print("  numbers are time / ayanamsa / house; label from time (stable > 0.8 >= sensitive >= 0.5 > unstable)")
+    for f in chart.fired_rules:
+        st = f.stability
+        print(f"  {f.id:30} {f.basis:6} {st.time:4.2f} / {st.ayanamsa:4.2f} / {st.house:4.2f}  {st.label}")
+    for r in u.rules_elsewhere:
+        print(f"  (fires in {r.time:.0%} of samples only) {r.id} {r.basis} {' '.join(r.planets)}")
+    lag = {v: u.placements[v]["Asc"] for v in ("D1", "D9", "D10", "D12", "D30", "D60")}
+    print("  Lagna by varga:", "  ".join(f"{v} {x.time:.2f}/{x.ayanamsa:.2f}" for v, x in lag.items()))
+    shaky = sorted(((x.time, v, b) for v, row in u.placements.items() for b, x in row.items()
+                    if b != "Asc" and x.time < 0.8), key=lambda t: t[0])
+    if shaky:
+        print("  Planet placements below 0.8:", ", ".join(f"{b} {v} {t:.2f}" for t, v, b in shaky[:8]))
+    mahas = [b for b in u.boundaries if b.system == "vimshottari" and len(b.lords) == 1]
+    if mahas:
+        b = mahas[1]
+        print(f"  Vimshottari maha starts: ±{b.time_range_days / 2:.1f} days over the samples "
+              f"(sd {b.time_sd_days:.1f}); {b.ayanamsa_range_days:.0f} days across ayanamsas")
+    moved = [b for b in u.boundaries if b.time_share < 1.0]
+    if moved:
+        print(f"  {len(moved)} dasha periods do not exist in every sample (sequence changes)")
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="jyotish")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -201,6 +230,10 @@ def main(argv: list[str] | None = None) -> None:
         chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS,
                         **reference_time_inputs())
         print_chart(chart)
+        from .reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+        from .uncertainty import assess
+        print("\n(Stability is computed from the birth data at the true time, 10:10:25 IST.)")
+        print_stability(assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False))
     elif args.cmd == "compute":
         chart = compute(datetime.fromisoformat(args.utc), args.lat, args.lon,
                         ayanamsa=args.ayanamsa, time_accuracy=args.accuracy)

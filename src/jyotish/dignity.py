@@ -30,11 +30,12 @@ def lordships(lagna_sign: int) -> dict[str, list[int]]:
     return out
 
 
-def functional_roles(lagna_sign: int) -> dict[str, list[str]]:
+def functional_roles(lagna_sign: int, lords: dict[str, list[int]] | None = None) -> dict[str, list[str]]:
     """Yogakaraka (owns a kendra other than the lagna and a trikona), maraka (owns 2 or 7),
-    lagna lord. Other functional malefic/benefic rules are in the rule library."""
+    lagna lord. `lords` overrides the whole-sign lordships (Sripati: by bhava madhya).
+    Other functional malefic/benefic rules are in the rule library."""
     roles: dict[str, list[str]] = {p: [] for p in SEVEN}
-    for planet, houses in lordships(lagna_sign).items():
+    for planet, houses in (lords or lordships(lagna_sign)).items():
         hs = set(houses)
         if 1 in hs:
             roles[planet].append("lagna_lord")

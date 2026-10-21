@@ -23,6 +23,7 @@ from .models import (
     TimePosterior, Yuddha,
 )
 from .nakshatra import kp_sub_lords, nakshatra_of, navatara
+from .houses import bhava_lordships, bhava_of, sripati_madhyas
 from .panchanga import panchanga as compute_panchanga
 from .rules import default_rules, evaluate_all
 from .shadbala import ShadbalaSettings, shadbala as compute_shadbala
@@ -51,13 +52,22 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
     lagna_sign = int(asc // 30)
     moon_nak = nakshatra_of(positions["Moon"]).index
     sun_lon = positions["Sun"]
+    madhyas = sripati_madhyas(asc, mc) if mc is not None else []
+    if meta.house_system == "sripati":
+        if not madhyas:
+            raise ValueError("house_system='sripati' needs the MC")
+        house_lords = bhava_lordships(madhyas)
+    elif meta.house_system == "whole_sign":
+        house_lords = lordships(lagna_sign)
+    else:
+        raise ValueError(f"unknown house_system {meta.house_system!r}")
 
     bodies: dict[str, Body] = {}
     for name in GRAHAS:
         lon = positions[name] % 360.0
         sign = int(lon // 30)
         nak = nakshatra_of(lon)
-        house = house_of(sign, lagna_sign)
+        house = bhava_of(lon, madhyas) if meta.house_system == "sripati" else house_of(sign, lagna_sign)
         speed = speeds.get(name)
         retro = (speed is not None and speed < 0) or name in ("Rahu", "Ketu")
         body = Body(
@@ -91,7 +101,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
     lagnas = Lagnas(
         asc=asc, asc_sign=lagna_sign, asc_sign_name=SIGNS[lagna_sign], asc_nak=asc_nak.name,
         asc_nak_lord=asc_nak.lord, asc_tara=navatara(asc_nak.index, moon_nak).name, mc=mc,
-        cusps_placidus=cusps_map, cusp_lords_kp=cusp_lords,
+        cusps_placidus=cusps_map, cusp_lords_kp=cusp_lords, bhava_madhya_sripati=madhyas,
     )
 
     vargas = {v: {name: VARGAS[v](positions[name]) for name in GRAHAS} for v in PRODUCTION_VARGAS}
@@ -122,7 +132,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
     av = ashtakavarga(positions, asc, nodes_occupy=meta.ekadhipatya_nodes,
                       zero_exempt=meta.ekadhipatya_zero_exempt)
     features = Features(
-        lordship=lordships(lagna_sign), roles=functional_roles(lagna_sign),
+        lordship=house_lords, roles=functional_roles(lagna_sign, house_lords),
         aspects=aspects(planet_houses), dispositors=dispositors,
         jaimini=Jaimini(scheme=meta.karaka_scheme, karakas=chara_karakas(positions, 8),
                         karakas_7=chara_karakas(positions, 7),
@@ -193,7 +203,7 @@ def _shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise
 
 def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",
             true_node: bool = True, time_accuracy: str = "exact", tz: str | None = None,
-            dasha_levels: int = 2) -> Chart:
+            dasha_levels: int = 2, house_system: str = "whole_sign", rules=None) -> Chart:
     """Birth moment (UTC) and place -> chart."""
     utc = utc.astimezone(timezone.utc) if utc.tzinfo else utc.replace(tzinfo=timezone.utc)
     hour = utc.hour + utc.minute / 60 + utc.second / 3600
@@ -204,11 +214,12 @@ def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",
     positions = {n: b.lon for n, b in sky.bodies.items()}
     speeds = {n: b.speed for n, b in sky.bodies.items()}
     meta = Meta(ayanamsa=ayanamsa, ayanamsa_value=sky.ayanamsa_value, jd=jd,
-                node="true" if true_node else "mean", time_accuracy=time_accuracy)
+                node="true" if true_node else "mean", time_accuracy=time_accuracy,
+                house_system=house_system)
     birth = Birth(utc=utc.isoformat(), lat=lat, lon=lon, tz=tz,
                   time_posterior=TimePosterior(shape="uniform" if time_accuracy != "approximate" else "gaussian",
                                                half_width_min=ACCURACY_HALF_WIDTH_MIN[time_accuracy],
                                                samples=0))
     return analyse(positions, sky.asc, speeds=speeds, meta=meta, birth=birth, jd=jd, mc=sky.mc,
                    cusps=sky.cusps_placidus, sunrise=rise, sunset=sset, next_sunrise=rise_next,
-                   dasha_levels=dasha_levels)
+                   dasha_levels=dasha_levels, rules=rules)

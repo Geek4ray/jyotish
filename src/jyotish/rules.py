@@ -58,13 +58,18 @@ class Ctx:
         self.bodies = chart.bodies
         self.basis_sign = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign,
                            "sun": chart.bodies["Sun"].sign}[basis]
-        self.lords = lordships(self.basis_sign)
+        # From the lagna, houses follow Meta.house_system (the chart's own bhavas and
+        # lordships); from the Moon and the Sun they are always whole sign.
+        self.bhava = basis == "lagna" and chart.meta.house_system != "whole_sign"
+        self.lords = chart.features.lordship if self.bhava else lordships(self.basis_sign)
         self.lagna_sign = chart.lagnas.asc_sign
 
     def sign(self, p: str) -> int:
         return self.bodies[p].sign
 
     def house(self, p: str) -> int:
+        if self.bhava:
+            return self.bodies[p].house
         return house_of(self.sign(p), self.basis_sign)
 
     def house_of_sign(self, sign: int) -> int:

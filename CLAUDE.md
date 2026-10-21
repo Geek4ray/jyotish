@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -65,7 +65,9 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 ## Phase status
 
 - Phase 0 (astronomical core): done except special lagnas (Hora, Ghati, Indu, Sree,
-  Varnada) and Bhava Madhya/Sripati cusps.
+  Varnada). Sripati bhavas are in `houses.py` (`Meta.house_system`). The Layer 1b sampler
+  (`uncertainty.assess`) stamps every fired rule, varga placement and dasha boundary with
+  time / ayanamsa / house stability.
 - Phase 1 (feature engine): lordship, dignity (natural + compound), avasthas, sensitive
   degrees, aspects, three dispositor chains, Parivartana, chara karakas (7 and 8), arudhas,
   Navatara, KP sub-lords, Sudarshana H10, Ashtakavarga (BAV incl. lagna, SAV, Trikona and
