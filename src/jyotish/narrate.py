@@ -142,6 +142,7 @@ class ReadingSummary(BaseModel):
     stable_findings: int
     unstable_findings: int
     abstained_areas: list[str]
+    timing_line: str | None = None      # engine-written, for a "when" question (the model writes no timing)
 
 
 class Reading(BaseModel):
@@ -618,6 +619,34 @@ def _window(w) -> ReadingWindow:
             "targets": d.get("targets")}])
 
 
+def _vim_lords(w: ReadingWindow) -> str:
+    lords = next((x["lords"] for x in w.why if x.get("kind") == "dasha" and x.get("system") == "vimshottari"), [])
+    return "–".join(lords) or "no Vimshottari lords"
+
+
+def timing_line(area: str, windows: list[ReadingWindow], avoid: ReadingWindow | None) -> str | None:
+    """The engine's answer to a "when" question, in words: the highest-scoring window with its
+    Vimshottari lords and strongest piece, and the window to avoid. Written by the engine
+    because the model may not write about timing (SPEC Phase 4, item 2)."""
+    if not windows:
+        return None
+    best = max(windows, key=lambda w: w.score)
+    name = area.replace("_", " ")
+    marks = [m for m, on in (("dasha sandhi: confidence capped at moderate", best.sandhi),
+                             ("cut by the start or end of the range asked about", best.truncated)) if on]
+    line = (f"Best window for {name} by the engine's timing score: {best.start} to {best.end} "
+            f"(Vimshottari {_vim_lords(best)}, score {best.score:.2f}"
+            + "".join(f"; {m}" for m in marks) + ")")
+    sp = best.strongest_piece
+    if sp and (sp["start"], sp["end"]) != (best.start, best.end):
+        line += f", strongest from {sp['start']} to {sp['end']} (score {sp['score']:.2f})"
+    line += "."
+    if avoid is not None:
+        line += (f" Window to avoid: {avoid.start} to {avoid.end} (Vimshottari {_vim_lords(avoid)}, "
+                 f"score {avoid.score:.2f}).")
+    return line
+
+
 def _check_payload(f: dict) -> str:
     """What the checker sees for one finding: its derivation and nothing else."""
     return json.dumps(_check_data(f), indent=1, default=str)
@@ -768,7 +797,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         period = "-".join(cur.lords)
     u = chart.uncertainty
     stable_n = sum(1 for x in fired if x["stability"] is not None and x["stability"] >= 0.5)
+    lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading_areas if a.windows]
     summary = ReadingSummary(
+        timing_line=" ".join(x for x in lines if x) or None,
         text=draft.summary, cites=[f"{k}:{v}" for k, v in TAG.findall(draft.summary)],
         driver_planet=sc.driver.driver, driver_alternates=sc.driver.alternates, current_period=period,
         top_areas=list(sc.top), time_window_min=u.half_width_min if u else None,

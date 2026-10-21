@@ -14,7 +14,7 @@ import json
 from typing import Any
 
 from .models import Chart
-from .narrate import DISCLAIMERS, TAG, Reading, ReadingWindow, findings
+from .narrate import DISCLAIMERS, TAG, Reading, ReadingWindow, findings, timing_line
 from .rules import _cond_text, default_rules
 from .uncertainty import label
 
@@ -192,7 +192,13 @@ def render(reading: Reading, chart: Chart) -> str:
     if reading.unchecked_sentences:
         L += [f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
                   "checker verdict and were not semantically checked; the code validator ran on all of them.", ""]
-    L += ["## Summary", "", notes.render(s.text), "",
+    L += ["## Summary", "", notes.render(s.text), ""]
+    # A reading written before summary.timing_line existed gets the same line from its windows.
+    when = s.timing_line or " ".join(x for x in (timing_line(a.name, a.windows, a.avoid_window)
+                                                 for a in reading.areas if a.windows) if x)
+    if when:
+        L += [f"**When (engine):** {when}", ""]
+    L += [
           f"- Driver: {s.driver_planet}" + (f" (alternates {', '.join(s.driver_alternates)})" if s.driver_alternates else ""),
           f"- Current period (Vimshottari): {s.current_period or '–'}",
           f"- Top areas: {', '.join(s.top_areas)}",

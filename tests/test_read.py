@@ -151,3 +151,51 @@ def test_frozen_recording_fails_cleanly(tmp_path, capsys):
     err = capsys.readouterr().err
     assert "unknown finding id 'yoga.ruchaka@lagna'" in err and "timing language" in err
     assert not out.with_suffix(".json").exists() and not out.with_suffix(".md").exists()
+
+
+TIMING_LINE = ("Best window for career by the engine's timing score: 2029-10-23 to 2032-06-23 "
+               "(Vimshottari Jupiter–Venus, score 0.84), strongest from 2030-05-01 to 2030-09-22 (score 0.89). "
+               "Window to avoid: 2028-11-17 to 2029-08-08 (Vimshottari Jupiter–Ketu, score 0.47).")
+
+
+def test_when_question_gets_the_engine_timing_line(page):
+    # SPEC Phase 4 item 2: the engine answers "when" in words, since the model may not.
+    reading, md = page
+    assert reading.summary.timing_line == TIMING_LINE
+    summary = md[md.index("## Summary"):md.index("## Career")]
+    assert f"**When (engine):** {TIMING_LINE}" in summary
+    assert summary.index("**When (engine):**") < summary.index("- Driver:")
+    assert not TAG.search(reading.summary.timing_line)          # engine text: no model tags
+
+
+def test_timing_line_marks_sandhi_and_truncation_and_is_absent_without_when():
+    from jyotish.narrate import ReadingWindow, timing_line
+    w = ReadingWindow(start="2026-10-21", end="2027-01-24", score=0.834, q=0.734, q_terms={}, t=0.982,
+                      relevant_systems=["vimshottari"], strongest_piece=None, confidence=None, stability=None,
+                      sandhi=True, truncated=True, tags=["dasha_sandhi", "truncated"],
+                      why=[{"kind": "dasha", "system": "vimshottari", "lords": ["Jupiter", "Mercury"]}])
+    line = timing_line("career", [w], None)
+    assert line == ("Best window for career by the engine's timing score: 2026-10-21 to 2027-01-24 "
+                    "(Vimshottari Jupiter–Mercury, score 0.83; dasha sandhi: confidence capped at moderate; "
+                    "cut by the start or end of the range asked about).")
+    assert timing_line("career", [], None) is None
+
+
+def test_no_timing_line_for_a_question_without_when(tmp_path):
+    out = tmp_path / "plain"
+    args = [x if x != QUESTION else "How will my career go?" for x in BIRTH]
+    with pytest.raises(SystemExit) as e:
+        main(["read", *args, "--out", str(out), "--model-fixture", str(FIXTURES / "narration_career_edited.json")])
+    assert e.value.code == 0
+    reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
+    assert reading.summary.timing_line is None and "When (engine)" not in out.with_suffix(".md").read_text()
+
+
+def test_page_derives_the_timing_line_for_an_older_reading(page):
+    # A reading JSON written before summary.timing_line existed renders the same line.
+    from jyotish.page import render
+    from jyotish.uncertainty import assess
+    reading, md = page
+    old = reading.model_copy(update={"summary": reading.summary.model_copy(update={"timing_line": None})})
+    chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    assert render(old, chart) == md
