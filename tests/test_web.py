@@ -288,7 +288,7 @@ def test_footer_carries_the_geonames_attribution(page, base_url):
 @pytest.fixture(scope="module")
 def curious_url(tmp_path_factory):
     server, thread, url = _serve(tmp_path_factory.mktemp("curious") / "c.db",
-                                 str(ROOT / "tests" / "fixtures" / "narration_curious_handwritten.json"))
+                                 str(ROOT / "tests" / "fixtures" / "narration_curious.json"))
     yield url
     server.should_exit = True
     thread.join(5)
@@ -300,7 +300,8 @@ def test_curious_reading_on_the_site(page, curious_url):
     submit_reference(page, curious_url, depth="curious")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
-    assert career.locator("p.paragraph").inner_text().startswith("Two combinations sit in your house of work")
+    assert career.locator("p.paragraph").inner_text().startswith("Your work life is marked by the Sun and Mercury")
+    assert page.locator("#incomplete").count() == 0 and page.locator(".notice").count() == 0    # complete, all checked
     toggle = career.locator("details.astrologer")
     assert toggle.count() == 1 and toggle.get_attribute("open") is None    # the claims are one click away
     assert toggle.locator(":scope > summary").inner_text() == "Show the astrologer's reading"

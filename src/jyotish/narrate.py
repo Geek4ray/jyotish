@@ -266,13 +266,14 @@ def rule_names(rule_id: str) -> list[str]:
 TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 
-def validate_summary(text: str, allowed: set[str], *, offered_votes=None) -> list[str]:
-    """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary."""
+def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary") -> list[str]:
+    """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
+    curious-depth paragraph (`where` names which, in the error)."""
     errors = validate(text, allowed, offered_votes=offered_votes)
     for sentence in sentences(text):
         m = TIER_WORDS.search(TAG.sub("", sentence))
         if m:
-            errors.append(f"tier language ({m.group(0)!r}) in the summary; the engine states the tier: {sentence!r}")
+            errors.append(f"tier language ({m.group(0)!r}) in the {where}; the engine states the tier: {sentence!r}")
     return errors
 
 
@@ -960,7 +961,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             # families named and cited, and no tier word (the engine states the tier).
             for name in areas:
                 text = next((d.paragraph for d in draft.areas if d.name == name), None)
-                para_errs[name] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name])
+                para_errs[name] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
+                                                    where=f"{name} paragraph")
                                    if text else [f"no paragraph for {name}: at curious depth every area has one"])
                 errors += para_errs[name]
         entry["validator_errors"] = list(errors)

@@ -735,32 +735,55 @@ def test_tier_words_are_rejected_in_the_summary():
 
 # --- the curious depth (SPEC Layer 7 prompt contract, item 1) --------------------------------
 
-CURIOUS = json.loads((FIXTURES / "narration_curious_handwritten.json").read_text())
+# The live curious reading of the reference chart (claude-opus-5-5, writer medium, checker
+# high; three attempts, 77 calls, accepted on the third).
+CURIOUS = json.loads((FIXTURES / "narration_curious.json").read_text())
+ACCEPTED = CURIOUS["drafts"][-1]
 
 
 def _curious(chart, drafts=None, checker=None, rec=None):
     from jyotish.narrate import FixtureDrafter
-    return narrate(chart, CURIOUS["question"], drafter=FixtureDrafter(dict(CURIOUS, drafts=drafts or CURIOUS["drafts"])),
+    return narrate(chart, CURIOUS["question"], drafter=FixtureDrafter(dict(CURIOUS, drafts=drafts or [ACCEPTED])),
                    checker=checker or StubChecker(), as_of=AS_OF, areas=THREE_AREAS, recording=rec, depth="curious")
+
+
+def test_live_curious_recording_replays_to_its_accepted_reading(chart):
+    """Writer drafts and checker verdicts replayed from the live run: attempt 1 is refused by
+    the validator (tier words in the paragraphs), attempt 2 by the checker (two claims, the
+    summary, and four paragraph sentences), attempt 3 is accepted with every sentence checked."""
+    from jyotish.narrate import FixtureChecker, FixtureDrafter
+    rec = []
+    checker = FixtureChecker(CURIOUS)
+    r = narrate(chart, CURIOUS["question"], drafter=FixtureDrafter(CURIOUS), checker=checker, as_of=AS_OF,
+                areas=THREE_AREAS, recording=rec, depth="curious")
+    assert r.depth == "curious" and r.attempts == 3 and r.narration_complete and not checker.unchecked
+    v1 = next(e["validator_errors"] for e in rec if e["kind"] == "writer" and e["attempt"] == 1)
+    assert len(v1) == 4 and all(e.startswith("tier language ('strong')") for e in v1)
+    rejected = {(e["finding_id"], p["text"]) for e in rec if e["kind"] == "checker" and e["attempt"] == 2
+                for p in e["result"]["propositions"] if not p["supported"]}
+    assert {f for f, _ in rejected} == {"summary", "vote:marriage.varga", "vote:longevity.arudha",
+                                        "paragraph:career", "paragraph:marriage"}
+    assert ("paragraph:career", "Ruchaka yoga is a combination for drive.") in rejected
+    assert sum(1 for f, _ in rejected if f.startswith("paragraph:")) == 4
+    for a in r.areas:
+        para = next(d["paragraph"] for d in ACCEPTED["areas"] if d["name"] == a.name)
+        assert a.paragraph == para and a.paragraph_cites == [f"{k}:{v}" for k, v in TAG.findall(para)]
+        assert a.claims                                                     # the astrologer's reading stays
 
 
 def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fields(chart):
     rec = []
-    checker = StubChecker()
-    r = _curious(chart, checker=checker, rec=rec)
+    r = _curious(chart, checker=StubChecker(), rec=rec)
     assert r.depth == "curious" and r.narration_complete and r.attempts == 1
-    for a in r.areas:
-        para = next(d["paragraph"] for d in CURIOUS["drafts"][0]["areas"] if d["name"] == a.name)
-        assert a.paragraph == para and a.paragraph_cites == [f"{k}:{v}" for k, v in TAG.findall(para)]
-        assert a.claims                                                     # the astrologer's reading stays
     # Every paragraph sentence went to the checker against the union of its cited derivations.
     para_checks = [e for e in rec if e["kind"] == "checker" and e["finding_id"].startswith("paragraph:")]
-    n = sum(len([s_ for s_ in sentences(d["paragraph"]) if TAG.search(s_)]) for d in CURIOUS["drafts"][0]["areas"])
-    assert len(para_checks) == n
-    first = next(e for e in para_checks if e["finding_id"] == "paragraph:career")
-    assert first["findings"] == ["yoga.budhaditya@lagna", "yoga.kendra_trikona_raja@lagna"]
+    n = sum(len([s_ for s_ in sentences(d["paragraph"]) if TAG.search(s_)]) for d in ACCEPTED["areas"])
+    assert len(para_checks) == n == 13                                   # career 5, marriage 4, longevity 4
+    career = [e["findings"] for e in para_checks if e["finding_id"] == "paragraph:career"]
+    assert career[0] == ["yoga.budhaditya@lagna"]
+    assert ["vote:career.house", "vote:career.lord", "vote:career.karaka"] in career
     # The engine's lines do not change with the depth.
-    astro = narrate(chart, CURIOUS["question"], drafter=Replay(CURIOUS["drafts"]), checker=StubChecker(), as_of=AS_OF,
+    astro = narrate(chart, CURIOUS["question"], drafter=Replay([ACCEPTED]), checker=StubChecker(), as_of=AS_OF,
                     areas=THREE_AREAS, depth="astrologer")
     assert astro.summary.timing_line == r.summary.timing_line and astro.summary.timing_note == r.summary.timing_note
     assert [(a.tier, a.stability) for a in astro.areas] == [(a.tier, a.stability) for a in r.areas]
@@ -782,7 +805,7 @@ def test_curious_prompt_and_payload(chart):
 def test_paragraph_is_validated_like_the_summary(chart):
     # A tier word, or a vote tag on a sentence that does not name the family, sends it back; a
     # missing paragraph is an error too, and after the last attempt a paragraph gap.
-    bad = json.loads(json.dumps(CURIOUS["drafts"][0]))
+    bad = json.loads(json.dumps(ACCEPTED))
     for a in bad["areas"]:
         if a["name"] == "career":
             a["paragraph"] = "Career looks strong here [rule:yoga.ruchaka]. Mars forms Ruchaka yoga [vote:career.house]."
@@ -791,7 +814,7 @@ def test_paragraph_is_validated_like_the_summary(chart):
     rec = []
     r = _curious(chart, drafts=[bad], rec=rec)
     errs = rec[0]["validator_errors"]
-    assert any(e.startswith("tier language ('strong')") for e in errs)
+    assert any(e.startswith("tier language ('strong') in the career paragraph") for e in errs)
     assert any("[vote:career.house] on a sentence that does not name the house family" in e for e in errs)
     assert any(e.startswith("no paragraph for marriage") for e in errs)
     by = {a.name: a for a in r.areas}
@@ -802,12 +825,12 @@ def test_paragraph_is_validated_like_the_summary(chart):
 
 
 def test_rejected_paragraph_sentence_keeps_the_claims(chart):
-    checker = StubChecker(reject={"the points that stand for a partnership": "Jaimini's method is not in the data"})
+    checker = StubChecker(reject={"how the relationship appears outwardly": "outward appearance is not in the data"})
     r = _curious(chart, checker=checker)
     marriage = next(a for a in r.areas if a.name == "marriage")
     assert marriage.paragraph is None and len(marriage.claims) == 7
     gap = next(g for g in marriage.narration_gaps if g["finding_id"] == "paragraph")
-    assert "(paragraph:marriage)" in gap["last_error"] and "Jaimini's method" in gap["last_error"]
+    assert "(paragraph:marriage)" in gap["last_error"] and "outward appearance" in gap["last_error"]
 
 
 def test_timing_note_under_the_timing_line(chart):
@@ -817,6 +840,6 @@ def test_timing_note_under_the_timing_line(chart):
                                      "it does not predict when you will act.")
     assert timing_note(["career", "mother_home"]) == ("These are periods the engine scores as favourable for career "
                                                       "and mother home; it does not predict when you will act.")
-    plain = narrate(chart, "How will my career go?", drafter=Replay(CURIOUS["drafts"]), checker=StubChecker(),
+    plain = narrate(chart, "How will my career go?", drafter=Replay([ACCEPTED]), checker=StubChecker(),
                     as_of=AS_OF, areas=THREE_AREAS, depth="curious")
     assert plain.summary.timing_line is None and plain.summary.timing_note is None
