@@ -2,9 +2,9 @@ id: yoga.sasa
 family: pancha_mahapurusha
 school: parashari
 source:
-  - {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 2, checked: false,
-     note: "chapter defines the five together, as cited for yoga.ruchaka"}
-  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 1, checked: false}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true,
+     note: "vv. 1-2 define the five together: Mars, Mercury, Jupiter, Venus, Saturn in own or exaltation sign in a kendra from the ascendant"}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 1, checked: true}
 status: classical_unconfirmed
 when:
   planet: Saturn

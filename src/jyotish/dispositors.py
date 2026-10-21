@@ -85,9 +85,9 @@ def _classify(houses: set[int]) -> str:
 
 
 def parivartanas(positions: dict[str, float], lagna_sign: int) -> list[Parivartana]:
-    """Mutual sign exchanges among the seven planets, classified two ways because the
-    texts define the classes two ways (by houses exchanged, Phaladeepika; by lordships,
-    Uttara Kalamrita)."""
+    """Mutual sign exchanges among the seven planets. Phaladeepika 6.32 (Sastri 1937)
+    classes an exchange by the bhava lords involved; with dual lordship that reads two
+    ways, so both are kept: by the houses exchanged, and by every house the two own."""
     sign_of = {p: int(lon // 30) % 12 for p, lon in positions.items() if p in SEVEN}
     lords = lordships(lagna_sign)
     out = []

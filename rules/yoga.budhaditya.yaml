@@ -2,8 +2,8 @@ id: yoga.budhaditya
 family: solar
 school: parashari
 source:
-  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 3, checked: false,
-     note: "locus as given in the SPEC citation example; verify against the edition"}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 18, verse: 1, checked: true,
+     note: "effects of the Sun joined with Mercury; the verse does not name the yoga, and the name Budhaditya does not occur in this edition"}
 status: classical_unconfirmed
 # Sun and Mercury in one sign. House-independent, so one basis; the H-node it records is
 # counted from the lagna.

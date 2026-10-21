@@ -2,7 +2,10 @@ id: yoga.gaja_kesari
 family: lunar
 school: parashari
 source:
-  - {text: BPHS, edition: Santhanam 1984, chapter: 36, verse: unverified, checked: false}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 14, checked: true,
+     note: "the Moon in a kendra from Jupiter, named Kesari there; this is the condition the rule implements"}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 36, verse: 3-4, checked: true,
+     note: "BPHS's Gajakesari differs: Jupiter in a kendra from the ascendant or the Moon, joined or aspected by a benefic, not debilitated, combust or in an enemy's sign"}
 status: classical_unconfirmed
 # Jupiter in a kendra from the Moon. Some texts also count kendras from the lagna; that
 # reading would add `lagna` to the basis list.

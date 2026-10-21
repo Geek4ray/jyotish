@@ -239,3 +239,10 @@ def test_pair_modifier_needs_a_subject(libdir):
     pair += "modifiers:\n  - {if: combust, scale: 0.5}\n"
     with pytest.raises(RuleError, match="needs `of`"):
         _load_one(libdir, pair)
+
+
+def test_checked_sources_name_a_verse():
+    for r in load_rules():
+        for s in r.data["source"]:
+            if s.get("checked"):
+                assert str(s["verse"]) != "unverified", (r.id, s)

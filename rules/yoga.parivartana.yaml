@@ -2,13 +2,13 @@ id: yoga.parivartana
 family: parivartana
 school: parashari
 source:
-  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: false,
-     note: "Maha / Khala / Dainya by the houses exchanged"}
-  - {text: Uttara Kalamrita, edition: P.S. Sastri translation, chapter: 4, verse: unverified,
-     checked: false, note: "the same classes judged by every house the two planets own"}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: true,
+     note: "66 exchanges of bhava lords: 30 involving the 6th, 8th or 12th lord are Dainya, 8 involving the 3rd lord Khala, the rest Maha"}
 status: classical_unconfirmed
-# Two of the seven in each other's signs. Classified both ways because the texts define
-# it both ways; both classes are reported, and each weakens the fire on its own terms.
+# Two of the seven in each other's signs. Phaladeepika 6.32 classes an exchange by the
+# bhava lords that exchange. A planet owning two houses makes that ambiguous, so the class
+# is read two ways: by the two houses exchanged, and by every house the two planets own.
+# Both are reported, and each weakens the fire on its own terms.
 when:
   pair:
     a: {planet_in: [Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn]}

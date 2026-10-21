@@ -2,7 +2,12 @@ id: yoga.kendra_trikona_raja
 family: raja
 school: parashari
 source:
-  - {text: BPHS, edition: Santhanam 1984, chapter: 39, verse: unverified, checked: false}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 34, verse: 11-12, checked: true,
+     note: "angular and trinal lords in exchange, joined in an angle or trine, one in the other's kind of house, or in full aspect; the rule counts a conjunction anywhere and any mutual aspect"}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 34, verse: 15, checked: true,
+     note: "no Raja yoga by mere relation if that lord also owns an evil house; the rule scales by 0.75 instead of cancelling"}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 39, verse: 37, checked: false,
+     note: "4th or 10th lord with the 5th or 9th lord; secondary locus, not yet read"}
 status: classical_unconfirmed
 # A kendra lord and a different trikona lord related by conjunction, mutual aspect or
 # exchange (sambandha). The lagna counts as both a kendra and a trikona. A lord who also

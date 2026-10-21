@@ -2,7 +2,8 @@ id: yoga.neecha_bhanga
 family: raja
 school: parashari
 source:
-  - {text: Phaladeepika, edition: Sastri 1937, chapter: 7, verse: 26, checked: false}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 7, verse: 26, checked: true,
+     note: "the lord of the debilitation sign or of the exaltation sign in a kendra from the Lagna or the Moon; the rule's other two conditions are not from this verse"}
 status: classical_unconfirmed
 # A debilitated planet whose debilitation is cancelled by any of the four commonest
 # conditions. Texts list more (and disagree on which make it a Raja yoga); the fire
