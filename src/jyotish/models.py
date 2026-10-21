@@ -1,0 +1,151 @@
+"""The chart object: a subset of the SPEC.md data schema that Phase 0-1 fills.
+Every field here is produced by `chart.analyse`; fields the spec promises for later
+phases are added when their layer lands, never stubbed with placeholder values."""
+
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
+
+
+class Meta(BaseModel):
+    engine: str = "0.1.0"
+    ayanamsa: str = "lahiri"
+    ayanamsa_value: float | None = None
+    jd: float | None = None
+    node: str = "true"
+    node_aspects: bool = False
+    house_system: str = "whole_sign"
+    kp_house_system: str = "placidus"
+    dasha_year: float = 365.25
+    karaka_scheme: int = 8
+    time_accuracy: str = "exact"
+
+
+class TimePosterior(BaseModel):
+    shape: str
+    half_width_min: float
+    samples: int
+    rectified: bool = False
+
+
+class Birth(BaseModel):
+    utc: str | None = None
+    lat: float | None = None
+    lon: float | None = None
+    tz: str | None = None
+    time_posterior: TimePosterior | None = None
+
+
+class TaraInfo(BaseModel):
+    name: str
+    count: int
+    cycle: int
+    adverse: bool
+    special: str | None = None
+
+
+class Body(BaseModel):
+    lon: float
+    sign: int
+    sign_name: str
+    deg: float
+    nak: int
+    nak_name: str
+    pada: int
+    nak_lord: str
+    sub_lord: str
+    sub_sub_lord: str
+    tara: TaraInfo
+    house: int
+    speed: float | None = None
+    retro: bool = False
+    combust: bool = False
+    boundary: bool = False
+    dignity: str | None = None
+    dignity_compound: str | None = None
+    deep_exalt_dist: float | None = None
+    avastha_baladi: str | None = None
+    vargottama: bool = False
+    marana_karaka_sthana: bool = False
+    gandanta: bool = False
+    pushkara_navamsa: bool = False
+    pushkara_bhaga: bool = False
+
+
+class Lagnas(BaseModel):
+    asc: float
+    asc_sign: int
+    asc_sign_name: str
+    asc_nak: str
+    asc_nak_lord: str
+    asc_tara: str
+    mc: float | None = None
+    cusps_placidus: dict[int, float] = Field(default_factory=dict)
+    cusp_lords_kp: dict[int, dict[str, str]] = Field(default_factory=dict)
+
+
+class PanchangaInfo(BaseModel):
+    tithi: int
+    tithi_lord: str
+    paksha: str
+    vara_lord: str
+    nakshatra: str
+    nakshatra_lord: str
+    yoga: str
+    yoga_lord: str
+    karana: str
+    day_birth: bool | None = None
+
+
+class Loop(BaseModel):
+    planets: list[str]
+    houses: list[int] | None = None
+    class_by_houses: str | None = None
+    class_by_lordship: str | None = None
+    taint: list[int] = Field(default_factory=list)
+
+
+class Dispositors(BaseModel):
+    sign: dict[str, list[str]]
+    nakshatra: dict[str, list[str]]
+    navamsa: dict[str, list[str]]
+    loops: list[Loop]
+    final_sign: list[str]
+    final_nakshatra: list[str]
+    final_navamsa: list[str]
+
+
+class Jaimini(BaseModel):
+    scheme: int
+    karakas: dict[str, str]
+    karakas_7: dict[str, str]
+    karakamsa: int
+    arudhas: dict[str, int]
+
+
+class DashaPeriod(BaseModel):
+    lords: list[str]
+    start_jd: float
+    end_jd: float
+    tara: str | None = None
+
+
+class Features(BaseModel):
+    lordship: dict[str, list[int]]
+    roles: dict[str, list[str]]
+    aspects: list[tuple[str, int]]
+    dispositors: Dispositors
+    jaimini: Jaimini
+    sudarshana_h10: dict[str, list[str]]
+
+
+class Chart(BaseModel):
+    meta: Meta
+    birth: Birth
+    bodies: dict[str, Body]
+    lagnas: Lagnas
+    panchanga: PanchangaInfo | None = None
+    vargas: dict[str, dict[str, int]]
+    features: Features
+    dashas: dict[str, list[DashaPeriod]] = Field(default_factory=dict)
+    uncertainty: dict | None = None

@@ -1,0 +1,165 @@
+"""The pipeline: positions -> features (analyse), and birth data -> positions -> features
+(compute). `analyse` needs no ephemeris, so the worked example in SPEC.md can be tested
+from its printed longitudes alone."""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+from .constants import GRAHAS, SEVEN, SIGNS
+from .dasha import vimshottari
+from .dignity import (
+    aspects, baladi_avastha, deep_exaltation_distance, dignity, functional_roles, gandanta,
+    house_of, is_boundary, is_combust, lordships, marana_karaka_sthana, pushkara_bhaga,
+    pushkara_navamsa,
+)
+from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_chains
+from .ephemeris import compute_sky, julian_day, sunrise_sunset
+from .jaimini import all_arudhas, chara_karakas, karakamsa
+from .models import (
+    Birth, Body, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
+    PanchangaInfo, TaraInfo, TimePosterior,
+)
+from .nakshatra import kp_sub_lords, nakshatra_of, navatara
+from .panchanga import panchanga as compute_panchanga
+from .vargas import PRODUCTION_VARGAS, VARGAS, is_vargottama
+
+ACCURACY_HALF_WIDTH_MIN = {"exact": 2.0, "within_15": 15.0, "approximate": 60.0, "unknown": 720.0}
+
+
+def _tara_info(nak_index: int, moon_nak: int) -> TaraInfo:
+    t = navatara(nak_index, moon_nak)
+    return TaraInfo(name=t.name, count=t.count, cycle=t.cycle, adverse=t.adverse, special=t.special)
+
+
+def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float] | None = None,
+            meta: Meta | None = None, birth: Birth | None = None, jd: float | None = None,
+            mc: float | None = None, cusps: list[float] | None = None,
+            sunrise: float | None = None, sunset: float | None = None,
+            dasha_levels: int = 2) -> Chart:
+    """Build the chart object from sidereal longitudes (all nine grahas) and the ascendant."""
+    meta = meta or Meta()
+    birth = birth or Birth()
+    speeds = speeds or {}
+    asc = asc % 360.0
+    lagna_sign = int(asc // 30)
+    moon_nak = nakshatra_of(positions["Moon"]).index
+    sun_lon = positions["Sun"]
+
+    bodies: dict[str, Body] = {}
+    for name in GRAHAS:
+        lon = positions[name] % 360.0
+        sign = int(lon // 30)
+        nak = nakshatra_of(lon)
+        house = house_of(sign, lagna_sign)
+        speed = speeds.get(name)
+        retro = (speed is not None and speed < 0) or name in ("Rahu", "Ketu")
+        body = Body(
+            lon=lon, sign=sign, sign_name=SIGNS[sign], deg=lon % 30,
+            nak=nak.index, nak_name=nak.name, pada=nak.pada, nak_lord=nak.lord,
+            sub_lord=nak.sub_lord, sub_sub_lord=nak.sub_sub_lord,
+            tara=_tara_info(nak.index, moon_nak), house=house, speed=speed, retro=retro,
+            combust=is_combust(name, lon, sun_lon, retro) if name != "Sun" else False,
+            boundary=is_boundary(lon), avastha_baladi=baladi_avastha(lon),
+            vargottama=is_vargottama(lon),
+            marana_karaka_sthana=marana_karaka_sthana(name, house),
+            gandanta=gandanta(lon), pushkara_navamsa=pushkara_navamsa(lon),
+            pushkara_bhaga=pushkara_bhaga(lon),
+        )
+        if name in SEVEN:
+            body.dignity = dignity(name, lon)
+            body.dignity_compound = dignity(name, lon, positions, compound=True)
+            body.deep_exalt_dist = deep_exaltation_distance(name, lon)
+        bodies[name] = body
+
+    asc_nak = nakshatra_of(asc)
+    cusps_map = {i + 1: c for i, c in enumerate(cusps)} if cusps else {}
+    cusp_lords = {}
+    for h, c in cusps_map.items():
+        n = nakshatra_of(c)
+        cusp_lords[h] = {"star": n.lord, "sub": n.sub_lord, "sub_sub": n.sub_sub_lord}
+    # Whole-sign 7th cusp always available for KP reading when Placidus is not.
+    if 7 not in cusp_lords:
+        n7 = nakshatra_of((asc + 180.0) % 360.0)
+        cusp_lords[7] = {"star": n7.lord, "sub": n7.sub_lord, "sub_sub": n7.sub_sub_lord}
+    lagnas = Lagnas(
+        asc=asc, asc_sign=lagna_sign, asc_sign_name=SIGNS[lagna_sign], asc_nak=asc_nak.name,
+        asc_nak_lord=asc_nak.lord, asc_tara=navatara(asc_nak.index, moon_nak).name, mc=mc,
+        cusps_placidus=cusps_map, cusp_lords_kp=cusp_lords,
+    )
+
+    vargas = {v: {name: VARGAS[v](positions[name]) for name in GRAHAS} for v in PRODUCTION_VARGAS}
+    for v in PRODUCTION_VARGAS:
+        vargas[v]["Asc"] = VARGAS[v](asc)
+
+    sc, nc, vc = sign_chains(positions), nakshatra_chains(positions), navamsa_chains(positions)
+    loops = [Loop(planets=l) for l in sc.loops]
+    for p in parivartanas(positions, lagna_sign):
+        for loop in loops:
+            if sorted(loop.planets) == list(p.planets):
+                loop.houses = list(p.houses)
+                loop.class_by_houses = p.class_by_houses
+                loop.class_by_lordship = p.class_by_lordship
+                loop.taint = list(p.taint)
+    dispositors = Dispositors(
+        sign=sc.chains, nakshatra=nc.chains, navamsa=vc.chains, loops=loops,
+        final_sign=sc.final, final_nakshatra=nc.final, final_navamsa=vc.final,
+    )
+
+    planet_houses = {name: b.house for name, b in bodies.items()}
+    sun_sign, moon_sign = bodies["Sun"].sign, bodies["Moon"].sign
+    sudarshana_h10 = {
+        "from_lagna": [n for n, b in bodies.items() if house_of(b.sign, lagna_sign) == 10],
+        "from_moon": [n for n, b in bodies.items() if house_of(b.sign, moon_sign) == 10],
+        "from_sun": [n for n, b in bodies.items() if house_of(b.sign, sun_sign) == 10],
+    }
+    features = Features(
+        lordship=lordships(lagna_sign), roles=functional_roles(lagna_sign),
+        aspects=aspects(planet_houses), dispositors=dispositors,
+        jaimini=Jaimini(scheme=meta.karaka_scheme, karakas=chara_karakas(positions, 8),
+                        karakas_7=chara_karakas(positions, 7),
+                        karakamsa=karakamsa(positions, meta.karaka_scheme),
+                        arudhas=all_arudhas(lagna_sign, positions)),
+        sudarshana_h10=sudarshana_h10,
+    )
+
+    pinfo = None
+    if jd is not None:
+        p = compute_panchanga(sun_lon, positions["Moon"], jd, sunrise, sunset)
+        pinfo = PanchangaInfo(tithi=p.tithi, tithi_lord=p.tithi_lord, paksha=p.paksha,
+                              vara_lord=p.vara_lord, nakshatra=p.nakshatra,
+                              nakshatra_lord=p.nakshatra_lord, yoga=p.yoga, yoga_lord=p.yoga_lord,
+                              karana=p.karana, day_birth=p.day_birth)
+
+    dashas = {}
+    if jd is not None:
+        periods = vimshottari(positions["Moon"], jd, levels=dasha_levels, year_length=meta.dasha_year)
+        dashas["vimshottari"] = [
+            DashaPeriod(lords=list(p.lords), start_jd=p.start_jd, end_jd=p.end_jd,
+                        tara=bodies[p.lord].tara.name)
+            for p in periods
+        ]
+
+    return Chart(meta=meta, birth=birth, bodies=bodies, lagnas=lagnas, panchanga=pinfo,
+                 vargas=vargas, features=features, dashas=dashas)
+
+
+def compute(utc: datetime, lat: float, lon: float, *, ayanamsa: str = "lahiri",
+            true_node: bool = True, time_accuracy: str = "exact", tz: str | None = None,
+            dasha_levels: int = 2) -> Chart:
+    """Birth moment (UTC) and place -> chart."""
+    utc = utc.astimezone(timezone.utc) if utc.tzinfo else utc.replace(tzinfo=timezone.utc)
+    hour = utc.hour + utc.minute / 60 + utc.second / 3600
+    jd = julian_day(utc.year, utc.month, utc.day, hour)
+    sky = compute_sky(jd, lat, lon, ayanamsa=ayanamsa, true_node=true_node)
+    rise, sset = sunrise_sunset(jd, lat, lon)
+    positions = {n: b.lon for n, b in sky.bodies.items()}
+    speeds = {n: b.speed for n, b in sky.bodies.items()}
+    meta = Meta(ayanamsa=ayanamsa, ayanamsa_value=sky.ayanamsa_value, jd=jd,
+                node="true" if true_node else "mean", time_accuracy=time_accuracy)
+    birth = Birth(utc=utc.isoformat(), lat=lat, lon=lon, tz=tz,
+                  time_posterior=TimePosterior(shape="uniform" if time_accuracy != "approximate" else "gaussian",
+                                               half_width_min=ACCURACY_HALF_WIDTH_MIN[time_accuracy],
+                                               samples=0))
+    return analyse(positions, sky.asc, speeds=speeds, meta=meta, birth=birth, jd=jd, mc=sky.mc,
+                   cusps=sky.cusps_placidus, sunrise=rise, sunset=sset, dasha_levels=dasha_levels)

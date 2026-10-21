@@ -1,0 +1,26 @@
+id: yoga.ruchaka
+family: pancha_mahapurusha
+school: parashari
+source:
+  - {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 2}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 1}
+status: classical_unconfirmed
+when:
+  planet: Mars
+  dignity_in: [own, exalted]
+  house_in: [1, 4, 7, 10]
+  basis: [lagna, moon, sun]
+modifiers:
+  - if: shadbala_ratio < 1.0
+    scale: 0.5
+  - if: aspected_by: [Saturn]
+    scale: 0.8
+  - if: tara_from_moon in [vipat, pratyak, vadha]
+    scale: 0.85
+  - if: marana_karaka_sthana
+    scale: 0.6
+themes: { courage: +3, leadership: +3, physical_vigour: +2, conflict: +1 }
+outcomes: [career_status, litigation]
+confidence_base: 0.7
+stability_min: 0.5
+narration_key: ruchaka
