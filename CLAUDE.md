@@ -96,7 +96,10 @@ calls of an attempt run concurrently (`CONFIG.checker_concurrency`, async SDK); 
 keeps assessed charts by birth data, conventions, seed and an engine hash (JYOTISH_CACHE_DIR;
 the suite points it at a temp dir). `scripts/time_reading.py` times a live reading. The service (`api.py`, FastAPI: POST /readings, GET
 /readings/{id} with progress; SQLAlchemy, SQLite by `JYOTISH_DATABASE_URL`, JSONB under Postgres)
-runs the shared pipeline in `service.py`; `pip install -e ".[api]"`, `uvicorn jyotish.api:app`. The offline suite replays the frozen first recording
+runs the shared pipeline in `service.py`; `pip install -e ".[api]"`, `uvicorn jyotish.api:app`. The website (`web/`,
+plain HTML/CSS/JS modules from `design/mockups/`, no build step) is served by the same app at `/`;
+it renders the reading JSON only (each claim carries its `learner` block). `tests/test_web.py` drives it
+with Playwright (`.venv/bin/playwright install chromium`). The offline suite replays the frozen first recording
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.

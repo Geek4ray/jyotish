@@ -90,6 +90,7 @@ class ReadingClaim(BaseModel):
     school: str
     basis: str
     stability: float | None
+    stability_label: str | None = None  # the sampler's word for `stability` (uncertainty.label)
     confidence: float                   # rule: scale x confidence_base; vote: min(1, 1 - rho) x |vote|
     learner: dict[str, Any] | None = None   # the finding's derivation, by the engine (learner_data)
 
@@ -714,13 +715,24 @@ def learner_data(f: dict) -> dict[str, Any]:
             "sudarshana_bases": f.get("sudarshana_bases", [])}
 
 
+def _label(stability: float | None) -> str | None:
+    from .uncertainty import label
+    return None if stability is None else label(stability)
+
+
 def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     """A reading JSON brought up to the current schema from its own chart: the engine-derived
     fields a reading written before them lacks (each claim's learner block, the timing line).
     The model's text is not touched."""
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name)[0]}
-    areas = [a.model_copy(update={"claims": [c if c.learner else c.model_copy(update={"learner": learner_data(by_id[c.finding_id])})
-                                             for c in a.claims]}) for a in reading.areas]
+    def up(c):
+        fill = {}
+        if not c.learner:
+            fill["learner"] = learner_data(by_id[c.finding_id])
+        if c.stability_label is None and c.stability is not None:
+            fill["stability_label"] = _label(c.stability)
+        return c.model_copy(update=fill) if fill else c
+    areas = [a.model_copy(update={"claims": [up(c) for c in a.claims]}) for a in reading.areas]
     summary = reading.summary
     if summary.timing_line is None:
         lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading.areas if a.windows]
@@ -871,8 +883,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             f = by_finding[c.finding_id]
             claims.append(ReadingClaim(finding_id=c.finding_id, text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
                                        kind=f["kind"], school=f["school"], basis=f["basis"],
-                                       stability=f["stability"], confidence=f["confidence"],
-                                       learner=learner_data(f)))
+                                       stability=f["stability"], stability_label=_label(f["stability"]),
+                                       confidence=f["confidence"], learner=learner_data(f)))
         # SPEC Layer 7 item 4: two groups, rule fires first, then votes, each by stability x the
         # claim's own confidence. The two confidences are on different scales (a rule's is
         # capped at 0.7, a vote's is near 1), so they are never ranked against each other.

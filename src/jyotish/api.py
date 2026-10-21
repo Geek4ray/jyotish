@@ -16,7 +16,10 @@ page, status and progress. SQLite for now (JYOTISH_DATABASE_URL, default
 sqlite:///jyotish.db); the document columns are JSONB under PostgreSQL, so moving is a
 connection-string change.
 
-Run:  .venv/bin/uvicorn jyotish.api:app"""
+The website (web/: plain HTML, CSS and JavaScript modules, no build step) is served at /, and
+examples/ (the reference reading) at /examples, after the API routes.
+
+Run:  .venv/bin/uvicorn jyotish.api:app      then open http://127.0.0.1:8000/"""
 
 from __future__ import annotations
 
@@ -30,6 +33,8 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, create_engine
 from sqlalchemy.dialects.postgresql import JSONB
@@ -100,9 +105,14 @@ class ReadingStatus(BaseModel):
     error: dict[str, Any] | None = None
 
 
-def create_app(database_url: str | None = None, *, model_fixture: str | None = None, workers: int = 2) -> FastAPI:
+REPO = Path(__file__).resolve().parents[2]
+
+
+def create_app(database_url: str | None = None, *, model_fixture: str | None = None, workers: int = 2,
+               web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples") -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
-    (offline tests); it is never taken from a request."""
+    (offline tests); it is never taken from a request. The website and the examples are
+    mounted when their directories exist (a source checkout)."""
     url = database_url or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
     engine = create_engine(url, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {})
     Base.metadata.create_all(engine)
@@ -162,8 +172,12 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                    error={"message": str(e), "errors": list(e.errors)})
         except Exception as e:                      # the job reports its failure; it never raises into the pool
             log.append("failed")
+            message = f"{type(e).__name__}: {e}"
+            if "Could not resolve authentication method" in str(e):
+                message = ("The server has no model key: set ANTHROPIC_API_KEY in the environment the server "
+                           "runs in (it is never sent by the browser).")
             update(reading_id, status="failed", progress={"stage": "failed", "log": list(log)},
-                   error={"message": f"{type(e).__name__}: {e}"})
+                   error={"message": message})
 
     @app.post("/readings", status_code=202, response_model=Accepted)
     def post_reading(req: ReadingRequest) -> Accepted:
@@ -184,6 +198,11 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                  question=row.question, created_at=row.created_at, updated_at=row.updated_at,
                                  reading=row.document, page=row.page, error=row.error)
 
+    # Static files last, so /readings is never shadowed.
+    if examples_dir is not None and Path(examples_dir).is_dir():
+        app.mount("/examples", StaticFiles(directory=examples_dir), name="examples")
+    if web_dir is not None and Path(web_dir).is_dir():
+        app.mount("/", StaticFiles(directory=web_dir, html=True), name="web")
     return app
 
 

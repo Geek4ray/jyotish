@@ -138,6 +138,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.6,
      "learner": {
       "kind": "rule",
@@ -217,6 +218,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.54,
      "learner": {
       "kind": "rule",
@@ -286,6 +288,7 @@
      "school": "parashari",
      "basis": "lagna, sun",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.2856,
      "learner": {
       "kind": "rule",
@@ -387,6 +390,7 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9818743784975401,
      "learner": {
       "kind": "vote",
@@ -518,6 +522,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9769953380345803,
      "learner": {
       "kind": "vote",
@@ -586,6 +591,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9358272478469318,
      "learner": {
       "kind": "vote",
@@ -668,6 +674,7 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9249446442470166,
      "learner": {
       "kind": "vote",
@@ -859,6 +866,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.8386959486707044,
      "learner": {
       "kind": "vote",
@@ -1285,6 +1293,7 @@
      "school": "kp",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 1.0,
      "learner": {
       "kind": "vote",
@@ -1383,6 +1392,7 @@
      "school": "jaimini",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.997807911534478,
      "learner": {
       "kind": "vote",
@@ -1434,6 +1444,7 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9818743784975401,
      "learner": {
       "kind": "vote",
@@ -1565,6 +1576,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9769953380345803,
      "learner": {
       "kind": "vote",
@@ -1611,6 +1623,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9358272478469318,
      "learner": {
       "kind": "vote",
@@ -1684,6 +1697,7 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9249446442470166,
      "learner": {
       "kind": "vote",
@@ -1875,6 +1889,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.7338589550868664,
      "learner": {
       "kind": "vote",
@@ -2010,6 +2025,7 @@
      "school": "jaimini",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.997807911534478,
      "learner": {
       "kind": "vote",
@@ -2045,6 +2061,7 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9818743784975401,
      "learner": {
       "kind": "vote",
@@ -2131,6 +2148,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9769953380345803,
      "learner": {
       "kind": "vote",
@@ -2183,6 +2201,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9358272478469318,
      "learner": {
       "kind": "vote",
@@ -2251,6 +2270,7 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.9249446442470166,
      "learner": {
       "kind": "vote",
@@ -2373,6 +2393,7 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
+     "stability_label": "stable",
      "confidence": 0.8969387228839478,
      "learner": {
       "kind": "vote",

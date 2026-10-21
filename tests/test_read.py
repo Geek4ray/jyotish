@@ -104,7 +104,7 @@ def test_sensitive_claims_are_marked_inline(page):
     reading, md = page
     assert "*(time-stability" not in md
     career = reading.areas[0]
-    claims = [c.model_copy(update={"stability": 0.605}) if c.finding_id == "vote:career.varga" else c
+    claims = [c.model_copy(update={"stability": 0.605, "stability_label": "sensitive"}) if c.finding_id == "vote:career.varga" else c
               for c in career.claims]
     shaky = reading.model_copy(update={"areas": [career.model_copy(update={"claims": claims})] + reading.areas[1:]})
     chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)

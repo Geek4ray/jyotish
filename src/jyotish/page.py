@@ -86,7 +86,7 @@ def _claim(notes: "_Notes", c) -> str:
     """The claim with its tags as footnotes and, under 0.8 time-stability, the number inline."""
     text = notes.render(c.text)
     if c.stability is not None and c.stability < SENSITIVE_BELOW:
-        text += f" *(time-stability {c.stability:.3g}, {label(c.stability)})*"
+        text += f" *(time-stability {c.stability:.3g}, {c.stability_label or label(c.stability)})*"
     return text
 
 

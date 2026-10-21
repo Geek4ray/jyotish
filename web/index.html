@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jyotish Engine — every classical signal, computed exactly</title>
+<meta name="description" content="A Vedic-astrology engine that computes every classical quantity exactly and reports each finding with its stability under birth-time uncertainty.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/site.css">
+<script type="module" src="/js/home.js"></script>
+</head>
+<body data-screen="home">
+<header class="site-header" id="site-header"></header>
+
+<main>
+  <section class="hero" id="start">
+    <div class="hero-copy">
+      <span class="kicker">Vedic astrology, computed exactly</span>
+      <h1>Every classical signal in your chart. Weighed, cited, and honest about its confidence.</h1>
+      <p>The engine computes every classical quantity from your birth data, scores each life area with a stated confidence, narrates with cited rules, and reports every finding with its stability under birth-time uncertainty.</p>
+      <p class="small">Every sentence of a reading cites the rule or the family vote it rests on, and is checked against the engine's own data before you see it.</p>
+    </div>
+
+    <form class="card birth-form" id="birth-form" novalidate>
+      <h2>Your birth details</h2>
+      <div class="field"><label for="date">Date of birth</label><input id="date" name="date" type="date" required></div>
+      <div class="field-row">
+        <div class="field"><label for="time">Time (local)</label><input id="time" name="time" type="time" step="1" required></div>
+        <div class="field"><label for="accuracy">Time accuracy</label>
+          <select id="accuracy" name="accuracy">
+            <option value="exact">Exact (to the minute)</option>
+            <option value="within_15">Within 15 minutes</option>
+            <option value="approximate">Approximate (about an hour)</option>
+            <option value="unknown">Unknown</option>
+          </select></div>
+      </div>
+      <div class="field"><label for="tz">Timezone</label><input id="tz" name="tz" type="text" placeholder="Asia/Kolkata or +05:30" required autocomplete="off"></div>
+      <div class="field"><label for="place">Place of birth (a label for your reading)</label><input id="place" name="place" type="text" placeholder="City, country" autocomplete="off"></div>
+      <div class="field-row">
+        <div class="field"><label for="lat">Latitude</label><input id="lat" name="lat" type="number" step="any" min="-90" max="90" placeholder="28.1989" required></div>
+        <div class="field"><label for="lon">Longitude</label><input id="lon" name="lon" type="number" step="any" min="-180" max="180" placeholder="76.617" required></div>
+      </div>
+      <p class="hint">Positions use the latitude and longitude; the place name only labels the reading.</p>
+      <div class="field"><label for="node">Lunar node</label>
+        <select id="node" name="node">
+          <option value="true">True node (engine default)</option>
+          <option value="mean">Mean node</option>
+        </select></div>
+      <div class="field"><label for="question">Your question</label><textarea id="question" name="question" rows="3" required placeholder="How will my career go, and when is the best time for a job change?"></textarea></div>
+      <button class="button" type="submit">Compute my reading</button>
+      <p class="error small" id="form-error" role="alert"></p>
+      <p class="hint">The reading takes about two minutes: the chart is computed at 200 birth times, then every sentence the writer drafts is checked against the engine's data.</p>
+    </form>
+  </section>
+
+  <section class="wrap" id="how">
+    <h2 class="display" style="font-size: 32px">How a reading is made</h2>
+    <div class="steps">
+      <div class="step"><span class="tiny muted">01</span><strong>Compute</strong><p>Swiss Ephemeris positions, the lagna, the vargas and nakshatras, at your recorded time and at 200 times within your accuracy class.</p></div>
+      <div class="step"><span class="tiny muted">02</span><strong>Measure</strong><p>Dignity, lordship, aspects, Shadbala, Ashtakavarga, Bhava Bala, Jaimini karakas and arudhas, KP sub-lords.</p></div>
+      <div class="step"><span class="tiny muted">03</span><strong>Score</strong><p>Cited rules run on the chart, and seven signal families vote on each life area; the tier says how many of them agree.</p></div>
+      <div class="step"><span class="tiny muted">04</span><strong>Narrate</strong><p>The writer sees only the engine's findings, cites one for every sentence, and a second reader checks each sentence against the data.</p></div>
+    </div>
+  </section>
+
+  <section class="band" id="honest">
+    <div class="wrap">
+      <div class="prose">
+        <span class="kicker">Goal and honest scope</span>
+        <h2>What the engine will not claim</h2>
+        <p>What the engine will not claim: "precise" prediction of anything about anyone. No system has demonstrated that, and an app that promises it will be wrong in public. The product promise is: <em>every classical signal, computed exactly, weighed transparently, with a confidence you can audit.</em> The validation layer is what lets the promise grow only as far as the evidence does.</p>
+        <p>The precision ceiling is fixed by three things no engine removes: birth-time error (4 minutes moves D60 by a sign; most recorded times are rounded to 5–15 minutes), the texts disagreeing with each other across schools and recensions, and the absence of a demonstrated empirical signal. So the engine is precise in <em>computation and reproducibility</em>, and reports every finding with its stability under those three uncertainties. It is never precise about outcomes, and the product wording enforces that.</p>
+        <p>Excluded by design, so nobody wonders later: Prashna (horary), Muhurta (electional), Lal Kitab, Western tropical techniques, Bhrigu-leaf Nadi readings, and any death timing.</p>
+        <p>No life area is calibrated yet, so no reading uses probability language: each area shows "not calibrated" where a probability would go, and the tier words (strong, moderate, weak / mixed) are the engine's count of agreeing signal families, nothing more.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer" id="site-footer"></footer>
+<nav class="tabbar" id="tabbar" aria-label="Screens"></nav>
+</body>
+</html>
