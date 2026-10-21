@@ -1,5 +1,6 @@
-"""Command line: print the reference chart, compute a chart, recover an instant, and write a
-reading (`jyotish read`: birth data and a question -> reading JSON and a Markdown page)."""
+"""Command line: print the reference chart, compute a chart, recover an instant, write a
+reading (`jyotish read`: birth data and a question -> reading JSON and a Markdown page), and
+re-render a reading's page from its JSON (`jyotish page --from`, no model call)."""
 
 from __future__ import annotations
 
@@ -323,6 +324,60 @@ def _read_command(args) -> str:
     return shlex.join(parts)
 
 
+def _assess(args):
+    from .uncertainty import assess
+    utc, tz = _birth_utc(args.date, args.time, args.tz)
+    return assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz, true_node=args.node == "true",
+                  seed=args.seed)
+
+
+def _birth_flags(p) -> None:
+    p.add_argument("--date", required=True, help="local birth date, YYYY-MM-DD")
+    p.add_argument("--time", required=True, help="local birth time, HH:MM[:SS]")
+    p.add_argument("--tz", required=True, help="IANA timezone (Asia/Kolkata) or UTC offset (+05:30)")
+    p.add_argument("--lat", type=float, required=True)
+    p.add_argument("--lon", type=float, required=True)
+    p.add_argument("--accuracy", default="exact", choices=["exact", "within_15", "approximate", "unknown"])
+    p.add_argument("--node", default="true", choices=["true", "mean"],
+                   help="lunar node (engine default true; the reference app uses mean)")
+    p.add_argument("--place", help="place name for the header, e.g. 'Rewari, Haryana' (positions use --lat/--lon)")
+    p.add_argument("--seed", type=int, default=0, help="birth-time sampler seed (default 0)")
+
+
+def cmd_page(args) -> int:
+    """Re-render the Markdown page from an existing reading JSON: recompute the chart from the
+    birth-data flags (the learner tables are the engine's, so they need the chart), check it
+    against the reading's Chart header, and render. No model call."""
+    import sys
+    from pathlib import Path
+    from .narrate import Reading, chart_header
+    from .page import render
+    src = Path(args.from_)
+    reading = Reading(**json.loads(src.read_text()))
+    chart = _assess(args)
+    want, got = reading.chart, chart_header(chart)
+    diff = [k for k in ("birth_utc", "lat", "lon", "accuracy", "conventions", "sampler") if want.get(k) != got.get(k)]
+    if want.get("seed") is not None and want["seed"] != args.seed:
+        diff.append("seed")
+    if reading.engine != chart.meta.engine:
+        diff.append("engine")
+    if diff:
+        print(f"the birth-data flags do not reproduce {src}: {', '.join(diff)} differ", file=sys.stderr)
+        for k in diff:
+            print(f"  {k}: reading {want.get(k, reading.engine)!r} != flags {got.get(k, chart.meta.engine)!r}",
+                  file=sys.stderr)
+        return 2
+    try:
+        page = render(reading, chart)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 2
+    out = Path(args.out) if args.out else src.with_suffix(".md")
+    out.write_text(page)
+    print(f"wrote {out} from {src} (no model call)")
+    return 0
+
+
 def cmd_read(args) -> int:
     """assess -> score -> route -> narrate -> <out>.json and <out>.md. Returns the exit code."""
     import sys
@@ -331,10 +386,7 @@ def cmd_read(args) -> int:
     from .narrate import (CONFIG, FixtureChecker, FixtureDrafter, NarrationError, TAG, narrate, route,
                           sentences)
     from .page import render
-    from .uncertainty import assess
-    utc, tz = _birth_utc(args.date, args.time, args.tz)
-    chart = assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz, true_node=args.node == "true",
-                   seed=args.seed)
+    chart = _assess(args)
     if chart.scored is None:
         print("this chart cannot be scored (no birth moment)", file=sys.stderr)
         return 2
@@ -385,21 +437,16 @@ def main(argv: list[str] | None = None) -> None:
     c.add_argument("--accuracy", default="exact", choices=["exact", "within_15", "approximate", "unknown"])
     c.add_argument("--json", action="store_true")
     rd = sub.add_parser("read", help="birth data and a question -> reading JSON and a Markdown page")
-    rd.add_argument("--date", required=True, help="local birth date, YYYY-MM-DD")
-    rd.add_argument("--time", required=True, help="local birth time, HH:MM[:SS]")
-    rd.add_argument("--tz", required=True, help="IANA timezone (Asia/Kolkata) or UTC offset (+05:30)")
-    rd.add_argument("--lat", type=float, required=True)
-    rd.add_argument("--lon", type=float, required=True)
-    rd.add_argument("--accuracy", default="exact", choices=["exact", "within_15", "approximate", "unknown"])
-    rd.add_argument("--node", default="true", choices=["true", "mean"],
-                    help="lunar node (engine default true; the reference app uses mean)")
-    rd.add_argument("--place", help="place name for the header, e.g. 'Rewari, Haryana' (positions use --lat/--lon)")
-    rd.add_argument("--seed", type=int, default=0, help="birth-time sampler seed (default 0)")
+    _birth_flags(rd)
     rd.add_argument("--question", required=True)
     rd.add_argument("--as-of", help="date the reading is for, YYYY-MM-DD (default today)")
     rd.add_argument("--out", default="reading", help="output path without extension: writes .json and .md")
     rd.add_argument("--model-fixture", help="replay a recorded narration (tests/fixtures/*.json) instead of "
                                             "calling the model; offline")
+    pg = sub.add_parser("page", help="re-render the Markdown page from a reading JSON (no model call)")
+    pg.add_argument("--from", dest="from_", required=True, help="reading JSON written by `jyotish read`")
+    _birth_flags(pg)
+    pg.add_argument("--out", help="Markdown path (default: the JSON path with .md)")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
@@ -412,6 +459,8 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.cmd == "read":
         raise SystemExit(cmd_read(args))
+    if args.cmd == "page":
+        raise SystemExit(cmd_page(args))
     if args.cmd == "reference":
         chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS,
                         **reference_time_inputs())

@@ -156,10 +156,31 @@ def _rule_learner(f: dict) -> list[str]:
     return out
 
 
+def derivation_table(d: Any) -> list[str]:
+    """A vote's derivation as Markdown. Two shapes occur: a list of rows (house, lord, karaka,
+    varga, KP, panchanga) and a dict of named row lists (arudha: `padas`, or
+    `marana_karaka_sthana` where the arudha vote reads the 8th from the lagna)."""
+    if not d:
+        return ["(no derivation rows)"]
+    if isinstance(d, list):
+        return _table(d)
+    if isinstance(d, dict):
+        out: list[str] = []
+        for k, v in d.items():
+            if out:
+                out.append("")
+            if isinstance(v, list) and all(isinstance(r, dict) for r in v):
+                out += [f"{k.replace('_', ' ')}:", ""] + (_table(v) if v else ["(no rows)"])
+            else:
+                out.append(f"{k.replace('_', ' ')}: {_cell(v)}")
+        return out
+    raise TypeError(f"unknown derivation shape: {type(d).__name__}")
+
+
 def _vote_learner(f: dict) -> list[str]:
     out = [f"Vote {f['direction']} ({f['vote']:+d}), family {_family(f['family'])}, school {f['school']}, "
-           f"stability {_cell(f['stability'])}, term {_cell(f['term'])}. Derivation rows:", ""]
-    return out + _table(f["derivation"] or [])
+           f"stability {_cell(f['stability'])}, term {_cell(f['term'])}. Derivation:", ""]
+    return out + derivation_table(f["derivation"])
 
 
 def render(reading: Reading, chart: Chart) -> str:
@@ -191,6 +212,10 @@ def render(reading: Reading, chart: Chart) -> str:
         L.append("")
         if a.claims:
             L += [f"{i}. {_claim(notes, c)}" for i, c in enumerate(a.claims, 1)]
+            missing = [c.finding_id for c in a.claims if c.finding_id not in by_id]
+            if missing:
+                raise ValueError(f"the reading cites findings this chart does not offer: {', '.join(missing)} "
+                                 "(different birth data, settings or engine version)")
             learner += [(a.name, c, by_id[c.finding_id]) for c in a.claims]
         else:
             offered = len(findings(chart, a.name)[0])
