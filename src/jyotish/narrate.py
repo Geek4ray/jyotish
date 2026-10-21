@@ -210,13 +210,23 @@ def sentences(text: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
-# A sentence "names" a family (SPEC Layer 7 item 11). Distinctive words count anywhere; the
-# ordinary words "house" and "lord" count only when the sentence speaks of a vote or family
-# with them, or (house) names Bhava Bala. "marana karaka" is a placement, not the family.
+# A sentence "names" a family (SPEC Layer 7 item 11). House, lord and karaka are ordinary
+# words, so they name their family only in the exact phrase "<family> vote(s)" or "<family>
+# family"; a coordinated list counts as that phrase ("the house, lord and karaka votes").
+# "karaka-sthana", "a denial house, which decides the vote" and "the star-lord level" do not.
+# KP, varga, arudha and panchanga keep their distinctive words.
+_FAMILY_NAMES = r"(?:house|lord|karaka|varga|arudha|kp|panchanga)"
+_LIST_SEP = r"(?:\s*,\s*and\s+|\s*,\s*|\s+and\s+)"
+
+
+def _phrase(word: str) -> re.Pattern:
+    return re.compile(rf"\b{word}(?:{_LIST_SEP}{_FAMILY_NAMES})*\s+(?:votes?|famil(?:y|ies))\b", re.I)
+
+
 FAMILY_WORDS = {
-    "house": re.compile(r"\bhouses?\b[^.\[]*\b(votes?|famil(?:y|ies))\b|\bbhava bala\b", re.I),
-    "lord": re.compile(r"\blords?\b[^.\[]*\b(votes?|famil(?:y|ies))\b", re.I),
-    "karaka": re.compile(r"(?<!marana )\bkarakas?\b", re.I),
+    "house": _phrase("house"),
+    "lord": _phrase("lord"),
+    "karaka": _phrase("karaka"),
     "varga": re.compile(r"\bvargas?\b|\bD\d{1,2}\b|\bdasamsa\b|\bnavamsa\b", re.I),
     "arudha": re.compile(r"\barudhas?\b|\bpadas?\b|\bupapada\b|\bA\d{1,2}\b|\bUL\b", re.I),
     "kp": re.compile(r"\bKP\b|\bcusps?\b|\bsub-?lords?\b", re.I),

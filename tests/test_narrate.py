@@ -557,3 +557,87 @@ def test_cancer_the_sign_is_not_the_disease():
                     "the 3rd [vote:career.house].'"]
     # The rest of the medical list stays case-insensitive.
     assert any("medical" in e for e in validate("Mars shows a Disorder [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}))
+
+
+# --- SPEC Layer 7 item 11 refinements from the timed runs ----------------------------------
+
+THREE = json.loads((FIXTURES / "narration_three_areas_r1.json").read_text())   # claude-opus-5-5, concurrent run
+THREE_AREAS = ["career", "marriage", "longevity"]
+
+
+def _recorded_validator_errors(attempt):
+    return next(c["validator_errors"] for c in THREE["calls"] if c["kind"] == "writer" and c["attempt"] == attempt)
+
+
+@pytest.mark.parametrize("needle,family", [
+    ("karaka-sthana placement [rule:yoga.ruchaka]", "karaka"),       # Ruchaka claim
+    ("which decides the vote", "house"),                             # the KP claim: "denial house"
+    ("which decides the vote", "lord"),                              # the KP claim: "star-lord level"
+    ("each sit in a difficult karaka-sthana", "karaka"),             # longevity arudha claim
+])
+def test_ordinary_words_do_not_name_a_family(needle, family):
+    # The live run's attempt 1 lost a whole attempt to these: the sentences are taken verbatim
+    # from its validator errors, and none of them names the family any more.
+    from jyotish.narrate import families_named
+    err = next(e for e in _recorded_validator_errors(1) if needle in e and f"names the {family} family" in e)
+    sentence = err.split(": ", 1)[1][1:-1]
+    assert family not in families_named(sentence)
+
+
+def test_family_named_by_the_adjacent_phrase_and_lists():
+    from jyotish.narrate import families_named
+    assert families_named("The house vote is for career") == {"house"}
+    assert families_named("the lord family leans for it") == {"lord"}
+    assert families_named("The house, lord, karaka, varga and panchanga votes lean in favour") == \
+        {"house", "lord", "karaka", "varga", "panchanga"}
+    assert families_named("the house and KP votes") == {"house", "kp"}
+    for plain in ("a difficult karaka-sthana placement", "no denial house, which decides the vote",
+                  "at the star-lord level Mars", "the 10th lord's strength", "weak in bhava bala"):
+        assert families_named(plain) == set(), plain
+
+
+def test_attempt_one_draft_passes_the_refined_validator(chart):
+    # Recorded live: five validator errors (three family readings, "Cancer", one more family).
+    assert len(_recorded_validator_errors(1)) == 5
+    from jyotish.narrate import FixtureChecker, FixtureDrafter
+    rec = []
+    first = dict(THREE, drafts=THREE["drafts"][:1])
+    checker = FixtureChecker(THREE)
+    r = narrate(chart, THREE["question"], drafter=FixtureDrafter(first), checker=checker, as_of=AS_OF,
+                areas=THREE_AREAS, recording=rec)
+    assert r.attempts == 1 and rec[0]["validator_errors"] == []
+    assert len(checker.unchecked) == 11      # never checked live: the validator stopped it there
+
+
+def test_three_area_recording_replays_the_checker(chart):
+    """Replay from the second draft with the recorded verdicts: the four rejections come back
+    exactly, go to the writer, and the third draft is accepted with every sentence checked."""
+    from jyotish.narrate import FixtureChecker, FixtureDrafter
+    rec = []
+    drafter = FixtureDrafter(dict(THREE, drafts=THREE["drafts"][1:]))
+    checker = FixtureChecker(THREE)
+    r = narrate(chart, THREE["question"], drafter=drafter, checker=checker, as_of=AS_OF,
+                areas=THREE_AREAS, recording=rec)
+    assert r.attempts == 2 and not checker.unchecked
+    rejected = {(c["finding_id"], p["text"]) for c in rec if c["kind"] == "checker" and c["attempt"] == 1
+                for p in c["result"]["propositions"] if not p["supported"]}
+    assert rejected == {("summary", "Budhaditya yoga supports your career."),
+                        ("yoga.budhaditya@lagna", "The reduction is due to Mercury's avastha."),
+                        ("vote:career.panchanga", "Mars has a shadbala ratio of 1.3."),
+                        ("vote:marriage.panchanga", "Mars has a shadbala ratio of 1.3.")}
+    writer2 = next(c for c in rec if c["kind"] == "writer" and c["attempt"] == 2)
+    assert writer2["validator_errors"] == []
+    assert all(all(p["supported"] for p in c["result"]["propositions"])
+               for c in rec if c["kind"] == "checker" and c["attempt"] == 2)
+    assert sum(1 for c in rec if c["kind"] == "checker" and c["attempt"] == 2) == 24
+
+
+def test_pair_modifiers_name_the_planet(chart):
+    # The checker refused to attribute "[b]" to Mercury; the derivation now says Mercury.
+    fire = next(f for f in chart.fired_rules if f.id == "yoga.budhaditya")
+    assert fire.applied == ["avastha in [bala, mrita] (Mercury) -> x0.9"]
+    ok, _ = findings(chart, "career")
+    budh = next(f for f in ok if f["rule_id"] == "yoga.budhaditya")
+    assert budh["fires"][0]["modifiers_applied"] == ["avastha in [bala, mrita] (Mercury) -> x0.9"]
+    par = next(f for f in chart.fired_rules if f.id == "yoga.parivartana")
+    assert all("(" in a and "[" not in a.split("(")[-1] for a in par.applied)    # pair-level: both planets

@@ -394,6 +394,23 @@ def _report(name: str, c: Ctx, bound: dict[str, str]) -> dict:
     raise RuleError(name)
 
 
+def modifier_text(m: dict, bound: dict[str, str]) -> str:
+    """How a modifier is written in a fire's `applied` / `unknown` lists: its condition, and for
+    a modifier on one side of a pair rule the planet it applies to, never the side's letter
+    ("avastha in [bala, mrita] (Mercury)", not "[b]"; SPEC Layer 7 item 11)."""
+    of = m.get("of")
+    if not of:
+        return _cond_text(m["if"])
+    who = f"{bound['a']} and {bound['b']}" if of == "pair" else bound.get(of, of)
+    return f"{_cond_text(m['if'])} ({who})"
+
+
+def bound_planets(rule: Rule, nodes: list[str]) -> dict[str, str]:
+    """A fire's planets by role (subject, or a and b for a pair rule), from its nodes."""
+    planets = [n for n in nodes if not n.startswith("H")]
+    return dict(zip(["a", "b"] if "pair" in rule.when else ["subject"], planets))
+
+
 def _fire(rule: Rule, c: Ctx, bound: dict[str, str], relations: list[str] | None) -> FiredRule:
     scale, applied, unknown = 1.0, [], []
     for m in rule.data.get("modifiers", []):
@@ -410,7 +427,7 @@ def _fire(rule: Rule, c: Ctx, bound: dict[str, str], relations: list[str] | None
                 r = _eval_expr(expr, FEATURES[expr[0]](c, p))
             else:
                 r = match(cond, c, p)
-        text = _cond_text(cond) + (f" [{of}]" if of else "")
+        text = modifier_text(m, bound)
         if r is UNKNOWN:
             unknown.append(text)
         elif r:

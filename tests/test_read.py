@@ -199,3 +199,10 @@ def test_page_derives_the_timing_line_for_an_older_reading(page):
     old = reading.model_copy(update={"summary": reading.summary.model_copy(update={"timing_line": None})})
     chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
     assert render(old, chart) == md
+
+
+def test_learner_names_the_planet_of_a_pair_modifier(page):
+    _, md = page
+    budh = md[md.index("`yoga.budhaditya@lagna`", md.index("## Learner")):]
+    assert "| avastha in [bala, mrita] (Mercury) | ×0.9 | applied |" in budh
+    assert "| combust (Mercury) | ×0.5 | not applied |" in budh

@@ -15,7 +15,7 @@ from typing import Any
 
 from .models import Chart
 from .narrate import DISCLAIMERS, TAG, Reading, ReadingWindow, findings, timing_line
-from .rules import _cond_text, default_rules
+from .rules import bound_planets, default_rules, modifier_text
 from .uncertainty import label
 
 SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where it is read
@@ -137,8 +137,9 @@ def _rule_learner(f: dict) -> list[str]:
     out += _table([{"condition": k, "value": json.dumps(v, default=str)} for k, v in rule.data["when"].items()])
     out += ["", "Modifiers, and where each applied:", ""]
     mods = []
+    bound = bound_planets(rule, f["fires"][0]["nodes"])          # the same planets in every fire
     for m in rule.data.get("modifiers", []):
-        text = _cond_text(m["if"]) + (f" [{m['of']}]" if m.get("of") else "")
+        text = modifier_text(m, bound)
         row = {"modifier": text, "scale": f"×{m['scale']}"}
         for fire in f["fires"]:
             row[f"from {fire['basis']}"] = ("applied" if f"{text} -> x{m['scale']}" in fire["modifiers_applied"]
