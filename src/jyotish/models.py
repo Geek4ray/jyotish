@@ -4,9 +4,10 @@ phases are added when their layer lands, never stubbed with placeholder values."
 
 from __future__ import annotations
 
-from typing import Any
+from datetime import date
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class Meta(BaseModel):
@@ -357,7 +358,7 @@ class VedhaSpan(BaseModel):
 class TransitRow(BaseModel):
     """One body in one sign, ingress to egress (SPEC Layer 4 transit row). A row that
     starts or ends at the edge of the requested range is clipped there and says so."""
-    kind: str = "transit"
+    kind: Literal["transit"] = "transit"
     body: str
     sign: int
     sign_name: str
@@ -435,6 +436,74 @@ class Scored(BaseModel):
     areas: dict[str, AreaScore]
     top: list[str]
     driver: Driver
+
+
+class DashaRow(BaseModel):
+    """A dasha period on the tagged timeline (SPEC Layer 4): system, level, lords, dates,
+    quality, the lord's Navatara class and the Nadi activation set."""
+    kind: Literal["dasha"] = "dasha"
+    system: str
+    level: int
+    lords: list[str]
+    start_jd: float
+    end_jd: float
+    quality: float                      # -1..+1 (timing.period_quality)
+    quality_terms: dict[str, float]
+    tara: str | None = None
+    activation: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+
+
+class TaggedTimeline(BaseModel):
+    """Dasha rows of every system and transit rows, merged and ordered by start; the named
+    transit windows alongside."""
+    start_jd: float
+    end_jd: float
+    rows: list[Annotated[DashaRow | TransitRow, Field(discriminator="kind")]]
+    windows: list[TimelineWindow]
+
+
+class TimingQuery(BaseModel):
+    """A "when" question (SPEC Layer 4). Validated before the engine runs it."""
+    area: str
+    start: date
+    end: date
+    systems: list[Literal["vimshottari", "yogini", "chara"]] = ["vimshottari", "yogini", "chara"]
+    basis: Literal["lagna", "moon", "sun"] = "lagna"
+    question: str = ""
+    top: int = Field(default=5, ge=1, le=50)
+
+    @model_validator(mode="after")
+    def _check(self):
+        from .scoring import AREAS
+        if self.area not in AREAS:
+            raise ValueError(f"unknown area {self.area!r}; one of {sorted(AREAS)}")
+        if self.end <= self.start:
+            raise ValueError("end must be after start")
+        if not self.systems:
+            raise ValueError("at least one dasha system")
+        return self
+
+
+class TimingWindow(BaseModel):
+    start_jd: float
+    end_jd: float
+    joint: float
+    dasha_quality: float
+    transit_activation: float
+    periods: dict[str, list[str]]       # system -> lords (maha, antar)
+    derivation: dict[str, Any]
+    stability: dict[str, Any] | None = None
+    tags: list[str] = Field(default_factory=list)
+
+
+class TimingAnswer(BaseModel):
+    query: TimingQuery
+    area_tier: str
+    area_score: float | None
+    area_stability: Stability | None
+    windows: list[TimingWindow]
+    readings: list[str]
 
 
 class Chart(BaseModel):

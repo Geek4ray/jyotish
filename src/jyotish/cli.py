@@ -234,6 +234,21 @@ def print_current_transits(chart: Chart, now_jd: float | None = None) -> None:
         print(f"    {w.kind:18} {_date(w.start_jd)} – {_date(w.end_jd)}  {' '.join(w.tags[1:])}")
 
 
+def print_timing(chart: Chart, query) -> None:
+    from .timing import answer
+    ans = answer(chart, query)
+    st = ans.area_stability
+    print(f"\nTiming: {query.area}, {query.start} to {query.end} ({', '.join(query.systems)}; basis {query.basis})")
+    print(f"  area {ans.area_tier} (S {ans.area_score:.2f}"
+          + (f", stability {st.time:.2f}/{st.ayanamsa:.2f}/{st.house:.2f}" if st else "") + ")")
+    print("  joint = (S / population p90) x dasha quality + transit activation")
+    for w in ans.windows:
+        per = "; ".join(f"{k} {'/'.join(v)}" for k, v in w.periods.items())
+        stab = f"  edges ±{w.stability['time_range_days'] / 2:.1f} d (ayanamsa {w.stability['ayanamsa_range_days']:.0f} d)" if w.stability else ""
+        print(f"  {_date(w.start_jd)} – {_date(w.end_jd)}  joint {w.joint:.2f} = dasha {w.dasha_quality:.2f}, "
+              f"transit {w.transit_activation:.2f}  [{per}]{stab}{'  sandhi' if 'dasha_sandhi' in w.tags else ''}")
+
+
 def print_stability(chart: Chart) -> None:
     """Layer 1b summary: three numbers per finding (time / ayanamsa / house), never pooled."""
     u = chart.uncertainty
@@ -294,8 +309,12 @@ def main(argv: list[str] | None = None) -> None:
         print_chart(chart)
         from .reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
         from .uncertainty import assess
-        print("\n(Stability is computed from the birth data at the true time, 10:10:25 IST.)")
-        print_stability(assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False))
+        print("\n(Stability and timing are computed from the birth data at the true time, 10:10:25 IST.)")
+        assessed = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+        print_stability(assessed)
+        from .models import TimingQuery
+        print_timing(assessed, TimingQuery(area="career", start="2026-01-01", end="2036-01-01",
+                                           question="When is career most activated?"))
     elif args.cmd == "compute":
         chart = compute(datetime.fromisoformat(args.utc), args.lat, args.lon,
                         ayanamsa=args.ayanamsa, time_accuracy=args.accuracy)
