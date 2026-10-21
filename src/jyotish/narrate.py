@@ -132,6 +132,10 @@ class ReadingArea(BaseModel):
     windows: list[ReadingWindow] = Field(default_factory=list)
     avoid_window: ReadingWindow | None = None
     disclaimer: str | None = None
+    # Offered findings with no claim that passed the validator and the checker within
+    # CONFIG.max_attempts: {finding_id, kind, last_error, attempt}. Shown as "not narrated
+    # within the checks"; the reading never fails on narration alone.
+    narration_gaps: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ReadingSummary(BaseModel):
@@ -146,6 +150,7 @@ class ReadingSummary(BaseModel):
     unstable_findings: int
     abstained_areas: list[str]
     timing_line: str | None = None      # engine-written, for a "when" question (the model writes no timing)
+    source: str = "model"               # "model", or "engine" when no drafted summary passed the checks
 
 
 class Reading(BaseModel):
@@ -158,6 +163,7 @@ class Reading(BaseModel):
     chart: dict[str, Any] = Field(default_factory=dict)   # birth data and every convention used
     narration_source: str = "live"      # "live", or "fixture:<path>" for an offline replay
     unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
+    narration_complete: bool = True     # false when some finding or the summary was not narrated within the checks
     summary: ReadingSummary
     areas: list[ReadingArea]
     fired_rules: list[dict[str, Any]]
@@ -247,6 +253,20 @@ def rule_names(rule_id: str) -> list[str]:
     rule = lib.get(rule_id)
     names = rule.data.get("names") if rule else None
     return names or [rule_id.split(".")[-1].replace("_", " ")]
+
+
+# The engine states the tier (SPEC Layer 7 item 3): the model's summary may not use the tier words.
+TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
+
+
+def validate_summary(text: str, allowed: set[str], *, offered_votes=None) -> list[str]:
+    """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary."""
+    errors = validate(text, allowed, offered_votes=offered_votes)
+    for sentence in sentences(text):
+        m = TIER_WORDS.search(TAG.sub("", sentence))
+        if m:
+            errors.append(f"tier language ({m.group(0)!r}) in the summary; the engine states the tier: {sentence!r}")
+    return errors
 
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None) -> list[str]:
@@ -569,7 +589,11 @@ class AnthropicChecker:
     def _result(self, response, started: float) -> tuple[CheckResult, dict]:
         meta = _meta(response, "checker", self.config.checker_effort, started)
         if response.stop_reason == "refusal" or response.parsed_output is None:
-            raise NarrationError("the checker returned no result", [response.stop_reason or ""])
+            # No verdict is not a pass: the sentence is rejected like an unsupported one, and the
+            # rest of the attempt's checks stand.
+            return CheckResult(propositions=[Proposition(
+                text="(no verdict)", supported=False,
+                evidence=f"the checker returned no result ({response.stop_reason or 'no structured output'})")]), meta
         return response.parsed_output, meta
 
     def __call__(self, sentence: str, derivation: str) -> CheckResult:
@@ -740,6 +764,26 @@ def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     return reading.model_copy(update={"areas": areas, "summary": summary})
 
 
+def engine_summary(areas: list["ReadingArea"], routed: list[str], sc, period: str | None,
+                   when_line: str | None) -> str:
+    """The summary the engine writes from its own fields when no drafted summary passed the
+    checks: the asked areas' tiers with their stability, the top areas, the driver, the current
+    period and the timing line. Every word is a field."""
+    by = {a.name: a for a in areas}
+    parts = []
+    for name in [n for n in routed if n in by] or [a.name for a in areas[:1]]:
+        a = by[name]
+        st = f" (time-stability {a.stability.time:.2f}, {a.stability.label})" if a.stability else ""
+        parts.append(f"{name.replace('_', ' ').capitalize()}: tier {a.tier}{st}.")
+    parts.append(f"Top areas: {', '.join(n.replace('_', ' ') for n in sc.top)}.")
+    parts.append(f"Driver planet: {sc.driver.driver}.")
+    if period:
+        parts.append(f"Current Vimshottari period: {period.replace('-', '–')}.")
+    if when_line:
+        parts.append(when_line)
+    return " ".join(parts)
+
+
 def _vim_lords(w: ReadingWindow) -> str:
     lords = next((x["lords"] for x in w.why if x.get("kind") == "dasha" and x.get("system") == "vimshottari"), [])
     return "–".join(lords) or "no Vimshottari lords"
@@ -819,13 +863,35 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         for fam, tag in votes_offered[name].items():
             all_votes.setdefault(fam, set()).add(tag)
 
-    draft, errors, attempts = None, [], 0
+    # Every attempt: the writer drafts, the validator reads every sentence, and (once the draft
+    # passes, or on the last attempt for the sentences that pass) the checker reads them. A
+    # claim or summary the checker accepts is kept, the latest accepted version of each; after
+    # the last attempt, a finding with none is a narration gap and a summary with none is
+    # replaced by the engine's own. The reading never fails on narration alone.
+    kept: dict[tuple[str, str], DraftClaim] = {}        # (area, finding id) -> latest accepted claim
+    last_error: dict[tuple[str, str], tuple[str, int]] = {}
+    kept_summary, summary_error = None, None
+    draft, errors, attempts, clean = None, [], 0, False
     for attempts in range(1, config.max_attempts + 1):
         progress("draft", {"attempt": attempts})
-        draft = drafter(SYSTEM_PROMPT, user, errors)
+        try:
+            draft = drafter(SYSTEM_PROMPT, user, errors)
+        except NarrationError as e:                        # a refusal or no structured output
+            errors = [str(e)] + list(e.errors)
+            if recording is not None:
+                recording.append(dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
+                                      draft=None, validator_errors=[], writer_error=errors))
+            summary_error = (errors[0], attempts)
+            for name in areas:
+                for f in findings(chart, name)[0]:
+                    last_error[(name, f["finding_id"])] = (errors[0], attempts)
+            continue
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
-        errors = validate(draft.summary, all_tags, offered_votes=all_votes)
+        summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes)
+        errors = list(summary_errs)
+        claim_errs: dict[tuple[str, str], list[str]] = {}
+        drafted: list[tuple[str, DraftClaim]] = []
         for da in draft.areas:
             if da.name not in areas:
                 errors.append(f"area not asked for: {da.name}")
@@ -834,30 +900,45 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 if c.finding_id not in allowed:
                     errors.append(f"unknown finding id {c.finding_id!r}")
                     continue
-                errors += validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name])
+                if (da.name, c.finding_id) in claim_errs:
+                    errors.append(f"two claims for {c.finding_id} in {da.name}")
+                    continue
+                errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name])
                 if not TAG.search(c.text):
-                    errors.append(f"claim without a tag: {c.text!r}")
+                    errs.append(f"claim without a tag: {c.text!r}")
+                claim_errs[(da.name, c.finding_id)] = errs
+                drafted.append((da.name, c))
+                errors += errs
         entry["validator_errors"] = list(errors)
         if recording is not None:
             recording.append(entry)
-        if errors:
+        for key, errs in claim_errs.items():
+            if errs:
+                last_error[key] = (errs[0], attempts)
+        if summary_errs:
+            summary_error = (summary_errs[0], attempts)
+        final = attempts == config.max_attempts
+        if errors and not final:
             continue
-        # The semantic check (SPEC Layer 7 item 10): after the validator passes, on every claim
-        # of every attempt (the checker is a sample, so a claim that passed before is checked
-        # again), each with its finding's derivation alone; and on every tagged summary
-        # sentence, against the union of the derivations of the findings it cites.
-        checks = [(s, ids, data, "summary") for s, ids, data in _summary_checks(draft.summary, finding_data)]
-        checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id)
-                   for da in draft.areas for c in da.claims]
+        # The semantic check (SPEC Layer 7 item 10): on every claim of every attempt that
+        # reaches it (the checker is a sample, so a claim that passed before is checked again),
+        # each with its finding's derivation alone; and on every tagged summary sentence,
+        # against the union of the derivations of the findings it cites. On the last attempt
+        # the sentences that passed the validator are checked even if others did not.
+        checks = ([(s, ids, data, "summary", None) for s, ids, data in _summary_checks(draft.summary, finding_data)]
+                  if not summary_errs else [])
+        checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id, name)
+                   for name, c in drafted if not claim_errs[(name, c.finding_id)]]
         progress("check", {"attempt": attempts, "calls": len(checks)})
         # The checks of one attempt are independent: a checker with `check_many` runs them
         # concurrently (AnthropicChecker); any other checker is called one by one.
         if hasattr(checker, "check_many"):
-            outcomes = checker.check_many([(sentence, data) for sentence, _, data, _ in checks])
+            outcomes = checker.check_many([(sentence, data) for sentence, _, data, _, _ in checks])
         else:
             outcomes = [(checker(sentence, data), getattr(checker, "last_meta", None))
-                        for sentence, _, data, _ in checks]
-        for (sentence, ids, data, label), (result, meta) in zip(checks, outcomes):
+                        for sentence, _, data, _, _ in checks]
+        rejected: dict[tuple[str, str] | str, str] = {}
+        for (sentence, ids, data, label, name), (result, meta) in zip(checks, outcomes):
             if recording is not None:
                 recording.append(dict(meta or {"kind": "checker"},
                                       attempt=attempts, finding_id=label, findings=ids, sentence=sentence,
@@ -866,21 +947,43 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                      else f"the derivation of {label}")
             for prop in result.propositions:
                 if not prop.supported:
-                    errors.append(f"unsupported by {where}: {prop.text!r} ({prop.evidence}) in {sentence!r}")
+                    msg = f"unsupported by {where}: {prop.text!r} ({prop.evidence}) in {sentence!r}"
+                    errors.append(msg)
+                    rejected.setdefault("summary" if label == "summary" else (name, label), msg)
+        for name, c in drafted:
+            key = (name, c.finding_id)
+            if claim_errs[key]:
+                continue
+            if key in rejected:
+                last_error[key] = (rejected[key], attempts)
+            else:
+                kept[key] = c
+        if not summary_errs:
+            if "summary" in rejected:
+                summary_error = (rejected["summary"], attempts)
+            else:
+                kept_summary = draft.summary
         if not errors:
+            clean = True
             break
-    else:
-        raise NarrationError(f"the draft failed validation {config.max_attempts} times", errors)
+
+    if clean:                                              # the last draft passed every check: it is the reading
+        kept = {(name, c.finding_id): c for name, c in drafted}
+        kept_summary = draft.summary
 
     by_finding = {f["finding_id"]: f for name in areas for f in findings(chart, name)[0]}
     reading_areas, depends = [], []
     for name in areas:
         a = sc.areas[name]
         conf = a.confidence or 0.0
-        drafted = next((d for d in draft.areas if d.name == name), DraftArea(name=name, claims=[]))
-        claims = []
-        for c in drafted.claims:
-            f = by_finding[c.finding_id]
+        offered = findings(chart, name)[0]
+        claims, gaps = [], []
+        for f in offered:
+            c = kept.get((name, f["finding_id"]))
+            if c is None:
+                err, at = last_error.get((name, f["finding_id"]), ("no claim was drafted for this finding", attempts))
+                gaps.append({"finding_id": f["finding_id"], "kind": f["kind"], "last_error": err, "attempt": at})
+                continue
             claims.append(ReadingClaim(finding_id=c.finding_id, text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
                                        kind=f["kind"], school=f["school"], basis=f["basis"],
                                        stability=f["stability"], stability_label=_label(f["stability"]),
@@ -915,7 +1018,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             families_agree_w=a.families_agree_w, families_total_w=a.families_total_w,
             polarity=a.polarity if top3 else [], polarity_touches=a.polarity_touches if top3 else {},
             claims=claims, school_conflicts=school_conflicts(a), windows=windows, avoid_window=avoid,
-            disclaimer=disclaimer))
+            disclaimer=disclaimer, narration_gaps=gaps))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3),
               "stability": f.stability.time if f.stability else None}
@@ -932,9 +1035,14 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     u = chart.uncertainty
     stable_n = sum(1 for x in fired if x["stability"] is not None and x["stability"] >= 0.5)
     lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading_areas if a.windows]
+    when_line = " ".join(x for x in lines if x) or None
+    source, text = "model", kept_summary
+    if kept_summary is None:
+        source = "engine"
+        text = engine_summary(reading_areas, routed, sc, period, when_line)
     summary = ReadingSummary(
-        timing_line=" ".join(x for x in lines if x) or None,
-        text=draft.summary, cites=[f"{k}:{v}" for k, v in TAG.findall(draft.summary)],
+        timing_line=when_line, source=source,
+        text=text, cites=[f"{k}:{v}" for k, v in TAG.findall(text)],
         driver_planet=sc.driver.driver, driver_alternates=sc.driver.alternates, current_period=period,
         top_areas=list(sc.top), time_window_min=u.half_width_min if u else None,
         stable_findings=stable_n, unstable_findings=len(unstable),
@@ -943,4 +1051,5 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
                    chart=chart_header(chart),
                    model=config.model, attempts=attempts, summary=summary, areas=reading_areas,
+                   narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)

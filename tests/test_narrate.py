@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from jyotish.narrate import (
-    CONFIG, NarrationError, ReadingDraft, findings, narrate, route, school_conflicts, validate,
+    CONFIG, NarrationError, ReadingDraft, findings, narrate, route, school_conflicts, sentences, validate,
 )
 from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.uncertainty import assess
@@ -138,11 +138,22 @@ def test_regenerates_until_valid(chart):
     assert any("untagged claim" in e for e in d.calls[1]["errors"])
 
 
-def test_gives_up_after_max_attempts(chart):
+def test_never_fails_on_narration_alone(chart):
+    # The same bad draft every time: after the last attempt the reading still comes back. Its
+    # summary ("likely", an untagged claim) never passed, so the engine writes it; the one
+    # drafted claim (untagged) never passed, so every offered finding is a narration gap.
     bad = Replay([INVALID])
-    with pytest.raises(NarrationError) as e:
-        narrate(chart, QUESTION, drafter=bad, checker=StubChecker(), as_of=AS_OF)
-    assert len(bad.calls) == CONFIG.max_attempts and e.value.errors
+    r = narrate(chart, QUESTION, drafter=bad, checker=StubChecker(), as_of=AS_OF)
+    assert len(bad.calls) == CONFIG.max_attempts == r.attempts
+    assert r.narration_complete is False and r.summary.source == "engine" and r.summary.cites == []
+    [career] = r.areas
+    assert career.claims == []
+    gaps = {g["finding_id"]: g for g in career.narration_gaps}
+    assert set(gaps) == {f["finding_id"] for f in findings(chart, "career")[0]}
+    assert gaps["yoga.budhaditya@lagna"]["last_error"].startswith("untagged claim")
+    assert gaps["yoga.budhaditya@lagna"]["attempt"] == CONFIG.max_attempts
+    assert gaps["vote:career.kp" if "vote:career.kp" in gaps else "vote:career.house"]["last_error"] == \
+        "no claim was drafted for this finding"
 
 
 def test_model_sees_no_longitudes_and_no_experimental_fires(reading_and_drafter):
@@ -421,12 +432,14 @@ def test_summary_sentences_are_checked_against_the_findings_they_cite(chart):
     checker = StubChecker(reject={"oriented toward authority": "the yoga is oriented toward authority"})
     d = Replay([VALID, VALID])
     rec = []
-    with pytest.raises(NarrationError) as e:
-        narrate(chart, QUESTION, drafter=d, checker=checker, as_of=AS_OF, recording=rec)
-    # The one rejected word is in the summary only, and it sends the draft back every time.
+    r = narrate(chart, QUESTION, drafter=d, checker=checker, as_of=AS_OF, recording=rec)
+    # The one rejected word is in the summary only, and it sends the draft back every time;
+    # after the last attempt the claims stand and the engine writes the summary.
     assert any("unsupported by the derivations of yoga.kendra_trikona_raja@lagna (summary)" in x
                and "the yoga is oriented toward authority" in x for x in d.calls[1]["errors"])
-    assert e.value.errors and len(d.calls) == CONFIG.max_attempts
+    assert len(d.calls) == CONFIG.max_attempts
+    assert r.summary.source == "engine" and r.narration_complete is False
+    assert all(not a.narration_gaps for a in r.areas) and len(r.areas[0].claims) == len(VALID["areas"][0]["claims"])
     summary = [x for x in rec if x["kind"] == "checker" and x["finding_id"] == "summary"]
     assert len(summary) == CONFIG.max_attempts * len(sentences(VALID["summary"]))
     # Each summary sentence sees the union of its cited findings' derivations, and only those.
@@ -641,3 +654,80 @@ def test_pair_modifiers_name_the_planet(chart):
     assert budh["fires"][0]["modifiers_applied"] == ["avastha in [bala, mrita] (Mercury) -> x0.9"]
     par = next(f for f in chart.fired_rules if f.id == "yoga.parivartana")
     assert all("(" in a and "[" not in a.split("(")[-1] for a in par.applied)    # pair-level: both planets
+
+
+# --- a reading never fails on narration alone ------------------------------------------------
+
+def test_rejected_claim_becomes_a_gap_and_the_rest_stand(chart):
+    checker = StubChecker(reject={"The varga vote": "a word the derivation does not state"})
+    r = narrate(chart, QUESTION, drafter=Replay([VALID]), checker=checker, as_of=AS_OF)
+    [career] = r.areas
+    assert r.attempts == CONFIG.max_attempts and r.summary.source == "model"
+    assert r.summary.text == VALID["summary"] and r.narration_complete is False
+    assert "vote:career.varga" not in {c.finding_id for c in career.claims}
+    assert len(career.claims) == len(VALID["areas"][0]["claims"]) - 1
+    [gap] = career.narration_gaps
+    assert gap["finding_id"] == "vote:career.varga" and gap["kind"] == "vote" and gap["attempt"] == CONFIG.max_attempts
+    assert "unsupported by the derivation of vote:career.varga" in gap["last_error"]
+    assert "a word the derivation does not state" in gap["last_error"]
+
+
+def test_an_earlier_accepted_version_is_kept(chart):
+    # Attempt 1 is clean except one rejected claim; attempt 2 drops that claim's fix but
+    # breaks another sentence's tags; attempt 3 repeats attempt 2. The claim accepted on
+    # attempt 1 stands, and the claim broken on attempts 2-3 keeps its attempt-1 text.
+    first = json.loads(json.dumps(VALID))
+    broken = json.loads(json.dumps(VALID))
+    for c in broken["areas"][0]["claims"]:
+        if c["finding_id"] == "vote:career.house":
+            c["text"] = c["text"].replace(" [vote:career.house]", "")            # untagged now
+    checker = StubChecker(reject={"The varga vote": "not stated"})
+    r = narrate(chart, QUESTION, drafter=Replay([first, broken, broken]), checker=checker, as_of=AS_OF)
+    claims = {c.finding_id: c.text for c in r.areas[0].claims}
+    house = next(c["text"] for c in VALID["areas"][0]["claims"] if c["finding_id"] == "vote:career.house")
+    assert claims["vote:career.house"] == house                                   # attempt 1's accepted text
+    assert {g["finding_id"] for g in r.areas[0].narration_gaps} == {"vote:career.varga"}
+
+
+def test_last_attempt_checks_the_sentences_that_pass_the_validator(chart):
+    # Every draft has one untagged claim, so the validator never passes the whole draft; on the
+    # last attempt the clean sentences are still checked, and kept.
+    bad = json.loads(json.dumps(VALID))
+    for c in bad["areas"][0]["claims"]:
+        if c["finding_id"] == "vote:career.lord":
+            c["text"] = c["text"].replace(" [vote:career.lord]", "")
+    checker = StubChecker()
+    r = narrate(chart, QUESTION, drafter=Replay([bad]), checker=checker, as_of=AS_OF)
+    n = len(VALID["areas"][0]["claims"])
+    assert len(checker.calls) == len(sentences(VALID["summary"])) + n - 1          # only the last attempt
+    assert len(r.areas[0].claims) == n - 1 and r.summary.source == "model"
+    assert [g["finding_id"] for g in r.areas[0].narration_gaps] == ["vote:career.lord"]
+
+
+def test_writer_refusal_every_time_gives_the_engine_reading(chart):
+    class Refuses:
+        last_meta = None
+
+        def __call__(self, system, user, errors):
+            raise NarrationError("the model declined the request", ["refusal"])
+    r = narrate(chart, QUESTION, drafter=Refuses(), checker=StubChecker(), as_of=AS_OF)
+    assert r.summary.source == "engine" and r.areas[0].claims == []
+    assert all(g["last_error"] == "the model declined the request" for g in r.areas[0].narration_gaps)
+    # The engine summary is made of fields only.
+    sc = chart.scored
+    assert r.summary.text.startswith(f"Career: tier {sc.areas['career'].tier} (time-stability 1.00, stable).")
+    for part in (f"Top areas: {', '.join(sc.top)}.", f"Driver planet: {sc.driver.driver}.",
+                 "Current Vimshottari period: Jupiter–Mercury.", r.summary.timing_line):
+        assert part in r.summary.text
+
+
+def test_tier_words_are_rejected_in_the_summary():
+    from jyotish.narrate import validate_summary
+    for word in ("strong", "Moderate", "weak", "mixed"):
+        errs = validate_summary(f"Career is {word} here [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"})
+        assert any(e.startswith("tier language") and word in e for e in errs), word
+    # Not in claims, and not in words that merely contain them.
+    assert validate("Mars is strong in its own sign and forms Ruchaka yoga [rule:yoga.ruchaka].",
+                    {"rule:yoga.ruchaka"}) == []
+    assert validate_summary("The weakest point is Ruchaka yoga's reduction [rule:yoga.ruchaka].",
+                            {"rule:yoga.ruchaka"}) == []

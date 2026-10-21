@@ -139,16 +139,19 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             for k, v in fields.items():
                 setattr(row, k, v)
 
-    def stage(reading_id: str, log: list[str], name: str, **info) -> None:
+    def stage(reading_id: str, log: list[str], name: str, keep: dict, **info) -> None:
+        """Progress: the stage, its own info, and what is known so far (`keep`: the chart line
+        and the header, from the chart step on), so a failed job still shows them."""
         log.append(name)
-        update(reading_id, status="running", progress={"stage": name.split()[0], **info, "log": list(log)})
+        update(reading_id, status="running", progress={"stage": name.split()[0], **info, **keep, "log": list(log)})
 
     def run(reading_id: str, req: ReadingRequest) -> None:
         from .narrate import NarrationError
-        from .service import assess_birth, make_reading
+        from .service import assess_birth, chart_line, make_reading, reading_header
         log: list[str] = []
+        keep: dict = {}
         try:
-            stage(reading_id, log, "chart")
+            stage(reading_id, log, "chart", keep)
             birth = BirthInput(**req.model_dump(include=set(BirthInput.model_fields)))
             chart, source, chart_id = assess_birth(birth)
             with Session.begin() as s:
@@ -156,19 +159,22 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                     s.add(ChartRow(id=chart_id, birth=birth.model_dump(), engine=chart.meta.engine,
                                    document=chart.model_dump(mode="json")))
             update(reading_id, chart_id=chart_id)
-            stage(reading_id, log, "score", chart_source=source,
+            keep = {"chart": chart_line(chart),
+                    "header": reading_header(birth, req.question, chart, req.as_of, model_fixture)}
+            stage(reading_id, log, "score", keep, chart_source=source,
                   tiers={n: a.tier for n, a in chart.scored.areas.items()} if chart.scored else None)
 
             def on(event: str, info: dict) -> None:
-                stage(reading_id, log, f"{event} {info['attempt']}", **info)
+                stage(reading_id, log, f"{event} {info['attempt']}", keep, **info)
             reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of,
                                          model_fixture=model_fixture, progress=on)
             log.append("done")
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,
-                   progress={"stage": "done", "attempts": reading.attempts, "log": list(log)})
+                   progress={"stage": "done", "attempts": reading.attempts, "narration_complete": reading.narration_complete,
+                             **keep, "log": list(log)})
         except NarrationError as e:
             log.append("failed")
-            update(reading_id, status="failed", progress={"stage": "failed", "log": list(log)},
+            update(reading_id, status="failed", progress={"stage": "failed", **keep, "log": list(log)},
                    error={"message": str(e), "errors": list(e.errors)})
         except Exception as e:                      # the job reports its failure; it never raises into the pool
             log.append("failed")
@@ -176,7 +182,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             if "Could not resolve authentication method" in str(e):
                 message = ("The server has no model key: set ANTHROPIC_API_KEY in the environment the server "
                            "runs in (it is never sent by the browser).")
-            update(reading_id, status="failed", progress={"stage": "failed", "log": list(log)},
+            update(reading_id, status="failed", progress={"stage": "failed", **keep, "log": list(log)},
                    error={"message": message})
 
     @app.post("/readings", status_code=202, response_model=Accepted)

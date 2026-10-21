@@ -112,8 +112,16 @@ def live(sequential: bool) -> dict:
         error = e
     finally:
         narrate_s = time.perf_counter() - t
-        save(recording, reading is not None, cfg, error)
+        complete = reading is not None and reading.narration_complete
+        save(recording, complete, cfg, error)
         print("\n".join(report(recording)))
+        if reading is not None and not reading.narration_complete:
+            for a in reading.areas:
+                for g in a.narration_gaps:
+                    print(f"not narrated within the checks: {a.name} {g['finding_id']} "
+                          f"(attempt {g['attempt']}): {g['last_error']}")
+            if reading.summary.source == "engine":
+                print("summary: written by the engine (no drafted summary passed the checks)")
         if error is not None:
             print(f"narration failed: {type(error).__name__}: {error}")
             for x in getattr(error, "errors", []) or []:
@@ -132,7 +140,10 @@ def live(sequential: bool) -> dict:
             "writer_effort": cfg.effort, "checker_effort": cfg.checker_effort,
             "assess_seconds": round(assess_s, 2), "assess_source": src, "assess_cached_seconds": round(cached_s, 4),
             "narrate_seconds": round(narrate_s, 1), "total_seconds": round(assess_s + narrate_s, 1),
-            "accepted": reading is not None, "error": None if error is None else type(error).__name__,
+            "accepted": reading is not None and reading.narration_complete,
+            "narration_gaps": sum(len(a.narration_gaps) for a in reading.areas) if reading else None,
+            "summary_source": reading.summary.source if reading else None,
+            "error": None if error is None else type(error).__name__,
             "attempts": reading.attempts if reading else len(writers), "writer_calls": len(writers),
             "checker_calls": len(checks),
             "writer_seconds": [c.get("seconds") for c in writers],

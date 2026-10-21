@@ -396,6 +396,11 @@ def cmd_read(args) -> int:
     out.with_suffix(".md").write_text(page)
     print(f"wrote {out.with_suffix('.json')} and {out.with_suffix('.md')} ({', '.join(a.name for a in reading.areas)}; "
           f"model {CONFIG.model if not args.model_fixture else 'replayed'}, {reading.attempts} attempt(s))")
+    if not reading.narration_complete:
+        gaps = [g["finding_id"] for a in reading.areas for g in a.narration_gaps]
+        print(f"narration incomplete: {len(gaps)} finding(s) not narrated within the checks"
+              + (f" ({', '.join(gaps)})" if gaps else "")
+              + ("; the summary is the engine's own" if reading.summary.source == "engine" else ""), file=sys.stderr)
     return 0
 
 

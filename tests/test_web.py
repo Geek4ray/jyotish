@@ -17,11 +17,10 @@ EXAMPLE = json.loads((ROOT / "examples" / "reference_reading.json").read_text())
 EDITED = str(ROOT / "tests" / "fixtures" / "narration_career_edited.json")
 
 
-@pytest.fixture(scope="module")
-def base_url(tmp_path_factory):
+def _serve(db, fixture):
     import uvicorn
     from jyotish.api import create_app
-    app = create_app(f"sqlite:///{tmp_path_factory.mktemp('web') / 'web.db'}", model_fixture=EDITED)
+    app = create_app(f"sqlite:///{db}", model_fixture=fixture)
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
@@ -32,9 +31,41 @@ def base_url(tmp_path_factory):
         if server.started:
             break
         time.sleep(0.05)
-    yield f"http://127.0.0.1:{port}"
-    server.should_exit = True
-    thread.join(5)
+    return server, thread, f"http://127.0.0.1:{port}"
+
+
+@pytest.fixture(scope="module")
+def servers(tmp_path_factory):
+    """Three apps: the edited fixture (a complete reading), the frozen first recording (a
+    reading with narration gaps), and a fixture that does not exist (a job that fails after
+    the chart)."""
+    d = tmp_path_factory.mktemp("web")
+    out = {name: _serve(d / f"{name}.db", fixture) for name, fixture in
+           (("ok", EDITED), ("gaps", str(ROOT / "tests" / "fixtures" / "narration_career_opus55_r1.json")),
+            ("fails", str(d / "missing.json")))}
+    yield {name: url for name, (_, _, url) in out.items()}
+    for server, thread, _ in out.values():
+        server.should_exit = True
+        thread.join(5)
+
+
+@pytest.fixture(scope="module")
+def base_url(servers):
+    return servers["ok"]
+
+
+def submit_reference(page, url, question="How will my career go, and when is the best time for a job change?"):
+    page.goto(f"{url}/")
+    page.fill("#date", "2001-03-12")
+    page.fill("#time", "10:10:25")
+    page.select_option("#tz", "Asia/Kolkata")
+    page.fill("#place", "Rewari, Haryana")
+    page.fill("#lat", "28.1989")
+    page.fill("#lon", "76.617")
+    page.select_option("#node", "mean")
+    page.fill("#question", question)
+    page.click("button[type=submit]")
+    page.wait_for_url("**/reading.html?id=*")
 
 
 @pytest.fixture(scope="module")
@@ -148,17 +179,42 @@ def test_phone_layout(browser, base_url):
 def test_home_form_runs_a_reading_through_the_api(page, base_url):
     page.goto(f"{base_url}/")
     assert "What the engine will not claim" in page.inner_text("#honest")
-    page.fill("#date", "2001-03-12")
-    page.fill("#time", "10:10:25")
-    page.fill("#tz", "Asia/Kolkata")
-    page.fill("#place", "Rewari, Haryana")
-    page.fill("#lat", "28.1989")
-    page.fill("#lon", "76.617")
-    page.select_option("#node", "mean")
-    page.fill("#question", "How will my career go, and when is the best time for a job change?")
-    page.click("button[type=submit]")
-    page.wait_for_url("**/reading.html?id=*")
+    submit_reference(page, base_url)
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     assert page.inner_text(".question") == "How will my career go, and when is the best time for a job change?"
     assert "Rewari, Haryana (28.1989, 76.617)" in page.inner_text(".header-line")
     assert page.locator("section.area").count() == 3 and page.locator(".timing-text").is_visible()
+
+
+
+@pytest.mark.parametrize("zone,expected", [("America/New_York", "America/New_York"), ("Asia/Kolkata", "Asia/Kolkata"),
+                                           ("Europe/Berlin", "Europe/Berlin")])
+def test_timezone_defaults_to_the_browsers_with_kolkata_first(browser, base_url, zone, expected):
+    ctx = browser.new_context(timezone_id=zone)
+    pg = ctx.new_page()
+    pg.goto(f"{base_url}/")
+    options = pg.eval_on_selector_all("#tz option", "els => els.map(e => e.value)")
+    assert options[0] == "Asia/Kolkata" and len(options) > 100 and "Asia/Calcutta" not in options
+    assert pg.input_value("#tz") == expected
+    ctx.close()
+
+
+def test_reading_with_gaps_shows_them_and_the_engine_summary(page, servers):
+    submit_reference(page, servers["gaps"])
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    assert page.locator("#incomplete").is_visible()
+    assert page.locator('.summary[data-source="engine"] .engine-summary').is_visible()
+    assert page.inner_text(".summary-text").startswith("Career: tier moderate")
+    gaps = page.locator('section.area[data-area="career"] .gaps')
+    assert "Not narrated within the checks" in gaps.inner_text()
+    assert gaps.locator('li[data-finding="yoga.ruchaka@lagna+sun"]').count() == 1
+    assert page.locator('section.area[data-area="career"] li.claim').count() >= 1     # the claims that passed
+
+
+def test_failed_job_still_shows_the_chart(page, servers):
+    submit_reference(page, servers["fails"])
+    page.wait_for_selector("#reading[data-state=failed]", timeout=60_000)
+    line = page.inner_text(".chart-line")
+    assert "Lagna Taurus" in line and "Moon in Libra, Chitra nakshatra" in line and "2001-03-12T04:40:25+00:00" in line
+    assert "Rewari, Haryana (28.1989, 76.617)" in page.inner_text("#progress .header-line")
+    assert page.locator("#failure").is_visible()

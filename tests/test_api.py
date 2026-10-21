@@ -94,13 +94,33 @@ def test_second_question_on_the_same_chart_uses_the_cache(client, done):
     assert second["reading"]["summary"].get("timing_line") is None          # not a "when" question
 
 
-def test_failure_is_reported_with_the_validator_errors(tmp_path):
+def test_narration_that_never_passes_is_done_with_gaps(tmp_path):
+    # The frozen first recording fails the validator on every attempt: the job is done, not
+    # failed, with the engine's summary and the findings it could not narrate listed.
     app = create_app(f"sqlite:///{tmp_path / 'f.db'}", model_fixture=str(FIXTURES / "narration_career_opus55_r1.json"))
     with TestClient(app) as c:
         r = wait(c, c.post("/readings", json=BODY).json()["id"])
-    assert r["status"] == "failed" and "reading" not in r and "page" not in r
-    assert r["progress"]["log"] == ["chart", "score", "draft 1", "draft 2", "draft 3", "failed"]
-    assert any("unknown finding id 'yoga.ruchaka@lagna'" in e for e in r["error"]["errors"])
+    assert r["status"] == "done" and r["progress"]["narration_complete"] is False
+    assert r["progress"]["log"] == ["chart", "score", "draft 1", "draft 2", "draft 3", "check 3", "done"]
+    reading = Reading(**r["reading"])
+    assert reading.summary.source == "engine" and not reading.narration_complete
+    gaps = {g["finding_id"]: g for a in reading.areas for g in a.narration_gaps}
+    assert "yoga.ruchaka@lagna+sun" in gaps and "Not narrated within the checks:" in r["page"]
+
+
+def test_progress_shows_the_chart_line_and_a_failed_job_keeps_the_header(client, done, tmp_path):
+    # After the chart step the lagna, the Moon's sign and nakshatra and the UTC moment are in
+    # the progress, so a wrong timezone shows at once.
+    assert done["progress"]["chart"] == {"lagna": "Taurus", "moon_sign": "Libra", "moon_nakshatra": "Chitra",
+                                         "birth_utc": "2001-03-12T04:40:25+00:00"}
+    # A job that fails after the chart (here: a fixture that does not exist) keeps both.
+    app = create_app(f"sqlite:///{tmp_path / 'g.db'}", model_fixture=str(tmp_path / "missing.json"))
+    with TestClient(app) as c:
+        r = wait(c, c.post("/readings", json=BODY).json()["id"])
+    assert r["status"] == "failed" and r["progress"]["log"][-1] == "failed"
+    assert r["progress"]["chart"]["lagna"] == "Taurus"
+    assert r["progress"]["header"]["local_time"] == "10:10:25" and r["progress"]["header"]["place"] == "Rewari, Haryana"
+    assert r["progress"]["header"]["command"].startswith("jyotish read --date 2001-03-12")
 
 
 def test_requests_carry_no_key_and_unknown_ids_are_404(client):

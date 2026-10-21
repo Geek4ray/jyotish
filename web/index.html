@@ -35,7 +35,8 @@
             <option value="unknown">Unknown</option>
           </select></div>
       </div>
-      <div class="field"><label for="tz">Timezone</label><input id="tz" name="tz" type="text" placeholder="Asia/Kolkata or +05:30" required autocomplete="off"></div>
+      <div class="field"><label for="tz">Timezone of the birthplace</label><select id="tz" name="tz" required></select>
+        <p class="hint">Your browser's timezone is preselected; choose the birthplace's if it differs.</p></div>
       <div class="field"><label for="place">Place of birth (a label for your reading)</label><input id="place" name="place" type="text" placeholder="City, country" autocomplete="off"></div>
       <div class="field-row">
         <div class="field"><label for="lat">Latitude</label><input id="lat" name="lat" type="number" step="any" min="-90" max="90" placeholder="28.1989" required></div>

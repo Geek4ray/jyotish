@@ -158,6 +158,13 @@ function claimItem(c, notes) {
   return `<li class="claim" data-finding="${esc(c.finding_id)}"><p class="claim-text">${notes.text(c.text)}${shaky ? ` <span class="sensitive">(time-stability ${num(c.stability)}${c.stability_label ? `, ${esc(c.stability_label)}` : ""})</span>` : ""}</p>${learnerPanel(c.learner)}</li>`;
 }
 
+// Findings the writer could not narrate within the checks: named, with the last error, never hidden.
+function gapsList(gaps) {
+  if (!gaps.length) return "";
+  return `<div class="gaps"><h3 class="small">Not narrated within the checks</h3><ul class="small">${gaps.map((g) =>
+    `<li data-finding="${esc(g.finding_id)}"><code>${esc(g.finding_id)}</code> (${esc(g.kind)}), last error on attempt ${num(g.attempt)}: <span class="muted">${esc(g.last_error)}</span></li>`).join("")}</ul></div>`;
+}
+
 function conflict(sc) {
   const other = sc.schools.find((s) => s !== "parashari");
   return `<p class="conflict">School conflict: the Parashari families (${esc(sc.families[0])}) are ${esc(sc.parashari)}, the ${esc(other === "kp" ? "KP" : title(other))} family (${esc(sc.families[1])}) is ${esc(sc[other])}. The two are not averaged.</p>`;
@@ -176,7 +183,8 @@ function areaCard(a, notes) {
       <div><dt>Families agreeing (weighted)</dt><dd class="num">${num(a.families_agree_w)} of ${num(a.families_total_w)}</dd></div>
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
-    ${a.claims.length ? `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>` : `<p class="muted">No claims were drafted for this area.</p>`}
+    ${a.claims.length ? `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>` : (a.narration_gaps || []).length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
+    ${gapsList(a.narration_gaps || [])}
     ${a.school_conflicts.map(conflict).join("")}
     ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
     ${a.disclaimer ? `<p class="disclaimer">${esc(a.disclaimer)}</p>` : ""}
@@ -214,10 +222,12 @@ export function renderReading(r) {
     <p class="header-line">${headerLine(r.chart)}</p>
     <p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)} · model ${esc(r.model)} · ${num(r.attempts)} attempt(s) · narration ${esc(r.narration_source)}</p>
   </section>
+  ${r.narration_complete === false ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}
   ${r.unchecked_sentences ? `<p class="notice">Offline replay: ${num(r.unchecked_sentences)} sentence(s) have no recorded checker verdict and were not semantically checked; the code validator ran on all of them.</p>` : ""}
-  <section class="card summary"><h2>Summary</h2>
+  <section class="card summary" data-source="${esc(s.source || "model")}"><h2>Summary</h2>
+    ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}
     <p class="summary-text">${summaryText}</p>
-    ${s.timing_line ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span></div>` : ""}
+    ${s.timing_line && s.source !== "engine" ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span></div>` : ""}
     <div class="chips">
       <span class="chip">Driver: <strong>${esc(s.driver_planet)}</strong>${s.driver_alternates.length ? ` (alternates ${esc(s.driver_alternates.join(", "))})` : ""}</span>
       <span class="chip">Current period (Vimshottari): <strong>${esc(s.current_period || "–")}</strong></span>
@@ -255,10 +265,21 @@ export function renderTiming(r) {
   <p class="muted small">A window is a time when the chart's own signals for the area are activated by period and transit (score = 0.6 q + 0.4 t). It is not a guarantee of an event; whether windows coincide with real events is what the validation set measures.</p>`;
 }
 
+// The chart as soon as it is computed: lagna, Moon sign and nakshatra and the UTC moment, so a
+// wrong timezone or date shows in the first second; then the reproducing header.
+function chartLine(p) {
+  const c = p && p.chart;
+  if (!c) return "";
+  return `<p class="chart-line">Lagna <strong>${esc(c.lagna)}</strong> · Moon in <strong>${esc(c.moon_sign)}</strong>, <strong>${esc(c.moon_nakshatra)}</strong> nakshatra · born <strong>${esc(c.birth_utc)}</strong> UTC</p>
+    ${p.header ? `<p class="header-line">${headerLine(p.header)}</p>` : ""}
+    <p class="muted tiny">If the lagna or the Moon is not what you expect, check the date, time and timezone.</p>`;
+}
+
 export function renderProgress(status) {
   const log = (status.progress && status.progress.log) || [];
   const current = log.length - 1;
-  return `<section class="card" id="progress"><h2>Working on your reading</h2>
+  return `<section class="card" id="progress"><h2>${status.status === "failed" ? "Your reading" : "Working on your reading"}</h2>
+    ${chartLine(status.progress)}
     <p class="muted small">Status: <strong class="status">${esc(status.status)}</strong>. The chart and its scores come first, then the writer drafts and the checker reads every sentence against the engine's data.</p>
     <ol class="progress-log">${log.map((x, i) => `<li${i === current ? " data-current" : ""}>${esc(x)}</li>`).join("")}</ol></section>`;
 }

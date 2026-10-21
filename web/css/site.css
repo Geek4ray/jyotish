@@ -183,3 +183,7 @@ tr.avoid td:first-child { color: var(--moderate); font-weight: 600; }
 
 /* windows: dates and scores stay on one line; the table scrolls sideways if it must */
 table.windows td:nth-child(-n+6), table.windows th { white-space: nowrap; }
+
+.gaps { border-left: 3px solid var(--moderate); padding: 4px 12px; }
+.gaps ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.chart-line { margin: 0; font-size: 15px; }

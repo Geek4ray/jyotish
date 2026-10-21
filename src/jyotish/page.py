@@ -183,11 +183,19 @@ def render(reading: Reading, chart: Chart) -> str:
     if reading.unchecked_sentences:
         L += [f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
                   "checker verdict and were not semantically checked; the code validator ran on all of them.", ""]
-    L += ["## Summary", "", notes.render(s.text), ""]
-    # A reading written before summary.timing_line existed gets the same line from its windows.
+    if not reading.narration_complete:
+        n = sum(len(a.narration_gaps) for a in reading.areas)
+        L += [f"> Narration incomplete: {n} finding(s) were not narrated within the checks"
+              + (", and the summary is the engine's own" if s.source == "engine" else "") + ".", ""]
+    L += ["## Summary", ""]
+    if s.source == "engine":
+        L += ["*Written by the engine from its fields: no drafted summary passed the checks.*", ""]
+    L += [notes.render(s.text), ""]
+    # A reading written before summary.timing_line existed gets the same line from its windows;
+    # an engine-written summary already carries it.
     when = s.timing_line or " ".join(x for x in (timing_line(a.name, a.windows, a.avoid_window)
                                                  for a in reading.areas if a.windows) if x)
-    if when:
+    if when and s.source != "engine":
         L += [f"**When (engine):** {when}", ""]
     L += [
           f"- Driver: {s.driver_planet}" + (f" (alternates {', '.join(s.driver_alternates)})" if s.driver_alternates else ""),
@@ -214,9 +222,13 @@ def render(reading: Reading, chart: Chart) -> str:
                 raise ValueError(f"the reading cites findings this chart does not offer: {', '.join(missing)} "
                                  "(different birth data, settings or engine version)")
             learner += [(a.name, c, by_id[c.finding_id]) for c in a.claims]
-        else:
+        elif not a.narration_gaps:
             offered = len(findings(chart, a.name)[0])
             L.append(f"No claims were drafted for this area ({offered} finding(s) offered).")
+        if a.narration_gaps:
+            L += ["", "Not narrated within the checks:", ""]
+            L += [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
+                  for g in a.narration_gaps]
         L.append("")
         for sc in a.school_conflicts:
             other = next(x for x in sc["schools"] if x != "parashari")

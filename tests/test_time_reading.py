@@ -48,37 +48,51 @@ def replay(monkeypatch, fixture, *, reject=None, raise_on_writer=None):
     monkeypatch.setattr(narrate_mod, "AnthropicChecker", Checker)
 
 
-def test_failed_run_prints_every_error_and_keeps_the_recording(script, monkeypatch, capsys):
-    replay(monkeypatch, "narration_career_opus55_r1.json")          # fails the validator three times
+def test_incomplete_run_prints_every_error_and_keeps_the_recording(script, monkeypatch, capsys):
+    # The frozen first draft fails the validator on every attempt: the reading still comes back
+    # (never fails on narration alone), with its gaps and the engine's summary, and the script
+    # prints every attempt's errors and saves the recording.
+    replay(monkeypatch, "narration_career_opus55_r1.json")
     out = script.live(sequential=True)
     text = capsys.readouterr().out
-    assert out["accepted"] is False and out["error"] == "NarrationError" and out["attempts"] == 3
+    assert out["accepted"] is False and out["error"] is None and out["attempts"] == 3
+    assert out["summary_source"] == "engine" and out["narration_gaps"] >= 1
     for n in (1, 2, 3):
         assert f"attempt {n}: writer" in text
     assert "validator: unknown finding id 'yoga.ruchaka@lagna'" in text
-    assert "narration failed: NarrationError" in text and "written to" in text
+    assert "not narrated within the checks: career yoga.ruchaka@lagna+sun" in text
+    assert "summary: written by the engine" in text and "written to" in text
     saved = json.loads(script.LAST.read_text())
     assert saved["accepted"] is False and len(saved["drafts"]) == 3 and saved["question"] == script.QUESTION
-    assert saved["error"]["type"] == "NarrationError" and saved["error"]["errors"]
-    assert [c["kind"] for c in saved["calls"]] == ["writer"] * 3     # the validator failed: no checks ran
+    assert saved["error"] is None
+    kinds = [c["kind"] for c in saved["calls"]]
+    assert kinds[:3] == ["writer", "writer", "writer"] and "checker" in kinds   # the last attempt checks the clean ones
 
 
 def test_checker_rejections_are_printed_per_attempt(script, monkeypatch, capsys):
     replay(monkeypatch, "narration_career_edited.json", reject="The varga vote")
     out = script.live(sequential=True)
     text = capsys.readouterr().out
-    assert out["accepted"] is False
+    # The fixture drafts career only, so marriage and longevity are gaps too ("no claim was
+    # drafted"); in career the one rejected claim is the only gap.
+    assert out["accepted"] is False and out["summary_source"] == "model"
+    career_gaps = [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")]
+    assert len(career_gaps) == 1
     assert "checker rejected vote:career.varga (attempt 1): The varga vote" in text
     assert "unsupported: a word the data does not state" in text and "evidence: not in the derivation" in text
     assert "attempt 3: " in text and " rejected" in text
+    assert "not narrated within the checks: career vote:career.varga (attempt 3)" in text
     saved = json.loads(script.LAST.read_text())
     assert sum(c["kind"] == "checker" for c in saved["calls"]) == 3 * (2 + 8)   # every claim, every attempt
 
 
 def test_accepted_run_and_api_error_both_write_the_recording(script, monkeypatch, capsys):
     replay(monkeypatch, "narration_career_edited.json")
-    assert script.live(sequential=False)["accepted"] is True
-    assert json.loads(script.LAST.read_text())["accepted"] is True
+    out = script.live(sequential=False)
+    text = capsys.readouterr().out
+    assert out["error"] is None and out["summary_source"] == "model"
+    assert not [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")]
+    assert json.loads(script.LAST.read_text())["calls"]
     replay(monkeypatch, "narration_career_opus55_r1.json", raise_on_writer=2)
     out = script.live(sequential=True)
     assert out["error"] == "RuntimeError" and "overloaded" in capsys.readouterr().out

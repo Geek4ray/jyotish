@@ -70,6 +70,23 @@ def read_command(birth: BirthInput, question: str, as_of: str | None, model_fixt
     return shlex.join(parts)
 
 
+def chart_line(chart: Chart) -> dict:
+    """The lagna sign, the Moon's sign and nakshatra and the birth moment in UTC: what a person
+    recognises in the first second, so a wrong timezone shows before the reading runs."""
+    moon = chart.bodies["Moon"]
+    return {"lagna": chart.lagnas.asc_sign_name, "moon_sign": moon.sign_name, "moon_nakshatra": moon.nak_name,
+            "birth_utc": chart.birth.utc}
+
+
+def reading_header(birth: BirthInput, question: str, chart: Chart, as_of: str | None = None,
+                   model_fixture: str | None = None) -> dict:
+    """The reading's Chart header (narrate.chart_header plus the local inputs and the command
+    that reproduces it); known as soon as the chart is, so a failed job can still show it."""
+    from .narrate import chart_header
+    return dict(chart_header(chart), local_date=birth.date, local_time=birth.time, tz_input=birth.tz,
+                place=birth.place, seed=birth.seed, command=read_command(birth, question, as_of, model_fixture))
+
+
 def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str | None = None,
                  model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None):
     """(reading, page). The areas are the question's, then the chart's top three. With
@@ -87,9 +104,7 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
         recording = json.loads(Path(model_fixture).read_text())
         drafter, checker = FixtureDrafter(recording), FixtureChecker(recording)
     reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress)
-    header = dict(reading.chart, local_date=birth.date, local_time=birth.time, tz_input=birth.tz,
-                  place=birth.place, seed=birth.seed, command=read_command(birth, question, as_of, model_fixture))
-    update: dict = {"chart": header}
+    update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture)}
     if model_fixture:
         said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
                [c.text for a in reading.areas for c in a.claims]

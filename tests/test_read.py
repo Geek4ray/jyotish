@@ -142,15 +142,23 @@ def test_learner_tables_come_from_the_engine(page):
     assert "Sudarshana" not in learner[:learner.index("`yoga.ruchaka@lagna+sun`")]
 
 
-def test_frozen_recording_fails_cleanly(tmp_path, capsys):
+def test_frozen_recording_gives_a_reading_with_gaps(tmp_path, capsys):
     # The frozen first recording predates items 8 and 11: its summary names votes it does not
     # cite and mentions timing, and its Ruchaka claims carry the two pre-merge ids. Replayed,
-    # it fails the validator on every attempt; nothing is written.
+    # it fails the validator on every attempt, and the reading still comes back: the claims
+    # that pass are kept, the summary is the engine's, the rest are listed as gaps.
     out = tmp_path / "r1"
-    assert run(["--out", str(out), "--model-fixture", str(FIXTURES / "narration_career_opus55_r1.json")]) == 2
+    assert run(["--out", str(out), "--model-fixture", str(FIXTURES / "narration_career_opus55_r1.json")]) == 0
     err = capsys.readouterr().err
-    assert "unknown finding id 'yoga.ruchaka@lagna'" in err and "timing language" in err
-    assert not out.with_suffix(".json").exists() and not out.with_suffix(".md").exists()
+    assert "narration incomplete" in err and "the summary is the engine's own" in err
+    reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
+    assert reading.summary.source == "engine" and reading.summary.text.startswith("Career: tier moderate")
+    career = reading.areas[0]
+    assert "yoga.ruchaka@lagna+sun" in {g["finding_id"] for g in career.narration_gaps}
+    assert {c.finding_id for c in career.claims} >= {"yoga.budhaditya@lagna", "vote:career.house"}
+    md = out.with_suffix(".md").read_text()
+    assert "> Narration incomplete:" in md and "*Written by the engine from its fields" in md
+    assert "Not narrated within the checks:" in md and "`yoga.ruchaka@lagna+sun` (rule)" in md
 
 
 TIMING_LINE = ("Best window for career by the engine's timing score: 2029-10-23 to 2032-06-23 "
