@@ -427,3 +427,28 @@ def test_writer_prompt_says_each_claim_stands_alone():
     for word in ('"again"', '"the same"', '"also"', '"as above"'):
         assert word in SYSTEM_PROMPT
     assert "from the lagna and from the Sun" in " ".join(SYSTEM_PROMPT.split())
+
+
+def test_merged_finding_marks_its_sudarshana_bases(chart):
+    ok, _ = findings(chart, "career")
+    r = next(f for f in ok if f["rule_id"] == "yoga.ruchaka")
+    assert r["sudarshana_bases"] == ["sun"]
+    assert [(x["basis"], x["sudarshana"], x["cited_to"]) for x in r["fires"]] == [
+        ("lagna", False, "rule and text"), ("sun", True, "rule")]
+    # With no lagna fire, the text tags (verses from the ascendant) are not offered.
+    c = chart.model_copy(deep=True)
+    c.fired_rules = [x for x in c.fired_rules if not (x.id == "yoga.ruchaka" and x.basis == "lagna")]
+    ok, _ = findings(c, "career")
+    sun_only = next(f for f in ok if f["rule_id"] == "yoga.ruchaka")
+    assert sun_only["finding_id"] == "yoga.ruchaka@sun" and sun_only["allowed_tags"] == ["rule:yoga.ruchaka"]
+
+
+def test_fixture_checker_replays_recorded_verdicts():
+    from jyotish.narrate import FixtureChecker
+    rec = json.loads((FIXTURES / "narration_career.json").read_text())
+    checker = FixtureChecker(rec)
+    rejected = next(c for c in rec["calls"] if c["kind"] == "checker"
+                    and not all(p["supported"] for p in c["result"]["propositions"]))
+    assert not all(p.supported for p in checker(rejected["sentence"], "").propositions)
+    assert checker("A sentence never recorded [rule:yoga.ruchaka].", "").propositions == []
+    assert checker.unchecked == {"A sentence never recorded [rule:yoga.ruchaka]."}

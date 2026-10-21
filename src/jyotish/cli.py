@@ -1,4 +1,5 @@
-"""Command line: print the reference chart, compute a chart, recover an instant."""
+"""Command line: print the reference chart, compute a chart, recover an instant, and write a
+reading (`jyotish read`: birth data and a question -> reading JSON and a Markdown page)."""
 
 from __future__ import annotations
 
@@ -294,6 +295,64 @@ def print_stability(chart: Chart) -> None:
         print(f"  {len(moved)} dasha periods do not exist in every sample (sequence changes)")
 
 
+def _birth_utc(day: str, clock: str, tz: str) -> tuple[datetime, str | None]:
+    """Local date and time in `tz` (an IANA name such as Asia/Kolkata, or an offset such as
+    +05:30) -> UTC, and the IANA name if one was given."""
+    from datetime import timezone, timedelta
+    from zoneinfo import ZoneInfo
+    local = datetime.fromisoformat(f"{day}T{clock}")
+    if tz[:1] in "+-" and ":" in tz:
+        sign = 1 if tz[0] == "+" else -1
+        h, m = tz[1:].split(":")
+        return local.replace(tzinfo=timezone(sign * timedelta(hours=int(h), minutes=int(m)))).astimezone(timezone.utc), None
+    return local.replace(tzinfo=ZoneInfo(tz)).astimezone(timezone.utc), tz
+
+
+def cmd_read(args) -> int:
+    """assess -> score -> route -> narrate -> <out>.json and <out>.md. Returns the exit code."""
+    import sys
+    from datetime import date
+    from pathlib import Path
+    from .narrate import (CONFIG, FixtureChecker, FixtureDrafter, NarrationError, TAG, narrate, route,
+                          sentences)
+    from .page import render
+    from .uncertainty import assess
+    utc, tz = _birth_utc(args.date, args.time, args.tz)
+    chart = assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz, true_node=args.node == "true")
+    if chart.scored is None:
+        print("this chart cannot be scored (no birth moment)", file=sys.stderr)
+        return 2
+    asked, _ = route(args.question, chart)
+    areas = list(dict.fromkeys(asked + list(chart.scored.top)))     # the question's areas, then the top three
+    as_of = date.fromisoformat(args.as_of) if args.as_of else date.today()
+    if args.model_fixture:
+        recording = json.loads(Path(args.model_fixture).read_text())
+        drafter, checker = FixtureDrafter(recording), FixtureChecker(recording)
+        source = f"fixture:{args.model_fixture}"
+    else:
+        drafter = checker = None
+        source = "live"
+    try:
+        reading = narrate(chart, args.question, drafter=drafter, checker=checker, as_of=as_of, areas=areas)
+    except NarrationError as e:
+        print(f"narration failed: {e}", file=sys.stderr)
+        for err in e.errors:
+            print(f"  - {err}", file=sys.stderr)
+        return 2
+    if args.model_fixture:
+        said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
+               [c.text for a in reading.areas for c in a.claims]
+        reading = reading.model_copy(update={"narration_source": source,
+                                             "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)})
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.with_suffix(".json").write_text(json.dumps(reading.model_dump(), indent=1, ensure_ascii=False, default=str) + "\n")
+    out.with_suffix(".md").write_text(render(reading, chart))
+    print(f"wrote {out.with_suffix('.json')} and {out.with_suffix('.md')} ({', '.join(areas)}; model "
+          f"{CONFIG.model if not args.model_fixture else 'replayed'}, {reading.attempts} attempt(s))")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="jyotish")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -305,6 +364,20 @@ def main(argv: list[str] | None = None) -> None:
     c.add_argument("--ayanamsa", default="lahiri")
     c.add_argument("--accuracy", default="exact", choices=["exact", "within_15", "approximate", "unknown"])
     c.add_argument("--json", action="store_true")
+    rd = sub.add_parser("read", help="birth data and a question -> reading JSON and a Markdown page")
+    rd.add_argument("--date", required=True, help="local birth date, YYYY-MM-DD")
+    rd.add_argument("--time", required=True, help="local birth time, HH:MM[:SS]")
+    rd.add_argument("--tz", required=True, help="IANA timezone (Asia/Kolkata) or UTC offset (+05:30)")
+    rd.add_argument("--lat", type=float, required=True)
+    rd.add_argument("--lon", type=float, required=True)
+    rd.add_argument("--accuracy", default="exact", choices=["exact", "within_15", "approximate", "unknown"])
+    rd.add_argument("--node", default="true", choices=["true", "mean"],
+                    help="lunar node (engine default true; the reference app uses mean)")
+    rd.add_argument("--question", required=True)
+    rd.add_argument("--as-of", help="date the reading is for, YYYY-MM-DD (default today)")
+    rd.add_argument("--out", default="reading", help="output path without extension: writes .json and .md")
+    rd.add_argument("--model-fixture", help="replay a recorded narration (tests/fixtures/*.json) instead of "
+                                            "calling the model; offline")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
@@ -315,6 +388,8 @@ def main(argv: list[str] | None = None) -> None:
     r.add_argument("--to-year", type=int, default=2030)
     args = ap.parse_args(argv)
 
+    if args.cmd == "read":
+        raise SystemExit(cmd_read(args))
     if args.cmd == "reference":
         chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS,
                         **reference_time_inputs())

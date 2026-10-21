@@ -82,6 +82,7 @@ class ReadingDraft(BaseModel):
 # --- the reading (SPEC Layer 7 output schema) ------------------------------------------
 
 class ReadingClaim(BaseModel):
+    finding_id: str
     text: str
     cites: list[str]
     kind: str                           # rule | vote
@@ -150,6 +151,8 @@ class Reading(BaseModel):
     question: str
     model: str
     attempts: int
+    narration_source: str = "live"      # "live", or "fixture:<path>" for an offline replay
+    unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
     summary: ReadingSummary
     areas: list[ReadingArea]
     fired_rules: list[dict[str, Any]]
@@ -230,10 +233,11 @@ def rule_names(rule_id: str) -> list[str]:
     return names or [rule_id.split(".")[-1].replace("_", " ")]
 
 
-def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str] | None = None) -> list[str]:
+def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
-    set of tags this text may carry; `offered_votes` maps family -> vote tag for every vote
-    offered in the area (a sentence naming such a family must cite it)."""
+    set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
+    summary over several areas, the set of that family's vote tags) for every vote offered:
+    a sentence naming such a family must cite it (one of them)."""
     offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
@@ -256,9 +260,11 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str] | No
                 if not any(n.lower() in bare.lower() for n in rule_names(value)):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
         for family in sorted(named):
-            tag = offered_votes.get(family)
-            if tag and tag not in tags:
-                errors.append(f"names the {family} family but does not cite [{tag}]: {s!r}")
+            want = offered_votes.get(family)
+            want = {want} if isinstance(want, str) else set(want or ())
+            if want and not want & tags:
+                shown = " or ".join(f"[{t}]" for t in sorted(want))
+                errors.append(f"names the {family} family but does not cite {shown}: {s!r}")
         for kind, rx in FORBIDDEN.items():
             m = rx.search(bare)
             if m:
@@ -327,6 +333,9 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     bases (id `yoga.ruchaka@lagna+sun`), with each basis's fire under `fires`; its
     stability and confidence are the minimum across those fires. Fires are split at 0.5
     before grouping, so a time-unstable basis does not take a stable one out of narration.
+    A text's verse defines a yoga from the ascendant; the Moon and Sun bases are the
+    engine's Sudarshana reading (Layer 2), so each non-lagna fire is marked `sudarshana`
+    and cited to the rule, and the text tags are offered only when a lagna fire is present.
     Each finding carries its claim confidence: a fire's scale x the rule's confidence_base,
     a vote's family weight min(1, 1 - rho) x |vote|."""
     from .scoring import family_rho
@@ -342,16 +351,19 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     for (unstable, rule_id, planets), fires in groups.items():
         fires.sort(key=lambda f: BASIS_ORDER.get(f.basis, len(BASIS_ORDER)))
         rule = lib.get(rule_id)
-        tags = [f"rule:{rule_id}"] + [_text_tag(s) for s in (rule.data.get("source", []) if rule else [])
-                                      if s.get("checked")]
-        base = rule.data.get("confidence_base", 0.5) if rule else 0.5
         bases = [f.basis for f in fires]
+        texts = [_text_tag(s) for s in (rule.data.get("source", []) if rule else []) if s.get("checked")]
+        tags = [f"rule:{rule_id}"] + (texts if "lagna" in bases else [])
+        base = rule.data.get("confidence_base", 0.5) if rule else 0.5
         times = [f.stability.time for f in fires if f.stability is not None]
         item = {"finding_id": f"{rule_id}@{'+'.join(bases)}", "kind": "rule", "rule_id": rule_id,
-                "basis": ", ".join(bases), "bases": bases, "school": fires[0].school, "planets": list(planets),
+                "basis": ", ".join(bases), "bases": bases, "sudarshana_bases": [b for b in bases if b != "lagna"],
+                "school": fires[0].school, "planets": list(planets),
                 "themes": {k: round(v, 2) for k, v in fires[0].themes.items()},
-                "fires": [{"basis": f.basis, "nodes": f.nodes, "scale": round(f.scale, 3),
-                           "modifiers_applied": f.applied, "details": f.details,
+                "fires": [{"basis": f.basis, "sudarshana": f.basis != "lagna",
+                           "cited_to": "rule" if f.basis != "lagna" else "rule and text",
+                           "nodes": f.nodes, "scale": round(f.scale, 3),
+                           "modifiers_applied": f.applied, "modifiers_unknown": f.unknown, "details": f.details,
                            "stability": f.stability.time if f.stability else None} for f in fires],
                 "allowed_tags": tags, "stability": min(times) if times else None,
                 "confidence": min(f.scale for f in fires) * base}
@@ -531,6 +543,42 @@ class AnthropicChecker:
         return response.parsed_output
 
 
+# --- offline replay of a recording -------------------------------------------------------
+
+class FixtureDrafter:
+    """Replays a recording's writer drafts in order (the last one repeats)."""
+
+    def __init__(self, recording: dict):
+        self.drafts = [ReadingDraft(**d) for d in recording["drafts"]]
+        self.calls = 0
+        self.last_meta: dict | None = None
+
+    def __call__(self, system: str, user: str, errors: list[str]) -> ReadingDraft:
+        self.calls += 1
+        self.last_meta = {"kind": "writer", "replayed": True}
+        return self.drafts[min(self.calls, len(self.drafts)) - 1]
+
+
+class FixtureChecker:
+    """Replays a recording's checker verdicts by sentence (the latest one recorded for that
+    exact sentence). A sentence with no recorded verdict was never checked: it is passed with
+    no propositions and counted in `unchecked`, which the reading reports. Offline replay is
+    a rendering of a recording, not a check."""
+
+    def __init__(self, recording: dict):
+        self.verdicts = {c["sentence"]: CheckResult(**c["result"])
+                         for c in recording.get("calls", []) if c.get("kind") == "checker"}
+        self.unchecked: set[str] = set()
+        self.last_meta: dict | None = None
+
+    def __call__(self, sentence: str, derivation: str) -> CheckResult:
+        self.last_meta = {"kind": "checker", "replayed": True}
+        if sentence in self.verdicts:
+            return self.verdicts[sentence]
+        self.unchecked.add(sentence)
+        return CheckResult(propositions=[])
+
+
 # --- assembly ----------------------------------------------------------------------------
 
 def _date_str(jd: float) -> str:
@@ -561,7 +609,8 @@ def _check_payload(f: dict) -> str:
 
 
 def _check_data(f: dict) -> dict:
-    keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "school", "planets",
+    keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
+            "school", "planets",
             "themes", "fires", "derivation")
     return {k: f[k] for k in keep if k in f}
 
@@ -582,26 +631,31 @@ def _summary_checks(summary: str, finding_data: dict[str, dict]) -> list[tuple[s
 
 def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, checker: Checker | None = None,
             as_of: date | None = None, config: NarrationConfig = CONFIG,
-            recording: list | None = None) -> Reading:
+            recording: list | None = None, areas: list[str] | None = None) -> Reading:
+    """`areas` overrides the routed areas (the question's "when" is still read from it)."""
     if chart.scored is None:
         raise ValueError("narration needs a scored chart (birth moment, Shadbala, Bhava Bala)")
     as_of = as_of or date.today()
     sc = chart.scored
-    areas, when = route(question, chart)
+    routed, when = route(question, chart)
+    areas = list(areas) if areas is not None else routed
     user, allowed = payload(chart, question, areas)
     all_tags = set().union(*allowed.values()) if allowed else set()
     drafter = drafter or AnthropicDrafter(config)
     checker = checker or AnthropicChecker(config)
     votes_offered = offered_votes(chart, areas)
     finding_data = {f["finding_id"]: f for name in areas for f in findings(chart, name)[0]}
-    all_votes = {fam: tag for name in areas for fam, tag in votes_offered[name].items()}
+    all_votes: dict[str, set[str]] = {}
+    for name in areas:
+        for fam, tag in votes_offered[name].items():
+            all_votes.setdefault(fam, set()).add(tag)
 
     draft, errors, attempts = None, [], 0
     for attempts in range(1, config.max_attempts + 1):
         draft = drafter(SYSTEM_PROMPT, user, errors)
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
-        errors = validate(draft.summary, all_tags, offered_votes=all_votes if len(areas) == 1 else {})
+        errors = validate(draft.summary, all_tags, offered_votes=all_votes)
         for da in draft.areas:
             if da.name not in areas:
                 errors.append(f"area not asked for: {da.name}")
@@ -650,7 +704,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         claims = []
         for c in drafted.claims:
             f = by_finding[c.finding_id]
-            claims.append(ReadingClaim(text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
+            claims.append(ReadingClaim(finding_id=c.finding_id, text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
                                        kind=f["kind"], school=f["school"], basis=f["basis"],
                                        stability=f["stability"], confidence=f["confidence"]))
         # SPEC Layer 7 item 4: two groups, rule fires first, then votes, each by stability x the

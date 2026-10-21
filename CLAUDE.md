@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `page` (the reading's Markdown page), `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -87,7 +87,10 @@ done; their readings are in `timing.READINGS` / `READINGS_V2`. Layer 7 narration
 (`narrate.py`: Anthropic API with structured output, model and settings in `narrate.CONFIG`,
 a code validator on every sentence) is done, with the semantic checker after the validator: a second structured call (at
 `CONFIG.checker_effort`) per claim and per tagged summary sentence, on every attempt. A rule's
-fires on the same planets from several bases are one finding (`yoga.ruchaka@lagna+sun`). The offline suite replays the frozen first recording
+fires on the same planets from several bases are one finding (`yoga.ruchaka@lagna+sun`). Its
+non-lagna bases are marked `sudarshana` and cited to the rule only. `jyotish read` (birth data
+and a question) writes the reading JSON and the Markdown page; `--model-fixture` replays a
+recording offline, and sentences with no recorded checker verdict are counted as unchecked. The offline suite replays the frozen first recording
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.
