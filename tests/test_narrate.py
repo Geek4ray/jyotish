@@ -1,4 +1,5 @@
-"""Layer 7 narration, offline: the drafter replays tests/fixtures/narration_career.json."""
+"""Layer 7 narration, offline: the drafter replays the frozen first recording and its
+hand-edited copy (tests/fixtures/), with the semantic checker stubbed."""
 
 import json
 from datetime import date
@@ -104,11 +105,16 @@ def test_validator_accepts_tagged_claims_and_plain_lines():
 
 def test_recorded_draft_is_rejected_then_edited_one_accepted(reading_and_drafter):
     # The claude-opus-5-5 draft fails SPEC Layer 7 item 11 in its summary: it names four votes
-    # it does not cite, tags a timing sentence with the house vote, and mentions timing. Its
-    # ten claims pass the validator. The hand-edited draft is accepted on the second attempt.
+    # it does not cite, tags a timing sentence with the house vote, and mentions timing. It
+    # was recorded before item 8 merged Ruchaka's two bases into one finding, so its two
+    # Ruchaka claims now carry unknown finding ids; its other eight claims pass the validator.
+    # The hand-edited draft is accepted on the second attempt.
     reading, d = reading_and_drafter
     assert reading.attempts == 2 and len(d.calls) == 2
     errs = d.calls[1]["errors"]
+    unknown = [e for e in errs if e.startswith("unknown finding id")]
+    assert unknown == ["unknown finding id 'yoga.ruchaka@lagna'", "unknown finding id 'yoga.ruchaka@sun'"]
+    errs = [e for e in errs if e not in unknown]
     for fam in ("house", "karaka", "varga", "panchanga"):
         assert any(f"names the {fam} family but does not cite [vote:career.{fam}]" in e for e in errs), fam
     assert any("[vote:career.house] on a sentence that does not name the house family" in e for e in errs)
@@ -157,7 +163,7 @@ def test_schema_and_engine_words_verbatim(reading_and_drafter, chart):
     # Two groups (SPEC Layer 7 item 4): rule fires first, then votes, each ordered by
     # stability x its own confidence; the two scales are never ranked against each other.
     kinds = [c.kind for c in career.claims]
-    assert kinds == ["rule"] * 4 + ["vote"] * 6
+    assert kinds == ["rule"] * 3 + ["vote"] * 6             # Ruchaka: one claim, two bases
     for kind in ("rule", "vote"):
         keys = [(c.stability if c.stability is not None else 1.0) * c.confidence
                 for c in career.claims if c.kind == kind]
@@ -171,7 +177,8 @@ def test_schema_and_engine_words_verbatim(reading_and_drafter, chart):
     raja = next(c for c in career.claims if "rule:yoga.kendra_trikona_raja" in c.cites)
     assert raja.confidence == pytest.approx(1.0 * 0.6)       # scale x confidence_base
     ruchaka = next(c for c in career.claims if "rule:yoga.ruchaka" in c.cites)
-    assert ruchaka.confidence == pytest.approx(0.408 * 0.7)
+    assert ruchaka.confidence == pytest.approx(0.408 * 0.7) and ruchaka.basis == "lagna, sun"
+    assert {"text:BPHS/Santhanam-1984/75/1-2", "text:Phaladeepika/Sastri-1937/6/1"} <= set(ruchaka.cites)
     assert reading.summary.driver_planet == chart.scored.driver.driver
     assert reading.summary.top_areas == list(chart.scored.top)
     assert reading.summary.current_period == "Jupiter-Mercury"                   # Vimshottari on 2026-10-21
@@ -291,6 +298,7 @@ def test_rule_names_default_and_listed():
 # --- SPEC Layer 7 item 10: the checker ------------------------------------------------
 
 def test_checker_rejection_goes_back_to_the_writer(chart):
+    from jyotish.narrate import sentences
     # The recorded KP sentence attaches the cusp's star (the Moon's) to Ketu, whose own star is
     # Venus's (Purva Ashadha). The checker marks that unsupported; the writer gets it back.
     recorded_kp = next(c["text"] for c in RECORDED["drafts"][0]["areas"][0]["claims"]
@@ -306,9 +314,11 @@ def test_checker_rejection_goes_back_to_the_writer(chart):
     assert r.attempts == 2
     assert any("unsupported by the derivation of vote:career.kp" in e and "Ketu is in the Moon's star" in e
                for e in d.calls[1]["errors"])
-    # One check per claim, each with only that finding's derivation (no question).
-    assert len(checker.calls) == 2 * len(VALID["areas"][0]["claims"])
-    sentence, derivation = checker.calls[0]
+    # On every attempt: one check per tagged summary sentence, then one per claim, each with
+    # only the derivations it may draw on (never the question).
+    n_summary = len(sentences(VALID["summary"]))
+    assert len(checker.calls) == 2 * (n_summary + len(VALID["areas"][0]["claims"]))
+    sentence, derivation = checker.calls[n_summary]
     assert QUESTION not in derivation and '"finding_id"' in derivation
     kinds = [e["kind"] for e in rec]
     assert kinds.count("writer") == 2 and kinds.count("checker") == len(checker.calls)
@@ -353,7 +363,67 @@ def test_recorder_saves_call_metadata(chart):
     checks = [e for e in rec if e["kind"] == "checker"]
     assert [w["request_id"] for w in writers] == ["req_writer_1", "req_writer_2"]
     assert writers[0]["validator_errors"] and writers[1]["validator_errors"] == []   # rejected one kept
-    assert len(checks) == len(VALID["areas"][0]["claims"])
+    from jyotish.narrate import sentences
+    assert len(checks) == len(sentences(VALID["summary"])) + len(VALID["areas"][0]["claims"])
+    assert CONFIG.effort == "medium" and CONFIG.checker_effort == "high"
     for e in rec:
-        assert e["model"] == CONFIG.model and e["effort"] == CONFIG.effort
+        assert e["model"] == CONFIG.model
+        assert e["effort"] == (CONFIG.effort if e["kind"] == "writer" else CONFIG.checker_effort)
         assert e["usage"] == {"input_tokens": 100, "output_tokens": 20} and e["timestamp"].endswith("+00:00")
+
+
+# --- SPEC Layer 7 items 8 and 10, as revised after the first checked run ---------------
+
+def test_rule_fires_across_bases_are_one_finding(chart):
+    ok, _ = findings(chart, "career")
+    ids = [f["finding_id"] for f in ok if f["kind"] == "rule"]
+    assert ids == ["yoga.budhaditya@lagna", "yoga.kendra_trikona_raja@lagna", "yoga.ruchaka@lagna+sun"]
+    r = next(f for f in ok if f["rule_id"] == "yoga.ruchaka")
+    assert r["bases"] == ["lagna", "sun"] and r["planets"] == ["Mars"]
+    assert [(x["basis"], x["nodes"]) for x in r["fires"]] == [("lagna", ["Mars", "H7"]), ("sun", ["Mars", "H10"])]
+    assert set(r["allowed_tags"]) == {"rule:yoga.ruchaka", "text:BPHS/Santhanam-1984/75/1-2",
+                                      "text:Phaladeepika/Sastri-1937/6/1"}
+
+
+def test_merged_finding_takes_the_minimum_and_splits_at_half(chart):
+    def with_sun_fire(time, scale):
+        c = chart.model_copy(deep=True)
+        f = next(x for x in c.fired_rules if x.id == "yoga.ruchaka" and x.basis == "sun")
+        f.stability = f.stability.model_copy(update={"time": time})
+        f.scale = scale
+        return c
+    ok, held = findings(with_sun_fire(0.7, 0.3), "career")
+    r = next(f for f in ok if f["rule_id"] == "yoga.ruchaka")
+    assert r["finding_id"] == "yoga.ruchaka@lagna+sun"
+    assert r["stability"] == 0.7 and r["confidence"] == pytest.approx(0.3 * 0.7)      # min across bases
+    # A basis under 0.5 goes to "depends on exact birth time" alone; the stable one is narrated.
+    ok, held = findings(with_sun_fire(0.3, 0.408), "career")
+    assert "yoga.ruchaka@lagna" in {f["finding_id"] for f in ok}
+    assert [f["finding_id"] for f in held] == ["yoga.ruchaka@sun"]
+
+
+def test_summary_sentences_are_checked_against_the_findings_they_cite(chart):
+    from jyotish.narrate import sentences
+    checker = StubChecker(reject={"oriented toward authority": "the yoga is oriented toward authority"})
+    d = Replay([VALID, VALID])
+    rec = []
+    with pytest.raises(NarrationError) as e:
+        narrate(chart, QUESTION, drafter=d, checker=checker, as_of=AS_OF, recording=rec)
+    # The one rejected word is in the summary only, and it sends the draft back every time.
+    assert any("unsupported by the derivations of yoga.kendra_trikona_raja@lagna (summary)" in x
+               and "the yoga is oriented toward authority" in x for x in d.calls[1]["errors"])
+    assert e.value.errors and len(d.calls) == CONFIG.max_attempts
+    summary = [x for x in rec if x["kind"] == "checker" and x["finding_id"] == "summary"]
+    assert len(summary) == CONFIG.max_attempts * len(sentences(VALID["summary"]))
+    # Each summary sentence sees the union of its cited findings' derivations, and only those.
+    five = next(x for x in summary if "[vote:career.panchanga]" in x["sentence"])
+    assert five["findings"] == [f"vote:career.{f}" for f in ("house", "lord", "karaka", "varga", "panchanga")]
+    data = json.loads(next(dv for s, dv in checker.calls if s == five["sentence"]))
+    assert [f["finding_id"] for f in data["findings"]] == five["findings"] and QUESTION not in json.dumps(data)
+
+
+def test_writer_prompt_says_each_claim_stands_alone():
+    from jyotish.narrate import SYSTEM_PROMPT
+    for word in ('"again"', '"the same"', '"also"', '"as above"'):
+        assert word in SYSTEM_PROMPT
+    assert "from the lagna and from the Sun" in " ".join(SYSTEM_PROMPT.split())

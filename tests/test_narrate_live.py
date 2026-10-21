@@ -34,7 +34,8 @@ def test_live_narration_passes_validator_and_checker():
     if os.environ.get("JYOTISH_RECORD_FIXTURE") == "1":
         path = Path(__file__).parent / "fixtures" / "narration_career.json"
         path.write_text(json.dumps({
-            "note": f"Recorded from {CONFIG.model} (effort {CONFIG.effort}) by tests/test_narrate_live.py.",
+            "note": (f"Recorded from {CONFIG.model} (writer effort {CONFIG.effort}, checker effort "
+                     f"{CONFIG.checker_effort}) by tests/test_narrate_live.py."),
             "question": question,
             "drafts": [e["draft"] for e in recording if e["kind"] == "writer"],
             "accepted": reading is not None,

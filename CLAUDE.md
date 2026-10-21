@@ -85,8 +85,9 @@ done. Layer 5 scoring (`scoring.py`, classical weights; rho table in
 are listed in `scoring.READINGS`. The tagged timeline and `TimingQuery` (`timing.py`) are
 done; their readings are in `timing.READINGS` / `READINGS_V2`. Layer 7 narration
 (`narrate.py`: Anthropic API with structured output, model and settings in `narrate.CONFIG`,
-a code validator on every sentence) is done, with the semantic checker (a second structured call per claim) after the
-validator. The offline suite replays the frozen first recording
+a code validator on every sentence) is done, with the semantic checker after the validator: a second structured call (at
+`CONFIG.checker_effort`) per claim and per tagged summary sentence, on every attempt. A rule's
+fires on the same planets from several bases are one finding (`yoga.ruchaka@lagna+sun`). The offline suite replays the frozen first recording
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.

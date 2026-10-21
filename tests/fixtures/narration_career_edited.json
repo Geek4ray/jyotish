@@ -1,5 +1,5 @@
 {
-  "note": "HAND-EDITED from tests/fixtures/narration_career_opus55_r1.json (recorded from claude-opus-5-5). Two edits, both to pass SPEC Layer 7 items 10-11: the summary now cites every vote it names and no longer mentions timing or the engine; the KP claim no longer attaches the cusp's star (the Moon's) to the sub-lord Ketu. The other nine claims are the model's, verbatim. Replaced by the next live recording.",
+  "note": "HAND-EDITED from tests/fixtures/narration_career_opus55_r1.json (recorded from claude-opus-5-5). Four edits. Two to pass SPEC Layer 7 items 10-11: the summary now cites every vote it names and no longer mentions timing or the engine; the KP claim no longer attaches the cusp's star (the Moon's) to the sub-lord Ketu. Two for item 8 and item 10's standalone rule: the two Ruchaka claims (lagna, Sun) are merged into the one finding yoga.ruchaka@lagna+sun, and the Raja yoga claim no longer opens \"The same conjunction\". The other seven claims are the model's, verbatim.",
   "question": "How will my career go, and when is the best time for a job change?",
   "drafts": [
     {
@@ -14,15 +14,11 @@
             },
             {
               "finding_id": "yoga.kendra_trikona_raja@lagna",
-              "text": "The same conjunction joins the Sun as 4th lord with Mercury as 2nd and 5th lord in the 10th, forming a kendra-trikona raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+              "text": "The Sun and Mercury conjoined in the 10th join the Sun as 4th lord with Mercury as 2nd and 5th lord, forming a kendra-trikona raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
             },
             {
-              "finding_id": "yoga.ruchaka@lagna",
-              "text": "Mars in its own sign in the 7th forms Ruchaka yoga for courage and leadership, though Saturn's aspect, the Moon's tara and a marana karaka placement weaken it considerably [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
-            },
-            {
-              "finding_id": "yoga.ruchaka@sun",
-              "text": "Counted from the Sun, Mars falls in the 10th and again forms Ruchaka yoga, with the same weakening from Saturn's aspect, the tara and the marana karaka placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+              "finding_id": "yoga.ruchaka@lagna+sun",
+              "text": "Mars in its own sign forms Ruchaka yoga from the lagna, in the 7th, and from the Sun, in the 10th, for courage and leadership, though Saturn's aspect, the Moon's tara and a marana karaka placement weaken it considerably [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2] [text:Phaladeepika/Sastri-1937/6/1]."
             },
             {
               "finding_id": "vote:career.house",

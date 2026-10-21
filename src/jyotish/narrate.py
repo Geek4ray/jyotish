@@ -5,7 +5,8 @@ The engine decides every fact; the language model only writes sentences about fi
 the engine hands it. What the engine owns, in code:
   - which findings are narrated: non-experimental fired rules that map to the area, with
     time-stability >= 0.5; those below 0.5, and areas below 0.5, go to
-    `depends_on_birth_time` instead;
+    `depends_on_birth_time` instead; fires of one rule on the same planets from several
+    bases are one finding;
   - tier, confidence and stability words, copied verbatim from the scored chart (the model
     writes no confidence words at all);
   - ordering of claims by stability x confidence;
@@ -20,6 +21,9 @@ the model regenerate, up to `CONFIG.max_attempts`):
   - no confidence words (certain, definitely, guaranteed, ...);
   - no death timing, medical diagnosis or trade advice;
   - no claim about a third party's own life (mother, father, partner, children, siblings).
+After the validator, the semantic checker (`AnthropicChecker`, at `CONFIG.checker_effort`)
+reads every claim against its finding's derivation and every tagged summary sentence against
+the union of the derivations it cites; one unsupported proposition sends the draft back.
 
 The model call (`AnthropicDrafter`) uses the Anthropic SDK's structured output
 (`beta.messages.parse` with a pydantic schema), server-side refusal fallback, and the
@@ -46,7 +50,8 @@ from .scoring import AREAS, THEME_AREAS
 class NarrationConfig:
     model: str = "claude-opus-5-5"
     max_tokens: int = 16000
-    effort: str = "medium"                    # Opus 5.5's default, set explicitly
+    effort: str = "medium"                    # the writer; Opus 5.5's default, set explicitly
+    checker_effort: str = "high"              # the checker is the gate (SPEC Layer 7 item 10)
     fallbacks: str = "default"                # server-side refusal fallback, routed by category
     betas: tuple[str, ...] = ("server-side-fallback-2026-07-01",)
     max_attempts: int = 3                     # draft + regenerations on validator failure
@@ -307,6 +312,8 @@ def _text_tag(src: dict) -> str:
     return "text:" + "/".join(str(x).replace(" ", "-") for x in (src["text"], src["edition"], src["chapter"], src["verse"]))
 
 
+BASIS_ORDER = {"lagna": 0, "moon": 1, "sun": 2}
+
 FAMILY_SCHOOL = {"house": "parashari", "lord": "parashari", "karaka": "parashari", "varga": "parashari",
                  "arudha": "jaimini", "kp": "kp", "panchanga": "parashari"}
 
@@ -316,24 +323,39 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     0.5. Two kinds (SPEC Layer 7 item 8): the non-experimental fired rules whose themes map
     to the area, tagged by rule id and each checked source; and the area's family votes
     that voted (+1 or -1), tagged [vote:<area>.<family>] with the vote's derivation.
-    Each carries its claim confidence: a fire's scale x the rule's confidence_base, a
-    vote's family weight min(1, 1 - rho) x |vote|."""
+    Fires of one rule on the same planets from different bases are one finding listing its
+    bases (id `yoga.ruchaka@lagna+sun`), with each basis's fire under `fires`; its
+    stability and confidence are the minimum across those fires. Fires are split at 0.5
+    before grouping, so a time-unstable basis does not take a stable one out of narration.
+    Each finding carries its claim confidence: a fire's scale x the rule's confidence_base,
+    a vote's family weight min(1, 1 - rho) x |vote|."""
     from .scoring import family_rho
     lib = {r.id: r for r in default_rules()}
     ok, shaky = [], []
+    groups: dict[tuple, list] = {}
     for f in chart.fired_rules:
         if f.status == "experimental" or not any(area in THEME_AREAS.get(t, []) for t in f.themes):
             continue
-        rule = lib.get(f.id)
-        tags = [f"rule:{f.id}"] + [_text_tag(s) for s in (rule.data.get("source", []) if rule else [])
-                                   if s.get("checked")]
+        unstable = f.stability is not None and f.stability.time < 0.5
+        planets = tuple(n for n in f.nodes if not n.startswith("H"))
+        groups.setdefault((unstable, f.id, planets), []).append(f)
+    for (unstable, rule_id, planets), fires in groups.items():
+        fires.sort(key=lambda f: BASIS_ORDER.get(f.basis, len(BASIS_ORDER)))
+        rule = lib.get(rule_id)
+        tags = [f"rule:{rule_id}"] + [_text_tag(s) for s in (rule.data.get("source", []) if rule else [])
+                                      if s.get("checked")]
         base = rule.data.get("confidence_base", 0.5) if rule else 0.5
-        item = {"finding_id": f"{f.id}@{f.basis}", "kind": "rule", "rule_id": f.id, "basis": f.basis,
-                "school": f.school, "nodes": f.nodes, "scale": round(f.scale, 3),
-                "themes": {k: round(v, 2) for k, v in f.themes.items()},
-                "modifiers_applied": f.applied, "details": f.details, "allowed_tags": tags,
-                "stability": f.stability.time if f.stability else None, "confidence": f.scale * base}
-        (shaky if f.stability is not None and f.stability.time < 0.5 else ok).append(item)
+        bases = [f.basis for f in fires]
+        times = [f.stability.time for f in fires if f.stability is not None]
+        item = {"finding_id": f"{rule_id}@{'+'.join(bases)}", "kind": "rule", "rule_id": rule_id,
+                "basis": ", ".join(bases), "bases": bases, "school": fires[0].school, "planets": list(planets),
+                "themes": {k: round(v, 2) for k, v in fires[0].themes.items()},
+                "fires": [{"basis": f.basis, "nodes": f.nodes, "scale": round(f.scale, 3),
+                           "modifiers_applied": f.applied, "details": f.details,
+                           "stability": f.stability.time if f.stability else None} for f in fires],
+                "allowed_tags": tags, "stability": min(times) if times else None,
+                "confidence": min(f.scale for f in fires) * base}
+        (shaky if unstable else ok).append(item)
     a = chart.scored.areas.get(area)
     if a is not None and a.score_classical is not None:
         rho = family_rho()
@@ -373,13 +395,17 @@ engine has already computed. You add no facts. A finding is either a rule that f
 planets, houses and modifiers it involved) or a family vote (house, lord, karaka, varga, arudha, \
 KP, panchanga) with its derivation: the planets, houses, dignities, cusp sub-lords or varga \
 placements the vote used, and whether it is for or against the area. Each finding has an id and \
-the citation tags you may use.
+the citation tags you may use. A rule that fires from more than one basis (lagna, Moon, Sun) is \
+one finding listing its bases, with each basis's fire; narrate it as one claim ("forms from the \
+lagna and from the Sun").
 
 Write, for each area, one claim per finding, in the order given. Each claim narrates that finding \
-only and ends with one or more of that finding's allowed tags, written exactly, for example \
+only and stands alone: it is checked against that finding's data and nothing else, so it may not \
+refer to another finding or claim (no "again", "the same", "also", "as above", "likewise"). Each claim ends with one or more of that finding's allowed tags, written exactly, for example \
 [rule:yoga.ruchaka], [text:BPHS/Santhanam-1984/75/1-2] or [vote:career.kp]. For a vote, say \
 in words what the derivation shows. Put the tags at the very end of the sentence. Also write a two- or three-sentence summary answering the question; each summary \
-sentence that states something ends with a tag from the findings.
+sentence that states something ends with the tags of the findings it draws on, and is checked \
+against those findings' data only.
 
 The engine states the confidence tier, the stability and any timing windows itself, so do not \
 write confidence words (certain, definitely, guaranteed), probabilities or percentages, do not \
@@ -482,8 +508,9 @@ class AnthropicDrafter:
 
 
 class AnthropicChecker:
-    """The semantic checker (SPEC Layer 7 item 10): one structured call per claim with only the
-    sentence and that finding's derivation. Same model and config block as the writer."""
+    """The semantic checker (SPEC Layer 7 item 10): one structured call per sentence with only
+    the sentence and the derivation it may draw on (a claim's finding; for a summary sentence,
+    the findings it cites). Same model and config block as the writer, at `checker_effort`."""
 
     def __init__(self, config: NarrationConfig = CONFIG, client=None):
         import anthropic
@@ -495,10 +522,10 @@ class AnthropicChecker:
         cfg = self.config
         response = self.client.beta.messages.parse(
             model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
-            output_config={"effort": cfg.effort}, system=CHECKER_PROMPT,
+            output_config={"effort": cfg.checker_effort}, system=CHECKER_PROMPT,
             messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
             output_format=CheckResult)
-        self.last_meta = _meta(response, "checker", cfg.effort)
+        self.last_meta = _meta(response, "checker", cfg.checker_effort)
         if response.stop_reason == "refusal" or response.parsed_output is None:
             raise NarrationError("the checker returned no result", [response.stop_reason or ""])
         return response.parsed_output
@@ -530,9 +557,27 @@ def _window(w) -> ReadingWindow:
 
 def _check_payload(f: dict) -> str:
     """What the checker sees for one finding: its derivation and nothing else."""
-    keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "school", "nodes", "scale",
-            "themes", "modifiers_applied", "details", "derivation")
-    return json.dumps({k: f[k] for k in keep if k in f}, indent=1, default=str)
+    return json.dumps(_check_data(f), indent=1, default=str)
+
+
+def _check_data(f: dict) -> dict:
+    keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "school", "planets",
+            "themes", "fires", "derivation")
+    return {k: f[k] for k in keep if k in f}
+
+
+def _summary_checks(summary: str, finding_data: dict[str, dict]) -> list[tuple[str, list[str], str]]:
+    """(sentence, finding ids, data) for each summary sentence that cites a tag: the data is
+    the union of the derivations of every finding offering one of its tags."""
+    out = []
+    for s in sentences(summary):
+        tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
+        if not tags:
+            continue
+        ids = [fid for fid, f in finding_data.items() if tags & set(f["allowed_tags"])]
+        data = {"findings": [_check_data(finding_data[i]) for i in ids]}
+        out.append((s, ids, json.dumps(data, indent=1, default=str)))
+    return out
 
 
 def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, checker: Checker | None = None,
@@ -573,19 +618,24 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             recording.append(entry)
         if errors:
             continue
-        # The semantic check (SPEC Layer 7 item 10): only after the validator passes, one call
-        # per claim with that claim and its finding's derivation alone.
-        for da in draft.areas:
-            for c in da.claims:
-                result = checker(c.text, _check_payload(finding_data[c.finding_id]))
-                if recording is not None:
-                    recording.append(dict(getattr(checker, "last_meta", None) or {"kind": "checker"},
-                                          attempt=attempts, finding_id=c.finding_id, sentence=c.text,
-                                          result=result.model_dump()))
-                for prop in result.propositions:
-                    if not prop.supported:
-                        errors.append(f"unsupported by the derivation of {c.finding_id}: {prop.text!r} "
-                                      f"({prop.evidence}) in {c.text!r}")
+        # The semantic check (SPEC Layer 7 item 10): after the validator passes, on every claim
+        # of every attempt (the checker is a sample, so a claim that passed before is checked
+        # again), each with its finding's derivation alone; and on every tagged summary
+        # sentence, against the union of the derivations of the findings it cites.
+        checks = [(s, ids, data, "summary") for s, ids, data in _summary_checks(draft.summary, finding_data)]
+        checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id)
+                   for da in draft.areas for c in da.claims]
+        for sentence, ids, data, label in checks:
+            result = checker(sentence, data)
+            if recording is not None:
+                recording.append(dict(getattr(checker, "last_meta", None) or {"kind": "checker"},
+                                      attempt=attempts, finding_id=label, findings=ids, sentence=sentence,
+                                      result=result.model_dump()))
+            where = (f"the derivations of {', '.join(ids)} (summary)" if label == "summary"
+                     else f"the derivation of {label}")
+            for prop in result.propositions:
+                if not prop.supported:
+                    errors.append(f"unsupported by {where}: {prop.text!r} ({prop.evidence}) in {sentence!r}")
         if not errors:
             break
     else:
