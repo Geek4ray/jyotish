@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -83,4 +83,8 @@ Transits (`transits.transit_timeline`: tagged rows and named windows over a date
 done. Layer 5 scoring (`scoring.py`, classical weights; rho table in
 `src/jyotish/data/family_rho.json`, made by `scripts/family_rho.py`) is done; its open readings
 are listed in `scoring.READINGS`. The tagged timeline and `TimingQuery` (`timing.py`) are
-done; their readings are in `timing.READINGS`. Next: Layer 6 (validation) and the synastry module.
+done; their readings are in `timing.READINGS` / `READINGS_V2`. Layer 7 narration
+(`narrate.py`: Anthropic API with structured output, model and settings in `narrate.CONFIG`,
+a code validator on every sentence) is done; the offline suite replays
+`tests/fixtures/narration_career.json`, and `JYOTISH_LIVE_NARRATION=1` runs the one live test.
+Next: Layer 6 (validation), the retrieval corpus for Layer 7, and the synastry module.

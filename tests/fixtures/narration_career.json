@@ -1,0 +1,32 @@
+{
+  "note": "Hand-authored, NOT recorded: no API credentials were available when this was written. It has the exact shape of narrate.ReadingDraft (the structured output the model returns). Re-record from the live model with: JYOTISH_LIVE_NARRATION=1 JYOTISH_RECORD_FIXTURE=1 .venv/bin/pytest tests/test_narrate_live.py",
+  "question": "How will my career go, and when is the best time for a job change?",
+  "drafts": [
+    {
+      "summary": "The Sun and Mercury together in the 10th house form both Budhaditya yoga and a kendra-trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Mars in its own sign in the 7th forms Ruchaka yoga, which Saturn's aspect and its Marana Karaka Sthana weaken [rule:yoga.ruchaka].",
+      "areas": [
+        {
+          "name": "career",
+          "claims": [
+            {
+              "finding_id": "yoga.kendra_trikona_raja@lagna",
+              "text": "The Sun, lord of the 4th, joins Mercury, lord of the 5th, in the 10th house: a kendra lord with a trikona lord, neither owning the 6th, 8th or 12th [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12] [text:BPHS/Santhanam-1984/34/15]."
+            },
+            {
+              "finding_id": "yoga.budhaditya@lagna",
+              "text": "The Sun and Mercury share Aquarius, the 10th house, which forms Budhaditya yoga, with Mercury at 0°22' in Bala avastha [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@lagna",
+              "text": "Mars in its own sign Scorpio, a kendra from the lagna, forms Ruchaka yoga, scaled down by Saturn's aspect, the Pratyak tara and Marana Karaka Sthana [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@sun",
+              "text": "Counted from the Sun, Mars sits in the 10th house, so Ruchaka yoga also forms from the Sun [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
