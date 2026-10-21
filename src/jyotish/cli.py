@@ -325,10 +325,16 @@ def _read_command(args) -> str:
 
 
 def _assess(args):
-    from .uncertainty import assess
+    """The assessed chart, from the cache when this birth data, these conventions and this
+    seed have been run before (jyotish.cache)."""
+    import sys
+    from .cache import cached_assess
     utc, tz = _birth_utc(args.date, args.time, args.tz)
-    return assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz, true_node=args.node == "true",
-                  seed=args.seed)
+    chart, source = cached_assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz,
+                                  true_node=args.node == "true", seed=args.seed)
+    print(f"chart: {source}" + (" (cached run of the 200-sample assess)" if source != "computed" else ""),
+          file=sys.stderr)
+    return chart
 
 
 def _birth_flags(p) -> None:

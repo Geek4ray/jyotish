@@ -91,7 +91,10 @@ a code validator on every sentence) is done, with the semantic checker after the
 fires on the same planets from several bases are one finding (`yoga.ruchaka@lagna+sun`). Its
 non-lagna bases are marked `sudarshana` and cited to the rule only. `jyotish read` (birth data
 and a question) writes the reading JSON and the Markdown page; `--model-fixture` replays a
-recording offline, and sentences with no recorded checker verdict are counted as unchecked. The offline suite replays the frozen first recording
+recording offline, and sentences with no recorded checker verdict are counted as unchecked. The checker
+calls of an attempt run concurrently (`CONFIG.checker_concurrency`, async SDK); `jyotish.cache`
+keeps assessed charts by birth data, conventions, seed and an engine hash (JYOTISH_CACHE_DIR;
+the suite points it at a temp dir). `scripts/time_reading.py` times a live reading. The offline suite replays the frozen first recording
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.

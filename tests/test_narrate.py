@@ -361,10 +361,14 @@ def test_recorder_saves_call_metadata(chart):
         return SimpleNamespace(parsed_output=out, stop_reason="end_turn", content=[], _request_id=rid,
                                model=kw["model"], usage=Usage(100, 20))
 
+    async def aparse(**kw):
+        return parse(**kw)
+
     client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(parse=parse)))
+    aclient = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(parse=aparse)))
     rec = []
     r = narrate(chart, QUESTION, drafter=AnthropicDrafter(CONFIG, client=client),
-                checker=AnthropicChecker(CONFIG, client=client), as_of=AS_OF, recording=rec)
+                checker=AnthropicChecker(CONFIG, client=client, async_client=aclient), as_of=AS_OF, recording=rec)
     assert r.attempts == 2
     writers = [e for e in rec if e["kind"] == "writer"]
     checks = [e for e in rec if e["kind"] == "checker"]
@@ -377,6 +381,7 @@ def test_recorder_saves_call_metadata(chart):
         assert e["model"] == CONFIG.model
         assert e["effort"] == (CONFIG.effort if e["kind"] == "writer" else CONFIG.checker_effort)
         assert e["usage"] == {"input_tokens": 100, "output_tokens": 20} and e["timestamp"].endswith("+00:00")
+        assert e["seconds"] >= 0
 
 
 # --- SPEC Layer 7 items 8 and 10, as revised after the first checked run ---------------
@@ -470,3 +475,68 @@ def test_windows_only_for_areas_the_question_names(chart):
     r = narrate(chart, QUESTION, drafter=Replay([blank]), checker=StubChecker(), as_of=AS_OF,
                 areas=["career", "health", "marriage"])
     assert {a.name: bool(a.windows) for a in r.areas} == {"career": True, "health": False, "marriage": False}
+
+
+# --- speed (SPEC Phase 4, item 3): the checks of an attempt run concurrently -------------
+
+def _slow_async_client(delay, log):
+    """A fake async SDK client: each parse takes `delay` seconds and logs how many are in flight."""
+    import asyncio
+    from types import SimpleNamespace
+    from jyotish.narrate import CheckResult, Proposition
+    state = {"now": 0}
+
+    async def parse(**kw):
+        state["now"] += 1
+        log.append(state["now"])
+        await asyncio.sleep(delay)
+        state["now"] -= 1
+        text = kw["messages"][0]["content"].split("\n")[1]
+        return SimpleNamespace(parsed_output=CheckResult(propositions=[Proposition(text=text, supported=True,
+                                                                                   evidence="fake")]),
+                               stop_reason="end_turn", _request_id="req", model=kw["model"], usage=None)
+    return SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(parse=parse)))
+
+
+def test_checker_calls_run_concurrently_in_order():
+    import time
+    from dataclasses import replace
+    from types import SimpleNamespace
+    from jyotish.narrate import AnthropicChecker
+    items = [(f"sentence {i}", "{}") for i in range(12)]
+    log = []
+    checker = AnthropicChecker(CONFIG, client=SimpleNamespace(), async_client=_slow_async_client(0.2, log))
+    t = time.perf_counter()
+    out = checker.check_many(items)
+    took = time.perf_counter() - t
+    assert took < 0.2 * 3                                     # 12 calls of 0.2 s, about one call's time
+    assert [r.propositions[0].text for r, _ in out] == [s for s, _ in items]   # results in the order asked
+    assert max(log) == 12 and all(m["seconds"] >= 0.2 for _, m in out)
+    # The limit holds: no more than checker_concurrency in flight.
+    log.clear()
+    limited = AnthropicChecker(replace(CONFIG, checker_concurrency=4), client=SimpleNamespace(),
+                               async_client=_slow_async_client(0.05, log))
+    limited.check_many(items)
+    assert max(log) == 4
+
+
+def test_checker_concurrency_one_is_sequential_and_works_inside_a_running_loop():
+    import asyncio
+    from dataclasses import replace
+    from types import SimpleNamespace
+    from jyotish.narrate import AnthropicChecker, CheckResult, Proposition
+    calls = []
+
+    def parse(**kw):
+        calls.append(kw["output_config"]["effort"])
+        return SimpleNamespace(parsed_output=CheckResult(propositions=[]), stop_reason="end_turn",
+                               _request_id="r", model=kw["model"], usage=None)
+    seq = AnthropicChecker(replace(CONFIG, checker_concurrency=1),
+                           client=SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(parse=parse))))
+    assert len(seq.check_many([("a", "{}"), ("b", "{}")])) == 2 and calls == [CONFIG.checker_effort] * 2
+
+    async def inside():                                       # e.g. a web server's event loop
+        log = []
+        c = AnthropicChecker(CONFIG, client=SimpleNamespace(), async_client=_slow_async_client(0.01, log))
+        return c.check_many([("a", "{}"), ("b", "{}")])
+    assert len(asyncio.run(inside())) == 2

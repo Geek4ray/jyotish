@@ -55,6 +55,7 @@ class NarrationConfig:
     fallbacks: str = "default"                # server-side refusal fallback, routed by category
     betas: tuple[str, ...] = ("server-side-fallback-2026-07-01",)
     max_attempts: int = 3                     # draft + regenerations on validator failure
+    checker_concurrency: int = 16             # checker calls of one attempt in flight at once; 1 = one after another
     timing_years: int = 10                    # window for a "when" question with no dates
 
 
@@ -481,14 +482,18 @@ Generic framing ("for career", "the vote is against") is supported when the data
 area says so. Ignore the bracketed citation tags."""
 
 
-def _meta(response, kind: str, effort: str) -> dict:
+def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
+    import time
     from datetime import datetime, timezone
     usage = getattr(response, "usage", None)
-    return {"kind": kind, "request_id": getattr(response, "_request_id", None),
-            "model": getattr(response, "model", None), "effort": effort,
-            "usage": usage.model_dump() if hasattr(usage, "model_dump") else usage,
-            "stop_reason": getattr(response, "stop_reason", None),
-            "timestamp": datetime.now(timezone.utc).isoformat()}
+    out = {"kind": kind, "request_id": getattr(response, "_request_id", None),
+           "model": getattr(response, "model", None), "effort": effort,
+           "usage": usage.model_dump() if hasattr(usage, "model_dump") else usage,
+           "stop_reason": getattr(response, "stop_reason", None),
+           "timestamp": datetime.now(timezone.utc).isoformat()}
+    if started is not None:
+        out["seconds"] = round(time.perf_counter() - started, 3)
+    return out
 
 
 class AnthropicDrafter:
@@ -509,12 +514,14 @@ class AnthropicDrafter:
             self.messages.append({"role": "user", "content":
                                   "The draft was rejected. Fix every one of these and return the whole draft again:\n- "
                                   + "\n- ".join(errors)})
+        import time
         cfg = self.config
+        started = time.perf_counter()
         response = self.client.beta.messages.parse(
             model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
             output_config={"effort": cfg.effort}, system=system, messages=self.messages,
             output_format=ReadingDraft)
-        self.last_meta = _meta(response, "writer", cfg.effort)
+        self.last_meta = _meta(response, "writer", cfg.effort, started)
         if response.stop_reason == "refusal":
             raise NarrationError("the model declined the request", [str(getattr(response, "stop_details", ""))])
         self.messages.append({"role": "assistant", "content": response.content})
@@ -526,25 +533,70 @@ class AnthropicDrafter:
 class AnthropicChecker:
     """The semantic checker (SPEC Layer 7 item 10): one structured call per sentence with only
     the sentence and the derivation it may draw on (a claim's finding; for a summary sentence,
-    the findings it cites). Same model and config block as the writer, at `checker_effort`."""
+    the findings it cites). Same model and config block as the writer, at `checker_effort`.
 
-    def __init__(self, config: NarrationConfig = CONFIG, client=None):
+    The calls of one attempt are independent, so `check_many` sends them concurrently through
+    the async client (`CONFIG.checker_concurrency` in flight at once; 1 sends them one after
+    another), and returns the results in the order asked."""
+
+    def __init__(self, config: NarrationConfig = CONFIG, client=None, async_client=None):
         import anthropic
         self.config = config
         self.client = client or anthropic.Anthropic()
+        self._async_client = async_client
         self.last_meta: dict | None = None
 
-    def __call__(self, sentence: str, derivation: str) -> CheckResult:
+    def _kwargs(self, sentence: str, derivation: str) -> dict:
         cfg = self.config
-        response = self.client.beta.messages.parse(
-            model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
-            output_config={"effort": cfg.checker_effort}, system=CHECKER_PROMPT,
-            messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
-            output_format=CheckResult)
-        self.last_meta = _meta(response, "checker", cfg.checker_effort)
+        return dict(model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
+                    output_config={"effort": cfg.checker_effort}, system=CHECKER_PROMPT,
+                    messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
+                    output_format=CheckResult)
+
+    def _result(self, response, started: float) -> tuple[CheckResult, dict]:
+        meta = _meta(response, "checker", self.config.checker_effort, started)
         if response.stop_reason == "refusal" or response.parsed_output is None:
             raise NarrationError("the checker returned no result", [response.stop_reason or ""])
-        return response.parsed_output
+        return response.parsed_output, meta
+
+    def __call__(self, sentence: str, derivation: str) -> CheckResult:
+        import time
+        started = time.perf_counter()
+        result, self.last_meta = self._result(self.client.beta.messages.parse(**self._kwargs(sentence, derivation)),
+                                              started)
+        return result
+
+    def check_many(self, items: list[tuple[str, str]]) -> list[tuple[CheckResult, dict]]:
+        if self.config.checker_concurrency <= 1:
+            return [(self(s, d), self.last_meta) for s, d in items]
+        return _run_async(self._gather(items))
+
+    async def _gather(self, items):
+        import asyncio
+        import time
+        import anthropic
+        client = self._async_client or anthropic.AsyncAnthropic()
+        gate = asyncio.Semaphore(self.config.checker_concurrency)
+
+        async def one(sentence, derivation):
+            async with gate:
+                started = time.perf_counter()
+                response = await client.beta.messages.parse(**self._kwargs(sentence, derivation))
+                return self._result(response, started)
+        return await asyncio.gather(*(one(s, d) for s, d in items))
+
+
+def _run_async(coro):
+    """Run a coroutine to completion from sync code, also when the caller is itself inside a
+    running event loop (a web server's worker): then it runs on a thread of its own."""
+    import asyncio
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
 
 
 def chart_header(chart: Chart) -> dict[str, Any]:
@@ -723,10 +775,16 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         checks = [(s, ids, data, "summary") for s, ids, data in _summary_checks(draft.summary, finding_data)]
         checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id)
                    for da in draft.areas for c in da.claims]
-        for sentence, ids, data, label in checks:
-            result = checker(sentence, data)
+        # The checks of one attempt are independent: a checker with `check_many` runs them
+        # concurrently (AnthropicChecker); any other checker is called one by one.
+        if hasattr(checker, "check_many"):
+            outcomes = checker.check_many([(sentence, data) for sentence, _, data, _ in checks])
+        else:
+            outcomes = [(checker(sentence, data), getattr(checker, "last_meta", None))
+                        for sentence, _, data, _ in checks]
+        for (sentence, ids, data, label), (result, meta) in zip(checks, outcomes):
             if recording is not None:
-                recording.append(dict(getattr(checker, "last_meta", None) or {"kind": "checker"},
+                recording.append(dict(meta or {"kind": "checker"},
                                       attempt=attempts, finding_id=label, findings=ids, sentence=sentence,
                                       result=result.model_dump()))
             where = (f"the derivations of {', '.join(ids)} (summary)" if label == "summary"
