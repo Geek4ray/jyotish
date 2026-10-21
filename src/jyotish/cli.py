@@ -52,6 +52,8 @@ def print_chart(chart: Chart) -> None:
     print_ashtakavarga(chart)
     print_shadbala(chart)
     print_fired_rules(chart)
+    if chart.meta.jd is not None:
+        print_current_transits(chart)
     if chart.panchanga:
         print("\nPanchanga:", chart.panchanga.model_dump())
     if chart.dashas:
@@ -145,6 +147,33 @@ def print_fired_rules(chart: Chart) -> None:
         extra = {k: v for k, v in f.details.items() if k != "relations"}
         if extra or f.details.get("relations"):
             print(f"      {', '.join(f.details.get('relations', []))} {extra if extra else ''}".rstrip())
+
+
+def print_current_transits(chart: Chart, now_jd: float | None = None) -> None:
+    """Transit rows and named windows in force now (or at `now_jd`), from a timeline
+    spanning ten years either side so that long windows are seen whole."""
+    from datetime import datetime, timezone
+    from .transits import transit_timeline
+    if now_jd is None:
+        u = datetime.now(timezone.utc)
+        import swisseph as swe
+        now_jd = swe.julday(u.year, u.month, u.day, u.hour + u.minute / 60)
+    tl = transit_timeline(chart, now_jd - 3652.5, now_jd + 3652.5)
+    print(f"\nTransits on {_date(now_jd)} (from the Moon's sign; Phaladeepika 26)")
+    for r in tl.rows:
+        if r.start_jd <= now_jd < r.end_jd:
+            v = [x.by for x in r.vedha if x.start_jd <= now_jd < x.end_jd]
+            k = next((x for x in r.kakshya if x.start_jd <= now_jd < x.end_jd), None)
+            print(f"  {r.body:8} {r.sign_name:12} {_date(r.start_jd)} – {_date(r.end_jd)}  "
+                  f"H(lagna/moon/sun) {r.houses['lagna']}/{r.houses['moon']}/{r.houses['sun']}  "
+                  f"BAV {r.bav if r.bav is not None else '-'} SAV {r.sav}  "
+                  f"{'good' if r.gochara_good else 'not good'}"
+                  f"{' (vedha: ' + ', '.join(v) + ')' if v else ''}"
+                  f"  kakshya {k.lord if k else '-'}  murthi {r.murthi or '-'}")
+    active = tl.active(now_jd)
+    print("  Windows now:", "none" if not active else "")
+    for w in active:
+        print(f"    {w.kind:18} {_date(w.start_jd)} – {_date(w.end_jd)}  {' '.join(w.tags[1:])}")
 
 
 def main(argv: list[str] | None = None) -> None:

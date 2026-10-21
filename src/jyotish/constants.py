@@ -353,3 +353,42 @@ CHARA_CO_LORD = {7: "Ketu", 10: "Rahu"}
 # following Mantreswara): Rahu in Gemini, Ketu in Sagittarius, debilitated opposite. The
 # other variants' sources are silent on the nodes, so they get no exaltation adjustment.
 RATH_NODE_EXALTATION = {"Rahu": 2, "Ketu": 8}
+
+# --- Transits (gochara) ----------------------------------------------------------------
+# Gochara is read from the natal Moon's sign (Phaladeepika 26.1, Sastri 1937). Good houses
+# and their Vedha places, Phaladeepika 26.3-8 as printed in that edition: a transit in a
+# good house is obstructed while another planet transits its Vedha place. The nodes are
+# "similar to the Sun" (26.2), so they take the Sun's places; the Vedha verses themselves
+# do not name them. All planets are good in the 11th (26.2).
+GOCHARA_VEDHA = {
+    "Sun": {11: 5, 3: 9, 10: 4, 6: 12},
+    "Moon": {7: 2, 1: 5, 6: 12, 11: 8, 10: 4, 3: 9},
+    "Mars": {3: 12, 11: 5, 6: 9},
+    "Mercury": {2: 5, 4: 3, 6: 9, 8: 1, 10: 8, 11: 12},
+    "Jupiter": {2: 12, 11: 8, 9: 10, 5: 4, 7: 3},
+    "Venus": {1: 8, 2: 7, 3: 1, 4: 10, 5: 9, 8: 5, 9: 11, 12: 6, 11: 3},
+    "Saturn": {3: 12, 11: 5, 6: 9},
+    "Rahu": {11: 5, 3: 9, 10: 4, 6: 12},
+    "Ketu": {11: 5, 3: 9, 10: 4, 6: 12},
+}
+# No Vedha between father and son: Saturn does not obstruct the Sun nor the Sun Saturn
+# (26.3, 26.5); likewise the Moon and Mercury (26.4, 26.6). Rahu and Ketu are exempted from
+# each other by the engine, not the text: every Vedha place in the Sun's table is the 7th
+# from its good house, so with the nodes always 7th apart each would obstruct the other
+# for ever.
+VEDHA_EXEMPT = [{"Sun", "Saturn"}, {"Moon", "Mercury"}, {"Rahu", "Ketu"}]
+# Vipareeta Vedha (a transit in a Vedha place relieved while a planet transits the good
+# house it belongs to) is the same table read backwards. It is not in Phaladeepika 26;
+# its source is unverified.
+
+# Murthi Nirnaya: the transiting Moon's house from the natal Moon when a slow planet enters
+# a sign grades that whole transit. Source unverified (not in Phaladeepika).
+MURTHI = {1: "gold", 6: "gold", 11: "gold", 2: "silver", 5: "silver", 9: "silver",
+          3: "copper", 7: "copper", 10: "copper", 4: "iron", 8: "iron", 12: "iron"}
+
+# Ashtakavarga grading of a transit by the bindus of the transiting planet's own BAV in
+# the sign (Phaladeepika 23.11, Sastri 1937): 1 loss, 2 expenditure, 3-4 fear, 5-8 rising
+# fortune. The verse's reading of 0 bindus concerns longevity, which the engine does not
+# time (SPEC scope), so 0 is reported only as "severe".
+def ashtakavarga_grade(bindus: int) -> str:
+    return "severe" if bindus <= 1 else "adverse" if bindus <= 4 else "favourable"

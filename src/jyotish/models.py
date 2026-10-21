@@ -242,6 +242,63 @@ class FiredRule(BaseModel):
     details: dict[str, Any] = Field(default_factory=dict)
 
 
+class KakshyaSpan(BaseModel):
+    lord: str
+    start_jd: float
+    end_jd: float
+    bindu: bool | None = None      # the lord's bindu in the transiting planet's BAV; None for nodes
+
+
+class VedhaSpan(BaseModel):
+    by: str
+    start_jd: float
+    end_jd: float
+
+
+class TransitRow(BaseModel):
+    """One body in one sign, ingress to egress (SPEC Layer 4 transit row). A row that
+    starts or ends at the edge of the requested range is clipped there and says so."""
+    kind: str = "transit"
+    body: str
+    sign: int
+    sign_name: str
+    start_jd: float
+    end_jd: float
+    entered: str | None            # "direct" | "retrograde"; None when clipped at range start
+    clipped_start: bool = False
+    clipped_end: bool = False
+    houses: dict[str, int]         # from lagna, moon, sun
+    bav: int | None                # transiting planet's own natal BAV in the sign; None for nodes
+    sav: int
+    grade: str | None              # Ashtakavarga grade from `bav` (Phaladeepika 23.11)
+    gochara_good: bool             # a good house from the Moon (Phaladeepika 26.2)
+    kakshya: list[KakshyaSpan]
+    vedha: list[VedhaSpan] = Field(default_factory=list)
+    vipareeta_vedha: list[VedhaSpan] = Field(default_factory=list)
+    murthi: str | None = None      # slow planets entering a sign
+    tags: list[str] = Field(default_factory=list)
+
+
+class TimelineWindow(BaseModel):
+    kind: str                      # sade_sati, kantaka_shani, ashtama_shani, jupiter_1_5_9_11, nodal_return, saturn_return
+    start_jd: float
+    end_jd: float
+    tags: list[str]
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
+class Timeline(BaseModel):
+    start_jd: float
+    end_jd: float
+    ayanamsa: str
+    node: str
+    rows: list[TransitRow]
+    windows: list[TimelineWindow]
+
+    def active(self, jd: float) -> list[TimelineWindow]:
+        return [w for w in self.windows if w.start_jd <= jd < w.end_jd]
+
+
 class Chart(BaseModel):
     meta: Meta
     birth: Birth
