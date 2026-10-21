@@ -81,7 +81,8 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 
 Transits (`transits.transit_timeline`: tagged rows and named windows over a date range) are
 done. Layer 5 scoring (`scoring.py`, classical weights; rho table in
-`src/jyotish/data/family_rho.json`, made by `scripts/family_rho.py`) is done; its open readings
+`src/jyotish/data/family_rho.json`, made by `scripts/family_rho.py`; one rho and one percentile table
+per (`Meta.varga_term`, `Meta.kp_vote`), v2/v2 by default, v1 kept) is done; its open readings
 are listed in `scoring.READINGS`. The tagged timeline and `TimingQuery` (`timing.py`) are
 done; their readings are in `timing.READINGS` / `READINGS_V2`. Layer 7 narration
 (`narrate.py`: Anthropic API with structured output, model and settings in `narrate.CONFIG`,

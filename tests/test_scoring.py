@@ -139,15 +139,15 @@ def test_percentiles_cached_beside_rho():
 
 
 def test_rho_table_cached_in_repo():
-    # One table per (varga_term, kp_vote): v1 keeps the original name, varga v2 (the default) has its own.
+    # One table per (varga_term, kp_vote): v1 keeps the original name, v2 (the default) has its own.
     from jyotish.scoring import table_path
-    for vt, kv in (("v1", "v1"), ("v2", "v1")):
+    for vt, kv in (("v1", "v1"), ("v2", "v1"), ("v2", "v2")):
         data = json.loads(table_path(RHO_FILE, vt, kv).read_text())
         assert data["n_charts"] == 10_000 and set(data["rho"]) == set(FAMILIES)
         assert family_rho(vt, kv) == data["rho"]
         assert all(-0.2 < r < 0.5 for r in data["rho"].values())
     assert table_path(RHO_FILE, "v1", "v1") == RHO_FILE
-    assert "varga_term v2, kp v1" in json.loads(table_path(RHO_FILE).read_text())["settings"]
+    assert "varga_term v2, kp_vote v2" in json.loads(table_path(RHO_FILE).read_text())["settings"]
     with pytest.raises(FileNotFoundError, match="varga_term=v1, kp_vote=v2"):
         family_rho("v1", "v2")
 
@@ -190,9 +190,12 @@ def test_stability_gates_narration_not_score():
     for n, a in c.scored.areas.items():
         assert a.score_classical == plain.areas[n].score_classical
     car = c.scored.areas["career"]
-    # The KP 10th-cusp sub-lord turns from Ketu (8th: against) to Venus within a minute, so
-    # career's tier holds in only part of the +-2 min samples.
-    assert 0.3 < car.stability.time < 0.9 and car.stability.label in ("sensitive", "unstable")
+    # Under KP v1 the 10th-cusp sub-lord turning from Ketu (8th: against) to Venus within a
+    # minute flipped career's tier in part of the samples (0.605). Under v2 both sub-lords'
+    # significations meet the matter and the denial houses at both levels, so the KP vote
+    # abstains either way and every family's vote, and the tier, hold in all samples.
+    assert car.stability.time == car.stability.ayanamsa == car.stability.house == 1.0
+    assert set(car.vote_stability.values()) == {1.0}
     for a in c.scored.areas.values():
         if a.stability is not None:
             assert a.narrate == (a.stability.time >= 0.5)
@@ -205,7 +208,7 @@ def test_unknown_time_is_cannot_be_assessed():
     assert shaky and all(a.tier == "cannot be assessed" and not a.narrate for a in shaky)
 
 
-# --- SPEC Layer 5 revision (2026-10-21): varga term v2 ---------------------
+# --- SPEC Layer 5 revision (2026-10-21): varga term v2 and KP vote v2 ---------------------
 
 @pytest.fixture(scope="module")
 def timed():
@@ -235,7 +238,7 @@ def test_varga_v2_is_the_vargas_own_dignity(timed):
     h = {(r["planet"], r["varga"]): r for r in sc.areas["health"].vote_details["varga"]}
     assert h[("Sun", "D30")]["score"] == -1.0 and h[("Sun", "D3")]["score"] == -1.0
     assert sc.areas["health"].votes["varga"] == -1
-    v1 = _rescored(timed, varga_term="v1")
+    v1 = _rescored(timed, varga_term="v1", kp_vote="v1")
     assert v1.areas["health"].votes["varga"] == 1 and v1.areas["career"].varga_consistency is None
     assert {(r["planet"], r["varga"]): r["score"] for r in v1.areas["career"].vote_details["varga"]}[
         ("Jupiter", "D10")] == -1
@@ -252,11 +255,63 @@ def test_varga_consistency_scales_the_varga_weight(timed):
     assert conf == pytest.approx(a.confidence) and total == pytest.approx(a.families_total_w)
 
 
-def test_reference_tiers_varga_v1_and_v2(timed):
+def test_kp_v2_career_abstains_at_both_levels(timed):
+    a = timed.scored.areas["career"]
+    assert a.votes["kp"] == 0
+    star, own = a.vote_details["kp"]
+    assert (star["cusp"], star["sub"], star["cusp_star"]) == (10, "Ketu", "Moon")
+    assert (star["matter_houses"], star["denial_houses"]) == ([2, 6, 10, 11], [1, 5, 9])
+    # Star-lord level: Ketu is in Purva Ashadha (Venus); Venus in the 11th owns 1 and 6.
+    assert (star["level"], star["planet"], star["occupies"], star["owns"]) == ("star lord", "Venus", 11, [1, 6])
+    assert (star["meets_matter"], star["meets_denial"], star["outcome"]) == ([6, 11], [1], "both")
+    # Own level: Ketu in the 8th owns nothing; through its sign lord Jupiter (1st; 8, 11).
+    assert (own["level"], own["planet"], own["occupies"], own["owns"]) == ("own", "Ketu", 8, [])
+    assert [(x["planet"], x["as"], x["occupies"], x["owns"]) for x in own["via"]] == [("Jupiter", "sign lord", 1, [8, 11])]
+    assert (own["significations"], own["outcome"]) == ([1, 8, 11], "both")
+    assert not star["decides"] and not own["decides"]
+    v1 = _rescored(timed, varga_term="v1", kp_vote="v1")
+    assert v1.areas["career"].votes["kp"] == -1
+
+
+def test_kp_v2_decides_at_the_star_lord_level_first(timed):
+    sc = timed.scored
+    # Health, 6th cusp: sub-lord Jupiter, star lord Moon in the 6th (disease): against, decided
+    # there although Jupiter itself signifies 1 and 11 (recovery).
+    star, own = sc.areas["health"].vote_details["kp"]
+    assert (star["planet"], star["outcome"], star["decides"]) == ("Moon", "against", True)
+    assert own["outcome"] == "both" and sc.areas["health"].votes["kp"] == -1
+    # Marriage, 7th cusp: sub-lord Mercury, star lord Mars in the 7th owning 7 and 12: for.
+    star, _ = sc.areas["marriage"].vote_details["kp"]
+    assert (star["planet"], star["meets_matter"], star["meets_denial"], star["decides"]) == ("Mars", [7], [], True)
+    assert sc.areas["marriage"].votes["kp"] == 1
+    # The KP areas are the SPEC's six: mother_home gains the 4th cusp, mind has no KP vote.
+    from jyotish.constants import KP_MATTER
+    assert {n for n, a in sc.areas.items() if a.votes.get("kp") is not None} == set(KP_MATTER)
+    assert sc.areas["mind"].votes["kp"] is None and sc.areas["mother_home"].votes["kp"] == -1
+
+
+def test_kp_v2_node_adds_conjoined_aspecting_and_sign_lord(timed):
+    from jyotish.scoring import _View, _significations
+    v = _View(timed)
+    houses, me, via = _significations(v, "Rahu")                       # Rahu in Gemini, the 2nd, alone
+    assert me == {"planet": "Rahu", "occupies": 2, "owns": []}
+    assert [(x["planet"], x["as"]) for x in via] == [("Mercury", "sign lord")]
+    asp = timed.model_copy(deep=True)
+    asp.meta = asp.meta.model_copy(update={"node_aspects": True})
+    _, _, via = _significations(_View(asp), "Rahu")                   # Mars in the 7th aspects the 2nd
+    assert [(x["planet"], x["as"]) for x in via] == [("Mars", "aspecting"), ("Mercury", "sign lord")]
+
+
+def test_reference_tiers_v1_and_v2(timed):
     v2 = {n: a.tier for n, a in timed.scored.areas.items()}
-    v1 = {n: a.tier for n, a in _rescored(timed, varga_term="v1").areas.items()}
+    v1 = {n: a.tier for n, a in _rescored(timed, varga_term="v1", kp_vote="v1").areas.items()}
     changed = {n: (v1[n], v2[n]) for n in v2 if v1[n] != v2[n]}
-    assert changed == {"health": ("strong", "moderate"), "debts_enemies": ("strong", "moderate"),
-                       "marriage": ("strong", "moderate")}
-    assert timed.scored.top == ["health", "career", "marriage"]
-    assert any("V v2" in r for r in timed.scored.readings)
+    assert changed == {"mother_home": ("moderate", "weak / mixed"), "health": ("strong", "weak / mixed"),
+                       "debts_enemies": ("strong", "moderate"), "marriage": ("strong", "moderate")}
+    assert timed.scored.top == ["career", "marriage", "longevity"]
+    # Career stays moderate, 0.0003 under the strong cut: the KP abstention counts in the
+    # applicable weight. With KP not applicable it would be strong (the printed-positions
+    # chart, which has no KP cusps, is).
+    car = timed.scored.areas["career"]
+    assert car.tier == "moderate" and 0.699 < car.confidence < 0.7
+    assert any("V v2" in r for r in timed.scored.readings) and any("KP v2" in r for r in timed.scored.readings)

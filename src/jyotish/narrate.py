@@ -372,7 +372,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     a = chart.scored.areas.get(area)
     if a is not None and a.score_classical is not None:
         from .scoring import family_weights
-        rho = family_rho(chart.meta.varga_term)
+        rho = family_rho(chart.meta.varga_term, chart.meta.kp_vote)
         weights = family_weights(a, rho)
         for family, vote in a.votes.items():
             if not vote:

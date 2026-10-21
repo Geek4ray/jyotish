@@ -33,8 +33,8 @@ jyotish.scoring.POPULATION_RUN = True   # votes and S only; the tables being mad
 DATA = Path(__file__).resolve().parents[1] / "src" / "jyotish" / "data"
 # The tables are per (varga_term, kp_vote): written for the Meta defaults.
 META = Meta()
-OUT = table_path(DATA / "family_rho.json", META.varga_term)
-PCT = table_path(DATA / "area_percentiles.json", META.varga_term)
+OUT = table_path(DATA / "family_rho.json", META.varga_term, META.kp_vote)
+PCT = table_path(DATA / "area_percentiles.json", META.varga_term, META.kp_vote)
 
 
 def main(n: int = 10_000, seed: int = 20261021) -> None:
@@ -73,7 +73,7 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
         "description": "Mean correlation of each Layer 5 signal family with the others "
                        "(scripts/family_rho.py). Confluence weights are 1 - rho.",
         "n_charts": n, "seed": seed, "rows": int(X.shape[0]),
-        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp v1); "
+        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp_vote {META.kp_vote}); "
                     "UTC 1900-2050, lat -60..60",
         "rho": rho, "pairwise": pair, "applicable_share": applicable,
     }, indent=2) + "\n")
@@ -81,7 +81,7 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
         "description": "Percentiles of each life area's S_area over the population run "
                        "(scripts/family_rho.py). Not emphasised: S below p40.",
         "n_charts": n, "seed": seed,
-        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp v1); "
+        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp_vote {META.kp_vote}); "
                     "UTC 1900-2050, lat -60..60",
         "percentiles": {a: {f"p{q}": float(np.percentile(v, q)) for q in (10, 25, 40, 50, 75, 90)}
                         for a, v in scores.items()},

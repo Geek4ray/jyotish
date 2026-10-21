@@ -1,9 +1,9 @@
 {
-  "note": "HAND-EDITED from tests/fixtures/narration_career_opus55_r1.json (recorded from claude-opus-5-5). Five edits. Two to pass SPEC Layer 7 items 10-11: the summary now cites every vote it names and no longer mentions timing or the engine; the KP claim no longer attaches the cusp's star (the Moon's) to the sub-lord Ketu. Two for item 8 and item 10's standalone rule: the two Ruchaka claims (lagna, Sun) are merged into the one finding yoga.ruchaka@lagna+sun, and the Raja yoga claim no longer opens \"The same conjunction\". One for varga term v2 (SPEC Layer 5 revision): the varga claim is rewritten to the v2 derivation (the varga's own dignity; the model's sentence said Jupiter and the Sun score poorly, true of v1's agreement score only). The other six claims are the model's, verbatim.",
+  "note": "HAND-EDITED from tests/fixtures/narration_career_opus55_r1.json (recorded from claude-opus-5-5). Six edits. Two to pass SPEC Layer 7 items 10-11: the summary now cites every vote it names and no longer mentions timing or the engine; the KP claim no longer attaches the cusp's star (the Moon's) to the sub-lord Ketu. Two for item 8 and item 10's standalone rule: the two Ruchaka claims (lagna, Sun) are merged into the one finding yoga.ruchaka@lagna+sun, and the Raja yoga claim no longer opens \"The same conjunction\". One for KP vote v2 (SPEC Layer 5 revision): the career KP vote now abstains (Ketu's significations meet the matter and denial houses at both levels), so it is no longer a finding; its claim and the summary's KP sentence are removed. One for varga term v2: the varga claim is rewritten to the v2 derivation (the varga's own dignity; the model's sentence said Jupiter and the Sun score poorly, true of v1's agreement score only). The other five claims are the model's, verbatim.",
   "question": "How will my career go, and when is the best time for a job change?",
   "drafts": [
     {
-      "summary": "Career is supported by a Sun-Mercury conjunction in the 10th house that links the 4th lord with the 2nd and 5th lord, forming a raja yoga oriented toward authority and reputation [rule:yoga.kendra_trikona_raja]. The house, lord, karaka, varga and panchanga votes lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote leans against it, because the sub-lord of the 10th cusp, Ketu, sits in the 8th house [vote:career.kp].",
+      "summary": "Career is supported by a Sun-Mercury conjunction in the 10th house that links the 4th lord with the 2nd and 5th lord, forming a raja yoga oriented toward authority and reputation [rule:yoga.kendra_trikona_raja]. The house, lord, karaka, varga and panchanga votes lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga].",
       "areas": [
         {
           "name": "career",
@@ -35,10 +35,6 @@
             {
               "finding_id": "vote:career.varga",
               "text": "The varga vote is for career in the D10: Mars is exalted in Capricorn and Saturn is in its own sign there, Venus, the Sun and Jupiter are in friendly signs, and Mercury and the Moon are neutral [vote:career.varga]."
-            },
-            {
-              "finding_id": "vote:career.kp",
-              "text": "The KP vote is against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns none of the career houses 10, 6, 2 or 11 [vote:career.kp]."
             },
             {
               "finding_id": "vote:career.panchanga",

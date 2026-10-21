@@ -29,6 +29,7 @@ class Meta(BaseModel):
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
     varga_term: str = "v2"                 # v2 (varga's own dignity; agreement as consistency, SPEC) | v1 (D1/varga agreement)
+    kp_vote: str = "v2"                    # v2 (KP matter/denial houses, four-fold significations, SPEC) | v1
     ekadhipatya_nodes: bool = False
     ekadhipatya_zero_exempt: bool = False
     # Shadbala conventions where texts differ (sources in constants.py, Shadbala section).

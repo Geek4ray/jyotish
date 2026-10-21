@@ -38,33 +38,34 @@ def test_birth_time_from_iana_name_or_offset():
 
 def test_reading_json_is_the_output_schema(page):
     reading, _ = page
-    assert [a.name for a in reading.areas] == ["career", "health", "marriage"]   # asked, then the top three
+    assert [a.name for a in reading.areas] == ["career", "marriage", "longevity"]   # asked, then the top three
     assert reading.narration_source.endswith("narration_career_edited.json")
     assert reading.summary.current_period == "Jupiter-Mercury" and reading.summary.time_window_min == 2
     assert all(a.probability is None and not a.calibrated for a in reading.areas)
-    assert sorted(reading.disclaimers) == ["health", "third_party"]
+    assert sorted(reading.disclaimers) == ["longevity", "third_party"]
     # The edited fixture has no checker calls: every sentence on the page is unchecked, and says so.
-    assert reading.unchecked_sentences == 3 + 9
+    assert reading.unchecked_sentences == 2 + 8
 
 
 def test_page_sections_in_order(page):
     _, md = page
-    heads = ["## Summary", "## Career", "## Health", "## Marriage", "## Depends on exact birth time",
+    heads = ["## Summary", "## Career", "## Marriage", "## Longevity", "## Depends on exact birth time",
              "## Learner: what each claim rests on", "## Disclaimers"]
     pos = [md.index(h) for h in heads]
     assert pos == sorted(pos)
-    assert "12 sentence(s) on this page have no recorded checker verdict" in md
-    for field in ("- Driver: Venus", "- Current period (Vimshottari): Jupiter-Mercury", "- Top areas: health, career, marriage",
+    assert "10 sentence(s) on this page have no recorded checker verdict" in md
+    for field in ("- Driver: Venus", "- Current period (Vimshottari): Jupiter-Mercury", "- Top areas: career, marriage, longevity",
                   "- Birth-time window: ±2 min", "- Fired rules stable / unstable under that window: 5 / 0",
                   "- Abstained areas: children, father, gains, synastry"):
         assert field in md
-    career = md[md.index("## Career"):md.index("## Health")]
-    assert "- Stability: time 0.60 · ayanamsa 0.67 · house 1.00 (sensitive)" in career
+    career = md[md.index("## Career"):md.index("## Marriage")]
+    assert "- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)" in career
     assert "- Polarity: intensity (house H10, lord Saturn, karaka Sun)" in career
-    assert "the KP family (kp) is against" in career
+    assert "School conflict" not in career                    # KP v2 abstains on career
+    assert "the Jaimini family (arudha) is against" in md[md.index("## Marriage"):md.index("## Longevity")]
     assert "| avoid | 2028-11-17 | 2029-08-08 |" in career and "strongest piece" in career
-    # Windows only for the area the question routes to: none for health or marriage.
-    others = md[md.index("## Health"):md.index("## Depends on exact birth time")]
+    # Windows only for the area the question routes to: none for marriage or longevity.
+    others = md[md.index("## Marriage"):md.index("## Depends on exact birth time")]
     assert "Windows" not in others and "| avoid |" not in others
 
 
@@ -96,12 +97,20 @@ def test_chart_header_reproduces_the_page(page, tmp_path):
 
 
 def test_sensitive_claims_are_marked_inline(page):
+    # Every career claim holds in all samples under v2 (no mark); a claim under 0.8 carries
+    # its number after its tags, in the claim list and in its learner entry.
+    from jyotish.page import render
+    from jyotish.uncertainty import assess
     reading, md = page
-    body = md.split("\n---\n")[0]
-    kp = next(x for x in body.splitlines() if x.startswith("9. The KP vote"))
-    assert kp.endswith("[^7]. *(time-stability 0.605, sensitive)*")
-    marked = [c for a in reading.areas for c in a.claims if c.stability is not None and c.stability < 0.8]
-    assert [c.finding_id for c in marked] == ["vote:career.kp"]
+    assert "*(time-stability" not in md
+    career = reading.areas[0]
+    claims = [c.model_copy(update={"stability": 0.605}) if c.finding_id == "vote:career.varga" else c
+              for c in career.claims]
+    shaky = reading.model_copy(update={"areas": [career.model_copy(update={"claims": claims})] + reading.areas[1:]})
+    chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    body = render(shaky, chart).split("\n---\n")[0]
+    varga = next(x for x in body.splitlines() if x.startswith("8. The varga vote"))
+    assert varga.endswith("]. *(time-stability 0.605, sensitive)*")
     assert body.count("*(time-stability") == 2                  # the claim list and its learner entry
 
 
@@ -112,9 +121,9 @@ def test_claims_in_engine_order_with_tags_as_footnotes(page):
     career = reading.areas[0]
     assert [c.finding_id for c in career.claims][:3] == ["yoga.kendra_trikona_raja@lagna", "yoga.budhaditya@lagna",
                                                           "yoga.ruchaka@lagna+sun"]
-    assert career.claims[-1].finding_id == "vote:career.kp"
+    assert career.claims[-1].finding_id == "vote:career.varga"
     first = md.index("1. The Sun and Mercury conjoined in the 10th join")
-    assert first < md.index("9. The KP vote is against career")
+    assert first < md.index("8. The varga vote is for career")
     tags = {t for a in reading.areas for c in a.claims for t in c.cites} | set(reading.summary.cites)
     assert {line.split("`")[1] for line in notes.strip().splitlines()} == tags
 
@@ -129,7 +138,7 @@ def test_learner_tables_come_from_the_engine(page):
     assert "| sun | Mars, H10 | 0.408 | 1 | rule | yes |" in ruchaka
     assert "Sudarshana: the fire from the Sun" in ruchaka
     assert "| sun | 10 | Scorpio | 7.37 | -0.04 | – |" in learner           # house vote, basis on the row
-    assert "| 10 | lagna | Moon | Ketu | 8 | – | 10, 6, 2, 11 |" in learner  # KP vote
+    assert "| Jupiter | D10 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |" in learner   # varga v2 row
     assert "Sudarshana" not in learner[:learner.index("`yoga.ruchaka@lagna+sun`")]
 
 

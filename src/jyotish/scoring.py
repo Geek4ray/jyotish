@@ -38,9 +38,8 @@ READINGS, which the scored block carries so a reading can always say what it ass
 
 Confluence. Each signal family votes +1 / 0 / -1 on the area (or is not applicable):
 D1 house (house term), D1 lord (lord and dispositor terms), karaka, varga, Jaimini arudha
-(natural benefics minus malefics in the area's padas), KP sub-lord (+1 if the cusp's
-sub-lord occupies or owns an area house, -1 if instead a 6/8/12 house the area does not
-include), panchanga. Dasha and transit activation are timing families and are not
+(natural benefics minus malefics in the area's padas), KP sub-lord (Meta.kp_vote, below),
+panchanga. Dasha and transit activation are timing families and are not
 applicable to the static score. Each family's vote is weighted 1 - rho, rho its mean
 correlation with the other families over 10,000 random charts (data/family_rho.json,
 made by scripts/family_rho.py). Direction = sign of S. Confidence = (weight agreeing -
@@ -67,8 +66,19 @@ construction). "v1", kept for comparison: Shadbala ratio x Vimsopaka x rules sha
 gives 0 to any planet with no rule fired. Dasha proximity is dropped (SPEC). Final sign
 dispositors are shown as alternates; the current Vimshottari lords are reported apart.
 
-The rho and percentile tables are measured per (varga_term, KP vote version): the v1 pair
-keeps family_rho.json / area_percentiles.json, other pairs add ".varga-<v>.kp-<v>".
+KP (Meta.kp_vote). v2, the default (SPEC revision 2026-10-21): the areas in
+constants.KP_MATTER have a cusp, matter houses M and denial houses N. The cusp's sub-lord
+signifies, in the KP four-fold order, the house its star lord occupies, the houses its star
+lord owns, the house it occupies, the houses it owns (whole-sign houses from the lagna); a
+node adds the occupation and ownership of the planets conjoined with it (and, with
+Meta.node_aspects, of the planets aspecting its sign), then of its sign lord. Decided at the
+star-lord level first: +1 when its significations meet M and not N, -1 when N and not M;
+if both or neither, the same test at the sub-lord's own level; else 0 (an abstention). v1,
+kept for comparison: +1 if the sub-lord occupies or owns an area house, -1 if instead a
+6/8/12 house the area does not include; cusps from the area table (mind reads the 4th).
+
+The rho and percentile tables are measured per (varga_term, kp_vote): the v1 pair keeps
+family_rho.json / area_percentiles.json, other pairs add ".varga-<v>.kp-<v>" to the name.
 
 Stability never enters S. uncertainty.assess fills each area's three stability numbers
 (the share of samples with the same tier) and `narrate` is false below 0.5 on time."""
@@ -80,7 +90,7 @@ import statistics
 from functools import lru_cache
 from pathlib import Path
 
-from .constants import EXALTATION, GRAHAS, SEVEN, SIGN_LORD, SIGNS
+from .constants import EXALTATION, GRAHAS, KP_MATTER, SEVEN, SIGN_LORD, SIGNS
 from .dignity import aspected_houses, house_of, natural_relation
 from .models import AreaScore, Chart, Driver, Scored
 from .shadbala import natural_benefics
@@ -105,6 +115,8 @@ READINGS_VARGA = {
 }
 READINGS_KP = {
     "v1": "KP v1: sub-lord occupies/owns an area house +1, else a 6/8/12 outside them -1",
+    "v2": "KP v2: KP matter/denial houses, four-fold significations, star-lord level then own level, else abstain; "
+          "whole-sign occupation and ownership",
 }
 READINGS = [
     "weights lord 3, occupant 2, karaka 2, rule 1, varga 1, navatara/dispositor/panchanga 0.5",
@@ -171,7 +183,7 @@ THEME_AREAS = {
 }
 
 
-def table_path(base: Path, varga_term: str = "v2", kp_vote: str = "v1") -> Path:
+def table_path(base: Path, varga_term: str = "v2", kp_vote: str = "v2") -> Path:
     """The population table for a (varga_term, kp_vote) pair: the v1 pair keeps the
     original file name; any other pair adds ".varga-<v>.kp-<v>"."""
     if (varga_term, kp_vote) == ("v1", "v1"):
@@ -197,13 +209,13 @@ def _table(base: Path, varga_term: str, kp_vote: str) -> dict:
 
 
 @lru_cache(maxsize=None)
-def family_rho(varga_term: str = "v2", kp_vote: str = "v1") -> dict[str, float]:
+def family_rho(varga_term: str = "v2", kp_vote: str = "v2") -> dict[str, float]:
     """Mean correlation of each family with the others, measured with these vote versions."""
     return _table(RHO_FILE, varga_term, kp_vote)["rho"]
 
 
 @lru_cache(maxsize=None)
-def area_thresholds(varga_term: str = "v2", kp_vote: str = "v1") -> dict[str, float]:
+def area_thresholds(varga_term: str = "v2", kp_vote: str = "v2") -> dict[str, float]:
     """Each area's 40th-percentile S over the population run, with these vote versions."""
     data = _table(PCT_FILE, varga_term, kp_vote)["percentiles"]
     return {a: v[EMPHASIS_PERCENTILE] for a, v in data.items()}
@@ -314,6 +326,56 @@ def _arudha_signs(v: _View, names: list[str]) -> list[int]:
     return out
 
 
+def _significations(v: _View, p: str) -> tuple[set[int], dict, list[dict]]:
+    """A planet's own occupation and ownership (whole-sign houses from the lagna); for a
+    node, plus those of the planets conjoined with it (and aspecting its sign, with
+    Meta.node_aspects) and then of its sign lord. Returns (houses, own, via)."""
+    def own(q):
+        return {"planet": q, "occupies": v.c.bodies[q].house, "owns": list(v.f.lordship.get(q, []))}
+    me = own(p)
+    houses = {me["occupies"], *me["owns"]}
+    via = []
+    if p in ("Rahu", "Ketu"):
+        conj = [q for q in SEVEN if v.sign[q] == v.sign[p]]
+        asp = ([q for q in SEVEN if q not in conj
+                and v.lagna_house(v.sign[p]) in aspected_houses(q, v.c.bodies[q].house)]
+               if v.c.meta.node_aspects else [])
+        for q, how in [(q, "conjoined") for q in conj] + [(q, "aspecting") for q in asp] + \
+                [(SIGN_LORD[v.sign[p]], "sign lord")]:
+            row = dict(own(q), **{"as": how})
+            via.append(row)
+            houses |= {row["occupies"], *row["owns"]}
+    return houses, me, via
+
+
+def _kp_level(v: _View, level: str, p: str, M: set[int], N: set[int]) -> dict:
+    sig, me, via = _significations(v, p)
+    m, n = sig & M, sig & N
+    vote = 1 if m and not n else -1 if n and not m else 0
+    return {"level": level, "planet": p, "occupies": me["occupies"], "owns": me["owns"], "via": via,
+            "significations": sorted(sig), "meets_matter": sorted(m), "meets_denial": sorted(n),
+            "outcome": {1: "for", -1: "against"}[vote] if vote else ("both" if m else "neither"), "vote": vote}
+
+
+def _kp_vote_v2(v: _View, area: str) -> tuple[int | None, list[dict]]:
+    """SPEC Layer 5, KP v2: decide at the sub-lord's star-lord level, then its own level,
+    else abstain (0). Every level is a derivation row."""
+    spec = KP_MATTER.get(area)
+    if spec is None:
+        return None, []
+    lords = v.c.lagnas.cusp_lords_kp.get(spec["cusp"])
+    if not lords:
+        return None, []
+    sub = lords["sub"]
+    M, N = set(spec["matter"]), set(spec["denial"])
+    levels = [_kp_level(v, "star lord", v.c.bodies[sub].nak_lord, M, N), _kp_level(v, "own", sub, M, N)]
+    decided = next((x for x in levels if x["vote"]), None)
+    rows = [{"cusp": spec["cusp"], "basis": "lagna", "cusp_star": lords["star"], "sub": sub,
+             "matter_houses": spec["matter"], "denial_houses": spec["denial"], **x,
+             "decides": x is decided} for x in levels]
+    return (decided["vote"] if decided else 0), rows
+
+
 def _kp_vote(v: _View, cusp: int, area_houses: list[int]) -> int | None:
     lords = v.c.lagnas.cusp_lords_kp.get(cusp)
     if not lords:
@@ -395,8 +457,13 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
         mks = sum(1 for b in v.c.bodies.values() if b.marana_karaka_sthana)
         arudha_vote = -1 if mks else 0
     details = _vote_details(v, spec, houses, karakas, lords_all, varga_rows, arudha_signs, occ, touching)
-    kp_votes = [x for x in (_kp_vote(v, c, spec["houses"]) for c in spec.get("kp", [])) if x is not None]
-    kp = _sgn(sum(kp_votes)) if kp_votes else None
+    if v.c.meta.kp_vote == "v2":
+        kp, details["kp"] = _kp_vote_v2(v, name)
+    elif v.c.meta.kp_vote == "v1":
+        kp_votes = [x for x in (_kp_vote(v, c, spec["houses"]) for c in spec.get("kp", [])) if x is not None]
+        kp = _sgn(sum(kp_votes)) if kp_votes else None
+    else:
+        raise ValueError(f"kp_vote must be v1 or v2, not {v.c.meta.kp_vote!r}")
     votes = {
         "house": _sgn(house_term), "lord": _sgn(lord_term + disp_term), "karaka": _sgn(karaka_term),
         "varga": _sgn(V), "arudha": arudha_vote,
@@ -599,7 +666,7 @@ def score(chart: Chart, rules=None) -> Scored | None:
     from .rules import default_rules
     rules = default_rules() if rules is None else rules
     v = _View(chart)
-    vt, kv = chart.meta.varga_term, "v1"
+    vt, kv = chart.meta.varga_term, chart.meta.kp_vote
     rho = family_rho(vt, kv)
     raw = {name: score_area(v, name, spec) for name, spec in AREAS.items()}
     rows = {}
