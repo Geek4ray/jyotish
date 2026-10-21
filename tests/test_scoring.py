@@ -78,9 +78,16 @@ def test_two_touch_rule(sc):
 
 def test_not_emphasised_is_reported_not_scored_low(chart, sc, capsys):
     from jyotish.cli import print_scored
+    # Below the area's 40th percentile over the population run: children, father, gains.
+    # (Under the old chart-median cut nine areas were hidden; the six that reappear
+    # are all weak / mixed.)
+    from jyotish.scoring import area_thresholds
     quiet = [n for n, a in sc.areas.items() if a.tier == "not emphasised"]
-    assert len(quiet) == 9                         # below the chart's median S x confidence
-    assert all(not sc.areas[n].emphasised for n in quiet)
+    assert quiet == ["children", "father", "gains"]
+    cut = area_thresholds()
+    assert all(sc.areas[n].score_classical < cut[n] and not sc.areas[n].emphasised for n in quiet)
+    for n in ("siblings", "intellect", "fortune", "spirituality", "mind", "reputation"):
+        assert sc.areas[n].tier == "weak / mixed"
     print_scored(chart)
     out = capsys.readouterr().out
     for n in quiet:
@@ -104,6 +111,14 @@ def test_confidence_and_tiers():
     assert (agree, total) == (2.0, 4.0) and conf == pytest.approx((2 - 1) / 4)
     assert tier(0.71) == "strong" and tier(0.7) == "moderate" and tier(0.4) == "moderate"
     assert tier(0.39) == "weak / mixed"
+
+
+def test_percentiles_cached_beside_rho():
+    from jyotish.scoring import PCT_FILE
+    data = json.loads(PCT_FILE.read_text())
+    assert data["n_charts"] == 10_000 and set(data["percentiles"]) == set(AREAS)
+    for row in data["percentiles"].values():
+        assert row["p10"] <= row["p25"] <= row["p40"] <= row["p50"] <= row["p75"] <= row["p90"]
 
 
 def test_rho_table_cached_in_repo():

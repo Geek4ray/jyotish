@@ -40,8 +40,10 @@ correlation with the other families over 10,000 random charts (data/family_rho.j
 made by scripts/family_rho.py). Direction = sign of S. Confidence = (weight agreeing -
 weight opposing) / weight applicable, floored at 0: opposing votes are the "penalty for
 strong contradiction". Tier: > 0.7 strong, 0.4-0.7 moderate, else weak / mixed.
-Areas whose S x confidence is below the chart's median are "not emphasised": reported as
-such, not as a low score.
+An area is "not emphasised" when its S is below the 40th percentile of that area's S over
+the 10,000-chart population run (data/area_percentiles.json, made by scripts/family_rho.py
+with the rho table), never below the chart's own median (SPEC Layer 5 revision). It is
+reported as such, not as a low score. Emphasised areas are ranked by S x confidence.
 
 Polarity: Saturn "delay" and Mars "intensity" need at least two touches (occupy, conjoin
 or aspect, whole-sign) among the area's first house, that house's lord and the area's
@@ -84,6 +86,8 @@ TARA_ADVERSE = {"Vipat", "Pratyak", "Vadha"}
 FAMILIES = ["house", "lord", "karaka", "varga", "arudha", "kp", "panchanga"]
 POLARITY = {"Saturn": "delay", "Mars": "intensity", "Rahu": "volatility", "Ketu": "detachment"}
 RHO_FILE = Path(__file__).with_name("data") / "family_rho.json"
+PCT_FILE = Path(__file__).with_name("data") / "area_percentiles.json"
+EMPHASIS_PERCENTILE = "p40"
 
 READINGS = [
     "weights lord 3, occupant 2, karaka 2, rule 1, varga 1, navatara/dispositor/panchanga 0.5",
@@ -93,7 +97,7 @@ READINGS = [
     "D_p: exalted +2, MT/own +1, friend +0.5, neutral 0, enemy -0.5, debilitated -2",
     "V: D1 vs varga dignity sign agreement, +1 vargottama in D9",
     "T_p: adverse tara -1, Janma 0, others +1, halved in cycles 2-3",
-    "confidence: (agree - oppose) / applicable, 1 - rho weights; not emphasised below median S x confidence",
+    "confidence: (agree - oppose) / applicable, 1 - rho weights; not emphasised: S below the area's population p40",
     "polarity: Saturn/Mars need 2 of first house, its lord, main karaka; Rahu/Ketu 1 (first house)",
     "driver v2: sum of min-max scaled Shadbala ratio, Vimsopaka, rules share, Sodhya Pinda rank, role share",
 ]
@@ -158,6 +162,13 @@ def family_rho() -> dict[str, float]:
     if RHO_FILE.exists():
         return json.loads(RHO_FILE.read_text())["rho"]
     return {f: 0.0 for f in FAMILIES}
+
+
+@lru_cache(maxsize=1)
+def area_thresholds() -> dict[str, float]:
+    """Each area's 40th-percentile S over the population run (data/area_percentiles.json)."""
+    data = json.loads(PCT_FILE.read_text())["percentiles"]
+    return {a: v[EMPHASIS_PERCENTILE] for a, v in data.items()}
 
 
 def _sgn(x: float, eps: float = 1e-9) -> int:
@@ -470,10 +481,10 @@ def score(chart: Chart, rules=None) -> Scored | None:
         conf, agree, total = confidence(r["S"], r["votes"], rho)
         rows[name] = (r, conf, agree, total)
     emphasis = {n: x[0]["S"] * x[1] for n, x in rows.items()}
-    cut = statistics.median(emphasis.values())
+    cut = area_thresholds()
     areas = {}
     for name, (r, conf, agree, total) in rows.items():
-        emphasised = emphasis[name] >= cut and emphasis[name] > 0
+        emphasised = r["S"] >= cut[name]
         areas[name] = AreaScore(
             score_classical=r["S"], score_learned=None,
             tier=tier(conf) if emphasised else "not emphasised", confidence=conf,

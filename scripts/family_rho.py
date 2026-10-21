@@ -1,5 +1,8 @@
-"""Measure each signal family's mean correlation with the other families (SPEC Layer 5,
-"weighted by 1 - rho") over random charts, and write src/jyotish/data/family_rho.json.
+"""Over a population of random charts, measure (1) each signal family's mean correlation
+with the other families (SPEC Layer 5, "weighted by 1 - rho"), written to
+src/jyotish/data/family_rho.json, and (2) each life area's distribution of S, written as
+percentiles to src/jyotish/data/area_percentiles.json (an area is "not emphasised" below
+its 40th percentile).
 
 Charts are real moments and places: UTC uniform over 1900-2050, latitude uniform in
 [-60, 60] (sunrise exists), longitude uniform in [-180, 180], Lahiri, true node, whole
@@ -23,7 +26,9 @@ import numpy as np
 from jyotish.chart import compute
 from jyotish.scoring import AREAS, FAMILIES
 
-OUT = Path(__file__).resolve().parents[1] / "src" / "jyotish" / "data" / "family_rho.json"
+DATA = Path(__file__).resolve().parents[1] / "src" / "jyotish" / "data"
+OUT = DATA / "family_rho.json"
+PCT = DATA / "area_percentiles.json"
 
 
 def main(n: int = 10_000, seed: int = 20261021) -> None:
@@ -31,11 +36,13 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
     start = datetime(1900, 1, 1, tzinfo=timezone.utc)
     span = (datetime(2050, 1, 1, tzinfo=timezone.utc) - start).total_seconds()
     rows = []
+    scores = {a: [] for a in AREAS}
     t0 = time.perf_counter()
     for i in range(n):
         utc = start + timedelta(seconds=float(rng.uniform(0, span)))
         chart = compute(utc, float(rng.uniform(-60, 60)), float(rng.uniform(-180, 180)))
         for area in AREAS:
+            scores[area].append(chart.scored.areas[area].score_classical)
             v = chart.scored.areas[area].votes
             rows.append([np.nan if v[f] is None else v[f] for f in FAMILIES])
         if (i + 1) % 1000 == 0:
@@ -62,6 +69,14 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
         "n_charts": n, "seed": seed, "rows": int(X.shape[0]),
         "settings": "Lahiri, true node, whole sign, default Meta; UTC 1900-2050, lat -60..60",
         "rho": rho, "pairwise": pair, "applicable_share": applicable,
+    }, indent=2) + "\n")
+    PCT.write_text(json.dumps({
+        "description": "Percentiles of each life area's S_area over the population run "
+                       "(scripts/family_rho.py). Not emphasised: S below p40.",
+        "n_charts": n, "seed": seed,
+        "settings": "Lahiri, true node, whole sign, default Meta; UTC 1900-2050, lat -60..60",
+        "percentiles": {a: {f"p{q}": float(np.percentile(v, q)) for q in (10, 25, 40, 50, 75, 90)}
+                        for a, v in scores.items()},
     }, indent=2) + "\n")
     print(json.dumps(rho, indent=2))
 
