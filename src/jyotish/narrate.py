@@ -91,6 +91,7 @@ class ReadingClaim(BaseModel):
     basis: str
     stability: float | None
     confidence: float                   # rule: scale x confidence_base; vote: min(1, 1 - rho) x |vote|
+    learner: dict[str, Any] | None = None   # the finding's derivation, by the engine (learner_data)
 
 
 class ReadingWindow(BaseModel):
@@ -682,6 +683,51 @@ def _window(w) -> ReadingWindow:
             "targets": d.get("targets")}])
 
 
+SUDARSHANA_NOTE = ("is the engine's Sudarshana reading (counting from that body as lagna). The texts define "
+                   "the yoga from the ascendant, so the text citations belong to the lagna fire and this one is "
+                   "cited to the rule only.")
+
+
+def learner_data(f: dict) -> dict[str, Any]:
+    """What a claim rests on, as data the page and the website render (never the model): for a
+    rule, the rule block, each modifier with where it applied, and each basis's fire with the
+    Sudarshana mark; for a vote, its direction, family, stability and derivation rows."""
+    if f["kind"] == "vote":
+        return {"kind": "vote", "family": f["family"], "school": f["school"], "vote": f["vote"],
+                "direction": f["direction"], "stability": f["stability"], "term": f["term"],
+                "derivation": f["derivation"]}
+    from .rules import bound_planets, modifier_text
+    rule = next(r for r in default_rules() if r.id == f["rule_id"])
+    bound = bound_planets(rule, f["fires"][0]["nodes"])            # the same planets in every fire
+    mods = []
+    for m in rule.data.get("modifiers", []):
+        text = modifier_text(m, bound)
+        mods.append({"modifier": text, "scale": m["scale"], "applied": {
+            x["basis"]: ("applied" if f"{text} -> x{m['scale']}" in x["modifiers_applied"]
+                         else "unknown" if text in x["modifiers_unknown"] else "not applied") for x in f["fires"]}})
+    return {"kind": "rule", "rule": {"id": rule.id, "school": rule.data["school"], "status": rule.data["status"],
+                                     "confidence_base": rule.data.get("confidence_base", 0.5),
+                                     "when": rule.data["when"]},
+            "modifiers": mods,
+            "fires": [{"basis": x["basis"], "nodes": x["nodes"], "scale": x["scale"], "stability": x["stability"],
+                       "cited_to": x["cited_to"], "sudarshana": x["sudarshana"]} for x in f["fires"]],
+            "sudarshana_bases": f.get("sudarshana_bases", [])}
+
+
+def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
+    """A reading JSON brought up to the current schema from its own chart: the engine-derived
+    fields a reading written before them lacks (each claim's learner block, the timing line).
+    The model's text is not touched."""
+    by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name)[0]}
+    areas = [a.model_copy(update={"claims": [c if c.learner else c.model_copy(update={"learner": learner_data(by_id[c.finding_id])})
+                                             for c in a.claims]}) for a in reading.areas]
+    summary = reading.summary
+    if summary.timing_line is None:
+        lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading.areas if a.windows]
+        summary = summary.model_copy(update={"timing_line": " ".join(x for x in lines if x) or None})
+    return reading.model_copy(update={"areas": areas, "summary": summary})
+
+
 def _vim_lords(w: ReadingWindow) -> str:
     lords = next((x["lords"] for x in w.why if x.get("kind") == "dasha" and x.get("system") == "vimshottari"), [])
     return "–".join(lords) or "no Vimshottari lords"
@@ -825,7 +871,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             f = by_finding[c.finding_id]
             claims.append(ReadingClaim(finding_id=c.finding_id, text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
                                        kind=f["kind"], school=f["school"], basis=f["basis"],
-                                       stability=f["stability"], confidence=f["confidence"]))
+                                       stability=f["stability"], confidence=f["confidence"],
+                                       learner=learner_data(f)))
         # SPEC Layer 7 item 4: two groups, rule fires first, then votes, each by stability x the
         # claim's own confidence. The two confidences are on different scales (a rule's is
         # capped at 0.7, a vote's is near 1), so they are never ranked against each other.

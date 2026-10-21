@@ -14,8 +14,8 @@ import json
 from typing import Any
 
 from .models import Chart
-from .narrate import DISCLAIMERS, TAG, Reading, ReadingWindow, findings, timing_line
-from .rules import bound_planets, default_rules, modifier_text
+from .narrate import DISCLAIMERS, SUDARSHANA_NOTE, TAG, Reading, ReadingWindow, findings, learner_data, timing_line
+from .rules import default_rules
 from .uncertainty import label
 
 SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where it is read
@@ -130,30 +130,20 @@ def _window_rows(ws: list[ReadingWindow], avoid: ReadingWindow | None) -> list[s
     return _table(rows)
 
 
-def _rule_learner(f: dict) -> list[str]:
-    rule = next(r for r in default_rules() if r.id == f["rule_id"])
-    out = [f"Rule block (`{rule.id}`, school {rule.data['school']}, status {rule.data['status']}, "
-           f"confidence base {rule.data.get('confidence_base', 0.5)}):", ""]
-    out += _table([{"condition": k, "value": json.dumps(v, default=str)} for k, v in rule.data["when"].items()])
+def _rule_learner(d: dict) -> list[str]:
+    r = d["rule"]
+    out = [f"Rule block (`{r['id']}`, school {r['school']}, status {r['status']}, "
+           f"confidence base {r['confidence_base']}):", ""]
+    out += _table([{"condition": k, "value": json.dumps(v, default=str)} for k, v in r["when"].items()])
     out += ["", "Modifiers, and where each applied:", ""]
-    mods = []
-    bound = bound_planets(rule, f["fires"][0]["nodes"])          # the same planets in every fire
-    for m in rule.data.get("modifiers", []):
-        text = modifier_text(m, bound)
-        row = {"modifier": text, "scale": f"×{m['scale']}"}
-        for fire in f["fires"]:
-            row[f"from {fire['basis']}"] = ("applied" if f"{text} -> x{m['scale']}" in fire["modifiers_applied"]
-                                            else "unknown" if text in fire["modifiers_unknown"] else "not applied")
-        mods.append(row)
-    out += _table(mods)
+    out += _table([{"modifier": m["modifier"], "scale": f"×{m['scale']}",
+                    **{f"from {b}": v for b, v in m["applied"].items()}} for m in d["modifiers"]])
     out += ["", "Fires:", ""]
     out += _table([{"basis": x["basis"], "nodes": x["nodes"], "scale": x["scale"], "stability": x["stability"],
-                    "cited to": x["cited_to"], "sudarshana": x["sudarshana"]} for x in f["fires"]])
-    if f.get("sudarshana_bases"):
-        out += ["", f"Sudarshana: the fire from the {' and the '.join(b.capitalize() for b in f['sudarshana_bases'])} "
-                    "is the engine's Sudarshana reading (counting from that body as lagna). The texts define the yoga "
-                    "from the ascendant, so the text citations belong to the lagna fire and this one is cited to the "
-                    "rule only."]
+                    "cited to": x["cited_to"], "sudarshana": x["sudarshana"]} for x in d["fires"]])
+    if d.get("sudarshana_bases"):
+        out += ["", f"Sudarshana: the fire from the {' and the '.join(b.capitalize() for b in d['sudarshana_bases'])} "
+                + SUDARSHANA_NOTE]
     return out
 
 
@@ -178,10 +168,10 @@ def derivation_table(d: Any) -> list[str]:
     raise TypeError(f"unknown derivation shape: {type(d).__name__}")
 
 
-def _vote_learner(f: dict) -> list[str]:
-    out = [f"Vote {f['direction']} ({f['vote']:+d}), family {_family(f['family'])}, school {f['school']}, "
-           f"stability {_cell(f['stability'])}, term {_cell(f['term'])}. Derivation:", ""]
-    return out + derivation_table(f["derivation"])
+def _vote_learner(d: dict) -> list[str]:
+    out = [f"Vote {d['direction']} ({d['vote']:+d}), family {_family(d['family'])}, school {d['school']}, "
+           f"stability {_cell(d['stability'])}, term {_cell(d['term'])}. Derivation:", ""]
+    return out + derivation_table(d["derivation"])
 
 
 def render(reading: Reading, chart: Chart) -> str:
@@ -253,7 +243,8 @@ def render(reading: Reading, chart: Chart) -> str:
     L += ["## Learner: what each claim rests on", ""]
     for i, (area, c, f) in enumerate(learner, 1):
         L += [f"### {area}.{i}: `{c.finding_id}`", "", _claim(notes, c), ""]
-        L += (_rule_learner(f) if f["kind"] == "rule" else _vote_learner(f)) + [""]
+        d = c.learner or learner_data(f)                 # the JSON's block, or the engine's for an older reading
+        L += (_rule_learner(d) if d["kind"] == "rule" else _vote_learner(d)) + [""]
 
     if reading.disclaimers:
         L += ["## Disclaimers", ""] + [f"- {DISCLAIMERS[k]}" for k in reading.disclaimers] + [""]

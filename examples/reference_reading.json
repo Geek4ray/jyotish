@@ -95,7 +95,8 @@
    "father",
    "gains",
    "synastry"
-  ]
+  ],
+  "timing_line": "Best window for career by the engine's timing score: 2029-10-23 to 2032-06-23 (Vimshottari Jupiter–Venus, score 0.84), strongest from 2030-05-01 to 2030-09-22 (score 0.89). Window to avoid: 2028-11-17 to 2029-08-08 (Vimshottari Jupiter–Ketu, score 0.47)."
  },
  "areas": [
   {
@@ -137,7 +138,73 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.6
+     "confidence": 0.6,
+     "learner": {
+      "kind": "rule",
+      "rule": {
+       "id": "yoga.kendra_trikona_raja",
+       "school": "parashari",
+       "status": "classical_unconfirmed",
+       "confidence_base": 0.6,
+       "when": {
+        "pair": {
+         "a": {
+          "lord_of": [
+           1,
+           4,
+           7,
+           10
+          ],
+          "not": {
+           "lord_of": [
+            6,
+            8,
+            12
+           ]
+          }
+         },
+         "b": {
+          "lord_of": [
+           1,
+           5,
+           9
+          ],
+          "not": {
+           "lord_of": [
+            6,
+            8,
+            12
+           ]
+          }
+         },
+         "related_by": [
+          "conjunction",
+          "mutual_aspect",
+          "exchange"
+         ]
+        },
+        "basis": [
+         "lagna"
+        ]
+       }
+      },
+      "modifiers": [],
+      "fires": [
+       {
+        "basis": "lagna",
+        "nodes": [
+         "Sun",
+         "Mercury",
+         "H10"
+        ],
+        "scale": 1.0,
+        "stability": 1.0,
+        "cited_to": "rule and text",
+        "sudarshana": false
+       }
+      ],
+      "sudarshana_bases": []
+     }
     },
     {
      "finding_id": "yoga.budhaditya@lagna",
@@ -150,7 +217,63 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.54
+     "confidence": 0.54,
+     "learner": {
+      "kind": "rule",
+      "rule": {
+       "id": "yoga.budhaditya",
+       "school": "parashari",
+       "status": "classical_unconfirmed",
+       "confidence_base": 0.6,
+       "when": {
+        "pair": {
+         "a": {
+          "planet": "Sun"
+         },
+         "b": {
+          "planet": "Mercury"
+         },
+         "related_by": [
+          "conjunction"
+         ]
+        },
+        "basis": [
+         "lagna"
+        ]
+       }
+      },
+      "modifiers": [
+       {
+        "modifier": "combust (Mercury)",
+        "scale": 0.5,
+        "applied": {
+         "lagna": "not applied"
+        }
+       },
+       {
+        "modifier": "avastha in [bala, mrita] (Mercury)",
+        "scale": 0.9,
+        "applied": {
+         "lagna": "applied"
+        }
+       }
+      ],
+      "fires": [
+       {
+        "basis": "lagna",
+        "nodes": [
+         "Sun",
+         "Mercury",
+         "H10"
+        ],
+        "scale": 0.9,
+        "stability": 1.0,
+        "cited_to": "rule and text",
+        "sudarshana": false
+       }
+      ],
+      "sudarshana_bases": []
+     }
     },
     {
      "finding_id": "yoga.ruchaka@lagna+sun",
@@ -163,7 +286,96 @@
      "school": "parashari",
      "basis": "lagna, sun",
      "stability": 1.0,
-     "confidence": 0.2856
+     "confidence": 0.2856,
+     "learner": {
+      "kind": "rule",
+      "rule": {
+       "id": "yoga.ruchaka",
+       "school": "parashari",
+       "status": "classical_unconfirmed",
+       "confidence_base": 0.7,
+       "when": {
+        "planet": "Mars",
+        "dignity_in": [
+         "own",
+         "moolatrikona",
+         "exalted"
+        ],
+        "house_in": [
+         1,
+         4,
+         7,
+         10
+        ],
+        "basis": [
+         "lagna",
+         "moon",
+         "sun"
+        ]
+       }
+      },
+      "modifiers": [
+       {
+        "modifier": "shadbala_ratio < 1.0",
+        "scale": 0.5,
+        "applied": {
+         "lagna": "not applied",
+         "sun": "not applied"
+        }
+       },
+       {
+        "modifier": "aspected_by: [Saturn]",
+        "scale": 0.8,
+        "applied": {
+         "lagna": "applied",
+         "sun": "applied"
+        }
+       },
+       {
+        "modifier": "tara_from_moon in [vipat, pratyak, vadha]",
+        "scale": 0.85,
+        "applied": {
+         "lagna": "applied",
+         "sun": "applied"
+        }
+       },
+       {
+        "modifier": "marana_karaka_sthana",
+        "scale": 0.6,
+        "applied": {
+         "lagna": "applied",
+         "sun": "applied"
+        }
+       }
+      ],
+      "fires": [
+       {
+        "basis": "lagna",
+        "nodes": [
+         "Mars",
+         "H7"
+        ],
+        "scale": 0.408,
+        "stability": 1.0,
+        "cited_to": "rule and text",
+        "sudarshana": false
+       },
+       {
+        "basis": "sun",
+        "nodes": [
+         "Mars",
+         "H10"
+        ],
+        "scale": 0.408,
+        "stability": 1.0,
+        "cited_to": "rule",
+        "sudarshana": true
+       }
+      ],
+      "sudarshana_bases": [
+       "sun"
+      ]
+     }
     },
     {
      "finding_id": "vote:career.house",
@@ -175,7 +387,126 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
-     "confidence": 0.9818743784975401
+     "confidence": 0.9818743784975401,
+     "learner": {
+      "kind": "vote",
+      "family": "house",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.5353168774460878,
+      "derivation": [
+       {
+        "basis": "lagna",
+        "house": 10,
+        "sign": "Aquarius",
+        "bhava_bala_rupas": 4.51,
+        "relative": -1.0
+       },
+       {
+        "basis": "lagna",
+        "house": 6,
+        "sign": "Libra",
+        "bhava_bala_rupas": 8.22,
+        "relative": 0.24
+       },
+       {
+        "basis": "lagna",
+        "house": 2,
+        "sign": "Gemini",
+        "bhava_bala_rupas": 8.93,
+        "relative": 0.48
+       },
+       {
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "bhava_bala_rupas": 8.23,
+        "relative": 0.25
+       },
+       {
+        "basis": "lagna",
+        "house": 7,
+        "sign": "Scorpio",
+        "bhavat_bhavam_of": 10,
+        "bhava_bala_rupas": 7.37,
+        "relative": -0.04
+       },
+       {
+        "basis": "moon",
+        "house": 10,
+        "sign": "Cancer",
+        "bhava_bala_rupas": 7.68,
+        "relative": 0.06
+       },
+       {
+        "basis": "moon",
+        "house": 6,
+        "sign": "Pisces",
+        "bhava_bala_rupas": 8.23,
+        "relative": 0.25
+       },
+       {
+        "basis": "moon",
+        "house": 2,
+        "sign": "Scorpio",
+        "bhava_bala_rupas": 7.37,
+        "relative": -0.04
+       },
+       {
+        "basis": "moon",
+        "house": 11,
+        "sign": "Leo",
+        "bhava_bala_rupas": 8.51,
+        "relative": 0.34
+       },
+       {
+        "basis": "moon",
+        "house": 7,
+        "sign": "Aries",
+        "bhavat_bhavam_of": 10,
+        "bhava_bala_rupas": 6.7,
+        "relative": -0.27
+       },
+       {
+        "basis": "sun",
+        "house": 10,
+        "sign": "Scorpio",
+        "bhava_bala_rupas": 7.37,
+        "relative": -0.04
+       },
+       {
+        "basis": "sun",
+        "house": 6,
+        "sign": "Cancer",
+        "bhava_bala_rupas": 7.68,
+        "relative": 0.06
+       },
+       {
+        "basis": "sun",
+        "house": 2,
+        "sign": "Pisces",
+        "bhava_bala_rupas": 8.23,
+        "relative": 0.25
+       },
+       {
+        "basis": "sun",
+        "house": 11,
+        "sign": "Sagittarius",
+        "bhava_bala_rupas": 8.95,
+        "relative": 0.49
+       },
+       {
+        "basis": "sun",
+        "house": 7,
+        "sign": "Leo",
+        "bhavat_bhavam_of": 10,
+        "bhava_bala_rupas": 8.51,
+        "relative": 0.34
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:career.panchanga",
@@ -187,7 +518,63 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.9769953380345803
+     "confidence": 0.9769953380345803,
+     "learner": {
+      "kind": "vote",
+      "family": "panchanga",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.2882596330432228,
+      "derivation": [
+       {
+        "planet": "Mars",
+        "role": [
+         "tithi",
+         "nakshatra"
+        ],
+        "rules": [
+         {
+          "basis": "lagna",
+          "house": 7
+         },
+         {
+          "basis": "moon",
+          "house": 2
+         },
+         {
+          "basis": "moon",
+          "house": 7
+         },
+         {
+          "basis": "sun",
+          "house": 10
+         }
+        ],
+        "karaka": false,
+        "shadbala_ratio": 1.3
+       },
+       {
+        "planet": "Moon",
+        "role": [
+         "vara"
+        ],
+        "rules": [
+         {
+          "basis": "moon",
+          "house": 10
+         },
+         {
+          "basis": "sun",
+          "house": 6
+         }
+        ],
+        "karaka": false,
+        "shadbala_ratio": 1.27
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:career.karaka",
@@ -199,7 +586,77 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.9358272478469318
+     "confidence": 0.9358272478469318,
+     "learner": {
+      "kind": "vote",
+      "family": "karaka",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 4.7860939908090865,
+      "derivation": [
+       {
+        "planet": "Sun",
+        "basis": "lagna",
+        "house": 10,
+        "sign": "Aquarius",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 10
+         }
+        ],
+        "dignity": "enemy",
+        "shadbala_ratio": 1.23
+       },
+       {
+        "planet": "Saturn",
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "area_house_from": [],
+        "dignity": "friend",
+        "shadbala_ratio": 0.69
+       },
+       {
+        "planet": "Mercury",
+        "basis": "lagna",
+        "house": 10,
+        "sign": "Aquarius",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 10
+         }
+        ],
+        "dignity": "neutral",
+        "shadbala_ratio": 1.19
+       },
+       {
+        "planet": "Venus",
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 11
+         },
+         {
+          "basis": "moon",
+          "house": 6
+         },
+         {
+          "basis": "sun",
+          "house": 2
+         }
+        ],
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:career.lord",
@@ -211,7 +668,186 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
-     "confidence": 0.9249446442470166
+     "confidence": 0.9249446442470166,
+     "learner": {
+      "kind": "vote",
+      "family": "lord",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 6.660471926142637,
+      "derivation": [
+       {
+        "basis": "lagna",
+        "house": 10,
+        "sign": "Aquarius",
+        "lord": "Saturn",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "friend",
+        "shadbala_ratio": 0.69,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "lagna",
+        "house": 6,
+        "sign": "Libra",
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "lagna",
+        "house": 2,
+        "sign": "Gemini",
+        "lord": "Mercury",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.19,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "lagna",
+        "house": 7,
+        "sign": "Scorpio",
+        "bhavat_bhavam_of": 10,
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "moon",
+        "house": 10,
+        "sign": "Cancer",
+        "lord": "Moon",
+        "lord_sign": "Libra",
+        "lord_house_from_lagna": 6,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.27,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 6,
+        "sign": "Pisces",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "moon",
+        "house": 2,
+        "sign": "Scorpio",
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "moon",
+        "house": 11,
+        "sign": "Leo",
+        "lord": "Sun",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.23,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 7,
+        "sign": "Aries",
+        "bhavat_bhavam_of": 10,
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "sun",
+        "house": 10,
+        "sign": "Scorpio",
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "sun",
+        "house": 6,
+        "sign": "Cancer",
+        "lord": "Moon",
+        "lord_sign": "Libra",
+        "lord_house_from_lagna": 6,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.27,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "sun",
+        "house": 2,
+        "sign": "Pisces",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "sun",
+        "house": 11,
+        "sign": "Sagittarius",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "sun",
+        "house": 7,
+        "sign": "Leo",
+        "bhavat_bhavam_of": 10,
+        "lord": "Sun",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.23,
+        "final_dispositor": "Jupiter"
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:career.varga",
@@ -223,7 +859,95 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.8386959486707044
+     "confidence": 0.8386959486707044,
+     "learner": {
+      "kind": "vote",
+      "family": "varga",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.32142857142857145,
+      "derivation": [
+       {
+        "planet": "Sun",
+        "varga": "D10",
+        "d1": "enemy",
+        "varga_sign": "Scorpio",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.25
+       },
+       {
+        "planet": "Moon",
+        "varga": "D10",
+        "d1": "neutral",
+        "varga_sign": "Libra",
+        "varga_dignity": 0.0,
+        "signed": 0.0,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.0
+       },
+       {
+        "planet": "Mars",
+        "varga": "D10",
+        "d1": "own",
+        "varga_sign": "Capricorn",
+        "varga_dignity": 2.0,
+        "signed": 1.0,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 1.0
+       },
+       {
+        "planet": "Mercury",
+        "varga": "D10",
+        "d1": "neutral",
+        "varga_sign": "Aquarius",
+        "varga_dignity": 0.0,
+        "signed": 0.0,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.0
+       },
+       {
+        "planet": "Jupiter",
+        "varga": "D10",
+        "d1": "enemy",
+        "varga_sign": "Aries",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.25
+       },
+       {
+        "planet": "Venus",
+        "varga": "D10",
+        "d1": "exalted",
+        "varga_sign": "Gemini",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Saturn",
+        "varga": "D10",
+        "d1": "friend",
+        "varga_sign": "Capricorn",
+        "varga_dignity": 1.0,
+        "signed": 0.5,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.5
+       }
+      ]
+     }
     }
    ],
    "school_conflicts": [],
@@ -561,7 +1285,93 @@
      "school": "kp",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 1.0
+     "confidence": 1.0,
+     "learner": {
+      "kind": "vote",
+      "family": "kp",
+      "school": "kp",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": null,
+      "derivation": [
+       {
+        "cusp": 7,
+        "basis": "lagna",
+        "cusp_star": "Saturn",
+        "sub": "Mercury",
+        "matter_houses": [
+         2,
+         7,
+         11
+        ],
+        "denial_houses": [
+         1,
+         6,
+         10
+        ],
+        "level": "star lord",
+        "planet": "Mars",
+        "occupies": 7,
+        "occupies_by_sign": 7,
+        "owns": [
+         7,
+         12
+        ],
+        "via": [],
+        "significations": [
+         7,
+         12
+        ],
+        "meets_matter": [
+         7
+        ],
+        "meets_denial": [],
+        "outcome": "for",
+        "vote": 1,
+        "decides": true
+       },
+       {
+        "cusp": 7,
+        "basis": "lagna",
+        "cusp_star": "Saturn",
+        "sub": "Mercury",
+        "matter_houses": [
+         2,
+         7,
+         11
+        ],
+        "denial_houses": [
+         1,
+         6,
+         10
+        ],
+        "level": "own",
+        "planet": "Mercury",
+        "occupies": 10,
+        "occupies_by_sign": 10,
+        "owns": [
+         2,
+         5
+        ],
+        "via": [],
+        "significations": [
+         2,
+         5,
+         10
+        ],
+        "meets_matter": [
+         2
+        ],
+        "meets_denial": [
+         10
+        ],
+        "outcome": "both",
+        "vote": 0,
+        "decides": false
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:marriage.arudha",
@@ -573,7 +1383,46 @@
      "school": "jaimini",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.997807911534478
+     "confidence": 0.997807911534478,
+     "learner": {
+      "kind": "vote",
+      "family": "arudha",
+      "school": "jaimini",
+      "vote": -1,
+      "direction": "against",
+      "stability": 1.0,
+      "term": null,
+      "derivation": {
+       "padas": [
+        {
+         "pada": "UL",
+         "basis": "lagna",
+         "house": 2,
+         "sign": "Gemini",
+         "occupants": [
+          "Rahu"
+         ],
+         "benefics": []
+        },
+        {
+         "pada": "UL2",
+         "basis": "lagna",
+         "house": 3,
+         "sign": "Cancer",
+         "occupants": [],
+         "benefics": []
+        },
+        {
+         "pada": "A7",
+         "basis": "lagna",
+         "house": 4,
+         "sign": "Leo",
+         "occupants": [],
+         "benefics": []
+        }
+       ]
+      }
+     }
     },
     {
      "finding_id": "vote:marriage.house",
@@ -585,7 +1434,126 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
-     "confidence": 0.9818743784975401
+     "confidence": 0.9818743784975401,
+     "learner": {
+      "kind": "vote",
+      "family": "house",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 1.3837521680193303,
+      "derivation": [
+       {
+        "basis": "lagna",
+        "house": 7,
+        "sign": "Scorpio",
+        "bhava_bala_rupas": 7.37,
+        "relative": -0.04
+       },
+       {
+        "basis": "lagna",
+        "house": 2,
+        "sign": "Gemini",
+        "bhava_bala_rupas": 8.93,
+        "relative": 0.48
+       },
+       {
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "bhava_bala_rupas": 8.23,
+        "relative": 0.25
+       },
+       {
+        "basis": "lagna",
+        "house": 8,
+        "sign": "Sagittarius",
+        "bhava_bala_rupas": 8.95,
+        "relative": 0.49
+       },
+       {
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "bhavat_bhavam_of": 7,
+        "bhava_bala_rupas": 7.16,
+        "relative": -0.11
+       },
+       {
+        "basis": "moon",
+        "house": 7,
+        "sign": "Aries",
+        "bhava_bala_rupas": 6.7,
+        "relative": -0.27
+       },
+       {
+        "basis": "moon",
+        "house": 2,
+        "sign": "Scorpio",
+        "bhava_bala_rupas": 7.37,
+        "relative": -0.04
+       },
+       {
+        "basis": "moon",
+        "house": 11,
+        "sign": "Leo",
+        "bhava_bala_rupas": 8.51,
+        "relative": 0.34
+       },
+       {
+        "basis": "moon",
+        "house": 8,
+        "sign": "Taurus",
+        "bhava_bala_rupas": 7.16,
+        "relative": -0.11
+       },
+       {
+        "basis": "moon",
+        "house": 1,
+        "sign": "Libra",
+        "bhavat_bhavam_of": 7,
+        "bhava_bala_rupas": 8.22,
+        "relative": 0.24
+       },
+       {
+        "basis": "sun",
+        "house": 7,
+        "sign": "Leo",
+        "bhava_bala_rupas": 8.51,
+        "relative": 0.34
+       },
+       {
+        "basis": "sun",
+        "house": 2,
+        "sign": "Pisces",
+        "bhava_bala_rupas": 8.23,
+        "relative": 0.25
+       },
+       {
+        "basis": "sun",
+        "house": 11,
+        "sign": "Sagittarius",
+        "bhava_bala_rupas": 8.95,
+        "relative": 0.49
+       },
+       {
+        "basis": "sun",
+        "house": 8,
+        "sign": "Virgo",
+        "bhava_bala_rupas": 9.02,
+        "relative": 0.51
+       },
+       {
+        "basis": "sun",
+        "house": 1,
+        "sign": "Aquarius",
+        "bhavat_bhavam_of": 7,
+        "bhava_bala_rupas": 4.51,
+        "relative": -1.0
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:marriage.panchanga",
@@ -597,7 +1565,41 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.9769953380345803
+     "confidence": 0.9769953380345803,
+     "learner": {
+      "kind": "vote",
+      "family": "panchanga",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.1516771523982029,
+      "derivation": [
+       {
+        "planet": "Mars",
+        "role": [
+         "tithi",
+         "nakshatra"
+        ],
+        "rules": [
+         {
+          "basis": "lagna",
+          "house": 7
+         },
+         {
+          "basis": "moon",
+          "house": 7
+         },
+         {
+          "basis": "moon",
+          "house": 2
+         }
+        ],
+        "karaka": false,
+        "shadbala_ratio": 1.3
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:marriage.karaka",
@@ -609,7 +1611,68 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.9358272478469318
+     "confidence": 0.9358272478469318,
+     "learner": {
+      "kind": "vote",
+      "family": "karaka",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 4.101372596634128,
+      "derivation": [
+       {
+        "planet": "Venus",
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 11
+         },
+         {
+          "basis": "sun",
+          "house": 2
+         }
+        ],
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33
+       },
+       {
+        "planet": "Jupiter",
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 1
+         },
+         {
+          "basis": "moon",
+          "house": 8
+         }
+        ],
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22
+       },
+       {
+        "planet": "Mercury",
+        "basis": "lagna",
+        "house": 10,
+        "sign": "Aquarius",
+        "area_house_from": [
+         {
+          "basis": "sun",
+          "house": 1
+         }
+        ],
+        "dignity": "neutral",
+        "shadbala_ratio": 1.19
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:marriage.lord",
@@ -621,7 +1684,186 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
-     "confidence": 0.9249446442470166
+     "confidence": 0.9249446442470166,
+     "learner": {
+      "kind": "vote",
+      "family": "lord",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 10.682937798913992,
+      "derivation": [
+       {
+        "basis": "lagna",
+        "house": 7,
+        "sign": "Scorpio",
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "lagna",
+        "house": 2,
+        "sign": "Gemini",
+        "lord": "Mercury",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.19,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "lagna",
+        "house": 8,
+        "sign": "Sagittarius",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "bhavat_bhavam_of": 7,
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 7,
+        "sign": "Aries",
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "moon",
+        "house": 2,
+        "sign": "Scorpio",
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       },
+       {
+        "basis": "moon",
+        "house": 11,
+        "sign": "Leo",
+        "lord": "Sun",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.23,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 8,
+        "sign": "Taurus",
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 1,
+        "sign": "Libra",
+        "bhavat_bhavam_of": 7,
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "sun",
+        "house": 7,
+        "sign": "Leo",
+        "lord": "Sun",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.23,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "sun",
+        "house": 2,
+        "sign": "Pisces",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "sun",
+        "house": 11,
+        "sign": "Sagittarius",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "sun",
+        "house": 8,
+        "sign": "Virgo",
+        "lord": "Mercury",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.19,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "sun",
+        "house": 1,
+        "sign": "Aquarius",
+        "bhavat_bhavam_of": 7,
+        "lord": "Saturn",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "friend",
+        "shadbala_ratio": 0.69,
+        "final_dispositor": "Jupiter"
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:marriage.varga",
@@ -633,7 +1875,84 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.7338589550868664
+     "confidence": 0.7338589550868664,
+     "learner": {
+      "kind": "vote",
+      "family": "varga",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.25,
+      "derivation": [
+       {
+        "planet": "Sun",
+        "varga": "D9",
+        "d1": "enemy",
+        "varga_sign": "Gemini",
+        "varga_dignity": 0.0,
+        "signed": 0.0,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.0
+       },
+       {
+        "planet": "Mars",
+        "varga": "D9",
+        "d1": "own",
+        "varga_sign": "Sagittarius",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Mercury",
+        "varga": "D9",
+        "d1": "neutral",
+        "varga_sign": "Libra",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.25
+       },
+       {
+        "planet": "Jupiter",
+        "varga": "D9",
+        "d1": "enemy",
+        "varga_sign": "Aries",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.25
+       },
+       {
+        "planet": "Venus",
+        "varga": "D9",
+        "d1": "exalted",
+        "varga_sign": "Aquarius",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Saturn",
+        "varga": "D9",
+        "d1": "friend",
+        "varga_sign": "Capricorn",
+        "varga_dignity": 1.0,
+        "signed": 0.5,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.5
+       }
+      ]
+     }
     }
    ],
    "school_conflicts": [
@@ -691,7 +2010,30 @@
      "school": "jaimini",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.997807911534478
+     "confidence": 0.997807911534478,
+     "learner": {
+      "kind": "vote",
+      "family": "arudha",
+      "school": "jaimini",
+      "vote": -1,
+      "direction": "against",
+      "stability": 1.0,
+      "term": null,
+      "derivation": {
+       "marana_karaka_sthana": [
+        {
+         "planet": "Mars",
+         "basis": "lagna",
+         "house": 7
+        },
+        {
+         "planet": "Saturn",
+         "basis": "lagna",
+         "house": 1
+        }
+       ]
+      }
+     }
     },
     {
      "finding_id": "vote:longevity.house",
@@ -703,7 +2045,81 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
-     "confidence": 0.9818743784975401
+     "confidence": 0.9818743784975401,
+     "learner": {
+      "kind": "vote",
+      "family": "house",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.6068035914738337,
+      "derivation": [
+       {
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "bhava_bala_rupas": 7.16,
+        "relative": -0.11
+       },
+       {
+        "basis": "lagna",
+        "house": 8,
+        "sign": "Sagittarius",
+        "bhava_bala_rupas": 8.95,
+        "relative": 0.49
+       },
+       {
+        "basis": "lagna",
+        "house": 3,
+        "sign": "Cancer",
+        "bhava_bala_rupas": 7.68,
+        "relative": 0.06
+       },
+       {
+        "basis": "moon",
+        "house": 1,
+        "sign": "Libra",
+        "bhava_bala_rupas": 8.22,
+        "relative": 0.24
+       },
+       {
+        "basis": "moon",
+        "house": 8,
+        "sign": "Taurus",
+        "bhava_bala_rupas": 7.16,
+        "relative": -0.11
+       },
+       {
+        "basis": "moon",
+        "house": 3,
+        "sign": "Sagittarius",
+        "bhava_bala_rupas": 8.95,
+        "relative": 0.49
+       },
+       {
+        "basis": "sun",
+        "house": 1,
+        "sign": "Aquarius",
+        "bhava_bala_rupas": 4.51,
+        "relative": -1.0
+       },
+       {
+        "basis": "sun",
+        "house": 8,
+        "sign": "Virgo",
+        "bhava_bala_rupas": 9.02,
+        "relative": 0.51
+       },
+       {
+        "basis": "sun",
+        "house": 3,
+        "sign": "Aries",
+        "bhava_bala_rupas": 6.7,
+        "relative": -0.27
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:longevity.panchanga",
@@ -715,7 +2131,47 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.9769953380345803
+     "confidence": 0.9769953380345803,
+     "learner": {
+      "kind": "vote",
+      "family": "panchanga",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.2882596330432228,
+      "derivation": [
+       {
+        "planet": "Mars",
+        "role": [
+         "tithi",
+         "nakshatra"
+        ],
+        "rules": [
+         {
+          "basis": "sun",
+          "house": 3
+         }
+        ],
+        "karaka": false,
+        "shadbala_ratio": 1.3
+       },
+       {
+        "planet": "Moon",
+        "role": [
+         "vara"
+        ],
+        "rules": [
+         {
+          "basis": "lagna",
+          "house": 3
+         }
+        ],
+        "karaka": false,
+        "shadbala_ratio": 1.27
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:longevity.karaka",
@@ -727,7 +2183,63 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.9358272478469318
+     "confidence": 0.9358272478469318,
+     "learner": {
+      "kind": "vote",
+      "family": "karaka",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 4.792273841977385,
+      "derivation": [
+       {
+        "planet": "Saturn",
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 1
+         },
+         {
+          "basis": "moon",
+          "house": 8
+         }
+        ],
+        "dignity": "friend",
+        "shadbala_ratio": 0.69
+       },
+       {
+        "planet": "Jupiter",
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "area_house_from": [
+         {
+          "basis": "lagna",
+          "house": 1
+         },
+         {
+          "basis": "moon",
+          "house": 8
+         }
+        ],
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22
+       },
+       {
+        "planet": "Venus",
+        "basis": "lagna",
+        "house": 11,
+        "sign": "Pisces",
+        "area_house_from": [],
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:longevity.lord",
@@ -739,7 +2251,117 @@
      "school": "parashari",
      "basis": "lagna, moon, sun 3:2:1",
      "stability": 1.0,
-     "confidence": 0.9249446442470166
+     "confidence": 0.9249446442470166,
+     "learner": {
+      "kind": "vote",
+      "family": "lord",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 8.613951875315113,
+      "derivation": [
+       {
+        "basis": "lagna",
+        "house": 1,
+        "sign": "Taurus",
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "lagna",
+        "house": 8,
+        "sign": "Sagittarius",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "lagna",
+        "house": 3,
+        "sign": "Cancer",
+        "lord": "Moon",
+        "lord_sign": "Libra",
+        "lord_house_from_lagna": 6,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.27,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 1,
+        "sign": "Libra",
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 8,
+        "sign": "Taurus",
+        "lord": "Venus",
+        "lord_sign": "Pisces",
+        "lord_house_from_lagna": 11,
+        "dignity": "exalted",
+        "shadbala_ratio": 1.33,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "moon",
+        "house": 3,
+        "sign": "Sagittarius",
+        "lord": "Jupiter",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "enemy",
+        "shadbala_ratio": 1.22,
+        "final_dispositor": "Venus"
+       },
+       {
+        "basis": "sun",
+        "house": 1,
+        "sign": "Aquarius",
+        "lord": "Saturn",
+        "lord_sign": "Taurus",
+        "lord_house_from_lagna": 1,
+        "dignity": "friend",
+        "shadbala_ratio": 0.69,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "sun",
+        "house": 8,
+        "sign": "Virgo",
+        "lord": "Mercury",
+        "lord_sign": "Aquarius",
+        "lord_house_from_lagna": 10,
+        "dignity": "neutral",
+        "shadbala_ratio": 1.19,
+        "final_dispositor": "Jupiter"
+       },
+       {
+        "basis": "sun",
+        "house": 3,
+        "sign": "Aries",
+        "lord": "Mars",
+        "lord_sign": "Scorpio",
+        "lord_house_from_lagna": 7,
+        "dignity": "own",
+        "shadbala_ratio": 1.3,
+        "final_dispositor": "Mars"
+       }
+      ]
+     }
     },
     {
      "finding_id": "vote:longevity.varga",
@@ -751,7 +2373,150 @@
      "school": "parashari",
      "basis": "lagna",
      "stability": 1.0,
-     "confidence": 0.8969387228839478
+     "confidence": 0.8969387228839478,
+     "learner": {
+      "kind": "vote",
+      "family": "varga",
+      "school": "parashari",
+      "vote": 1,
+      "direction": "for",
+      "stability": 1.0,
+      "term": 0.25,
+      "derivation": [
+       {
+        "planet": "Moon",
+        "varga": "D30",
+        "d1": "neutral",
+        "varga_sign": "Aries",
+        "varga_dignity": 0.0,
+        "signed": 0.0,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.0
+       },
+       {
+        "planet": "Moon",
+        "varga": "D9",
+        "d1": "neutral",
+        "varga_sign": "Libra",
+        "varga_dignity": 0.0,
+        "signed": 0.0,
+        "vargottama_d9": true,
+        "agrees_with_d1": true,
+        "score": 1.0
+       },
+       {
+        "planet": "Mars",
+        "varga": "D30",
+        "d1": "own",
+        "varga_sign": "Pisces",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Mars",
+        "varga": "D9",
+        "d1": "own",
+        "varga_sign": "Sagittarius",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Mercury",
+        "varga": "D30",
+        "d1": "neutral",
+        "varga_sign": "Aries",
+        "varga_dignity": 0.0,
+        "signed": 0.0,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.0
+       },
+       {
+        "planet": "Mercury",
+        "varga": "D9",
+        "d1": "neutral",
+        "varga_sign": "Libra",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.25
+       },
+       {
+        "planet": "Jupiter",
+        "varga": "D30",
+        "d1": "enemy",
+        "varga_sign": "Virgo",
+        "varga_dignity": -0.5,
+        "signed": -0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": -0.25
+       },
+       {
+        "planet": "Jupiter",
+        "varga": "D9",
+        "d1": "enemy",
+        "varga_sign": "Aries",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": false,
+        "score": 0.25
+       },
+       {
+        "planet": "Venus",
+        "varga": "D30",
+        "d1": "exalted",
+        "varga_sign": "Capricorn",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Venus",
+        "varga": "D9",
+        "d1": "exalted",
+        "varga_sign": "Aquarius",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Saturn",
+        "varga": "D30",
+        "d1": "friend",
+        "varga_sign": "Taurus",
+        "varga_dignity": 0.5,
+        "signed": 0.25,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.25
+       },
+       {
+        "planet": "Saturn",
+        "varga": "D9",
+        "d1": "friend",
+        "varga_sign": "Capricorn",
+        "varga_dignity": 1.0,
+        "signed": 0.5,
+        "vargottama_d9": false,
+        "agrees_with_d1": true,
+        "score": 0.5
+       }
+      ]
+     }
     }
    ],
    "school_conflicts": [

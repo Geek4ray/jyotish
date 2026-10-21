@@ -206,3 +206,36 @@ def test_learner_names_the_planet_of_a_pair_modifier(page):
     budh = md[md.index("`yoga.budhaditya@lagna`", md.index("## Learner")):]
     assert "| avastha in [bala, mrita] (Mercury) | ×0.9 | applied |" in budh
     assert "| combust (Mercury) | ×0.5 | not applied |" in budh
+
+
+def test_every_claim_carries_its_learner_block(page):
+    # The website renders the learner panel from the reading JSON alone (SPEC Phase 4, item 5).
+    reading, _ = page
+    claims = [c for a in reading.areas for c in a.claims]
+    assert claims and all(c.learner and c.learner["kind"] == c.kind for c in claims)
+    ruchaka = next(c for c in claims if c.finding_id == "yoga.ruchaka@lagna+sun").learner
+    assert ruchaka["sudarshana_bases"] == ["sun"] and [f["basis"] for f in ruchaka["fires"]] == ["lagna", "sun"]
+    assert {"modifier": "marana_karaka_sthana", "scale": 0.6,
+            "applied": {"lagna": "applied", "sun": "applied"}} in ruchaka["modifiers"]
+    house = next(c for c in claims if c.finding_id == "vote:career.house").learner
+    assert house["direction"] == "for" and house["derivation"][0]["basis"] == "lagna"
+
+
+def test_upgrade_adds_only_engine_fields_to_an_old_reading(page):
+    from jyotish.narrate import upgrade_reading
+    from jyotish.uncertainty import assess
+    reading, _ = page
+    old = reading.model_copy(update={
+        "summary": reading.summary.model_copy(update={"timing_line": None}),
+        "areas": [a.model_copy(update={"claims": [c.model_copy(update={"learner": None}) for c in a.claims]})
+                  for a in reading.areas]})
+    chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    assert upgrade_reading(old, chart) == reading
+
+
+def test_example_reading_is_current():
+    # examples/reference_reading.json (the live sixth reading) carries the learner blocks and
+    # the timing line the website renders.
+    ex = Reading(**json.loads((Path(__file__).parents[1] / "examples" / "reference_reading.json").read_text()))
+    assert ex.summary.timing_line == TIMING_LINE
+    assert all(c.learner for a in ex.areas for c in a.claims) and ex.unchecked_sentences == 0

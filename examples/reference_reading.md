@@ -14,6 +14,8 @@ Reproduce: `jyotish read --date 2001-03-12 --time 10:10:25 --tz Asia/Kolkata --l
 
 Sun and Mercury conjoined in the 10th house form Budhaditya yoga, favouring intellect, communication and reputation, and a kendra-trikona raja yoga tied to authority, reputation and career[^1][^2]. The house, lord, karaka, varga and panchanga votes for career all come out in favour[^3][^4][^5][^6][^7]. The weakest point is the 10th house from the lagna, which is the lowest in bhava bala among the career houses[^3].
 
+**When (engine):** Best window for career by the engine's timing score: 2029-10-23 to 2032-06-23 (Vimshottari Jupiter–Venus, score 0.84), strongest from 2030-05-01 to 2030-09-22 (score 0.89). Window to avoid: 2028-11-17 to 2029-08-08 (Vimshottari Jupiter–Ketu, score 0.47).
+
 - Driver: Venus (alternates Jupiter, Mars)
 - Current period (Vimshottari): Jupiter-Mercury
 - Top areas: career, marriage, longevity
@@ -125,8 +127,8 @@ Modifiers, and where each applied:
 
 | modifier | scale | from lagna |
 |---|---|---|
-| combust [b] | ×0.5 | not applied |
-| avastha in [bala, mrita] [b] | ×0.9 | applied |
+| combust (Mercury) | ×0.5 | not applied |
+| avastha in [bala, mrita] (Mercury) | ×0.9 | applied |
 
 Fires:
 
@@ -245,13 +247,13 @@ Vote for (+1), family varga, school parashari, stability 1, term 0.321. Derivati
 
 | planet | varga | d1 | varga sign | varga dignity | signed | vargottama d9 | agrees with d1 | score |
 |---|---|---|---|---|---|---|---|---|
-| Mars | D10 | own | Capricorn | 2 | 1 | no | yes | 1 |
-| Moon | D10 | neutral | Libra | 0 | 0 | no | yes | 0 |
 | Sun | D10 | enemy | Scorpio | 0.5 | 0.25 | no | no | 0.25 |
+| Moon | D10 | neutral | Libra | 0 | 0 | no | yes | 0 |
+| Mars | D10 | own | Capricorn | 2 | 1 | no | yes | 1 |
 | Mercury | D10 | neutral | Aquarius | 0 | 0 | no | yes | 0 |
+| Jupiter | D10 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |
 | Venus | D10 | exalted | Gemini | 0.5 | 0.25 | no | yes | 0.25 |
 | Saturn | D10 | friend | Capricorn | 1 | 0.5 | no | yes | 0.5 |
-| Jupiter | D10 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |
 
 ### marriage.9: `vote:marriage.kp`
 
@@ -356,12 +358,12 @@ Vote for (+1), family varga, school parashari, stability 1, term 0.25. Derivatio
 
 | planet | varga | d1 | varga sign | varga dignity | signed | vargottama d9 | agrees with d1 | score |
 |---|---|---|---|---|---|---|---|---|
-| Mars | D9 | own | Sagittarius | 0.5 | 0.25 | no | yes | 0.25 |
 | Sun | D9 | enemy | Gemini | 0 | 0 | no | no | 0 |
+| Mars | D9 | own | Sagittarius | 0.5 | 0.25 | no | yes | 0.25 |
 | Mercury | D9 | neutral | Libra | 0.5 | 0.25 | no | no | 0.25 |
+| Jupiter | D9 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |
 | Venus | D9 | exalted | Aquarius | 0.5 | 0.25 | no | yes | 0.25 |
 | Saturn | D9 | friend | Capricorn | 1 | 0.5 | no | yes | 0.5 |
-| Jupiter | D9 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |
 
 ### longevity.16: `vote:longevity.arudha`
 
@@ -443,18 +445,18 @@ Vote for (+1), family varga, school parashari, stability 1, term 0.25. Derivatio
 
 | planet | varga | d1 | varga sign | varga dignity | signed | vargottama d9 | agrees with d1 | score |
 |---|---|---|---|---|---|---|---|---|
-| Mars | D30 | own | Pisces | 0.5 | 0.25 | no | yes | 0.25 |
-| Mars | D9 | own | Sagittarius | 0.5 | 0.25 | no | yes | 0.25 |
 | Moon | D30 | neutral | Aries | 0 | 0 | no | yes | 0 |
 | Moon | D9 | neutral | Libra | 0 | 0 | yes | yes | 1 |
+| Mars | D30 | own | Pisces | 0.5 | 0.25 | no | yes | 0.25 |
+| Mars | D9 | own | Sagittarius | 0.5 | 0.25 | no | yes | 0.25 |
 | Mercury | D30 | neutral | Aries | 0 | 0 | no | yes | 0 |
 | Mercury | D9 | neutral | Libra | 0.5 | 0.25 | no | no | 0.25 |
+| Jupiter | D30 | enemy | Virgo | -0.5 | -0.25 | no | yes | -0.25 |
+| Jupiter | D9 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |
 | Venus | D30 | exalted | Capricorn | 0.5 | 0.25 | no | yes | 0.25 |
 | Venus | D9 | exalted | Aquarius | 0.5 | 0.25 | no | yes | 0.25 |
 | Saturn | D30 | friend | Taurus | 0.5 | 0.25 | no | yes | 0.25 |
 | Saturn | D9 | friend | Capricorn | 1 | 0.5 | no | yes | 0.5 |
-| Jupiter | D30 | enemy | Virgo | -0.5 | -0.25 | no | yes | -0.25 |
-| Jupiter | D9 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |
 
 ## Disclaimers
 

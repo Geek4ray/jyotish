@@ -356,7 +356,14 @@ def cmd_page(args) -> int:
         return 2
     try:
         page = render(reading, chart)
-    except ValueError as e:
+        if args.json_out:
+            from .narrate import upgrade_reading
+            upgraded = upgrade_reading(reading, chart)
+            Path(args.json_out).write_text(json.dumps(upgraded.model_dump(), indent=1, ensure_ascii=False,
+                                                      default=str) + "\n")
+            print(f"wrote {args.json_out}: the reading with the current engine-derived fields (learner blocks, "
+                  "timing line); the model's text is unchanged")
+    except (ValueError, KeyError) as e:
         print(str(e), file=sys.stderr)
         return 2
     out = Path(args.out) if args.out else src.with_suffix(".md")
@@ -414,6 +421,8 @@ def main(argv: list[str] | None = None) -> None:
     pg.add_argument("--from", dest="from_", required=True, help="reading JSON written by `jyotish read`")
     _birth_flags(pg)
     pg.add_argument("--out", help="Markdown path (default: the JSON path with .md)")
+    pg.add_argument("--json-out", help="also write the reading JSON with the engine-derived fields a reading "
+                                       "written before them lacks (learner blocks, timing line)")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
