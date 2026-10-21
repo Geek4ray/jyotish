@@ -159,6 +159,25 @@ def assess(utc: datetime, lat: float, lon: float, *, time_accuracy: str = "exact
                           house_range_days=axis_range(house, k))
         for i, k in enumerate(bkeys)]
 
+    # Life areas: the share of samples (and of ayanamsas, of house systems) giving the same
+    # tier. Stability gates narration only; the score is untouched (SPEC Layer 5).
+    if center.scored is not None:
+        def tiers(run):
+            return {n: a.tier for n, a in run.chart.scored.areas.items()} if run.chart.scored else {}
+        t_tiers = [tiers(x) for x in samples]
+        a_tiers = [tiers(x) for x in ayan]
+        h_tiers = [tiers(x) for x in house]
+        for name, area in center.scored.areas.items():
+            if area.score_classical is None:
+                continue
+            same = lambda rows: sum(1 for r in rows if r.get(name) == area.tier) / len(rows)
+            st = Stability(time=same(t_tiers), ayanamsa=same(a_tiers), house=same(h_tiers),
+                           label=label(same(t_tiers)))
+            area.stability = st
+            area.narrate = st.time >= 0.5
+            if time_accuracy == "unknown" and st.time < 0.5:
+                area.tier = "cannot be assessed"
+
     shape = "gaussian" if time_accuracy == "approximate" else "uniform"
     center.birth.time_posterior = TimePosterior(
         shape=shape, half_width_min=ACCURACY_HALF_WIDTH_MIN[time_accuracy], samples=n)

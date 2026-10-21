@@ -55,6 +55,7 @@ def print_chart(chart: Chart) -> None:
     print_vimsopaka_ishta(chart)
     print_argala(chart)
     print_fired_rules(chart)
+    print_scored(chart)
     if chart.meta.jd is not None:
         print_current_transits(chart)
     if chart.panchanga:
@@ -171,6 +172,26 @@ def print_bhava_bala(chart: Chart) -> None:
         print(f"  {name:8}" + "".join(f"{table[h].rupas:6.2f}" for h in range(1, 13)))
 
 
+def print_scored(chart: Chart) -> None:
+    sc = chart.scored
+    if sc is None:
+        return
+    print(f"\nLife areas (Layer 5, weights {sc.weights}; tiers are agreement between signal families, not outcomes)")
+    for name, a in sorted(sc.areas.items(), key=lambda kv: (kv[1].emphasised is False, -(kv[1].score_classical or 0))):
+        if a.score_classical is None or not a.emphasised:
+            print(f"  {name:14} {a.tier}")
+            continue
+        flags = f"  [{', '.join(a.polarity)}]" if a.polarity else ""
+        st = a.stability
+        stab = f"  stability {st.time:.2f}/{st.ayanamsa:.2f}/{st.house:.2f}" if st else ""
+        print(f"  {name:14} {a.tier:14} {a.direction:10} S {a.score_classical:6.2f}  agreement "
+              f"{a.confidence:.2f}{flags}{stab}{'' if a.narrate else '  (not narrated: unstable)'}")
+    d = sc.driver
+    print(f"  Top: {', '.join(sc.top)}.  Driver: {d.driver}"
+          f" (alternates from the dispositor graph: {', '.join(d.alternates) or 'none'})")
+    print("  Driver ranking:", ", ".join(f"{r['planet']} {r['score']:.2f}" for r in d.ranking))
+
+
 def print_fired_rules(chart: Chart) -> None:
     print("\nFired rules (scale = product of applied modifiers; stability not yet sampled)")
     if not chart.fired_rules:
@@ -237,6 +258,10 @@ def print_stability(chart: Chart) -> None:
         b = mahas[1]
         print(f"  Vimshottari maha starts: ±{b.time_range_days / 2:.1f} days over the samples "
               f"(sd {b.time_sd_days:.1f}); {b.ayanamsa_range_days:.0f} days across ayanamsas")
+    if chart.scored is not None:
+        rows = [(n, a) for n, a in chart.scored.areas.items() if a.stability is not None and a.emphasised]
+        print("  Life-area tiers:", "  ".join(f"{n} {a.tier} {a.stability.time:.2f}/{a.stability.ayanamsa:.2f}/"
+                                              f"{a.stability.house:.2f}" for n, a in rows))
     moved = [b for b in u.boundaries if b.time_share < 1.0]
     if moved:
         print(f"  {len(moved)} dasha periods do not exist in every sample (sequence changes)")

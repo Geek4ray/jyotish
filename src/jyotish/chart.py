@@ -201,7 +201,10 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
     chart = Chart(meta=meta, birth=birth, bodies=bodies, lagnas=lagnas, panchanga=pinfo,
                   vargas=vargas, features=features, dashas=dashas)
     # Layer 3 reads only the finished feature object, never raw longitudes.
-    chart.fired_rules = evaluate_all(default_rules() if rules is None else rules, chart)
+    library = default_rules() if rules is None else rules
+    chart.fired_rules = evaluate_all(library, chart)
+    from .scoring import score
+    chart.scored = score(chart, library)
     return chart
 
 

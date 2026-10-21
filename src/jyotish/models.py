@@ -397,6 +397,43 @@ class Timeline(BaseModel):
         return [w for w in self.windows if w.start_jd <= jd < w.end_jd]
 
 
+class AreaScore(BaseModel):
+    """One life area (SPEC data schema "scored.areas"). `score_classical` is S_area under
+    the classical weights; `stability` is filled by the uncertainty sampler and gates
+    narration but is not part of the score."""
+    score_classical: float | None
+    score_learned: float | None = None
+    tier: str                       # strong | moderate | weak / mixed | not emphasised | needs two charts
+    confidence: float | None
+    direction: str                  # supportive | adverse | neutral (sign of S)
+    emphasised: bool
+    families_agree_w: float
+    families_total_w: float
+    votes: dict[str, int | None]
+    polarity: list[str]
+    terms: dict[str, float]
+    lords: list[str]
+    karakas: list[str]
+    stability: Stability | None = None
+    narrate: bool = True
+
+
+class Driver(BaseModel):
+    driver: str
+    ranking: list[dict[str, Any]]
+    dispositor_candidates: list[str]
+    alternates: list[str]
+    current_period: dict[str, Any] = Field(default_factory=dict)
+
+
+class Scored(BaseModel):
+    weights: str
+    readings: list[str]
+    areas: dict[str, AreaScore]
+    top: list[str]
+    driver: Driver
+
+
 class Chart(BaseModel):
     meta: Meta
     birth: Birth
@@ -407,4 +444,5 @@ class Chart(BaseModel):
     features: Features
     dashas: dict[str, list[DashaPeriod]] = Field(default_factory=dict)
     fired_rules: list[FiredRule] = Field(default_factory=list)
+    scored: Scored | None = None   # Layer 5; needs Shadbala and Bhava Bala
     uncertainty: Uncertainty | None = None   # set by uncertainty.assess

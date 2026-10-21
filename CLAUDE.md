@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -80,4 +80,6 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   where its verse was read in the named edition.
 
 Transits (`transits.transit_timeline`: tagged rows and named windows over a date range) are
-done. Next: the tagged timeline join (dasha + transit rows) and `TimingQuery`.
+done. Layer 5 scoring (`scoring.py`, classical weights; rho table in
+`src/jyotish/data/family_rho.json`, made by `scripts/family_rho.py`) is done; its open readings
+are listed in `scoring.READINGS`. Next: the tagged timeline join (dasha + transit rows) and `TimingQuery`.
