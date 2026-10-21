@@ -63,6 +63,46 @@ def test_page_sections_in_order(page):
     assert "- Polarity: intensity (house H10, lord Saturn, karaka Sun)" in career
     assert "the KP family (kp) is against" in career
     assert "| avoid | 2028-11-17 | 2029-08-08 |" in career and "strongest piece" in career
+    # Windows only for the area the question routes to: none for health or marriage.
+    others = md[md.index("## Health"):md.index("## Depends on exact birth time")]
+    assert "Windows" not in others and "| avoid |" not in others
+
+
+def test_windows_only_for_the_routed_area(page):
+    reading, _ = page
+    assert [bool(a.windows) for a in reading.areas] == [True, False, False]
+    assert [a.avoid_window is not None for a in reading.areas] == [True, False, False]
+
+
+def test_chart_header_reproduces_the_page(page, tmp_path):
+    import shlex
+    reading, md = page
+    c = reading.chart["conventions"]
+    assert (c["ayanamsa"], c["node"], c["house_system"], c["dasha_year"], c["karaka_scheme"]) == \
+        ("lahiri", "mean", "whole_sign", 365.25, 8)
+    line = next(x for x in md.splitlines() if x.startswith("**Chart:**"))
+    for part in ("born 2001-03-12 10:10:25 (Asia/Kolkata) = 2001-03-12T04:40:25+00:00 UTC", "accuracy exact",
+                 "ayanamsa lahiri", "node mean", "houses whole_sign (KP placidus)", "dasha year 365.25 days",
+                 "karaka scheme 8"):
+        assert part in line, part
+    assert "chara_variant kn_rao" in md and "Stability sampler: 200 birth times, uniform ±2 min, seed 0" in md
+    # Re-running the header's own command gives the same page.
+    command = next(x for x in md.splitlines() if x.startswith("Reproduce: "))[len("Reproduce: `"):-1]
+    argv = shlex.split(command)[1:]
+    out = tmp_path / "again"
+    with pytest.raises(SystemExit) as e:
+        main([*argv, "--out", str(out)])
+    assert e.value.code == 0 and out.with_suffix(".md").read_text() == md
+
+
+def test_sensitive_claims_are_marked_inline(page):
+    reading, md = page
+    body = md.split("\n---\n")[0]
+    kp = next(x for x in body.splitlines() if x.startswith("9. The KP vote"))
+    assert kp.endswith("[^7]. *(time-stability 0.605, sensitive)*")
+    marked = [c for a in reading.areas for c in a.claims if c.stability is not None and c.stability < 0.8]
+    assert [c.finding_id for c in marked] == ["vote:career.kp"]
+    assert body.count("*(time-stability") == 2                  # the claim list and its learner entry
 
 
 def test_claims_in_engine_order_with_tags_as_footnotes(page):

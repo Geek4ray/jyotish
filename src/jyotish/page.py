@@ -16,6 +16,9 @@ from typing import Any
 from .models import Chart
 from .narrate import DISCLAIMERS, TAG, Reading, ReadingWindow, findings
 from .rules import _cond_text, default_rules
+from .uncertainty import label
+
+SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where it is read
 
 
 class _Notes:
@@ -79,6 +82,39 @@ def _table(rows: list[dict], columns: list[str] | None = None) -> list[str]:
     return out
 
 
+def _claim(notes: "_Notes", c) -> str:
+    """The claim with its tags as footnotes and, under 0.8 time-stability, the number inline."""
+    text = notes.render(c.text)
+    if c.stability is not None and c.stability < SENSITIVE_BELOW:
+        text += f" *(time-stability {c.stability:.3g}, {label(c.stability)})*"
+    return text
+
+
+def _header(chart: dict) -> list[str]:
+    if not chart:
+        return []
+    c = chart.get("conventions", {})
+    place = chart.get("place") or "place not named"
+    local = (f"{chart['local_date']} {chart['local_time']} ({chart['tz_input']})" if chart.get("local_date")
+             else "local time not given")
+    year = c.get("dasha_year")
+    out = [f"**Chart:** born {local} = {chart['birth_utc']} UTC, {place} ({chart['lat']}, {chart['lon']}); "
+           f"accuracy {chart['accuracy']}; ayanamsa {c.get('ayanamsa')} ({chart['ayanamsa_value']:.4f}°); "
+           f"node {c.get('node')}; houses {c.get('house_system')} (KP {c.get('kp_house_system')}); "
+           f"dasha year {year:g} days; karaka scheme {c.get('karaka_scheme')}."]
+    shown = {"ayanamsa", "node", "house_system", "kp_house_system", "dasha_year", "karaka_scheme"}
+    rest = ", ".join(f"{k} {_cell(v)}" for k, v in c.items() if k not in shown)
+    out += ["", f"Other settings: {rest}."]
+    sm = chart.get("sampler")
+    if sm:
+        seed = f", seed {chart['seed']}" if chart.get("seed") is not None else ""
+        out += ["", f"Stability sampler: {sm['samples']} birth times, {sm['shape']} ±{sm['half_width_min']:g} min{seed}; "
+                    f"ayanamsas {', '.join(sm['ayanamsas'])}; houses {', '.join(sm['house_systems'])}."]
+    if chart.get("command"):
+        out += ["", f"Reproduce: `{chart['command']}`"]
+    return out + [""]
+
+
 def _stab(st) -> str:
     return f"time {st.time:.2f} · ayanamsa {st.ayanamsa:.2f} · house {st.house:.2f} ({st.label})" if st else "–"
 
@@ -131,11 +167,11 @@ def render(reading: Reading, chart: Chart) -> str:
     s = reading.summary
     L = [f"# Reading: {reading.question}", "",
          f"As of {reading.as_of} · engine {reading.engine} · weights {reading.weights} · model {reading.model} "
-         f"· {reading.attempts} attempt(s) · narration {reading.narration_source}"]
+         f"· {reading.attempts} attempt(s) · narration {reading.narration_source}", ""] + _header(reading.chart)
     if reading.unchecked_sentences:
-        L += ["", f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
-                  "checker verdict and were not semantically checked; the code validator ran on all of them."]
-    L += ["", "## Summary", "", notes.render(s.text), "",
+        L += [f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
+                  "checker verdict and were not semantically checked; the code validator ran on all of them.", ""]
+    L += ["## Summary", "", notes.render(s.text), "",
           f"- Driver: {s.driver_planet}" + (f" (alternates {', '.join(s.driver_alternates)})" if s.driver_alternates else ""),
           f"- Current period (Vimshottari): {s.current_period or '–'}",
           f"- Top areas: {', '.join(s.top_areas)}",
@@ -154,7 +190,7 @@ def render(reading: Reading, chart: Chart) -> str:
             L.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})" for p in a.polarity))
         L.append("")
         if a.claims:
-            L += [f"{i}. {notes.render(c.text)}" for i, c in enumerate(a.claims, 1)]
+            L += [f"{i}. {_claim(notes, c)}" for i, c in enumerate(a.claims, 1)]
             learner += [(a.name, c, by_id[c.finding_id]) for c in a.claims]
         else:
             offered = len(findings(chart, a.name)[0])
@@ -184,7 +220,7 @@ def render(reading: Reading, chart: Chart) -> str:
 
     L += ["## Learner: what each claim rests on", ""]
     for i, (area, c, f) in enumerate(learner, 1):
-        L += [f"### {area}.{i}: `{c.finding_id}`", "", notes.render(c.text), ""]
+        L += [f"### {area}.{i}: `{c.finding_id}`", "", _claim(notes, c), ""]
         L += (_rule_learner(f) if f["kind"] == "rule" else _vote_learner(f)) + [""]
 
     if reading.disclaimers:

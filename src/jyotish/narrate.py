@@ -151,6 +151,7 @@ class Reading(BaseModel):
     question: str
     model: str
     attempts: int
+    chart: dict[str, Any] = Field(default_factory=dict)   # birth data and every convention used
     narration_source: str = "live"      # "live", or "fixture:<path>" for an offline replay
     unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
     summary: ReadingSummary
@@ -543,6 +544,18 @@ class AnthropicChecker:
         return response.parsed_output
 
 
+def chart_header(chart: Chart) -> dict[str, Any]:
+    """What the reading was computed from: the birth data, the sampler, and every Meta
+    convention (ayanamsa, node, house system, dasha year, karaka scheme and the rest), so a
+    reading can be reproduced from its header."""
+    m, b, u = chart.meta, chart.birth, chart.uncertainty
+    conventions = m.model_dump(exclude={"engine", "ayanamsa_value", "jd", "time_accuracy"})
+    return {"birth_utc": b.utc, "lat": b.lat, "lon": b.lon, "tz": b.tz, "accuracy": m.time_accuracy,
+            "ayanamsa_value": m.ayanamsa_value, "conventions": conventions,
+            "sampler": ({"samples": u.samples, "shape": u.shape, "half_width_min": u.half_width_min,
+                         "ayanamsas": u.ayanamsas, "house_systems": u.house_systems} if u else None)}
+
+
 # --- offline replay of a recording -------------------------------------------------------
 
 class FixtureDrafter:
@@ -720,7 +733,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         if a.stability is not None and a.stability.time < 0.5:
             depends.append({"area": name, "tier": a.tier, "stability": a.stability.time})
         windows, avoid = [], None
-        if when and name in AREAS:
+        # Windows only for the areas the question routes to: a job-change question gets career
+        # windows, never health or marriage ones; the page's other areas carry none.
+        if when and name in AREAS and name in routed:
             q = TimingQuery(area=name, start=as_of, end=as_of + timedelta(days=round(365.25 * config.timing_years)),
                             question=question)
             from .timing import answer
@@ -759,5 +774,6 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         abstained_areas=[n for n, x in sc.areas.items() if x.tier in ("not emphasised", "cannot be assessed",
                                                                    "needs two charts")])
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
+                   chart=chart_header(chart),
                    model=config.model, attempts=attempts, summary=summary, areas=reading_areas,
                    fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)

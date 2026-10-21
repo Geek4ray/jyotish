@@ -308,6 +308,21 @@ def _birth_utc(day: str, clock: str, tz: str) -> tuple[datetime, str | None]:
     return local.replace(tzinfo=ZoneInfo(tz)).astimezone(timezone.utc), tz
 
 
+def _read_command(args) -> str:
+    """The `jyotish read` invocation that reproduces this reading (output path left out)."""
+    import shlex
+    parts = ["jyotish", "read", "--date", args.date, "--time", args.time, "--tz", args.tz,
+             "--lat", repr(args.lat), "--lon", repr(args.lon), "--accuracy", args.accuracy, "--node", args.node,
+             "--seed", str(args.seed), "--question", args.question]
+    if args.place:
+        parts += ["--place", args.place]
+    if args.as_of:
+        parts += ["--as-of", args.as_of]
+    if args.model_fixture:
+        parts += ["--model-fixture", args.model_fixture]
+    return shlex.join(parts)
+
+
 def cmd_read(args) -> int:
     """assess -> score -> route -> narrate -> <out>.json and <out>.md. Returns the exit code."""
     import sys
@@ -318,7 +333,8 @@ def cmd_read(args) -> int:
     from .page import render
     from .uncertainty import assess
     utc, tz = _birth_utc(args.date, args.time, args.tz)
-    chart = assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz, true_node=args.node == "true")
+    chart = assess(utc, args.lat, args.lon, time_accuracy=args.accuracy, tz=tz, true_node=args.node == "true",
+                   seed=args.seed)
     if chart.scored is None:
         print("this chart cannot be scored (no birth moment)", file=sys.stderr)
         return 2
@@ -339,6 +355,10 @@ def cmd_read(args) -> int:
         for err in e.errors:
             print(f"  - {err}", file=sys.stderr)
         return 2
+    header = dict(reading.chart, local_date=args.date, local_time=args.time, tz_input=args.tz,
+                  place=args.place, seed=args.seed,
+                  command=_read_command(args))
+    reading = reading.model_copy(update={"chart": header})
     if args.model_fixture:
         said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
                [c.text for a in reading.areas for c in a.claims]
@@ -373,6 +393,8 @@ def main(argv: list[str] | None = None) -> None:
     rd.add_argument("--accuracy", default="exact", choices=["exact", "within_15", "approximate", "unknown"])
     rd.add_argument("--node", default="true", choices=["true", "mean"],
                     help="lunar node (engine default true; the reference app uses mean)")
+    rd.add_argument("--place", help="place name for the header, e.g. 'Rewari, Haryana' (positions use --lat/--lon)")
+    rd.add_argument("--seed", type=int, default=0, help="birth-time sampler seed (default 0)")
     rd.add_argument("--question", required=True)
     rd.add_argument("--as-of", help="date the reading is for, YYYY-MM-DD (default today)")
     rd.add_argument("--out", default="reading", help="output path without extension: writes .json and .md")

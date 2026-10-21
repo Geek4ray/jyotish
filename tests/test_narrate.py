@@ -452,3 +452,14 @@ def test_fixture_checker_replays_recorded_verdicts():
     assert not all(p.supported for p in checker(rejected["sentence"], "").propositions)
     assert checker("A sentence never recorded [rule:yoga.ruchaka].", "").propositions == []
     assert checker.unchecked == {"A sentence never recorded [rule:yoga.ruchaka]."}
+
+
+def test_windows_only_for_areas_the_question_names(chart):
+    # The page's extra areas (the top three) carry no windows; an area the question names does.
+    blank = {"summary": "Career.", "areas": []}
+    r = narrate(chart, "When will my career and marriage improve?", drafter=Replay([blank]), checker=StubChecker(),
+                as_of=AS_OF, areas=["career", "marriage", "health"])
+    assert {a.name: bool(a.windows) for a in r.areas} == {"career": True, "marriage": True, "health": False}
+    r = narrate(chart, QUESTION, drafter=Replay([blank]), checker=StubChecker(), as_of=AS_OF,
+                areas=["career", "health", "marriage"])
+    assert {a.name: bool(a.windows) for a in r.areas} == {"career": True, "health": False, "marriage": False}
