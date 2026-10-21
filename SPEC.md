@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 69). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 71). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -436,11 +436,12 @@ One JSON document per chart, versioned by engine release, so a reading can alway
                                    "stability": {"time": 0.91, "ayanamsa": 1.0, "house": 0.95},
                                    "families_agree_w": 4.1, "families_total_w": 5.6}}},
   "uncertainty": {"samples": 200, "half_width_min": 2, "ayanamsas": ["lahiri", "raman", "kp"], "house_systems": ["whole_sign", "sripati"],
-                  "varga_stability": {"D9": 0.99, "D10": 0.67, "D60": 0.5}}
+                  "varga_stability": {"D9": 0.78, "D10": 0.80, "D60": 0.43},
+                  "varga_ayanamsa": {"D9": 0.67, "D12": 0.67}, "dasha_boundary_days": {"time": 3.7, "ayanamsa": 277}}
 }
 ```
 
-The `varga_stability` values above are what a lagna at Taurus 6°09'50" actually gives under a ±2-minute uniform window: the D9 boundary is 30' ahead (about 2 minutes of clock), the D10 boundary 9'50" behind (about 40 seconds), and D60 cells are 30' wide, so D9 is near-certain, D10 flips in a third of samples and D60 in half. They are computed from the posterior, never typed.
+The `varga_stability` values above are the engine's for the reference chart at its true time under a ±2-minute uniform window (200 samples): D9 0.78 (the navamsa boundary is about 1.4 minutes of clock away), D10 0.80, D60 0.43. They are computed from the posterior, never typed. The same run gives the ayanamsa axis separately: the D9 and D12 lagnas hold under Lahiri and KP but not Raman (0.67), and Vimshottari maha boundaries move 277 days across the three ayanamsas against ±3.7 days across the time samples — which is why the axes are never pooled.
 
 Storage: Postgres with JSONB for the chart object; a `pairing` document (two chart ids plus the synastry block) for the two-chart case; relational tables for outcomes (chart\_id, event, age\_at\_event, censor\_age, source, entered\_before\_reading), rule fires (run\_id, chart\_id, sample\_id, rule\_id, basis, scale, stability) and runs (run\_id, chart\_id, engine\_version, weights\_version, settings hash, timestamp), so Layer 6 queries are plain SQL and any reading can be reproduced from its run row.
 
@@ -608,6 +609,13 @@ Missed in the first draft and caught by the dispositor pass: `yoga.parivartana` 
 - Sade Sati: 2009-09-09 to 2017-01-26, again 2017-06-21 to 2017-10-26 (Saturn's retrograde slip back into Scorpio), and from 2038. Nodal returns 2019 and 2038 (mean node); Saturn return 2029–2031. Returns count only after half a revolution, which stopped them registering at birth.
 - On 2026-10-21: Saturn in Pisces (6th from the Moon, good, BAV 6, SAV 34, Murthi gold), Jupiter in Cancer until 2026-10-31 (10th from the Moon, not good), Rahu in Aquarius / Ketu in Leo (Ketu's 11th is good but Vedha'd by the Moon), Mars in Cancer, Sun in Libra. No named window active.
 - Sources: gochara and Vedha tables from Phaladeepika 26.3–8 and the Ashtakavarga transit grading from 23.11, both read in the 1937 edition; Vipareeta Vedha and Murthi Nirnaya are from later texts and marked unverified; a 0-bindu transit is reported as "severe" and no further, because 23.11's reading of it concerns death. Rahu and Ketu are exempted from Vedha on each other (always 7th apart; the text never names the nodes), an engine choice recorded in the table.
+
+**Stability report (computed 2026-10-21; Layer 1b connected to the rules)**
+
+- Time axis, 200 samples, uniform ±2 min at 10:10:25: every fired rule holds in 100% of samples. Lagna by varga: D1 1.00, D9 0.78, D10 0.80, D12 1.00, D30 1.00, D60 0.43. Vimshottari maha boundaries move ±3.7 days (sd 2.3).
+- Ayanamsa axis (Lahiri, Raman, KP): every fire holds; the D9 and D12 lagnas do not — under Raman the ascendant passes 6°40' Taurus and the navamsa lagna becomes Pisces. Vimshottari boundaries move 277 days across the three.
+- House axis (whole sign, Sripati): under Sripati the Sun moves to H11, Venus to H12, Rahu to H3, Ketu to H9; Saturn rules the 10th and 11th and is no longer yogakaraka; the Sun–Mercury kendra-trikona Raja yoga dissolves (house-robustness 0.50). Ruchaka, Budhaditya and the Parivartana hold.
+- Sripati convention: bhava madhyas at the ascendant, IC, descendant and MC with each quadrant trisected; sandhis at the midpoints; a house's lord is the lord of the sign on its madhya; houses from the Moon and Sun stay whole-sign. The rule follows the usual summary of Sripati Paddhati; the verse was not read.
 
 **Layer 5 expected ranking (classical weights, before calibration)**
 
