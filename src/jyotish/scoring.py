@@ -436,7 +436,11 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
     v2 = v.c.meta.varga_term == "v2"
     if v.c.meta.varga_term not in ("v1", "v2"):
         raise ValueError(f"varga_term must be v1 or v2, not {v.c.meta.varga_term!r}")
-    for p in [q for q in dict.fromkeys(list(lords_all) + karakas) if q in SEVEN]:
+    # Lords in the fixed planet order: lords_all is a set, and a set of strings iterates in a
+    # different order in every process (hash randomisation), which reordered the derivation
+    # rows the writer and checker are sent from one run to the next.
+    lords_ordered = [p for p in GRAHAS if p in lords_all]
+    for p in [q for q in dict.fromkeys(lords_ordered + karakas) if q in SEVEN]:
         for varga in spec["vargas"]:
             dignity = v.varga_dignity(p, varga)
             d1, dv = _sgn(v.D[p]), _sgn(dignity)
@@ -455,7 +459,7 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
             varga_rows.append(dict(row, score=x))
     V = statistics.mean(vparts) if vparts else 0.0
     consistency = statistics.mean(agree) if (v2 and agree) else None
-    nav = sum(v.tara(p) for p in dict.fromkeys(list(lords_all) + karakas))
+    nav = sum(v.tara(p) for p in dict.fromkeys(lords_ordered + karakas))
     pl = v.c.panchanga
     touching = []
     if pl is not None:

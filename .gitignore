@@ -7,3 +7,4 @@ build/
 dist/
 *.db
 scripts/timings.jsonl
+scripts/last_recording.json
