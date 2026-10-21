@@ -9,7 +9,6 @@
     "id",
     "family",
     "school",
-    "source",
     "status",
     "when",
     "themes",
@@ -33,7 +32,8 @@
       "items": {
         "$ref": "#/$defs/source"
       },
-      "minItems": 1
+      "minItems": 1,
+      "description": "required unless status is experimental (an uncited rule, excluded from default scoring)"
     },
     "status": {
       "enum": [
@@ -362,6 +362,10 @@
               "exchange"
             ]
           }
+        },
+        "either": {
+          "$ref": "#/$defs/subject",
+          "description": "at least one of a and b must also satisfy this"
         }
       }
     },
@@ -710,5 +714,18 @@
         }
       }
     }
+  },
+  "if": {
+    "properties": {
+      "status": {
+        "const": "experimental"
+      }
+    }
+  },
+  "then": {},
+  "else": {
+    "required": [
+      "source"
+    ]
   }
 }

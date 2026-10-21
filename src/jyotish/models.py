@@ -232,6 +232,7 @@ class FiredRule(BaseModel):
     id: str
     family: str
     school: str
+    status: str        # experimental fires are recorded but kept out of default scoring
     basis: str
     nodes: list[str]
     scale: float

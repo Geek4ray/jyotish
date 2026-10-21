@@ -10,7 +10,7 @@ the load with the file name and the field at fault. Every rule carries:
 | `id` | `family.name`, stable forever (narration and validation hang on it) |
 | `family` | yoga group, e.g. `pancha_mahapurusha`, `raja`, `affliction`, `lunar` |
 | `school` | `parashari`, `jaimini`, `kp`, `nadi`, `tajaka`, `regional:<name>` |
-| `source` | list of `{text, edition, chapter, verse}`, optional `checked` and `note`; `checked: false` means the chapter/verse has not yet been verified against that edition. Sanskrit originals are public domain, translations are cited by edition and never quoted |
+| `source` | required unless `status: experimental`. A list of `{text, edition, chapter, verse}`, optional `checked` and `note`; `checked: false` means the chapter/verse has not yet been verified against that edition. Sanskrit originals are public domain, translations are cited by edition and never quoted |
 | `status` | `classical_unconfirmed` (cited, default scoring) · `classical_rejected` (powered null in validation) · `not_testable_yet` · `experimental` (uncited, excluded from default) · `data_confirmed` |
 | `when` | the subject and its conditions; `basis` lists which of lagna / moon / sun it is evaluated from, and each fire records its basis |
 | `modifiers` | `{if, scale}` (and `of` for pair rules) applied in file order |
@@ -31,6 +31,8 @@ when:
     related_by: [conjunction, mutual_aspect, exchange]
   basis: [lagna]
 ```
+
+A pair may add `either: {...}`, a condition at least one of `a` and `b` must meet.
 
 Conditions are feature keys. A list means "any of": `house_in: [1, 4, 7, 10]`,
 `aspected_by: [Saturn]`, `lord_of: [6, 8, 12]`. A boolean or scalar means "equals".
@@ -74,7 +76,9 @@ assessed.
 The first ten rules: the five Pancha Mahapurusha (`yoga.ruchaka`, `yoga.bhadra`,
 `yoga.hamsa`, `yoga.malavya`, `yoga.sasa`), `yoga.budhaditya`, `yoga.gaja_kesari`,
 `yoga.neecha_bhanga`, `yoga.kendra_trikona_raja` and `yoga.parivartana`, plus
-`yoga.gaja_kesari_bphs` (BPHS 36.3-4, kept apart from Phaladeepika's Kesari). On the
+`yoga.gaja_kesari_bphs` (BPHS 36.3-4, kept apart from Phaladeepika's Kesari) and
+`yoga.kendra_trikona_raja_weak` (experimental, uncited). Every fire carries its rule's
+`status`; experimental fires are recorded but kept out of default scoring. On the
 reference chart, Ruchaka fires from the lagna and from the Sun at 0.408 (Saturn's aspect
 0.8 × Pratyak tara 0.85 × Marana Karaka Sthana 0.6; Mars's Shadbala ratio is 1.30, so the
 weak-Mars modifier does not apply).

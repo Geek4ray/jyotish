@@ -46,7 +46,8 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
    after scoring. Do not create a cycle between layers 1b, 5 and 6.
 5. Any rule you add needs: `id`, `school`, `source` with edition/chapter/verse, `status`
    (`classical_unconfirmed` for a cited rule), `basis`, `themes`, `outcomes`, and a test
-   that fires it on a known chart and one that does not.
+   that fires it on a known chart and one that does not. An `experimental` rule may omit
+   `source`; its fires carry that status and stay out of default scoring.
 6. Licensing (SPEC Tech stack): Swiss Ephemeris is AGPL/commercial and there is no LGPL
    fallback; PyJHora/Maitreya are GPL and are dev-time references only; Astro-Databank is
    CC BY-NC-SA. Do not add dependencies that change this picture without a note in SPEC.md.

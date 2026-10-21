@@ -16,7 +16,9 @@ from jyotish.rules import FEATURES, RULES_DIR, RuleError, _feature_name, load_ru
 REF = REFERENCE_POSITIONS
 FIRST_TEN = {"yoga.ruchaka", "yoga.bhadra", "yoga.hamsa", "yoga.malavya", "yoga.sasa",
              "yoga.budhaditya", "yoga.gaja_kesari", "yoga.neecha_bhanga",
-             "yoga.kendra_trikona_raja", "yoga.parivartana", "yoga.gaja_kesari_bphs"}
+             "yoga.kendra_trikona_raja", "yoga.parivartana", "yoga.gaja_kesari_bphs",
+             "yoga.kendra_trikona_raja_weak"}
+EXPERIMENTAL = {"yoga.kendra_trikona_raja_weak"}
 
 # An Aries-lagna chart with no sign exchange and no kendra-lord/trikona-lord sambandha:
 # Mars Ar H1, Sun Ta H2, Jupiter Ge H3, Venus Cn H4, Moon Vi H6, Mercury Li H7, Saturn Pi H12.
@@ -43,6 +45,9 @@ def by_id(chart, rule_id):
 def test_library_loads_and_validates():
     assert {r.id for r in load_rules()} == FIRST_TEN
     for r in load_rules():
+        if r.id in EXPERIMENTAL:
+            assert r.data["status"] == "experimental" and "source" not in r.data
+            continue
         for s in r.data["source"]:
             assert s["text"] and s["edition"] and s["chapter"] is not None and s["verse"] is not None
         assert r.data["status"] == "classical_unconfirmed"
@@ -59,7 +64,8 @@ def test_schema_features_are_all_evaluable():
 def test_reference_fires_exactly(ref):
     assert {(f.id, f.basis) for f in ref.fired_rules} == {
         ("yoga.ruchaka", "lagna"), ("yoga.ruchaka", "sun"), ("yoga.budhaditya", "lagna"),
-        ("yoga.kendra_trikona_raja", "lagna"), ("yoga.parivartana", "lagna")}
+        ("yoga.kendra_trikona_raja", "lagna"), ("yoga.kendra_trikona_raja_weak", "lagna"),
+        ("yoga.parivartana", "lagna")}
 
 
 def test_ruchaka_on_reference(ref):
@@ -96,13 +102,29 @@ def test_parivartana_on_reference(ref):
 
 
 def test_kendra_trikona_raja_on_reference(ref):
-    got = {frozenset(f.nodes[:2]): f for f in by_id(ref, "yoga.kendra_trikona_raja")}
-    assert set(got) == {frozenset({"Sun", "Mercury"}), frozenset({"Mars", "Saturn"})}
-    assert got[frozenset({"Sun", "Mercury"})].details["relations"] == ["conjunction"]
-    assert got[frozenset({"Sun", "Mercury"})].scale == 1.0
-    ms = got[frozenset({"Mars", "Saturn"})]
-    assert ms.details["relations"] == ["mutual_aspect"]
-    assert ms.scale == pytest.approx(0.75)           # Mars also owns the 12th
+    # Strict (BPHS 34.15): Sun (4th lord) with Mercury (2nd, 5th) by conjunction. Mars (7th,
+    # 12th) with Saturn (9th, 10th) is excluded because Mars owns a Trika house.
+    [strict] = by_id(ref, "yoga.kendra_trikona_raja")
+    assert strict.nodes[:2] == ["Sun", "Mercury"] and strict.scale == 1.0
+    assert strict.details["relations"] == ["conjunction"]
+    assert strict.status == "classical_unconfirmed"
+    # Weak (experimental): the Mars-Saturn mutual aspect, softened instead of cancelled.
+    [weak] = by_id(ref, "yoga.kendra_trikona_raja_weak")
+    assert set(weak.nodes[:2]) == {"Mars", "Saturn"}
+    assert weak.details["relations"] == ["mutual_aspect"]
+    assert weak.scale == pytest.approx(0.75) and weak.status == "experimental"
+
+
+def test_kendra_trikona_raja_weak_needs_a_trika_lord():
+    # Aries lagna: Sun (5th lord only) in Cancer and Moon (4th lord only) in Leo exchange;
+    # neither owns 6/8/12, so the strict rule fires and the weak one does not.
+    pos = dict(QUIET, Sun=100.0, Moon=130.0, Venus=160.0)
+    assert len(fires(pos, 5.0, "yoga.kendra_trikona_raja")) == 1
+    assert fires(pos, 5.0, "yoga.kendra_trikona_raja_weak") == []
+
+
+def test_kendra_trikona_raja_weak_does_not_fire_on_quiet_chart():
+    assert fires(QUIET, 5.0, "yoga.kendra_trikona_raja_weak") == []
 
 
 @pytest.mark.parametrize("rule_id", ["yoga.gaja_kesari", "yoga.gaja_kesari_bphs", "yoga.bhadra", "yoga.hamsa",
@@ -244,7 +266,8 @@ def test_loader_accepts_good_rule(libdir):
 @pytest.mark.parametrize("change,message", [
     (("  house_in: [1]\n", "  - if: aspected_by: [Saturn]\n"), "not valid YAML"),
     (("house_in", "hosue_in"), "Additional properties"),
-    (("source:\n  - {text: BPHS, edition: Santhanam 1984, chapter: 1, verse: 1}\n", ""), "'source' is a required"),
+    (("source:\n  - {text: BPHS, edition: Santhanam 1984, chapter: 1, verse: 1}\nstatus: experimental",
+      "status: classical_unconfirmed"), "'source' is a required"),
     (("status: experimental", "status: maybe"), "status"),
     (("  house_in: [1]\n  basis: [lagna]", "  dignity: own\n  basis: [lagna, moon]"), "must name one basis"),
     (("outcomes: [career_status]\n", "outcomes: [career_status]\nmodifiers:\n  - {if: shadbala_ratoi < 1, scale: 0.5}\n"),
@@ -253,6 +276,11 @@ def test_loader_accepts_good_rule(libdir):
 def test_loader_rejects(libdir, change, message):
     with pytest.raises(RuleError, match=message):
         _load_one(libdir, GOOD.replace(*change))
+
+
+def test_experimental_rule_needs_no_source(libdir):
+    text = GOOD.replace("source:\n  - {text: BPHS, edition: Santhanam 1984, chapter: 1, verse: 1}\n", "")
+    assert [r.id for r in _load_one(libdir, text)] == ["yoga.test_rule"]
 
 
 def test_loader_rejects_wrong_file_name(libdir):
@@ -270,6 +298,6 @@ def test_pair_modifier_needs_a_subject(libdir):
 
 def test_checked_sources_name_a_verse():
     for r in load_rules():
-        for s in r.data["source"]:
+        for s in r.data.get("source", []):
             if s.get("checked"):
                 assert str(s["verse"]) != "unverified", (r.id, s)

@@ -291,7 +291,8 @@ def _check(rule: dict, path: Path) -> None:
     if path.stem != rid:
         raise RuleError(f"{path.name}: file name must be the rule id ({rid}.yaml)")
     when = rule["when"]
-    sides = [when["pair"]["a"], when["pair"]["b"]] if "pair" in when else [when]
+    sides = ([when["pair"][k] for k in ("a", "b", "either") if k in when["pair"]]
+             if "pair" in when else [when])
     used = {k for s in sides for k in _walk_subject_keys(s)}
     pair = "pair" in when
     for m in rule.get("modifiers", []):
@@ -418,6 +419,7 @@ def _fire(rule: Rule, c: Ctx, bound: dict[str, str], relations: list[str] | None
     for name in rule.data.get("report", []):
         details |= _report(name, c, bound)
     return FiredRule(id=rule.id, family=rule.data["family"], school=rule.data["school"],
+                     status=rule.data["status"],
                      basis=c.basis, nodes=nodes, scale=scale,
                      themes={k: v * scale for k, v in rule.data["themes"].items()},
                      applied=applied, unknown=unknown, details=details)
@@ -439,6 +441,9 @@ def evaluate(rule: Rule, chart: Chart) -> list[FiredRule]:
                     if a == b or key in seen:
                         continue
                     rel = _relations(c, a, b, spec["related_by"])
+                    if rel and "either" in spec and not (
+                            match(spec["either"], c, a) is True or match(spec["either"], c, b) is True):
+                        continue
                     if rel:
                         seen.add(key)
                         fires.append(_fire(rule, c, {"a": a, "b": b}, rel))

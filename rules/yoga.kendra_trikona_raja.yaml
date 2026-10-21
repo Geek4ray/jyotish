@@ -5,26 +5,25 @@ source:
   - {text: BPHS, edition: Santhanam 1984, chapter: 34, verse: 11-12, checked: true,
      note: "angular and trinal lords in exchange, joined in an angle or trine, one in the other's kind of house, or in full aspect; the rule counts a conjunction anywhere and any mutual aspect"}
   - {text: BPHS, edition: Santhanam 1984, chapter: 34, verse: 15, checked: true,
-     note: "no Raja yoga by mere relation if that lord also owns an evil house; the rule scales by 0.75 instead of cancelling"}
+     note: "no Raja yoga by mere relation if the angular or trinal lord also owns an evil house"}
+  - {text: BPHS, edition: Santhanam 1984, chapter: 7, verse: 33-36, checked: true,
+     note: "evil (Trika) houses are the 6th, 8th and 12th; the set 34.15 refers to"}
   - {text: BPHS, edition: Santhanam 1984, chapter: 39, verse: 37, checked: false,
      note: "4th or 10th lord with the 5th or 9th lord; secondary locus, not yet read"}
 status: classical_unconfirmed
 # A kendra lord and a different trikona lord related by conjunction, mutual aspect or
-# exchange (sambandha). The lagna counts as both a kendra and a trikona. A lord who also
-# owns a dusthana weakens the yoga.
+# exchange, neither of them owning a Trika house (BPHS 34.15 with 7.33-36). The lagna
+# counts as both a kendra and a trikona. Santhanam's note on 34.15 (an evil house that is
+# the lord's moolatrikona prevails, a good one suppresses it) is commentary and is not
+# applied. Ch. 34 vv. 2-7 also call the 3rd, 6th and 11th lords evil in effect; 34.15 says
+# "evil house", which BPHS defines as the Trikas. The softened reading, where such a lord
+# weakens the yoga instead of cancelling it, is yoga.kendra_trikona_raja_weak.
 when:
   pair:
-    a: {lord_of: [1, 4, 7, 10]}
-    b: {lord_of: [1, 5, 9]}
+    a: {lord_of: [1, 4, 7, 10], not: {lord_of: [6, 8, 12]}}
+    b: {lord_of: [1, 5, 9], not: {lord_of: [6, 8, 12]}}
     related_by: [conjunction, mutual_aspect, exchange]
   basis: [lagna]
-modifiers:
-  - if: {lord_of: [6, 8, 12]}
-    of: a
-    scale: 0.75
-  - if: {lord_of: [6, 8, 12]}
-    of: b
-    scale: 0.75
 report: [lordships]
 themes: { authority: +3, reputation: +3, career: +2 }
 outcomes: [career_status]
