@@ -354,35 +354,57 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
 
 
 def _vote_details(v: _View, spec, houses, karakas, lords_all, varga_rows, arudha_signs, occ, touching) -> dict:
-    """What each family's vote used, in chart terms (no longitudes), for narration."""
+    """What each family's vote used, in chart terms (no longitudes), for narration. Every row
+    with a house names the basis (lagna, moon, sun) it is counted from and the house number
+    from that basis, so Scorpio for a Taurus lagna and an Aquarius Sun is "the 10th from the
+    Sun" (an area house there), and "the 7th from the lagna" only as the 10th's Bhavat Bhavam."""
     bb = v.f.bhava_bala.whole_sign
-    house = [{"house": h, "sign": SIGNS[v.sign_of_house(h, "lagna")], "bhava_bala_rupas": round(bb[h].rupas, 2),
-              "relative": round(v.B[h], 2)} for h in houses]
-    lords = []
-    for h in houses:
-        p = v.lord_of(h, "lagna")
-        lords.append({"house": h, "lord": p, "lord_house": v.c.bodies[p].house, "lord_sign": SIGNS[v.sign[p]],
-                      "dignity": v.c.bodies[p].dignity, "shadbala_ratio": round(v.ratio[p], 2),
-                      "final_dispositor": v.f.dispositors.sign[p][-1]})
-    karaka = [{"planet": p, "house": v.c.bodies[p].house, "sign": SIGNS[v.sign[p]], "dignity": v.c.bodies[p].dignity,
+    primary = spec["houses"][0]
+    derived = {h for h in houses if h not in spec["houses"]}
+    house, lords = [], []
+    for basis in BASIS_WEIGHT:
+        for h in houses:
+            sign = v.sign_of_house(h, basis)
+            lh = v.lagna_house(sign)
+            row = {"basis": basis, "house": h, "sign": SIGNS[sign]}
+            if h in derived:
+                row["bhavat_bhavam_of"] = primary
+            house.append(dict(row, bhava_bala_rupas=round(bb[lh].rupas, 2), relative=round(v.B[lh], 2)))
+            p = SIGN_LORD[sign]
+            lords.append(dict(row, lord=p, lord_sign=SIGNS[v.sign[p]], lord_house_from_lagna=v.c.bodies[p].house,
+                              dignity=v.c.bodies[p].dignity, shadbala_ratio=round(v.ratio[p], 2),
+                              final_dispositor=v.f.dispositors.sign[p][-1]))
+
+    def area_house_of(sign: int) -> list[dict]:
+        """Every basis from which a sign is one of the area's houses."""
+        return [{"basis": b, "house": h} for b in BASIS_WEIGHT for h in houses if v.sign_of_house(h, b) == sign]
+
+    karaka = [{"planet": p, "basis": "lagna", "house": v.c.bodies[p].house, "sign": SIGNS[v.sign[p]],
+               "area_house_from": area_house_of(v.sign[p]), "dignity": v.c.bodies[p].dignity,
                "shadbala_ratio": round(v.ratio.get(p, 0.0), 2) if p in SEVEN else None} for p in karakas]
     pads = spec.get("arudha", [])
-    arudha = {"padas": [{"pada": n, "sign": SIGNS[s], "occupants": [q for q in GRAHAS if v.sign[q] == s],
+    arudha = {"padas": [{"pada": n, "basis": "lagna", "house": v.lagna_house(s), "sign": SIGNS[s],
+                         "occupants": [q for q in GRAHAS if v.sign[q] == s],
                          "benefics": [q for q in GRAHAS if v.sign[q] == s and q in v.benefics]}
                         for n, s in zip(pads, arudha_signs)]}
     if spec.get("mks"):
-        arudha = {"marana_karaka_sthana": [q for q, b in v.c.bodies.items() if b.marana_karaka_sthana]}
+        arudha = {"marana_karaka_sthana": [{"planet": q, "basis": "lagna", "house": b.house}
+                                           for q, b in v.c.bodies.items() if b.marana_karaka_sthana]}
     kp = []
     for c in spec.get("kp", []):
         lords_c = v.c.lagnas.cusp_lords_kp.get(c)
         if lords_c:
             sub = lords_c["sub"]
-            kp.append({"cusp": c, "star": lords_c["star"], "sub": sub, "sub_house": v.c.bodies[sub].house,
-                       "sub_owns": v.f.lordship.get(sub, []), "area_houses": spec["houses"]})
+            kp.append({"cusp": c, "basis": "lagna", "star": lords_c["star"], "sub": sub,
+                       "sub_house": v.c.bodies[sub].house, "sub_owns": v.f.lordship.get(sub, []),
+                       "area_houses": spec["houses"]})
     pl = v.c.panchanga
     panchanga = [{"planet": q, "role": [r for r, x in (("tithi", pl.tithi_lord), ("vara", pl.vara_lord),
                                                        ("nakshatra", pl.nakshatra_lord), ("yoga", pl.yoga_lord))
-                                         if x == q], "shadbala_ratio": round(v.ratio[q], 2)} for q in touching]
+                                         if x == q],
+                  "rules": [{"basis": b, "house": h} for b in BASIS_WEIGHT for h in houses
+                            if SIGN_LORD[v.sign_of_house(h, b)] == q],
+                  "karaka": q in karakas, "shadbala_ratio": round(v.ratio[q], 2)} for q in touching]
     return {"house": house, "lord": lords, "karaka": karaka, "varga": varga_rows, "arudha": arudha,
             "kp": kp, "panchanga": panchanga}
 

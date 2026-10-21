@@ -83,7 +83,7 @@ class ReadingClaim(BaseModel):
     school: str
     basis: str
     stability: float | None
-    confidence: float                   # rule: scale x confidence_base; vote: family weight x |vote|
+    confidence: float                   # rule: scale x confidence_base; vote: min(1, 1 - rho) x |vote|
 
 
 class ReadingWindow(BaseModel):
@@ -268,7 +268,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     to the area, tagged by rule id and each checked source; and the area's family votes
     that voted (+1 or -1), tagged [vote:<area>.<family>] with the vote's derivation.
     Each carries its claim confidence: a fire's scale x the rule's confidence_base, a
-    vote's family weight (1 - rho) x |vote|."""
+    vote's family weight min(1, 1 - rho) x |vote|."""
     from .scoring import family_rho
     lib = {r.id: r for r in default_rules()}
     ok, shaky = [], []
@@ -297,7 +297,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                     if family in ("house", "lord") else "lagna", "school": FAMILY_SCHOOL[family],
                     "derivation": a.vote_details.get(family), "term": a.terms.get(family),
                     "allowed_tags": [tag], "stability": a.vote_stability.get(family),
-                    "confidence": (1.0 - rho.get(family, 0.0)) * abs(vote)}
+                    "confidence": min(1.0, 1.0 - rho.get(family, 0.0)) * abs(vote)}
             st = item["stability"]
             (shaky if st is not None and st < 0.5 else ok).append(item)
     return ok, shaky
@@ -453,9 +453,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, as_o
             claims.append(ReadingClaim(text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
                                        kind=f["kind"], school=f["school"], basis=f["basis"],
                                        stability=f["stability"], confidence=f["confidence"]))
-        # Ordered by stability x the claim's own confidence (SPEC Layer 7 item 4), not the
-        # area's confidence, which is the same for every claim in the area.
-        claims.sort(key=lambda c: -((c.stability if c.stability is not None else 1.0) * c.confidence))
+        # SPEC Layer 7 item 4: two groups, rule fires first, then votes, each by stability x the
+        # claim's own confidence. The two confidences are on different scales (a rule's is
+        # capped at 0.7, a vote's is near 1), so they are never ranked against each other.
+        claims.sort(key=lambda c: (c.kind != "rule",
+                                   -((c.stability if c.stability is not None else 1.0) * c.confidence)))
         _, shaky = findings(chart, name)
         depends += [({"area": name, "rule": f["rule_id"], "basis": f["basis"], "stability": f["stability"]}
                      if f["kind"] == "rule" else

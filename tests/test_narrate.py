@@ -113,10 +113,17 @@ def test_schema_and_engine_words_verbatim(reading_and_drafter, chart):
     assert career.score_classical == src.score_classical
     for c in career.claims:
         assert c.cites and all(t.split(":", 1)[0] in ("rule", "text", "vote") for t in c.cites)
-    keys = [(c.stability if c.stability is not None else 1.0) * c.confidence for c in career.claims]
-    assert keys == sorted(keys, reverse=True)                # stability x the claim's own confidence
-    kinds = {c.kind for c in career.claims}
-    assert kinds == {"rule", "vote"}
+    # Two groups (SPEC Layer 7 item 4): rule fires first, then votes, each ordered by
+    # stability x its own confidence; the two scales are never ranked against each other.
+    kinds = [c.kind for c in career.claims]
+    assert kinds == ["rule"] * 4 + ["vote"] * 6
+    for kind in ("rule", "vote"):
+        keys = [(c.stability if c.stability is not None else 1.0) * c.confidence
+                for c in career.claims if c.kind == kind]
+        assert keys == sorted(keys, reverse=True)
+    assert career.claims[0].cites[0] == "rule:yoga.kendra_trikona_raja"   # 1.0 x 0.6, the top fire
+    assert career.claims[-1].cites == ["vote:career.kp"]       # stability 0.605 x 1.0
+    assert all(c.confidence <= 1.0 for c in career.claims)     # 1 - rho clipped (KP's rho is -0.009)
     # The KP vote against career is narrated in words, as SPEC item 8 asks.
     kp = next(c for c in career.claims if c.cites == ["vote:career.kp"])
     assert "Ketu" in kp.text and "8th" in kp.text and kp.school == "kp" and kp.stability == pytest.approx(0.605)
@@ -183,3 +190,20 @@ def test_routing():
             top = ["health", "career", "marriage"]
     assert route("When will I change jobs?", C) == (["career"], True)
     assert route("Tell me about my chart", C) == (["health", "career", "marriage"], False)
+
+
+def test_vote_rows_name_their_basis(chart):
+    d = chart.scored.areas["career"].vote_details
+    for family in ("house", "lord"):
+        assert all(r["basis"] in ("lagna", "moon", "sun") and 1 <= r["house"] <= 12 for r in d[family])
+    scorpio = {(r["basis"], r["house"]) for r in d["lord"] if r["sign"] == "Scorpio"}
+    assert ("sun", 10) in scorpio                             # the 10th from the Sun
+    lagna7 = next(r for r in d["lord"] if r["basis"] == "lagna" and r["sign"] == "Scorpio")
+    assert lagna7["house"] == 7 and lagna7["bhavat_bhavam_of"] == 10
+    assert all(r["basis"] == "lagna" for r in d["karaka"] + d["kp"])
+    assert {"basis": "sun", "house": 10} in d["panchanga"][0]["rules"]     # Mars
+
+
+def test_fixture_lord_sentence_names_the_basis():
+    lord = next(c for c in VALID["areas"][0]["claims"] if c["finding_id"] == "vote:career.lord")
+    assert "Scorpio, the 10th from the Sun" in lord["text"] and "lord of the 7th" not in lord["text"]
