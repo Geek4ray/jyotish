@@ -51,6 +51,7 @@ def print_chart(chart: Chart) -> None:
     print("KP cusp lords:", chart.lagnas.cusp_lords_kp)
     print_ashtakavarga(chart)
     print_shadbala(chart)
+    print_bhava_bala(chart)
     print_fired_rules(chart)
     if chart.meta.jd is not None:
         print_current_transits(chart)
@@ -132,6 +133,16 @@ def print_shadbala(chart: Chart) -> None:
     print(f"  Settings: drekkana={m.drekkana_bala} saptavargaja={m.saptavargaja_scale} dig={m.dig_bala_points} "
           f"noon={m.nathonnata_noon} mercury={m.mercury_nature} moon_paksha_x2={m.paksha_moon_double} "
           f"ayana={m.ayana_obliquity} sun_ayana_x2={m.ayana_sun_double} chesta_luminaries={m.chesta_luminaries}")
+
+
+def print_bhava_bala(chart: Chart) -> None:
+    bb = chart.features.bhava_bala
+    if bb is None:
+        return
+    print(f"\nBhava Bala (BPHS 27.26-31; rupas; {bb.birth_time} birth; rising signs {chart.meta.rising_signs})")
+    print("  " + " " * 8 + "".join(f"{'H' + str(h):>6}" for h in range(1, 13)))
+    for name, table in (("whole", bb.whole_sign), ("sripati", bb.sripati)):
+        print(f"  {name:8}" + "".join(f"{table[h].rupas:6.2f}" for h in range(1, 13)))
 
 
 def print_fired_rules(chart: Chart) -> None:

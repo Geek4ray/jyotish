@@ -392,3 +392,29 @@ MURTHI = {1: "gold", 6: "gold", 11: "gold", 2: "silver", 5: "silver", 9: "silver
 # time (SPEC scope), so 0 is reported only as "severe".
 def ashtakavarga_grade(bindus: int) -> str:
     return "severe" if bindus <= 1 else "adverse" if bindus <= 4 else "favourable"
+
+# --- Bhava Bala (BPHS 27.26-31, Santhanam 1984) -------------------------------------------
+# Dig bala of a bhava: the bhava madhya's distance from a cardinal point, by the madhya's
+# sign, folded to 0-180 and divided by 3. The verse names the point to deduct; signs not
+# split are whole. Key: (sign, half) with half 0 = first 15°, 1 = second; None = whole sign.
+BHAVA_DIG_POINT = {   # "desc": human signs; "ic": quadrupeds; "asc": Cancer, Scorpio; "mc": watery
+    5: "desc", 2: "desc", 6: "desc", 10: "desc", (8, 0): "desc",
+    0: "ic", 1: "ic", 4: "ic", (9, 0): "ic", (8, 1): "ic",
+    3: "asc", 7: "asc",
+    (9, 1): "mc", 11: "mc",
+}
+# 27.30-31: occupants add or remove a rupa; 15 virupas by the rising type of the bhava's
+# sign and the time of birth (head-rising at day, dual at twilight, back-rising at night).
+BHAVA_OCCUPANT = {"Jupiter": 60.0, "Mercury": 60.0, "Saturn": -60.0, "Mars": -60.0, "Sun": -60.0}
+BHAVA_TIME_BONUS = 15.0
+# Rising types (setting Meta.rising_signs). "bphs": BPHS ch. 4 (Santhanam 1984, vv. 6-24):
+# head-rising Gemini, Leo, Virgo, Libra, Sagittarius, Aquarius; back-rising Aries, Taurus,
+# Cancer, Capricorn; Pisces both. Ch. 4 does not give Scorpio's; it is taken as head-rising
+# with the other texts. "phaladeepika": Phaladeepika 1.8 (Sastri 1937): back-rising Aries,
+# Taurus, Cancer, Sagittarius, Capricorn; both ways Gemini, Pisces; head-rising the rest.
+# A sign rising both ways counts for the day bonus and for the night bonus.
+RISING_SIGNS = {
+    "bphs": {"head": {2, 4, 5, 6, 7, 8, 10}, "back": {0, 1, 3, 9}, "both": {11}},
+    "phaladeepika": {"head": {4, 5, 6, 7, 10}, "back": {0, 1, 3, 8, 9}, "both": {2, 11}},
+}
+DUAL_SIGNS = {2, 5, 8, 11}

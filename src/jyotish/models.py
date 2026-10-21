@@ -19,6 +19,8 @@ class Meta(BaseModel):
     house_system: str = "whole_sign"      # whole_sign | sripati (bhava chalit; needs the MC)
     kp_house_system: str = "placidus"
     dasha_year: float = 365.25
+    rising_signs: str = "bphs"             # bphs | phaladeepika (Bhava Bala time bonus)
+    twilight_minutes: float = 24.0         # one ghati either side of sunrise and sunset; BPHS 27.31 does not define it
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
     ekadhipatya_nodes: bool = False
@@ -214,6 +216,25 @@ class Shadbala(BaseModel):
     wars: list[Yuddha] = Field(default_factory=list)
 
 
+class HouseStrength(BaseModel):
+    """BPHS 27.26-31, virupas."""
+    madhya: float
+    lord: str
+    bhavadhipati: float     # the lord's Shadbala total
+    dig: float
+    drishti: float          # benefics +1/4, malefics -1/4, Jupiter and Mercury in full
+    occupants: float        # +60 Jupiter, Mercury; -60 Saturn, Mars, Sun (each)
+    time: float             # 15 by rising type and day / twilight / night birth
+    total: float
+    rupas: float
+
+
+class BhavaBala(BaseModel):
+    birth_time: str                              # day | twilight | night
+    whole_sign: dict[int, HouseStrength]         # madhyas equal from the lagna degree
+    sripati: dict[int, HouseStrength]
+
+
 class Features(BaseModel):
     lordship: dict[str, list[int]]
     roles: dict[str, list[str]]
@@ -222,6 +243,7 @@ class Features(BaseModel):
     jaimini: Jaimini
     ashtakavarga: Ashtakavarga
     shadbala: Shadbala | None = None   # needs the birth moment, sunrises and (by default) the MC
+    bhava_bala: BhavaBala | None = None   # needs Shadbala and the MC
     sudarshana_h10: dict[str, list[str]]
 
 

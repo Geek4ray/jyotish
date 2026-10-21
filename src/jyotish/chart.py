@@ -7,6 +7,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from .ashtakavarga import ashtakavarga
+from .bhava_bala import bhava_bala as compute_bhava_bala
 from .constants import GRAHAS, SEVEN, SIGNS
 from .dasha import chara, vimshottari, yogini
 from .dignity import (
@@ -18,7 +19,7 @@ from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_ch
 from .ephemeris import ayanamsa_value, compute_sky, julian_day, next_sunrise, sunrise_sunset
 from .jaimini import all_arudhas, chara_karakas, karakamsa
 from .models import (
-    Ashtakavarga, Birth, Body, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
+    Ashtakavarga, BhavaBala, Birth, Body, HouseStrength, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
     KalaBala, PanchangaInfo, Pinda, PlanetShadbala, Shadbala, SthanaBala, TaraInfo,
     TimePosterior, Yuddha,
 )
@@ -173,6 +174,17 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             for p in chara(positions, lagna_sign, jd, levels=min(dasha_levels, 2),
                            year_length=meta.dasha_year, variant=meta.chara_variant)
         ]
+
+    if features.shadbala is not None and mc is not None:
+        bb = compute_bhava_bala(
+            positions, asc, mc, madhyas, {p: x.total for p, x in features.shadbala.planets.items()},
+            jd=jd, sunrise=sunrise, sunset=sunset, next_sunrise=next_sunrise,
+            rising=meta.rising_signs, twilight_minutes=meta.twilight_minutes,
+            mercury_nature=meta.mercury_nature)
+        features.bhava_bala = BhavaBala(
+            birth_time=bb["birth_time"],
+            whole_sign={h: HouseStrength(**x) for h, x in bb["whole_sign"].items()},
+            sripati={h: HouseStrength(**x) for h, x in bb["sripati"].items()})
 
     chart = Chart(meta=meta, birth=birth, bodies=bodies, lagnas=lagnas, panchanga=pinfo,
                   vargas=vargas, features=features, dashas=dashas)
