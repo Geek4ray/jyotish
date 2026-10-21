@@ -26,6 +26,7 @@ from .constants import EXALTATION, GRAHAS, SEVEN, SIGN_LORD
 from .dignity import aspected_houses, house_of, lordships
 from .dispositors import parivartanas
 from .models import Chart, FiredRule
+from .shadbala import natural_benefics
 
 RULES_DIR = Path(os.environ.get("JYOTISH_RULES_PATH", Path(__file__).resolve().parents[2] / "rules"))
 SCHEMA_FILE = "rule.schema.json"
@@ -91,6 +92,12 @@ def _shadbala_ratio(c: Ctx, p: str):
     return x.ratio if x else None
 
 
+def _benefics(c: Ctx, p: str) -> set[str]:
+    """Natural benefics other than p, by the same rule as Shadbala's Drik bala."""
+    positions = {q: b.lon for q, b in c.bodies.items()}
+    return natural_benefics(positions, c.chart.meta.mercury_nature) - {p}
+
+
 def _exaltation_lord_house(c: Ctx, p: str):
     if p not in EXALTATION:
         return None
@@ -121,6 +128,8 @@ FEATURES: dict[str, Callable[[Ctx, str], Any]] = {
     "exaltation_lord_house": _exaltation_lord_house,
     "exalted_here_house": _exalted_here_house,
     "aspected_by_dispositor": lambda c, p: c.aspects(SIGN_LORD[c.sign(p)], p),
+    "conjoined_with_benefic": lambda c, p: any(c.sign(q) == c.sign(p) for q in _benefics(c, p)),
+    "aspected_by_benefic": lambda c, p: any(c.aspects(q, p) for q in _benefics(c, p)),
     "shadbala_ratio": _shadbala_ratio,
 }
 # Features whose value changes with the basis. A rule using none of them must name one

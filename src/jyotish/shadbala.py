@@ -250,16 +250,27 @@ def drishti(aspecting: str, angle: float) -> float:
     return v
 
 
+def natural_benefics(positions: dict[str, float], mercury_nature: str) -> set[str]:
+    """The natural benefics of a chart: Jupiter, Venus, the Moon when waxing, and Mercury
+    unless `mercury_nature` makes it malefic by association. The one definition used by
+    Drik bala and by the rule library (e.g. yoga.gaja_kesari_bphs)."""
+    out = set(PAKSHA_BENEFICS)
+    if (positions["Moon"] - positions["Sun"]) % 360.0 < 180.0:
+        out.add("Moon")
+    if mercury_is_benefic(positions, mercury_nature):
+        out.add("Mercury")
+    return out
+
+
 def drik_bala(planet: str, positions: dict[str, float], settings: ShadbalaSettings) -> float:
-    """(Drishti from benefics - drishti from malefics) / 4, over the other six planets.
-    Benefics: Jupiter, Venus, Mercury by `mercury_nature`, the Moon when waxing."""
-    waxing = (positions["Moon"] - positions["Sun"]) % 360.0 < 180.0
+    """(Drishti from benefics - drishti from malefics) / 4, over the other six planets,
+    benefics as `natural_benefics`."""
+    benefics = natural_benefics(positions, settings.mercury_nature)
     total = 0.0
     for other in SEVEN:
         if other == planet:
             continue
-        benefic = other in PAKSHA_BENEFICS or (other == "Moon" and waxing) or (
-            other == "Mercury" and mercury_is_benefic(positions, settings.mercury_nature))
+        benefic = other in benefics
         v = drishti(other, positions[planet] - positions[other])
         total += v if benefic else -v
     return total / 4.0

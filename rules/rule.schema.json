@@ -327,6 +327,12 @@
         },
         "aspected_by_dispositor": {
           "type": "boolean"
+        },
+        "conjoined_with_benefic": {
+          "type": "boolean"
+        },
+        "aspected_by_benefic": {
+          "type": "boolean"
         }
       }
     },
@@ -609,6 +615,12 @@
               "sun"
             ]
           }
+        },
+        "conjoined_with_benefic": {
+          "type": "boolean"
+        },
+        "aspected_by_benefic": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

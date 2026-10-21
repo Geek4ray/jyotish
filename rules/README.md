@@ -50,6 +50,7 @@ Conditions are feature keys. A list means "any of": `house_in: [1, 4, 7, 10]`,
 | `exaltation_lord_house` | house of the lord of the planet's exaltation sign | yes |
 | `exalted_here_house` | house of the planet exalted in this planet's sign | yes |
 | `aspected_by_dispositor` | true / false | no |
+| `conjoined_with_benefic`, `aspected_by_benefic` | true / false; benefics as Shadbala's Drik bala: Jupiter, Venus, waxing Moon, Mercury by `Meta.mercury_nature` | no |
 | `shadbala_ratio` | Shadbala total / required (in string conditions only) | no |
 
 A rule that uses no basis-dependent feature must name a single basis, or it would fire
@@ -72,7 +73,8 @@ assessed.
 
 The first ten rules: the five Pancha Mahapurusha (`yoga.ruchaka`, `yoga.bhadra`,
 `yoga.hamsa`, `yoga.malavya`, `yoga.sasa`), `yoga.budhaditya`, `yoga.gaja_kesari`,
-`yoga.neecha_bhanga`, `yoga.kendra_trikona_raja` and `yoga.parivartana`. On the
+`yoga.neecha_bhanga`, `yoga.kendra_trikona_raja` and `yoga.parivartana`, plus
+`yoga.gaja_kesari_bphs` (BPHS 36.3-4, kept apart from Phaladeepika's Kesari). On the
 reference chart, Ruchaka fires from the lagna and from the Sun at 0.408 (Saturn's aspect
 0.8 × Pratyak tara 0.85 × Marana Karaka Sthana 0.6; Mars's Shadbala ratio is 1.30, so the
 weak-Mars modifier does not apply).

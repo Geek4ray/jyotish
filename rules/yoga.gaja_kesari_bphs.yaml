@@ -1,0 +1,27 @@
+id: yoga.gaja_kesari_bphs
+family: lunar
+school: parashari
+source:
+  - {text: BPHS, edition: Santhanam 1984, chapter: 36, verse: 3-4, checked: true,
+     note: "Jupiter in an angle from the ascendant or the Moon, joined or aspected by a benefic, not debilitated, combust or in an enemy's sign"}
+status: classical_unconfirmed
+# BPHS's Gajakesari, kept apart from Phaladeepika's Kesari (yoga.gaja_kesari). "Benefic" is
+# Venus, the waxing Moon or Mercury by Meta.mercury_nature, the same rule Shadbala uses; an
+# enemy's sign is a natural enemy's (BPHS ch. 3). Joined = same sign; aspected = whole-sign
+# graha drishti.
+when:
+  planet: Jupiter
+  house_in: [1, 4, 7, 10]
+  any:
+    - {conjoined_with_benefic: true}
+    - {aspected_by_benefic: true}
+  not: {any: [{dignity_in: [debilitated, enemy]}, {combust: true}]}
+  basis: [lagna, moon]
+modifiers:
+  - if: shadbala_ratio < 1.0
+    scale: 0.75
+themes: { reputation: +3, wealth: +2, wisdom: +2 }
+outcomes: [career_status, property_purchase]
+confidence_base: 0.6
+stability_min: 0.5
+narration_key: gaja_kesari_bphs

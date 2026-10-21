@@ -16,7 +16,7 @@ from jyotish.rules import FEATURES, RULES_DIR, RuleError, _feature_name, load_ru
 REF = REFERENCE_POSITIONS
 FIRST_TEN = {"yoga.ruchaka", "yoga.bhadra", "yoga.hamsa", "yoga.malavya", "yoga.sasa",
              "yoga.budhaditya", "yoga.gaja_kesari", "yoga.neecha_bhanga",
-             "yoga.kendra_trikona_raja", "yoga.parivartana"}
+             "yoga.kendra_trikona_raja", "yoga.parivartana", "yoga.gaja_kesari_bphs"}
 
 # An Aries-lagna chart with no sign exchange and no kendra-lord/trikona-lord sambandha:
 # Mars Ar H1, Sun Ta H2, Jupiter Ge H3, Venus Cn H4, Moon Vi H6, Mercury Li H7, Saturn Pi H12.
@@ -105,7 +105,7 @@ def test_kendra_trikona_raja_on_reference(ref):
     assert ms.scale == pytest.approx(0.75)           # Mars also owns the 12th
 
 
-@pytest.mark.parametrize("rule_id", ["yoga.gaja_kesari", "yoga.bhadra", "yoga.hamsa",
+@pytest.mark.parametrize("rule_id", ["yoga.gaja_kesari", "yoga.gaja_kesari_bphs", "yoga.bhadra", "yoga.hamsa",
                                      "yoga.malavya", "yoga.sasa", "yoga.neecha_bhanga"])
 def test_does_not_fire_on_reference(ref, rule_id):
     assert by_id(ref, rule_id) == []
@@ -141,6 +141,33 @@ def test_gaja_kesari_fires_with_jupiter_tenth_from_moon():
     [f] = fires(dict(REF, Jupiter=100.0), REFERENCE_ASC, "yoga.gaja_kesari")
     assert f.basis == "moon" and f.nodes == ["Jupiter", "H10"]   # Cancer is 10th from Libra
     assert f.scale == 1.0                                          # exalted, not combust
+
+
+def test_gaja_kesari_bphs_fires_with_a_benefic_joining_jupiter():
+    # Jupiter exalted in Cancer with Venus: 10th from the Libra Moon (3rd from the lagna).
+    [f] = fires(dict(REF, Jupiter=100.0, Venus=95.0), REFERENCE_ASC, "yoga.gaja_kesari_bphs")
+    assert f.basis == "moon" and f.nodes == ["Jupiter", "H10"]
+
+
+def test_gaja_kesari_bphs_not_in_an_enemy_sign():
+    # Reference: Jupiter in Taurus, a kendra from the lagna, but Venus's sign is an enemy's.
+    pos = dict(REF, Venus=40.0)                     # give Jupiter a benefic companion too
+    chart = analyse(pos, REFERENCE_ASC)
+    assert chart.bodies["Jupiter"].dignity == "enemy"
+    assert [f for f in chart.fired_rules if f.id == "yoga.gaja_kesari_bphs"] == []
+
+
+def test_gaja_kesari_bphs_uses_the_shadbala_mercury_rule():
+    # Jupiter in Cancer with Mercury and the Sun: Mercury is malefic by association, so no
+    # benefic joins Jupiter; with mercury_nature = benefic it does. Drik bala reads the same
+    # rule, so the two cannot disagree about Mercury on one chart.
+    from jyotish.models import Meta
+    from jyotish.shadbala import natural_benefics
+    pos = dict(REF, Jupiter=100.0, Mercury=105.0, Sun=118.0)
+    assert fires(pos, REFERENCE_ASC, "yoga.gaja_kesari_bphs") == []
+    assert "Mercury" not in natural_benefics(pos, "association")
+    got = fires(pos, REFERENCE_ASC, "yoga.gaja_kesari_bphs", meta=Meta(mercury_nature="benefic"))
+    assert [f.basis for f in got] == ["moon"]
 
 
 def test_neecha_bhanga_fires_when_the_dispositor_is_in_a_kendra():
