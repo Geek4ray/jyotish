@@ -1,0 +1,3040 @@
+{
+  "note": "Recorded from claude-opus-5-5 (effort medium) by tests/test_narrate_live.py.",
+  "question": "How will my career go, and when is the best time for a job change?",
+  "drafts": [
+    {
+      "summary": "The career picture is broadly supportive, led by Sun and Mercury together in the 10th house forming a Kendra-Trikona Raja yoga and a Budhaditya yoga [rule:yoga.kendra_trikona_raja] [rule:yoga.budhaditya]. The house, lord, karaka, varga and panchanga votes all lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote is the one dissenting voice, because the 10th cusp's sub-lord does not connect to the career houses [vote:career.kp].",
+      "areas": [
+        {
+          "name": "career",
+          "claims": [
+            {
+              "finding_id": "yoga.budhaditya@lagna",
+              "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+            },
+            {
+              "finding_id": "yoga.kendra_trikona_raja@lagna",
+              "text": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@lagna",
+              "text": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@sun",
+              "text": "Counted from the Sun, Mars falls in the 10th and again forms Ruchaka yoga, with the same weakening from Saturn's aspect, the star position from the Moon and the difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+            },
+            {
+              "finding_id": "vote:career.house",
+              "text": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the supporting 2nd, 6th and 11th houses are strong, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house]."
+            },
+            {
+              "finding_id": "vote:career.lord",
+              "text": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord]."
+            },
+            {
+              "finding_id": "vote:career.karaka",
+              "text": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign with modest strength, and Venus is exalted and strong in the 11th [vote:career.karaka]."
+            },
+            {
+              "finding_id": "vote:career.varga",
+              "text": "The varga vote leans slightly in favour: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga]."
+            },
+            {
+              "finding_id": "vote:career.kp",
+              "text": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp]."
+            },
+            {
+              "finding_id": "vote:career.panchanga",
+              "text": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "summary": "The career picture is broadly supportive, led by Sun and Mercury together in the 10th house forming a Kendra-Trikona Raja yoga and a Budhaditya yoga [rule:yoga.kendra_trikona_raja] [rule:yoga.budhaditya]. The house, lord, karaka, varga and panchanga votes all lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote is the one dissenting voice, because the 10th cusp's sub-lord does not connect to the career houses [vote:career.kp].",
+      "areas": [
+        {
+          "name": "career",
+          "claims": [
+            {
+              "finding_id": "yoga.budhaditya@lagna",
+              "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+            },
+            {
+              "finding_id": "yoga.kendra_trikona_raja@lagna",
+              "text": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@lagna",
+              "text": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@sun",
+              "text": "Counted from the Sun, Mars falls in the 10th and forms Ruchaka yoga, adding courage and leadership, though the yoga is weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+            },
+            {
+              "finding_id": "vote:career.house",
+              "text": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the supporting 2nd, 6th and 11th houses are strong, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house]."
+            },
+            {
+              "finding_id": "vote:career.lord",
+              "text": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord]."
+            },
+            {
+              "finding_id": "vote:career.karaka",
+              "text": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign with modest strength, and Venus is exalted and strong in the 11th [vote:career.karaka]."
+            },
+            {
+              "finding_id": "vote:career.varga",
+              "text": "The varga vote favours career: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga]."
+            },
+            {
+              "finding_id": "vote:career.kp",
+              "text": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp]."
+            },
+            {
+              "finding_id": "vote:career.panchanga",
+              "text": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "summary": "The career picture is broadly supportive, led by Sun and Mercury together in the 10th house forming a Kendra-Trikona Raja yoga and a Budhaditya yoga [rule:yoga.kendra_trikona_raja] [rule:yoga.budhaditya]. The house, lord, karaka, varga and panchanga votes all lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote is the one dissenting voice, because the 10th cusp's sub-lord does not connect to the career houses [vote:career.kp].",
+      "areas": [
+        {
+          "name": "career",
+          "claims": [
+            {
+              "finding_id": "yoga.budhaditya@lagna",
+              "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+            },
+            {
+              "finding_id": "yoga.kendra_trikona_raja@lagna",
+              "text": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@lagna",
+              "text": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+            },
+            {
+              "finding_id": "yoga.ruchaka@sun",
+              "text": "Counted from the Sun, Mars falls in the 10th and forms Ruchaka yoga, adding courage and leadership, though the yoga is weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+            },
+            {
+              "finding_id": "vote:career.house",
+              "text": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the 2nd, 6th and 11th houses counted from the lagna are all stronger than average, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house]."
+            },
+            {
+              "finding_id": "vote:career.lord",
+              "text": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord]."
+            },
+            {
+              "finding_id": "vote:career.karaka",
+              "text": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign though with low strength, and Venus is exalted and strong in the 11th [vote:career.karaka]."
+            },
+            {
+              "finding_id": "vote:career.varga",
+              "text": "The varga vote favours career: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga]."
+            },
+            {
+              "finding_id": "vote:career.kp",
+              "text": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp]."
+            },
+            {
+              "finding_id": "vote:career.panchanga",
+              "text": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga]."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "accepted": true,
+  "calls": [
+    {
+      "kind": "writer",
+      "request_id": "req_011CgFWCKKtuHyif1W7u7XSN",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 8158,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 8158,
+            "model": null,
+            "output_tokens": 2230,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 2230,
+        "output_tokens_details": {
+          "thinking_tokens": 707
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:01:23.231334+00:00",
+      "attempt": 1,
+      "draft": {
+        "summary": "The career picture is broadly supportive, led by Sun and Mercury together in the 10th house forming a Kendra-Trikona Raja yoga and a Budhaditya yoga [rule:yoga.kendra_trikona_raja] [rule:yoga.budhaditya]. The house, lord, karaka, varga and panchanga votes all lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote is the one dissenting voice, because the 10th cusp's sub-lord does not connect to the career houses [vote:career.kp].",
+        "areas": [
+          {
+            "name": "career",
+            "claims": [
+              {
+                "finding_id": "yoga.budhaditya@lagna",
+                "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+              },
+              {
+                "finding_id": "yoga.kendra_trikona_raja@lagna",
+                "text": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+              },
+              {
+                "finding_id": "yoga.ruchaka@lagna",
+                "text": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+              },
+              {
+                "finding_id": "yoga.ruchaka@sun",
+                "text": "Counted from the Sun, Mars falls in the 10th and again forms Ruchaka yoga, with the same weakening from Saturn's aspect, the star position from the Moon and the difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+              },
+              {
+                "finding_id": "vote:career.house",
+                "text": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the supporting 2nd, 6th and 11th houses are strong, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house]."
+              },
+              {
+                "finding_id": "vote:career.lord",
+                "text": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord]."
+              },
+              {
+                "finding_id": "vote:career.karaka",
+                "text": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign with modest strength, and Venus is exalted and strong in the 11th [vote:career.karaka]."
+              },
+              {
+                "finding_id": "vote:career.varga",
+                "text": "The varga vote leans slightly in favour: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga]."
+              },
+              {
+                "finding_id": "vote:career.kp",
+                "text": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp]."
+              },
+              {
+                "finding_id": "vote:career.panchanga",
+                "text": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga]."
+              }
+            ]
+          }
+        ]
+      },
+      "validator_errors": []
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWDnrtoAgvf3PgjyqDs",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1026,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1026,
+            "model": null,
+            "output_tokens": 637,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 637,
+        "output_tokens_details": {
+          "thinking_tokens": 247
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:01:32.083722+00:00",
+      "attempt": 1,
+      "finding_id": "yoga.budhaditya@lagna",
+      "sentence": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Sun and Mercury are conjoined.",
+            "supported": true,
+            "evidence": "nodes include Sun and Mercury; details.relations: conjunction"
+          },
+          {
+            "text": "The Sun-Mercury conjunction is in the 10th house.",
+            "supported": true,
+            "evidence": "nodes include H10"
+          },
+          {
+            "text": "The conjunction forms Budhaditya yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.budhaditya"
+          },
+          {
+            "text": "The yoga lends intellect and communication skill.",
+            "supported": true,
+            "evidence": "themes: intellect 1.8, communication 1.8"
+          },
+          {
+            "text": "The yoga lends some (lesser) reputation.",
+            "supported": true,
+            "evidence": "themes: reputation 0.9, lower than the other themes"
+          },
+          {
+            "text": "These effects apply to the working life.",
+            "supported": true,
+            "evidence": "The yoga is placed in the 10th house (H10), which is the career area."
+          },
+          {
+            "text": "The yoga is somewhat moderated by a weak planetary state.",
+            "supported": true,
+            "evidence": "modifiers_applied: avastha in [bala, mrita] -> x0.9; scale 0.9"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWEScWdtb2DbiTcCAe1",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1057,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1057,
+            "model": null,
+            "output_tokens": 490,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 490,
+        "output_tokens_details": {
+          "thinking_tokens": 159
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:01:37.844663+00:00",
+      "attempt": 1,
+      "finding_id": "yoga.kendra_trikona_raja@lagna",
+      "sentence": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The Sun and Mercury are conjunct in the 10th house.",
+            "supported": true,
+            "evidence": "nodes list Sun, Mercury, H10 and details.relations is [\"conjunction\"]."
+          },
+          {
+            "text": "The Sun is lord of the 4th house.",
+            "supported": true,
+            "evidence": "details.lordships.a = [4], with 'a' matching the first node, Sun."
+          },
+          {
+            "text": "Mercury is lord of the 2nd and 5th houses.",
+            "supported": true,
+            "evidence": "details.lordships.b = [2, 5], with 'b' matching the second node, Mercury."
+          },
+          {
+            "text": "This conjunction forms a Kendra-Trikona Raja yoga.",
+            "supported": true,
+            "evidence": "rule_id is yoga.kendra_trikona_raja."
+          },
+          {
+            "text": "The yoga points to authority, reputation and career standing.",
+            "supported": true,
+            "evidence": "themes list authority 3.0, reputation 3.0 and career 2.0."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWEsBNq8U6EqGFwzDvb",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1074,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1074,
+            "model": null,
+            "output_tokens": 446,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 446,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:01:46.143015+00:00",
+      "attempt": 1,
+      "finding_id": "yoga.ruchaka@lagna",
+      "sentence": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Mars is in the 7th house from the lagna.",
+            "supported": true,
+            "evidence": "nodes: Mars, H7; basis: lagna"
+          },
+          {
+            "text": "This placement forms Ruchaka yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.ruchaka"
+          },
+          {
+            "text": "The yoga adds courage.",
+            "supported": true,
+            "evidence": "themes: courage 1.22"
+          },
+          {
+            "text": "The yoga adds leadership.",
+            "supported": true,
+            "evidence": "themes: leadership 1.22"
+          },
+          {
+            "text": "The yoga is notably weakened overall.",
+            "supported": true,
+            "evidence": "scale 0.408 after modifiers"
+          },
+          {
+            "text": "Saturn's aspect weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: aspected_by: [Saturn] -> x0.8"
+          },
+          {
+            "text": "An unfavourable star (tara) position from the Moon weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: tara_from_moon in [vipat, pratyak, vadha] -> x0.85"
+          },
+          {
+            "text": "Mars sitting in a difficult placement (marana karaka sthana) weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: marana_karaka_sthana -> x0.6"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWFUepJYURuE3E1m2pK",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1053,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1053,
+            "model": null,
+            "output_tokens": 462,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 462,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:01:52.153469+00:00",
+      "attempt": 1,
+      "finding_id": "yoga.ruchaka@sun",
+      "sentence": "Counted from the Sun, Mars falls in the 10th and again forms Ruchaka yoga, with the same weakening from Saturn's aspect, the star position from the Moon and the difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Counted from the Sun, Mars falls in the 10th house.",
+            "supported": true,
+            "evidence": "basis: sun; nodes: Mars, H10"
+          },
+          {
+            "text": "This placement forms Ruchaka yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.ruchaka"
+          },
+          {
+            "text": "Ruchaka yoga is formed 'again', implying it was also formed from another reference point.",
+            "supported": false,
+            "evidence": "This finding only covers basis sun. Nothing in the data states another Ruchaka finding."
+          },
+          {
+            "text": "The yoga is weakened by Saturn's aspect.",
+            "supported": true,
+            "evidence": "modifiers_applied: aspected_by: [Saturn] -> x0.8"
+          },
+          {
+            "text": "The yoga is weakened by the star (tara) position counted from the Moon.",
+            "supported": true,
+            "evidence": "modifiers_applied: tara_from_moon in [vipat, pratyak, vadha] -> x0.85"
+          },
+          {
+            "text": "The yoga is weakened by a difficult placement.",
+            "supported": true,
+            "evidence": "modifiers_applied: marana_karaka_sthana -> x0.6"
+          },
+          {
+            "text": "These weakenings are 'the same' as those applied to an earlier finding.",
+            "supported": false,
+            "evidence": "The data covers only this finding. Nothing in it states that another finding carried identical modifiers."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWFvTqQxvSVAAZvryg8",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1914,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1914,
+            "model": null,
+            "output_tokens": 994,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 994,
+        "output_tokens_details": {
+          "thinking_tokens": 521
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:02.356296+00:00",
+      "attempt": 1,
+      "finding_id": "vote:career.house",
+      "sentence": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the supporting 2nd, 6th and 11th houses are strong, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The house vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\" in the career house vote."
+          },
+          {
+            "text": "The 10th house from the lagna is in Aquarius.",
+            "supported": true,
+            "evidence": "derivation: basis lagna, house 10, sign Aquarius."
+          },
+          {
+            "text": "The 10th from the lagna is the weakest of the group.",
+            "supported": true,
+            "evidence": "Its relative is -1.0, the lowest in the derivation (4.51 rupas, also the lowest)."
+          },
+          {
+            "text": "The supporting 2nd, 6th and 11th houses (from the lagna) are strong.",
+            "supported": true,
+            "evidence": "From the lagna: 2nd relative 0.48, 6th 0.24, 11th 0.25. All are positive, with rupas of 8.22 to 8.93."
+          },
+          {
+            "text": "The 11th from the Sun is in Sagittarius.",
+            "supported": true,
+            "evidence": "derivation: basis sun, house 11, sign Sagittarius."
+          },
+          {
+            "text": "The 11th from the Moon is in Leo.",
+            "supported": true,
+            "evidence": "derivation: basis moon, house 11, sign Leo."
+          },
+          {
+            "text": "The 11th from the Sun and the 11th from the Moon are especially well placed.",
+            "supported": true,
+            "evidence": "Sun 11th relative 0.49 is the highest. Moon 11th relative 0.34 is among the highest."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWGg3CytbNY9FVqt1TB",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 2818,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 2818,
+            "model": null,
+            "output_tokens": 843,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 843,
+        "output_tokens_details": {
+          "thinking_tokens": 277
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:11.158693+00:00",
+      "attempt": 1,
+      "finding_id": "vote:career.lord",
+      "sentence": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The lord vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\" in the career lord vote."
+          },
+          {
+            "text": "Saturn is the 10th lord (from the lagna).",
+            "supported": true,
+            "evidence": "Lagna basis, house 10, lord: Saturn."
+          },
+          {
+            "text": "Saturn sits in the lagna (1st house) in Taurus.",
+            "supported": true,
+            "evidence": "lord_sign: Taurus, lord_house_from_lagna: 1."
+          },
+          {
+            "text": "Saturn is in a friendly sign.",
+            "supported": true,
+            "evidence": "dignity: friend."
+          },
+          {
+            "text": "Saturn has low strength.",
+            "supported": true,
+            "evidence": "shadbala_ratio: 0.69, below 1."
+          },
+          {
+            "text": "Venus is the 6th lord.",
+            "supported": true,
+            "evidence": "Lagna basis, house 6, lord: Venus."
+          },
+          {
+            "text": "Venus is exalted in Pisces in the 11th.",
+            "supported": true,
+            "evidence": "lord_sign: Pisces, dignity: exalted, lord_house_from_lagna: 11."
+          },
+          {
+            "text": "Mars is lord of the 10th from the Sun.",
+            "supported": true,
+            "evidence": "Sun basis, house 10, sign Scorpio, lord: Mars."
+          },
+          {
+            "text": "Mars is strong.",
+            "supported": true,
+            "evidence": "shadbala_ratio: 1.3."
+          },
+          {
+            "text": "Mars is in its own sign Scorpio.",
+            "supported": true,
+            "evidence": "lord_sign: Scorpio, dignity: own."
+          },
+          {
+            "text": "Mars is in the 7th house.",
+            "supported": true,
+            "evidence": "lord_house_from_lagna: 7."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWHKZgNq7htN8xXrgGg",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1351,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1351,
+            "model": null,
+            "output_tokens": 708,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 708,
+        "output_tokens_details": {
+          "thinking_tokens": 185
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:20.945994+00:00",
+      "attempt": 1,
+      "finding_id": "vote:career.karaka",
+      "sentence": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign with modest strength, and Venus is exalted and strong in the 11th [vote:career.karaka].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The karaka vote favours career.",
+            "supported": true,
+            "evidence": "family: karaka, direction: for; finding id is career.karaka."
+          },
+          {
+            "text": "The Sun occupies the 10th house in Aquarius.",
+            "supported": true,
+            "evidence": "Sun: house 10, sign Aquarius."
+          },
+          {
+            "text": "Mercury occupies the 10th house in Aquarius.",
+            "supported": true,
+            "evidence": "Mercury: house 10, sign Aquarius."
+          },
+          {
+            "text": "The Sun is in an enemy sign.",
+            "supported": true,
+            "evidence": "Sun: dignity enemy."
+          },
+          {
+            "text": "Mercury is in a neutral sign.",
+            "supported": true,
+            "evidence": "Mercury: dignity neutral."
+          },
+          {
+            "text": "Saturn sits in the lagna (1st house).",
+            "supported": true,
+            "evidence": "Saturn: house 1, basis lagna."
+          },
+          {
+            "text": "Saturn is in a friendly sign.",
+            "supported": true,
+            "evidence": "Saturn: dignity friend."
+          },
+          {
+            "text": "Saturn has modest strength.",
+            "supported": true,
+            "evidence": "Saturn: shadbala_ratio 0.69, below 1, consistent with limited strength."
+          },
+          {
+            "text": "Venus is exalted.",
+            "supported": true,
+            "evidence": "Venus: dignity exalted."
+          },
+          {
+            "text": "Venus is strong.",
+            "supported": true,
+            "evidence": "Venus: shadbala_ratio 1.33."
+          },
+          {
+            "text": "Venus is in the 11th house.",
+            "supported": true,
+            "evidence": "Venus: house 11 from lagna."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWJ3N8QufNgbCTEcua8",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1386,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1386,
+            "model": null,
+            "output_tokens": 817,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 817,
+        "output_tokens_details": {
+          "thinking_tokens": 278
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:30.598004+00:00",
+      "attempt": 1,
+      "finding_id": "vote:career.varga",
+      "sentence": "The varga vote leans slightly in favour: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The varga vote leans in favour (for career).",
+            "supported": true,
+            "evidence": "direction: \"for\"; finding_id vote:career.varga"
+          },
+          {
+            "text": "The lean in favour is only slight.",
+            "supported": false,
+            "evidence": "The data gives direction \"for\" but no strength or net total. A net of +1 can be added up from the scores, but the data never calls it slight."
+          },
+          {
+            "text": "These placements are in the D10.",
+            "supported": true,
+            "evidence": "All derivation entries have varga: \"D10\""
+          },
+          {
+            "text": "Mars is in Capricorn in the D10 and scores positively.",
+            "supported": true,
+            "evidence": "Mars: varga_sign Capricorn, score 1"
+          },
+          {
+            "text": "Saturn is in Capricorn in the D10 and scores positively.",
+            "supported": true,
+            "evidence": "Saturn: varga_sign Capricorn, score 1"
+          },
+          {
+            "text": "Venus is in Gemini in the D10 and scores positively.",
+            "supported": true,
+            "evidence": "Venus: varga_sign Gemini, score 1"
+          },
+          {
+            "text": "Moon is neutral.",
+            "supported": true,
+            "evidence": "Moon: score 0"
+          },
+          {
+            "text": "Mercury is neutral.",
+            "supported": true,
+            "evidence": "Mercury: score 0"
+          },
+          {
+            "text": "Jupiter is in Aries in the D10 and scores against.",
+            "supported": true,
+            "evidence": "Jupiter: varga_sign Aries, score -1"
+          },
+          {
+            "text": "The Sun is in Scorpio in the D10 and scores against.",
+            "supported": true,
+            "evidence": "Sun: varga_sign Scorpio, score -1"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWJkwwNfDAkmezfr2Rn",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 950,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 950,
+            "model": null,
+            "output_tokens": 430,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 430,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:36.172665+00:00",
+      "attempt": 1,
+      "finding_id": "vote:career.kp",
+      "sentence": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The KP vote on career is against.",
+            "supported": true,
+            "evidence": "direction: against, family: kp, finding_id vote:career.kp"
+          },
+          {
+            "text": "The 10th cusp lies in the Moon's star.",
+            "supported": true,
+            "evidence": "derivation cusp 10, star: Moon"
+          },
+          {
+            "text": "The 10th cusp's sub-lord is Ketu.",
+            "supported": true,
+            "evidence": "derivation sub: Ketu"
+          },
+          {
+            "text": "Ketu sits in the 8th house.",
+            "supported": true,
+            "evidence": "sub_house: 8"
+          },
+          {
+            "text": "Ketu owns no houses.",
+            "supported": true,
+            "evidence": "sub_owns: []"
+          },
+          {
+            "text": "The career houses are 10, 6, 2 and 11.",
+            "supported": true,
+            "evidence": "area_houses: [10,6,2,11]"
+          },
+          {
+            "text": "Ketu does not link to the career houses 10, 6, 2 or 11.",
+            "supported": true,
+            "evidence": "sub_house 8 is not in area_houses, and sub_owns is empty"
+          },
+          {
+            "text": "Ketu's placement and lack of ownership are the reason the vote goes against career.",
+            "supported": true,
+            "evidence": "The derivation lists sub_house 8 and empty sub_owns against area_houses, with direction: against"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWKAX1gbuS2PYBVnryk",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1160,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1160,
+            "model": null,
+            "output_tokens": 655,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 655,
+        "output_tokens_details": {
+          "thinking_tokens": 175
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:44.847838+00:00",
+      "attempt": 1,
+      "finding_id": "vote:career.panchanga",
+      "sentence": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The panchanga vote is in favour of career.",
+            "supported": true,
+            "evidence": "family: panchanga, direction: for"
+          },
+          {
+            "text": "Mars is lord of the tithi and the nakshatra.",
+            "supported": true,
+            "evidence": "Mars role: [tithi, nakshatra]"
+          },
+          {
+            "text": "Mars rules the 10th house from the Sun.",
+            "supported": true,
+            "evidence": "Mars rules includes {basis: sun, house: 10}"
+          },
+          {
+            "text": "Mars rules other area houses besides the 10th from the Sun.",
+            "supported": true,
+            "evidence": "Mars rules also includes lagna 7, moon 2, moon 7"
+          },
+          {
+            "text": "Mars has good strength.",
+            "supported": true,
+            "evidence": "Mars shadbala_ratio: 1.3 (above 1)"
+          },
+          {
+            "text": "The Moon is the weekday (vara) lord.",
+            "supported": true,
+            "evidence": "Moon role: [vara]"
+          },
+          {
+            "text": "The Moon rules the 10th house from the Moon.",
+            "supported": true,
+            "evidence": "Moon rules includes {basis: moon, house: 10}"
+          },
+          {
+            "text": "The Moon rules the 6th house from the Sun.",
+            "supported": true,
+            "evidence": "Moon rules includes {basis: sun, house: 6}"
+          },
+          {
+            "text": "The Moon also has good strength.",
+            "supported": true,
+            "evidence": "Moon shadbala_ratio: 1.27 (above 1)"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "writer",
+      "request_id": "req_011CgFWKox3NzrLxFmmkQFBu",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 10963,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 10963,
+            "model": null,
+            "output_tokens": 1541,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 1541,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:02:56.409567+00:00",
+      "attempt": 2,
+      "draft": {
+        "summary": "The career picture is broadly supportive, led by Sun and Mercury together in the 10th house forming a Kendra-Trikona Raja yoga and a Budhaditya yoga [rule:yoga.kendra_trikona_raja] [rule:yoga.budhaditya]. The house, lord, karaka, varga and panchanga votes all lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote is the one dissenting voice, because the 10th cusp's sub-lord does not connect to the career houses [vote:career.kp].",
+        "areas": [
+          {
+            "name": "career",
+            "claims": [
+              {
+                "finding_id": "yoga.budhaditya@lagna",
+                "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+              },
+              {
+                "finding_id": "yoga.kendra_trikona_raja@lagna",
+                "text": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+              },
+              {
+                "finding_id": "yoga.ruchaka@lagna",
+                "text": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+              },
+              {
+                "finding_id": "yoga.ruchaka@sun",
+                "text": "Counted from the Sun, Mars falls in the 10th and forms Ruchaka yoga, adding courage and leadership, though the yoga is weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+              },
+              {
+                "finding_id": "vote:career.house",
+                "text": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the supporting 2nd, 6th and 11th houses are strong, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house]."
+              },
+              {
+                "finding_id": "vote:career.lord",
+                "text": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord]."
+              },
+              {
+                "finding_id": "vote:career.karaka",
+                "text": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign with modest strength, and Venus is exalted and strong in the 11th [vote:career.karaka]."
+              },
+              {
+                "finding_id": "vote:career.varga",
+                "text": "The varga vote favours career: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga]."
+              },
+              {
+                "finding_id": "vote:career.kp",
+                "text": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp]."
+              },
+              {
+                "finding_id": "vote:career.panchanga",
+                "text": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga]."
+              }
+            ]
+          }
+        ]
+      },
+      "validator_errors": []
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWLfJfhGQzsnXvkVRcn",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1026,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1026,
+            "model": null,
+            "output_tokens": 582,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 582,
+        "output_tokens_details": {
+          "thinking_tokens": 215
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:03.249716+00:00",
+      "attempt": 2,
+      "finding_id": "yoga.budhaditya@lagna",
+      "sentence": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Sun and Mercury are conjoined",
+            "supported": true,
+            "evidence": "nodes list Sun and Mercury; details.relations: conjunction"
+          },
+          {
+            "text": "The conjunction is in the 10th house",
+            "supported": true,
+            "evidence": "nodes include H10"
+          },
+          {
+            "text": "The conjunction forms Budhaditya yoga",
+            "supported": true,
+            "evidence": "rule_id: yoga.budhaditya"
+          },
+          {
+            "text": "The yoga lends intellect and communication skill",
+            "supported": true,
+            "evidence": "themes: intellect 1.8, communication 1.8"
+          },
+          {
+            "text": "The yoga lends some (lesser) reputation",
+            "supported": true,
+            "evidence": "themes: reputation 0.9, lower than the other themes"
+          },
+          {
+            "text": "These effects apply to the working life",
+            "supported": true,
+            "evidence": "H10 node; the 10th house is the career area"
+          },
+          {
+            "text": "The yoga is somewhat moderated by a weak planetary state",
+            "supported": true,
+            "evidence": "modifiers_applied: avastha in [bala, mrita] -> x0.9; scale 0.9"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWMAQdfh5zwqMELisJb",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1057,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1057,
+            "model": null,
+            "output_tokens": 482,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 482,
+        "output_tokens_details": {
+          "thinking_tokens": 161
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:08.888881+00:00",
+      "attempt": 2,
+      "finding_id": "yoga.kendra_trikona_raja@lagna",
+      "sentence": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The Sun and Mercury are conjoined in the 10th house.",
+            "supported": true,
+            "evidence": "nodes include Sun, Mercury, H10; details.relations: [\"conjunction\"]"
+          },
+          {
+            "text": "The Sun is lord of the 4th house.",
+            "supported": true,
+            "evidence": "details.lordships.a: [4], with Sun as the first planet node"
+          },
+          {
+            "text": "Mercury is lord of the 2nd and 5th houses.",
+            "supported": true,
+            "evidence": "details.lordships.b: [2, 5], with Mercury as the second planet node"
+          },
+          {
+            "text": "This conjunction forms a Kendra-Trikona Raja yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.kendra_trikona_raja"
+          },
+          {
+            "text": "The yoga points to authority, reputation and career standing.",
+            "supported": true,
+            "evidence": "themes: authority 3.0, reputation 3.0, career 2.0"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWMaaBoBoyFoedkVvuV",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1074,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1074,
+            "model": null,
+            "output_tokens": 441,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 441,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:13.875303+00:00",
+      "attempt": 2,
+      "finding_id": "yoga.ruchaka@lagna",
+      "sentence": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Mars is in the 7th house from the lagna.",
+            "supported": true,
+            "evidence": "nodes: Mars, H7; basis: lagna"
+          },
+          {
+            "text": "This placement forms Ruchaka yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.ruchaka"
+          },
+          {
+            "text": "The yoga adds courage.",
+            "supported": true,
+            "evidence": "themes: courage 1.22"
+          },
+          {
+            "text": "The yoga adds leadership.",
+            "supported": true,
+            "evidence": "themes: leadership 1.22"
+          },
+          {
+            "text": "The yoga is notably weakened.",
+            "supported": true,
+            "evidence": "scale 0.408 after modifiers"
+          },
+          {
+            "text": "Saturn aspects Mars or the yoga, which weakens it.",
+            "supported": true,
+            "evidence": "modifiers_applied: aspected_by: [Saturn] -> x0.8"
+          },
+          {
+            "text": "An unfavourable star (tara) position from the Moon weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: tara_from_moon in [vipat, pratyak, vadha] -> x0.85"
+          },
+          {
+            "text": "Mars sits in a difficult placement, which weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: marana_karaka_sthana -> x0.6"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWMwp7U8Xrhy7kVKh2A",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1076,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1076,
+            "model": null,
+            "output_tokens": 605,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 605,
+        "output_tokens_details": {
+          "thinking_tokens": 215
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:20.090372+00:00",
+      "attempt": 2,
+      "finding_id": "yoga.ruchaka@sun",
+      "sentence": "Counted from the Sun, Mars falls in the 10th and forms Ruchaka yoga, adding courage and leadership, though the yoga is weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Counted from the Sun, Mars falls in the 10th house",
+            "supported": true,
+            "evidence": "basis: sun; nodes: Mars, H10"
+          },
+          {
+            "text": "This placement forms Ruchaka yoga",
+            "supported": true,
+            "evidence": "rule_id: yoga.ruchaka"
+          },
+          {
+            "text": "The yoga adds courage and leadership",
+            "supported": true,
+            "evidence": "themes: courage 1.22, leadership 1.22"
+          },
+          {
+            "text": "The yoga is weakened by Saturn's aspect",
+            "supported": true,
+            "evidence": "modifiers_applied: aspected_by: [Saturn] -> x0.8"
+          },
+          {
+            "text": "The yoga is weakened by an unfavourable star (tara) position counted from the Moon",
+            "supported": true,
+            "evidence": "modifiers_applied: tara_from_moon in [vipat, pratyak, vadha] -> x0.85"
+          },
+          {
+            "text": "The yoga is weakened by Mars sitting in a difficult placement",
+            "supported": true,
+            "evidence": "modifiers_applied: marana_karaka_sthana -> x0.6, a difficult placement for the yoga's planet, Mars"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWNQG6eEfHrB8eG7zeD",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1914,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1914,
+            "model": null,
+            "output_tokens": 924,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 924,
+        "output_tokens_details": {
+          "thinking_tokens": 454
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:29.816274+00:00",
+      "attempt": 2,
+      "finding_id": "vote:career.house",
+      "sentence": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the supporting 2nd, 6th and 11th houses are strong, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The house vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\" in the career house vote."
+          },
+          {
+            "text": "The 10th house from the lagna is in Aquarius.",
+            "supported": true,
+            "evidence": "derivation: basis lagna, house 10, sign Aquarius."
+          },
+          {
+            "text": "The 10th from the lagna is the weakest house in the group.",
+            "supported": true,
+            "evidence": "Its relative is -1.0 (4.51 rupas), the lowest value in the derivation."
+          },
+          {
+            "text": "The supporting 2nd, 6th and 11th houses are strong.",
+            "supported": false,
+            "evidence": "No basis is named, so the claim is ambiguous. Counted from the lagna, all three are positive (0.48, 0.24, 0.25). Counted from the Moon, the 2nd (Scorpio) is -0.04, so not strong. Because one reading is supported and another is not, the claim is unsupported."
+          },
+          {
+            "text": "The 11th from the Sun is in Sagittarius and is especially well placed.",
+            "supported": true,
+            "evidence": "derivation: basis sun, house 11, sign Sagittarius, relative 0.49, the highest in the group."
+          },
+          {
+            "text": "The 11th from the Moon is in Leo and is especially well placed.",
+            "supported": true,
+            "evidence": "derivation: basis moon, house 11, sign Leo, relative 0.34, one of the stronger values."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWP7s8X63sP3PHqomnE",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 2818,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 2818,
+            "model": null,
+            "output_tokens": 784,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 784,
+        "output_tokens_details": {
+          "thinking_tokens": 246
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:37.232494+00:00",
+      "attempt": 2,
+      "finding_id": "vote:career.lord",
+      "sentence": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The lord vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\", finding_id vote:career.lord"
+          },
+          {
+            "text": "The 10th lord (from lagna) is Saturn.",
+            "supported": true,
+            "evidence": "derivation lagna house 10: lord Saturn"
+          },
+          {
+            "text": "Saturn sits in the lagna (1st house) in Taurus.",
+            "supported": true,
+            "evidence": "lord_sign Taurus, lord_house_from_lagna 1"
+          },
+          {
+            "text": "Saturn is in a friendly sign.",
+            "supported": true,
+            "evidence": "dignity: friend"
+          },
+          {
+            "text": "Saturn has low strength.",
+            "supported": true,
+            "evidence": "shadbala_ratio 0.69, below 1"
+          },
+          {
+            "text": "The 6th lord (from lagna) is Venus.",
+            "supported": true,
+            "evidence": "derivation lagna house 6: lord Venus"
+          },
+          {
+            "text": "Venus is exalted in Pisces in the 11th house.",
+            "supported": true,
+            "evidence": "lord_sign Pisces, lord_house_from_lagna 11, dignity exalted"
+          },
+          {
+            "text": "Mars is lord of the 10th from the Sun.",
+            "supported": true,
+            "evidence": "derivation sun house 10: sign Scorpio, lord Mars"
+          },
+          {
+            "text": "Mars is strong.",
+            "supported": true,
+            "evidence": "shadbala_ratio 1.3"
+          },
+          {
+            "text": "Mars is in its own sign Scorpio in the 7th house.",
+            "supported": true,
+            "evidence": "lord_sign Scorpio, lord_house_from_lagna 7, dignity own"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWPfcbJNoLj92rRa4eM",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1351,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1351,
+            "model": null,
+            "output_tokens": 681,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 681,
+        "output_tokens_details": {
+          "thinking_tokens": 180
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:44.149227+00:00",
+      "attempt": 2,
+      "finding_id": "vote:career.karaka",
+      "sentence": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign with modest strength, and Venus is exalted and strong in the 11th [vote:career.karaka].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The karaka vote favours career",
+            "supported": true,
+            "evidence": "family: karaka, direction: for"
+          },
+          {
+            "text": "The Sun occupies the 10th house in Aquarius",
+            "supported": true,
+            "evidence": "Sun: house 10, sign Aquarius"
+          },
+          {
+            "text": "Mercury occupies the 10th house in Aquarius",
+            "supported": true,
+            "evidence": "Mercury: house 10, sign Aquarius"
+          },
+          {
+            "text": "The Sun is in an enemy sign",
+            "supported": true,
+            "evidence": "Sun: dignity enemy"
+          },
+          {
+            "text": "Mercury is in a neutral sign",
+            "supported": true,
+            "evidence": "Mercury: dignity neutral"
+          },
+          {
+            "text": "Saturn sits in the lagna",
+            "supported": true,
+            "evidence": "Saturn: house 1"
+          },
+          {
+            "text": "Saturn is in a friendly sign",
+            "supported": true,
+            "evidence": "Saturn: dignity friend"
+          },
+          {
+            "text": "Saturn has modest strength",
+            "supported": false,
+            "evidence": "Saturn shadbala_ratio is 0.69, below 1, which reads as weak rather than modest; the data does not state 'modest'."
+          },
+          {
+            "text": "Venus is exalted",
+            "supported": true,
+            "evidence": "Venus: dignity exalted"
+          },
+          {
+            "text": "Venus is strong",
+            "supported": true,
+            "evidence": "Venus: shadbala_ratio 1.33"
+          },
+          {
+            "text": "Venus is in the 11th house",
+            "supported": true,
+            "evidence": "Venus: house 11"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWQB9rhKfpr5EprWySY",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1381,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1381,
+            "model": null,
+            "output_tokens": 491,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 491,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:52.462398+00:00",
+      "attempt": 2,
+      "finding_id": "vote:career.varga",
+      "sentence": "The varga vote favours career: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The varga vote favours career.",
+            "supported": true,
+            "evidence": "direction: for, finding_id vote:career.varga, family varga"
+          },
+          {
+            "text": "In the D10, Mars is in Capricorn and scores positively.",
+            "supported": true,
+            "evidence": "Mars: varga D10, varga_sign Capricorn, score 1"
+          },
+          {
+            "text": "In the D10, Saturn is in Capricorn and scores positively.",
+            "supported": true,
+            "evidence": "Saturn: varga D10, varga_sign Capricorn, score 1"
+          },
+          {
+            "text": "In the D10, Venus is in Gemini and scores positively.",
+            "supported": true,
+            "evidence": "Venus: varga D10, varga_sign Gemini, score 1"
+          },
+          {
+            "text": "Moon is neutral in the D10.",
+            "supported": true,
+            "evidence": "Moon: score 0 (d1 neutral, varga_dignity 0.0)"
+          },
+          {
+            "text": "Mercury is neutral in the D10.",
+            "supported": true,
+            "evidence": "Mercury: score 0 (d1 neutral, varga_dignity 0.0)"
+          },
+          {
+            "text": "In the D10, Jupiter is in Aries and scores against.",
+            "supported": true,
+            "evidence": "Jupiter: varga D10, varga_sign Aries, score -1"
+          },
+          {
+            "text": "In the D10, the Sun is in Scorpio and scores against.",
+            "supported": true,
+            "evidence": "Sun: varga D10, varga_sign Scorpio, score -1"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWQnfnoEhffkcmNEchz",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 950,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 950,
+            "model": null,
+            "output_tokens": 450,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 450,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:03:58.592859+00:00",
+      "attempt": 2,
+      "finding_id": "vote:career.kp",
+      "sentence": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The KP vote goes against career.",
+            "supported": true,
+            "evidence": "direction: against, family: kp, finding_id vote:career.kp"
+          },
+          {
+            "text": "The 10th cusp lies in the Moon's star.",
+            "supported": true,
+            "evidence": "derivation: cusp 10, star Moon"
+          },
+          {
+            "text": "The 10th cusp's sub-lord is Ketu.",
+            "supported": true,
+            "evidence": "derivation: sub Ketu"
+          },
+          {
+            "text": "Ketu sits in the 8th house.",
+            "supported": true,
+            "evidence": "derivation: sub_house 8"
+          },
+          {
+            "text": "Ketu owns no houses.",
+            "supported": true,
+            "evidence": "derivation: sub_owns []"
+          },
+          {
+            "text": "The career houses are 10, 6, 2 and 11.",
+            "supported": true,
+            "evidence": "derivation: area_houses [10, 6, 2, 11]"
+          },
+          {
+            "text": "Ketu does not link to the career houses 10, 6, 2 or 11.",
+            "supported": true,
+            "evidence": "sub_house 8 and sub_owns [] contain none of area_houses [10, 6, 2, 11]"
+          },
+          {
+            "text": "Ketu's lack of a link to the career houses is why the vote goes against career.",
+            "supported": true,
+            "evidence": "direction against follows from sub_house 8 and empty sub_owns not intersecting area_houses"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWREvrAUMsVpFAtcRXv",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1160,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1160,
+            "model": null,
+            "output_tokens": 624,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 624,
+        "output_tokens_details": {
+          "thinking_tokens": 222
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:05.152091+00:00",
+      "attempt": 2,
+      "finding_id": "vote:career.panchanga",
+      "sentence": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The panchanga vote favours career.",
+            "supported": true,
+            "evidence": "family: panchanga, direction: for"
+          },
+          {
+            "text": "Mars is lord of the tithi and nakshatra.",
+            "supported": true,
+            "evidence": "Mars role: [tithi, nakshatra]"
+          },
+          {
+            "text": "Mars rules the 10th house from the Sun.",
+            "supported": true,
+            "evidence": "Mars rules: {basis: sun, house: 10}"
+          },
+          {
+            "text": "Mars rules other area houses.",
+            "supported": true,
+            "evidence": "Mars rules also lagna 7, moon 2, moon 7"
+          },
+          {
+            "text": "Mars has good strength.",
+            "supported": true,
+            "evidence": "Mars shadbala_ratio: 1.3"
+          },
+          {
+            "text": "The Moon is the weekday lord.",
+            "supported": true,
+            "evidence": "Moon role: [vara]"
+          },
+          {
+            "text": "The Moon rules the 10th from the Moon and the 6th from the Sun.",
+            "supported": true,
+            "evidence": "Moon rules: {moon, 10}, {sun, 6}"
+          },
+          {
+            "text": "The Moon also has good strength.",
+            "supported": true,
+            "evidence": "Moon shadbala_ratio: 1.27"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "writer",
+      "request_id": "req_011CgFWRjCD3yBVbNCHK4L7T",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 12971,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 12971,
+            "model": null,
+            "output_tokens": 1549,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 1549,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:18.176337+00:00",
+      "attempt": 3,
+      "draft": {
+        "summary": "The career picture is broadly supportive, led by Sun and Mercury together in the 10th house forming a Kendra-Trikona Raja yoga and a Budhaditya yoga [rule:yoga.kendra_trikona_raja] [rule:yoga.budhaditya]. The house, lord, karaka, varga and panchanga votes all lean in favour of career [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]. The KP vote is the one dissenting voice, because the 10th cusp's sub-lord does not connect to the career houses [vote:career.kp].",
+        "areas": [
+          {
+            "name": "career",
+            "claims": [
+              {
+                "finding_id": "yoga.budhaditya@lagna",
+                "text": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1]."
+              },
+              {
+                "finding_id": "yoga.kendra_trikona_raja@lagna",
+                "text": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12]."
+              },
+              {
+                "finding_id": "yoga.ruchaka@lagna",
+                "text": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2]."
+              },
+              {
+                "finding_id": "yoga.ruchaka@sun",
+                "text": "Counted from the Sun, Mars falls in the 10th and forms Ruchaka yoga, adding courage and leadership, though the yoga is weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+              },
+              {
+                "finding_id": "vote:career.house",
+                "text": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the 2nd, 6th and 11th houses counted from the lagna are all stronger than average, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house]."
+              },
+              {
+                "finding_id": "vote:career.lord",
+                "text": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord]."
+              },
+              {
+                "finding_id": "vote:career.karaka",
+                "text": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign though with low strength, and Venus is exalted and strong in the 11th [vote:career.karaka]."
+              },
+              {
+                "finding_id": "vote:career.varga",
+                "text": "The varga vote favours career: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga]."
+              },
+              {
+                "finding_id": "vote:career.kp",
+                "text": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp]."
+              },
+              {
+                "finding_id": "vote:career.panchanga",
+                "text": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga]."
+              }
+            ]
+          }
+        ]
+      },
+      "validator_errors": []
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWSgsaeCuyfz3GUUM6n",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1026,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1026,
+            "model": null,
+            "output_tokens": 602,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 602,
+        "output_tokens_details": {
+          "thinking_tokens": 233
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:24.962629+00:00",
+      "attempt": 3,
+      "finding_id": "yoga.budhaditya@lagna",
+      "sentence": "Sun and Mercury conjoined in the 10th house form Budhaditya yoga, lending intellect, communication skill and some reputation to the working life, though the yoga is somewhat moderated by a weak planetary state [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Sun and Mercury are conjoined",
+            "supported": true,
+            "evidence": "nodes include Sun and Mercury; details.relations: conjunction"
+          },
+          {
+            "text": "The conjunction is in the 10th house",
+            "supported": true,
+            "evidence": "nodes include H10"
+          },
+          {
+            "text": "The conjunction forms Budhaditya yoga",
+            "supported": true,
+            "evidence": "rule_id: yoga.budhaditya"
+          },
+          {
+            "text": "The yoga lends intellect and communication skill",
+            "supported": true,
+            "evidence": "themes: intellect 1.8, communication 1.8"
+          },
+          {
+            "text": "The yoga lends some (lesser) reputation",
+            "supported": true,
+            "evidence": "themes: reputation 0.9, lower than the other themes"
+          },
+          {
+            "text": "These effects apply to the working life",
+            "supported": true,
+            "evidence": "H10 is the career house, so the area supports this framing"
+          },
+          {
+            "text": "The yoga is somewhat moderated by a weak planetary state",
+            "supported": true,
+            "evidence": "modifiers_applied: avastha in [bala, mrita] -> x0.9; scale 0.9"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWTBhgVyPeFuNnTd9FH",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1057,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1057,
+            "model": null,
+            "output_tokens": 450,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 450,
+        "output_tokens_details": {
+          "thinking_tokens": 131
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:29.933831+00:00",
+      "attempt": 3,
+      "finding_id": "yoga.kendra_trikona_raja@lagna",
+      "sentence": "The same conjunction in the 10th joins the Sun as lord of the 4th with Mercury as lord of the 2nd and 5th, forming a Kendra-Trikona Raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The Sun and Mercury are conjunct in the 10th house.",
+            "supported": true,
+            "evidence": "nodes list Sun, Mercury, H10; details.relations: conjunction"
+          },
+          {
+            "text": "The Sun is lord of the 4th house.",
+            "supported": true,
+            "evidence": "details.lordships.a: [4], corresponding to the first node, Sun"
+          },
+          {
+            "text": "Mercury is lord of the 2nd and 5th houses.",
+            "supported": true,
+            "evidence": "details.lordships.b: [2, 5], corresponding to the second node, Mercury"
+          },
+          {
+            "text": "This conjunction forms a Kendra-Trikona Raja yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.kendra_trikona_raja"
+          },
+          {
+            "text": "The yoga points to authority, reputation and career standing.",
+            "supported": true,
+            "evidence": "themes: authority 3.0, reputation 3.0, career 2.0"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWTZ4ZGNCJBqwdMEnx1",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1074,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1074,
+            "model": null,
+            "output_tokens": 434,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 434,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:35.040922+00:00",
+      "attempt": 3,
+      "finding_id": "yoga.ruchaka@lagna",
+      "sentence": "Mars in the 7th house from the lagna forms Ruchaka yoga, adding courage and leadership, but the yoga is notably weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Mars is in the 7th house from the lagna.",
+            "supported": true,
+            "evidence": "nodes: Mars, H7; basis: lagna"
+          },
+          {
+            "text": "This placement forms Ruchaka yoga.",
+            "supported": true,
+            "evidence": "rule_id: yoga.ruchaka"
+          },
+          {
+            "text": "The yoga adds courage.",
+            "supported": true,
+            "evidence": "themes: courage 1.22"
+          },
+          {
+            "text": "The yoga adds leadership.",
+            "supported": true,
+            "evidence": "themes: leadership 1.22"
+          },
+          {
+            "text": "The yoga is notably weakened.",
+            "supported": true,
+            "evidence": "scale 0.408 after modifiers"
+          },
+          {
+            "text": "Saturn's aspect weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: aspected_by: [Saturn] -> x0.8"
+          },
+          {
+            "text": "An unfavourable star (tara) position from the Moon weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: tara_from_moon in [vipat, pratyak, vadha] -> x0.85"
+          },
+          {
+            "text": "Mars sitting in a difficult placement weakens the yoga.",
+            "supported": true,
+            "evidence": "modifiers_applied: marana_karaka_sthana -> x0.6"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWTvsjUad31myJ4H6rJ",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1076,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1076,
+            "model": null,
+            "output_tokens": 831,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 831,
+        "output_tokens_details": {
+          "thinking_tokens": 393
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:43.196223+00:00",
+      "attempt": 3,
+      "finding_id": "yoga.ruchaka@sun",
+      "sentence": "Counted from the Sun, Mars falls in the 10th and forms Ruchaka yoga, adding courage and leadership, though the yoga is weakened by Saturn's aspect, an unfavourable star position from the Moon and Mars sitting in a difficult placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1].",
+      "result": {
+        "propositions": [
+          {
+            "text": "Counted from the Sun, Mars falls in the 10th house.",
+            "supported": true,
+            "evidence": "basis: \"sun\"; nodes: [\"Mars\", \"H10\"]"
+          },
+          {
+            "text": "This placement forms Ruchaka yoga.",
+            "supported": true,
+            "evidence": "rule_id: \"yoga.ruchaka\""
+          },
+          {
+            "text": "The yoga adds courage and leadership.",
+            "supported": true,
+            "evidence": "themes: courage 1.22, leadership 1.22"
+          },
+          {
+            "text": "The yoga is weakened by Saturn's aspect.",
+            "supported": true,
+            "evidence": "modifiers_applied: \"aspected_by: [Saturn] -> x0.8\""
+          },
+          {
+            "text": "The yoga is weakened by an unfavourable star (tara) position counted from the Moon.",
+            "supported": true,
+            "evidence": "modifiers_applied: \"tara_from_moon in [vipat, pratyak, vadha] -> x0.85\""
+          },
+          {
+            "text": "The yoga is weakened by Mars sitting in a difficult placement (marana karaka sthana).",
+            "supported": true,
+            "evidence": "modifiers_applied: \"marana_karaka_sthana -> x0.6\". The data does not name the planet, but Mars is the only planet in this finding's nodes."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWUXgz1tAytydhCgR9q",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1922,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1922,
+            "model": null,
+            "output_tokens": 802,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 802,
+        "output_tokens_details": {
+          "thinking_tokens": 315
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:04:51.930473+00:00",
+      "attempt": 3,
+      "finding_id": "vote:career.house",
+      "sentence": "The house vote favours career: although the 10th house from the lagna in Aquarius is the weakest of the group, the 2nd, 6th and 11th houses counted from the lagna are all stronger than average, and the 11th from the Sun in Sagittarius and the 11th from the Moon in Leo are especially well placed [vote:career.house].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The house vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\", finding_id vote:career.house"
+          },
+          {
+            "text": "The 10th house from the lagna is in Aquarius.",
+            "supported": true,
+            "evidence": "derivation: basis lagna, house 10, sign Aquarius"
+          },
+          {
+            "text": "The 10th house from the lagna is the weakest of the group.",
+            "supported": true,
+            "evidence": "lagna 10th has relative -1.0 and bhava_bala 4.51, the lowest in the derivation"
+          },
+          {
+            "text": "The 2nd, 6th and 11th houses from the lagna are all stronger than average.",
+            "supported": true,
+            "evidence": "lagna 2nd relative 0.48, 6th 0.24, 11th 0.25, all positive"
+          },
+          {
+            "text": "The 11th house from the Sun is in Sagittarius.",
+            "supported": true,
+            "evidence": "derivation: basis sun, house 11, sign Sagittarius"
+          },
+          {
+            "text": "The 11th from the Sun is especially well placed.",
+            "supported": true,
+            "evidence": "sun 11th relative 0.49, the highest in the group"
+          },
+          {
+            "text": "The 11th house from the Moon is in Leo.",
+            "supported": true,
+            "evidence": "derivation: basis moon, house 11, sign Leo"
+          },
+          {
+            "text": "The 11th from the Moon is especially well placed.",
+            "supported": true,
+            "evidence": "moon 11th relative 0.34, among the highest values in the group"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWVAxLKTVHP1wwxzF4r",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 2818,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 2818,
+            "model": null,
+            "output_tokens": 852,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 852,
+        "output_tokens_details": {
+          "thinking_tokens": 273
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:05:01.533277+00:00",
+      "attempt": 3,
+      "finding_id": "vote:career.lord",
+      "sentence": "The lord vote favours career: the 10th lord Saturn sits in the lagna in Taurus in a friendly sign though with low strength, the 6th lord Venus is exalted in Pisces in the 11th, and Mars, lord of the 10th from the Sun, is strong in its own sign Scorpio in the 7th [vote:career.lord].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The lord vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\" in a career lord vote."
+          },
+          {
+            "text": "Saturn is the 10th lord (from the lagna).",
+            "supported": true,
+            "evidence": "Lagna-basis entry: house 10 Aquarius, lord Saturn."
+          },
+          {
+            "text": "Saturn sits in the lagna (1st house) in Taurus.",
+            "supported": true,
+            "evidence": "Saturn lord_sign Taurus, lord_house_from_lagna 1."
+          },
+          {
+            "text": "Saturn is in a friendly sign.",
+            "supported": true,
+            "evidence": "Saturn dignity: \"friend\"."
+          },
+          {
+            "text": "Saturn has low strength.",
+            "supported": true,
+            "evidence": "Saturn shadbala_ratio 0.69, below 1."
+          },
+          {
+            "text": "Venus is the 6th lord (from the lagna).",
+            "supported": true,
+            "evidence": "Lagna-basis entry: house 6 Libra, lord Venus."
+          },
+          {
+            "text": "Venus is exalted in Pisces in the 11th house.",
+            "supported": true,
+            "evidence": "Venus lord_sign Pisces, lord_house_from_lagna 11, dignity exalted."
+          },
+          {
+            "text": "Mars is lord of the 10th from the Sun.",
+            "supported": true,
+            "evidence": "Sun-basis entry: house 10 Scorpio, lord Mars."
+          },
+          {
+            "text": "Mars is strong.",
+            "supported": true,
+            "evidence": "Mars shadbala_ratio 1.3."
+          },
+          {
+            "text": "Mars is in its own sign Scorpio in the 7th house.",
+            "supported": true,
+            "evidence": "Mars lord_sign Scorpio, lord_house_from_lagna 7, dignity own."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWVszuJQFVmE6nY4if9",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1351,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1351,
+            "model": null,
+            "output_tokens": 608,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 608,
+        "output_tokens_details": {
+          "thinking_tokens": 75
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:05:08.581799+00:00",
+      "attempt": 3,
+      "finding_id": "vote:career.karaka",
+      "sentence": "The karaka vote favours career: the Sun and Mercury occupy the 10th house in Aquarius, the Sun in an enemy sign and Mercury neutral, Saturn sits in the lagna in a friendly sign though with low strength, and Venus is exalted and strong in the 11th [vote:career.karaka].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The karaka vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\", family: \"karaka\", finding_id vote:career.karaka"
+          },
+          {
+            "text": "The Sun occupies the 10th house in Aquarius.",
+            "supported": true,
+            "evidence": "Sun: house 10, sign Aquarius"
+          },
+          {
+            "text": "Mercury occupies the 10th house in Aquarius.",
+            "supported": true,
+            "evidence": "Mercury: house 10, sign Aquarius"
+          },
+          {
+            "text": "The Sun is in an enemy sign.",
+            "supported": true,
+            "evidence": "Sun: dignity \"enemy\""
+          },
+          {
+            "text": "Mercury is in a neutral sign.",
+            "supported": true,
+            "evidence": "Mercury: dignity \"neutral\""
+          },
+          {
+            "text": "Saturn sits in the lagna (1st house).",
+            "supported": true,
+            "evidence": "Saturn: house 1, basis lagna"
+          },
+          {
+            "text": "Saturn is in a friendly sign.",
+            "supported": true,
+            "evidence": "Saturn: dignity \"friend\""
+          },
+          {
+            "text": "Saturn has low strength.",
+            "supported": true,
+            "evidence": "Saturn: shadbala_ratio 0.69, below 1"
+          },
+          {
+            "text": "Venus is exalted.",
+            "supported": true,
+            "evidence": "Venus: dignity \"exalted\""
+          },
+          {
+            "text": "Venus is strong.",
+            "supported": true,
+            "evidence": "Venus: shadbala_ratio 1.33, above 1"
+          },
+          {
+            "text": "Venus is in the 11th house.",
+            "supported": true,
+            "evidence": "Venus: house 11"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWWQCbSEQf4GL6SGsRJ",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1381,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1381,
+            "model": null,
+            "output_tokens": 477,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 477,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:05:13.694131+00:00",
+      "attempt": 3,
+      "finding_id": "vote:career.varga",
+      "sentence": "The varga vote favours career: in the D10, Mars and Saturn in Capricorn and Venus in Gemini score positively, Moon and Mercury are neutral, while Jupiter in Aries and the Sun in Scorpio score against [vote:career.varga].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The varga vote favours career.",
+            "supported": true,
+            "evidence": "direction: \"for\"; finding_id vote:career.varga, family varga"
+          },
+          {
+            "text": "Mars is in Capricorn in the D10.",
+            "supported": true,
+            "evidence": "Mars varga D10, varga_sign Capricorn"
+          },
+          {
+            "text": "Saturn is in Capricorn in the D10.",
+            "supported": true,
+            "evidence": "Saturn varga D10, varga_sign Capricorn"
+          },
+          {
+            "text": "Venus is in Gemini in the D10.",
+            "supported": true,
+            "evidence": "Venus varga D10, varga_sign Gemini"
+          },
+          {
+            "text": "Mars, Saturn and Venus score positively.",
+            "supported": true,
+            "evidence": "Mars score 1, Saturn score 1, Venus score 1"
+          },
+          {
+            "text": "Moon and Mercury are neutral (score zero).",
+            "supported": true,
+            "evidence": "Moon score 0, Mercury score 0"
+          },
+          {
+            "text": "Jupiter is in Aries in the D10.",
+            "supported": true,
+            "evidence": "Jupiter varga D10, varga_sign Aries"
+          },
+          {
+            "text": "The Sun is in Scorpio in the D10.",
+            "supported": true,
+            "evidence": "Sun varga D10, varga_sign Scorpio"
+          },
+          {
+            "text": "Jupiter and the Sun score against.",
+            "supported": true,
+            "evidence": "Jupiter score -1, Sun score -1"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWWn2zvaFUgYBpDbvHP",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 950,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 950,
+            "model": null,
+            "output_tokens": 663,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 663,
+        "output_tokens_details": {
+          "thinking_tokens": 261
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:05:24.927513+00:00",
+      "attempt": 3,
+      "finding_id": "vote:career.kp",
+      "sentence": "The KP vote goes against career: the 10th cusp lies in the Moon's star, and its sub-lord Ketu sits in the 8th house and owns no houses, so it does not link to the career houses 10, 6, 2 or 11 [vote:career.kp].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The KP vote on career is against.",
+            "supported": true,
+            "evidence": "family: kp, direction: against, finding_id vote:career.kp"
+          },
+          {
+            "text": "The 10th cusp lies in the Moon's star.",
+            "supported": true,
+            "evidence": "derivation: cusp 10, star Moon"
+          },
+          {
+            "text": "The sub-lord of the 10th cusp is Ketu.",
+            "supported": true,
+            "evidence": "derivation: cusp 10, sub Ketu"
+          },
+          {
+            "text": "Ketu, the sub-lord, sits in the 8th house.",
+            "supported": true,
+            "evidence": "derivation: sub_house 8"
+          },
+          {
+            "text": "Ketu, the sub-lord, owns no houses.",
+            "supported": true,
+            "evidence": "derivation: sub_owns []"
+          },
+          {
+            "text": "The career houses are 10, 6, 2 and 11.",
+            "supported": true,
+            "evidence": "derivation: area_houses [10, 6, 2, 11]"
+          },
+          {
+            "text": "Because of its 8th-house placement and lack of ownership, Ketu does not link to the career houses.",
+            "supported": true,
+            "evidence": "sub_house 8 is not in area_houses and sub_owns is empty; this matches direction: against"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "checker",
+      "request_id": "req_011CgFWXcAxWGx7yWYQGNo2c",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "fallback_credit": null,
+        "inference_geo": "global",
+        "input_tokens": 1160,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "input_tokens": 1160,
+            "model": null,
+            "output_tokens": 714,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 714,
+        "output_tokens_details": {
+          "thinking_tokens": 288
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "stop_reason": "end_turn",
+      "timestamp": "2026-10-21T14:05:32.443957+00:00",
+      "attempt": 3,
+      "finding_id": "vote:career.panchanga",
+      "sentence": "The panchanga vote favours career: Mars, as lord of the tithi and nakshatra, rules the 10th from the Sun and other area houses with good strength, and the Moon, as weekday lord, rules the 10th from the Moon and the 6th from the Sun, also with good strength [vote:career.panchanga].",
+      "result": {
+        "propositions": [
+          {
+            "text": "The panchanga vote favours career.",
+            "supported": true,
+            "evidence": "family: panchanga, direction: for"
+          },
+          {
+            "text": "Mars is lord of the tithi and the nakshatra.",
+            "supported": true,
+            "evidence": "Mars role: [tithi, nakshatra]"
+          },
+          {
+            "text": "Mars rules the 10th house from the Sun.",
+            "supported": true,
+            "evidence": "Mars rules includes {basis: sun, house: 10}"
+          },
+          {
+            "text": "Mars also rules other relevant houses.",
+            "supported": true,
+            "evidence": "Mars rules also includes lagna 7, moon 2, and moon 7"
+          },
+          {
+            "text": "Mars has good strength.",
+            "supported": true,
+            "evidence": "Mars shadbala_ratio: 1.3, which is above 1"
+          },
+          {
+            "text": "The Moon is the weekday (vara) lord.",
+            "supported": true,
+            "evidence": "Moon role: [vara]"
+          },
+          {
+            "text": "The Moon rules the 10th from the Moon and the 6th from the Sun.",
+            "supported": true,
+            "evidence": "Moon rules: {moon, 10}, {sun, 6}"
+          },
+          {
+            "text": "The Moon also has good strength.",
+            "supported": true,
+            "evidence": "Moon shadbala_ratio: 1.27, which is above 1"
+          }
+        ]
+      }
+    }
+  ]
+}
