@@ -28,7 +28,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -84,6 +84,7 @@ class ReadingRequest(BirthInput):
     model_config = ConfigDict(extra="forbid")
     question: str
     as_of: str | None = None
+    depth: Literal["curious", "learner", "astrologer"] = "curious"
 
 
 class Accepted(BaseModel):
@@ -160,13 +161,13 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                    document=chart.model_dump(mode="json")))
             update(reading_id, chart_id=chart_id)
             keep = {"chart": chart_line(chart, birth),
-                    "header": reading_header(birth, req.question, chart, req.as_of, model_fixture)}
+                    "header": reading_header(birth, req.question, chart, req.as_of, model_fixture, req.depth)}
             stage(reading_id, log, "score", keep, chart_source=source,
                   tiers={n: a.tier for n, a in chart.scored.areas.items()} if chart.scored else None)
 
             def on(event: str, info: dict) -> None:
                 stage(reading_id, log, f"{event} {info['attempt']}", keep, **info)
-            reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of,
+            reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of, depth=req.depth,
                                          model_fixture=model_fixture, progress=on)
             log.append("done")
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,

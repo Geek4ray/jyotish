@@ -197,6 +197,8 @@ def render(reading: Reading, chart: Chart) -> str:
                                                  for a in reading.areas if a.windows) if x)
     if when and s.source != "engine":
         L += [f"**When (engine):** {when}", ""]
+    if s.timing_note:
+        L += [f"*{s.timing_note}*", ""]
     L += [
           f"- Driver: {s.driver_planet}" + (f" (alternates {', '.join(s.driver_alternates)})" if s.driver_alternates else ""),
           f"- Current period (Vimshottari): {s.current_period or '–'}",
@@ -215,6 +217,11 @@ def render(reading: Reading, chart: Chart) -> str:
         if a.polarity:
             L.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})" for p in a.polarity))
         L.append("")
+        curious = reading.depth == "curious"
+        if curious and a.paragraph:
+            L += [notes.render(a.paragraph), ""]
+        if curious and a.claims:
+            L += ["<details><summary>Show the astrologer's reading</summary>", ""]
         if a.claims:
             L += [f"{i}. {_claim(notes, c)}" for i, c in enumerate(a.claims, 1)]
             missing = [c.finding_id for c in a.claims if c.finding_id not in by_id]
@@ -225,6 +232,8 @@ def render(reading: Reading, chart: Chart) -> str:
         elif not a.narration_gaps:
             offered = len(findings(chart, a.name)[0])
             L.append(f"No claims were drafted for this area ({offered} finding(s) offered).")
+        if curious and a.claims:
+            L += ["", "</details>"]
         if a.narration_gaps:
             L += ["", "Not narrated within the checks:", ""]
             L += [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"

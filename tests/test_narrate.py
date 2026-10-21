@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from jyotish.narrate import (
-    CONFIG, NarrationError, ReadingDraft, findings, narrate, route, school_conflicts, sentences, validate,
+    CONFIG, TAG, NarrationError, ReadingDraft, findings, narrate, route, school_conflicts, sentences, validate,
 )
 from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.uncertainty import assess
@@ -731,3 +731,92 @@ def test_tier_words_are_rejected_in_the_summary():
                     {"rule:yoga.ruchaka"}) == []
     assert validate_summary("The weakest point is Ruchaka yoga's reduction [rule:yoga.ruchaka].",
                             {"rule:yoga.ruchaka"}) == []
+
+
+# --- the curious depth (SPEC Layer 7 prompt contract, item 1) --------------------------------
+
+CURIOUS = json.loads((FIXTURES / "narration_curious_handwritten.json").read_text())
+
+
+def _curious(chart, drafts=None, checker=None, rec=None):
+    from jyotish.narrate import FixtureDrafter
+    return narrate(chart, CURIOUS["question"], drafter=FixtureDrafter(dict(CURIOUS, drafts=drafts or CURIOUS["drafts"])),
+                   checker=checker or StubChecker(), as_of=AS_OF, areas=THREE_AREAS, recording=rec, depth="curious")
+
+
+def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fields(chart):
+    rec = []
+    checker = StubChecker()
+    r = _curious(chart, checker=checker, rec=rec)
+    assert r.depth == "curious" and r.narration_complete and r.attempts == 1
+    for a in r.areas:
+        para = next(d["paragraph"] for d in CURIOUS["drafts"][0]["areas"] if d["name"] == a.name)
+        assert a.paragraph == para and a.paragraph_cites == [f"{k}:{v}" for k, v in TAG.findall(para)]
+        assert a.claims                                                     # the astrologer's reading stays
+    # Every paragraph sentence went to the checker against the union of its cited derivations.
+    para_checks = [e for e in rec if e["kind"] == "checker" and e["finding_id"].startswith("paragraph:")]
+    n = sum(len([s_ for s_ in sentences(d["paragraph"]) if TAG.search(s_)]) for d in CURIOUS["drafts"][0]["areas"])
+    assert len(para_checks) == n
+    first = next(e for e in para_checks if e["finding_id"] == "paragraph:career")
+    assert first["findings"] == ["yoga.budhaditya@lagna", "yoga.kendra_trikona_raja@lagna"]
+    # The engine's lines do not change with the depth.
+    astro = narrate(chart, CURIOUS["question"], drafter=Replay(CURIOUS["drafts"]), checker=StubChecker(), as_of=AS_OF,
+                    areas=THREE_AREAS, depth="astrologer")
+    assert astro.summary.timing_line == r.summary.timing_line and astro.summary.timing_note == r.summary.timing_note
+    assert [(a.tier, a.stability) for a in astro.areas] == [(a.tier, a.stability) for a in r.areas]
+    assert all(a.paragraph is None for a in astro.areas)
+
+
+def test_curious_prompt_and_payload(chart):
+    from jyotish.narrate import SYSTEM_PROMPT, payload, system_prompt
+    p = system_prompt("curious")
+    assert p.startswith(SYSTEM_PROMPT) and "Ruchaka yoga, a Mars combination for drive and courage" in p
+    for rule in ("No degrees, no", "rupas", "ratios", "gloss"):
+        assert rule in " ".join(p.split())
+    assert system_prompt("astrologer") == system_prompt("learner") == SYSTEM_PROMPT
+    assert json.loads(payload(chart, "q", ["career"], "curious")[0])["depth"] == "curious"
+    with pytest.raises(ValueError):
+        system_prompt("expert")
+
+
+def test_paragraph_is_validated_like_the_summary(chart):
+    # A tier word, or a vote tag on a sentence that does not name the family, sends it back; a
+    # missing paragraph is an error too, and after the last attempt a paragraph gap.
+    bad = json.loads(json.dumps(CURIOUS["drafts"][0]))
+    for a in bad["areas"]:
+        if a["name"] == "career":
+            a["paragraph"] = "Career looks strong here [rule:yoga.ruchaka]. Mars forms Ruchaka yoga [vote:career.house]."
+        if a["name"] == "marriage":
+            a["paragraph"] = None
+    rec = []
+    r = _curious(chart, drafts=[bad], rec=rec)
+    errs = rec[0]["validator_errors"]
+    assert any(e.startswith("tier language ('strong')") for e in errs)
+    assert any("[vote:career.house] on a sentence that does not name the house family" in e for e in errs)
+    assert any(e.startswith("no paragraph for marriage") for e in errs)
+    by = {a.name: a for a in r.areas}
+    assert by["career"].paragraph is None and by["marriage"].paragraph is None and by["longevity"].paragraph
+    gap = next(g for g in by["marriage"].narration_gaps if g["finding_id"] == "paragraph")
+    assert gap["kind"] == "paragraph" and gap["last_error"].startswith("no paragraph for marriage")
+    assert r.narration_complete is False and by["career"].claims          # the claims still stand
+
+
+def test_rejected_paragraph_sentence_keeps_the_claims(chart):
+    checker = StubChecker(reject={"the points that stand for a partnership": "Jaimini's method is not in the data"})
+    r = _curious(chart, checker=checker)
+    marriage = next(a for a in r.areas if a.name == "marriage")
+    assert marriage.paragraph is None and len(marriage.claims) == 7
+    gap = next(g for g in marriage.narration_gaps if g["finding_id"] == "paragraph")
+    assert "(paragraph:marriage)" in gap["last_error"] and "Jaimini's method" in gap["last_error"]
+
+
+def test_timing_note_under_the_timing_line(chart):
+    from jyotish.narrate import timing_note
+    r = _curious(chart)
+    assert r.summary.timing_note == ("These are periods the engine scores as favourable for career; "
+                                     "it does not predict when you will act.")
+    assert timing_note(["career", "mother_home"]) == ("These are periods the engine scores as favourable for career "
+                                                      "and mother home; it does not predict when you will act.")
+    plain = narrate(chart, "How will my career go?", drafter=Replay(CURIOUS["drafts"]), checker=StubChecker(),
+                    as_of=AS_OF, areas=THREE_AREAS, depth="curious")
+    assert plain.summary.timing_line is None and plain.summary.timing_note is None

@@ -53,7 +53,7 @@ def test_incomplete_run_prints_every_error_and_keeps_the_recording(script, monke
     # (never fails on narration alone), with its gaps and the engine's summary, and the script
     # prints every attempt's errors and saves the recording.
     replay(monkeypatch, "narration_career_opus55_r1.json")
-    out = script.live(sequential=True)
+    out = script.live(sequential=True, depth="astrologer")
     text = capsys.readouterr().out
     assert out["accepted"] is False and out["error"] is None and out["attempts"] == 3
     assert out["summary_source"] == "engine" and out["narration_gaps"] >= 1
@@ -71,7 +71,7 @@ def test_incomplete_run_prints_every_error_and_keeps_the_recording(script, monke
 
 def test_checker_rejections_are_printed_per_attempt(script, monkeypatch, capsys):
     replay(monkeypatch, "narration_career_edited.json", reject="The varga vote")
-    out = script.live(sequential=True)
+    out = script.live(sequential=True, depth="astrologer")
     text = capsys.readouterr().out
     # The fixture drafts career only, so marriage and longevity are gaps too ("no claim was
     # drafted"); in career the one rejected claim is the only gap.
@@ -88,13 +88,13 @@ def test_checker_rejections_are_printed_per_attempt(script, monkeypatch, capsys)
 
 def test_accepted_run_and_api_error_both_write_the_recording(script, monkeypatch, capsys):
     replay(monkeypatch, "narration_career_edited.json")
-    out = script.live(sequential=False)
+    out = script.live(sequential=False, depth="astrologer")
     text = capsys.readouterr().out
     assert out["error"] is None and out["summary_source"] == "model"
     assert not [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")]
     assert json.loads(script.LAST.read_text())["calls"]
     replay(monkeypatch, "narration_career_opus55_r1.json", raise_on_writer=2)
-    out = script.live(sequential=True)
+    out = script.live(sequential=True, depth="astrologer")
     assert out["error"] == "RuntimeError" and "overloaded" in capsys.readouterr().out
     saved = json.loads(script.LAST.read_text())
     assert saved["error"]["type"] == "RuntimeError" and len(saved["drafts"]) == 1

@@ -115,7 +115,7 @@ form.addEventListener("submit", async (event) => {
   const time = f.time.value.length === 5 ? `${f.time.value}:00` : f.time.value;
   const body = {
     date: f.date.value, time, tz: f.tz.value, lat: Number(f.lat.value), lon: Number(f.lon.value),
-    accuracy: f.accuracy.value, node: f.node.value, question: f.question.value.trim(),
+    accuracy: f.accuracy.value, node: f.node.value, question: f.question.value.trim(), depth: f.depth.value,
     ...(f.place.value.trim() ? { place: f.place.value.trim() } : {}),
   };
   const out = document.querySelector("#form-error");

@@ -85,7 +85,7 @@ def estimate(path: str) -> dict:
             "sequential_seconds": round(sequential, 1), "concurrent_estimate_seconds": round(concurrent, 1)}
 
 
-def live(sequential: bool) -> dict:
+def live(sequential: bool, depth: str = "curious") -> dict:
     from jyotish import cache
     from jyotish.narrate import CONFIG, AnthropicChecker, AnthropicDrafter, NarrationError, narrate, route
     from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
@@ -105,7 +105,7 @@ def live(sequential: bool) -> dict:
     t = time.perf_counter()
     try:
         reading = narrate(chart, QUESTION, drafter=AnthropicDrafter(cfg), checker=AnthropicChecker(cfg),
-                          as_of=date(2026, 10, 21), config=cfg, recording=recording, areas=areas)
+                          as_of=date(2026, 10, 21), config=cfg, recording=recording, areas=areas, depth=depth)
     except NarrationError as e:
         error = e
     except Exception as e:                   # an API error mid-run: keep what was recorded
@@ -135,7 +135,7 @@ def live(sequential: bool) -> dict:
         own = max(c.get("seconds", 0) for c in checks if c["attempt"] == a)
         spread = (max(stamps) - min(stamps)).total_seconds() if stamps else 0.0
         walls[a] = round(max(spread, own), 1)
-    return {"mode": "sequential" if sequential else f"concurrent ({cfg.checker_concurrency})",
+    return {"mode": "sequential" if sequential else f"concurrent ({cfg.checker_concurrency})", "depth": depth,
             "when": datetime.now().isoformat(timespec="seconds"), "model": cfg.model,
             "writer_effort": cfg.effort, "checker_effort": cfg.checker_effort,
             "assess_seconds": round(assess_s, 2), "assess_source": src, "assess_cached_seconds": round(cached_s, 4),
@@ -155,8 +155,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sequential", action="store_true", help="checker calls one after another (the old way)")
     ap.add_argument("--from-recording", help="estimate from a recording instead of calling the model")
+    ap.add_argument("--depth", default="curious", choices=["curious", "learner", "astrologer"])
     args = ap.parse_args()
-    out = estimate(args.from_recording) if args.from_recording else live(args.sequential)
+    out = estimate(args.from_recording) if args.from_recording else live(args.sequential, args.depth)
     print(json.dumps(out, indent=1))
     if not args.from_recording:
         with OUT.open("a") as f:

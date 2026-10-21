@@ -16,7 +16,8 @@ FIXTURES = Path(__file__).parent / "fixtures"
 EDITED = str(FIXTURES / "narration_career_edited.json")
 QUESTION = "How will my career go, and when is the best time for a job change?"
 BODY = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
-        "node": "mean", "place": "Rewari, Haryana", "question": QUESTION, "as_of": "2026-10-21"}
+        "node": "mean", "place": "Rewari, Haryana", "question": QUESTION, "as_of": "2026-10-21",
+        "depth": "astrologer"}             # the fixtures are astrologer drafts; curious is tested on its own
 
 
 def wait(client, reading_id, timeout=90):
@@ -69,7 +70,7 @@ def test_same_reading_as_the_cli(done, tmp_path):
     out = tmp_path / "cli"
     args = ["read", "--date", BODY["date"], "--time", BODY["time"], "--tz", BODY["tz"], "--lat", str(BODY["lat"]),
             "--lon", str(BODY["lon"]), "--node", "mean", "--place", BODY["place"], "--question", QUESTION,
-            "--as-of", BODY["as_of"], "--out", str(out), "--model-fixture", EDITED]
+            "--as-of", BODY["as_of"], "--depth", BODY["depth"], "--out", str(out), "--model-fixture", EDITED]
     with pytest.raises(SystemExit) as e:
         main(args)
     assert e.value.code == 0
@@ -166,3 +167,11 @@ def test_check_line_names_the_place_and_coordinates_in_words(done):
                           "10:10:25 local time, 04:40:25 UTC. Ascendant (lagna) Taurus; Moon in Libra, Chitra nakshatra.")
     assert (c["place"], c["lat"], c["lon"], c["tz"], c["node"]) == ("Rewari, Haryana", REFERENCE_LAT, REFERENCE_LON,
                                                                     "Asia/Kolkata", "mean")
+
+
+def test_depth_defaults_to_curious_and_is_checked(client):
+    from jyotish.api import ReadingRequest
+    body = {k: v for k, v in BODY.items() if k != "depth"}
+    assert ReadingRequest(**body).depth == "curious"
+    r = client.post("/readings", json=dict(BODY, depth="expert"))
+    assert r.status_code == 422 and r.json()["detail"][0]["loc"] == ["body", "depth"]

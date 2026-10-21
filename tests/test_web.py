@@ -54,7 +54,8 @@ def base_url(servers):
     return servers["ok"]
 
 
-def submit_reference(page, url, question="How will my career go, and when is the best time for a job change?"):
+def submit_reference(page, url, question="How will my career go, and when is the best time for a job change?",
+                     depth="astrologer"):
     page.goto(f"{url}/")
     page.fill("#date", "2001-03-12")
     page.fill("#time", "10:10:25")
@@ -63,6 +64,7 @@ def submit_reference(page, url, question="How will my career go, and when is the
     page.fill("#lat", "28.1989")
     page.fill("#lon", "76.617")
     page.select_option("#node", "mean")
+    page.select_option("#depth", depth)
     page.fill("#question", question)
     page.click("button[type=submit]")
     page.wait_for_url("**/reading.html?id=*")
@@ -281,3 +283,36 @@ def test_footer_carries_the_geonames_attribution(page, base_url):
         footer = page.inner_text("#site-footer")
         assert "GeoNames" in footer and "CC BY 4.0" in footer
         assert page.get_attribute("#site-footer a[href*='creativecommons.org/licenses/by/4.0']", "href")
+
+
+@pytest.fixture(scope="module")
+def curious_url(tmp_path_factory):
+    server, thread, url = _serve(tmp_path_factory.mktemp("curious") / "c.db",
+                                 str(ROOT / "tests" / "fixtures" / "narration_curious_handwritten.json"))
+    yield url
+    server.should_exit = True
+    thread.join(5)
+
+
+def test_curious_reading_on_the_site(page, curious_url):
+    page.goto(f"{curious_url}/")
+    assert page.input_value("#depth") == "curious"                        # the form's default
+    submit_reference(page, curious_url, depth="curious")
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    career = page.locator('section.area[data-area="career"]')
+    assert career.locator("p.paragraph").inner_text().startswith("Two combinations sit in your house of work")
+    toggle = career.locator("details.astrologer")
+    assert toggle.count() == 1 and toggle.get_attribute("open") is None    # the claims are one click away
+    assert toggle.locator(":scope > summary").inner_text() == "Show the astrologer's reading"
+    assert not career.locator("li.claim").first.is_visible()
+    toggle.locator(":scope > summary").click()
+    assert career.locator("li.claim").first.is_visible() and toggle.locator("details.learner").count() >= 1
+    assert page.inner_text(".summary .timing-note") == ("These are periods the engine scores as favourable for career; "
+                                                         "it does not predict when you will act.")
+    # Every tag, the paragraphs' included, is a footnote.
+    footnotes = set(page.eval_on_selector_all("#footnotes li", "els => els.map(e => e.dataset.tag)"))
+    reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams(location.search).get('id')).then(r => r.json())")
+    tags = set(reading["reading"]["summary"]["cites"])
+    for a in reading["reading"]["areas"]:
+        tags |= set(a["paragraph_cites"]) | {t for c in a["claims"] for t in c["cites"]}
+    assert footnotes == tags

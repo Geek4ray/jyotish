@@ -170,7 +170,7 @@ function conflict(sc) {
   return `<p class="conflict">School conflict: the Parashari families (${esc(sc.families[0])}) are ${esc(sc.parashari)}, the ${esc(other === "kp" ? "KP" : title(other))} family (${esc(sc.families[1])}) is ${esc(sc[other])}. The two are not averaged.</p>`;
 }
 
-function areaCard(a, notes) {
+function areaCard(a, notes, depth) {
   const probability = a.probability === null || a.probability === undefined ? "not calibrated" : num(a.probability);
   const polarity = a.polarity.length
     ? a.polarity.map((p) => `${esc(p)} (${cell(a.polarity_touches[p] || [])})`).join("; ") : "none";
@@ -183,7 +183,11 @@ function areaCard(a, notes) {
       <div><dt>Families agreeing (weighted)</dt><dd class="num">${num(a.families_agree_w)} of ${num(a.families_total_w)}</dd></div>
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
-    ${a.claims.length ? `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>` : (a.narration_gaps || []).length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
+    ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
+    ${a.claims.length ? (depth === "curious"
+      ? `<details class="astrologer"><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol></details>`
+      : `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>`)
+      : (a.narration_gaps || []).length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
     ${gapsList(a.narration_gaps || [])}
     ${a.school_conflicts.map(conflict).join("")}
     ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
@@ -214,7 +218,7 @@ export function renderReading(r) {
   const notes = new Footnotes();
   const s = r.summary;
   const summaryText = notes.text(s.text);
-  const areas = r.areas.map((a) => areaCard(a, notes)).join("");
+  const areas = r.areas.map((a) => areaCard(a, notes, r.depth)).join("");
   return `
   <section class="identity">
     <span class="kicker">Your question</span>
@@ -227,7 +231,8 @@ export function renderReading(r) {
   <section class="card summary" data-source="${esc(s.source || "model")}"><h2>Summary</h2>
     ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}
     <p class="summary-text">${summaryText}</p>
-    ${s.timing_line && s.source !== "engine" ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span></div>` : ""}
+    ${s.timing_line && s.source !== "engine" ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span>${s.timing_note ? `<span class="timing-note">${esc(s.timing_note)}</span>` : ""}</div>` : ""}
+    ${s.timing_note && s.source === "engine" ? `<p class="timing-note">${esc(s.timing_note)}</p>` : ""}
     <div class="chips">
       <span class="chip">Driver: <strong>${esc(s.driver_planet)}</strong>${s.driver_alternates.length ? ` (alternates ${esc(s.driver_alternates.join(", "))})` : ""}</span>
       <span class="chip">Current period (Vimshottari): <strong>${esc(s.current_period || "–")}</strong></span>
@@ -260,7 +265,7 @@ export function renderTiming(r) {
     <h1 class="question">${esc(r.question)}</h1>
     <p class="header-line">${headerLine(r.chart)}</p>
   </section>
-  ${r.summary.timing_line ? `<section class="card accent"><div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(r.summary.timing_line)}</span></div></section>` : ""}
+  ${r.summary.timing_line ? `<section class="card accent"><div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(r.summary.timing_line)}</span>${r.summary.timing_note ? `<span class="timing-note">${esc(r.summary.timing_note)}</span>` : ""}</div></section>` : ""}
   ${body}
   <p class="muted small">A window is a time when the chart's own signals for the area are activated by period and transit (score = 0.6 q + 0.4 t). It is not a guarantee of an event; whether windows coincide with real events is what the validation set measures.</p>`;
 }

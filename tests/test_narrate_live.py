@@ -1,9 +1,16 @@
 """One live narration against the Anthropic API: the writer and the semantic checker, both
 from narrate.CONFIG. Skipped unless JYOTISH_LIVE_NARRATION=1 (credentials from
-ANTHROPIC_API_KEY or an `ant auth login` profile). With JYOTISH_RECORD_FIXTURE=1 it
-rewrites tests/fixtures/narration_career.json with every draft the writer produced (rejected
-ones included) and every call's record: request id, token usage, model, effort, timestamp,
-validator errors for writer calls, and the propositions for checker calls."""
+ANTHROPIC_API_KEY or an `ant auth login` profile).
+
+JYOTISH_LIVE_DEPTH picks the depth (default astrologer; "curious" narrates the question's
+area and the chart's top three, as the website does, with a paragraph per area). With
+JYOTISH_RECORD_FIXTURE=1 it writes every draft the writer produced (rejected ones included)
+and every call's record (request id, token usage, model, effort, timestamp, validator errors
+for writer calls, propositions for checker calls) to tests/fixtures/narration_career.json,
+or tests/fixtures/narration_curious.json at curious depth.
+
+    JYOTISH_LIVE_NARRATION=1 JYOTISH_RECORD_FIXTURE=1 JYOTISH_LIVE_DEPTH=curious \
+        .venv/bin/pytest tests/test_narrate_live.py"""
 
 import json
 import os
@@ -13,34 +20,37 @@ from pathlib import Path
 import pytest
 
 LIVE = os.environ.get("JYOTISH_LIVE_NARRATION") == "1"
+DEPTH = os.environ.get("JYOTISH_LIVE_DEPTH", "astrologer")
 
 
 @pytest.mark.skipif(not LIVE, reason="set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API")
 def test_live_narration_passes_validator_and_checker():
-    from jyotish.narrate import CONFIG, AnthropicChecker, AnthropicDrafter, NarrationError, narrate
+    from jyotish.narrate import CONFIG, AnthropicChecker, AnthropicDrafter, narrate, route
     from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
     from jyotish.uncertainty import assess
 
     chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
     question = "How will my career go, and when is the best time for a job change?"
+    areas = None
+    if DEPTH == "curious":
+        asked, _ = route(question, chart)
+        areas = list(dict.fromkeys(asked + list(chart.scored.top)))
     recording: list = []
-    error = None
-    try:
-        reading = narrate(chart, question, drafter=AnthropicDrafter(CONFIG), checker=AnthropicChecker(CONFIG),
-                          as_of=date(2026, 10, 21), recording=recording)
-    except NarrationError as e:
-        reading, error = None, e
+    reading = narrate(chart, question, drafter=AnthropicDrafter(CONFIG), checker=AnthropicChecker(CONFIG),
+                      as_of=date(2026, 10, 21), recording=recording, areas=areas, depth=DEPTH)
 
     if os.environ.get("JYOTISH_RECORD_FIXTURE") == "1":
-        path = Path(__file__).parent / "fixtures" / "narration_career.json"
-        path.write_text(json.dumps({
+        name = "narration_curious.json" if DEPTH == "curious" else "narration_career.json"
+        (Path(__file__).parent / "fixtures" / name).write_text(json.dumps({
             "note": (f"Recorded from {CONFIG.model} (writer effort {CONFIG.effort}, checker effort "
-                     f"{CONFIG.checker_effort}) by tests/test_narrate_live.py."),
-            "question": question,
+                     f"{CONFIG.checker_effort}, depth {DEPTH}) by tests/test_narrate_live.py."),
+            "question": question, "depth": DEPTH,
             "drafts": [e["draft"] for e in recording if e["kind"] == "writer"],
-            "accepted": reading is not None,
+            "accepted": reading.narration_complete,
             "calls": recording}, indent=2, ensure_ascii=False, default=str) + "\n")
 
-    assert error is None, f"narration failed after {CONFIG.max_attempts} attempts: {error.errors if error else ''}"
     assert reading.areas and all(c.cites for a in reading.areas for c in a.claims)
-    assert all(e.get("request_id") for e in recording)
+    assert all(e.get("request_id") for e in recording if e["kind"] == "writer")
+    if DEPTH == "curious":
+        assert any(a.paragraph for a in reading.areas)
+    assert reading.narration_complete, [g for a in reading.areas for g in a.narration_gaps]

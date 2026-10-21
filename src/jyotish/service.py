@@ -65,11 +65,15 @@ def assess_birth(birth: BirthInput) -> tuple[Chart, str, str]:
     return chart, source, chart_key(utc, birth.lat, birth.lon, **kw)
 
 
-def read_command(birth: BirthInput, question: str, as_of: str | None, model_fixture: str | None) -> str:
+DEPTH_DEFAULT = "curious"          # SPEC Layer 7: the request's depth, curious unless asked otherwise
+
+
+def read_command(birth: BirthInput, question: str, as_of: str | None, model_fixture: str | None,
+                 depth: str = DEPTH_DEFAULT) -> str:
     """The `jyotish read` invocation that reproduces a reading (output path left out)."""
     parts = ["jyotish", "read", "--date", birth.date, "--time", birth.time, "--tz", birth.tz,
              "--lat", repr(birth.lat), "--lon", repr(birth.lon), "--accuracy", birth.accuracy, "--node", birth.node,
-             "--seed", str(birth.seed), "--question", question]
+             "--seed", str(birth.seed), "--depth", depth, "--question", question]
     if birth.place:
         parts += ["--place", birth.place]
     if as_of:
@@ -101,16 +105,18 @@ def chart_line(chart: Chart, birth: BirthInput | None = None) -> dict:
 
 
 def reading_header(birth: BirthInput, question: str, chart: Chart, as_of: str | None = None,
-                   model_fixture: str | None = None) -> dict:
+                   model_fixture: str | None = None, depth: str = DEPTH_DEFAULT) -> dict:
     """The reading's Chart header (narrate.chart_header plus the local inputs and the command
     that reproduces it); known as soon as the chart is, so a failed job can still show it."""
     from .narrate import chart_header
     return dict(chart_header(chart), local_date=birth.date, local_time=birth.time, tz_input=birth.tz,
-                place=birth.place, seed=birth.seed, command=read_command(birth, question, as_of, model_fixture))
+                place=birth.place, seed=birth.seed, depth=depth,
+                command=read_command(birth, question, as_of, model_fixture, depth))
 
 
 def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str | None = None,
-                 model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None):
+                 model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None,
+                 depth: str = DEPTH_DEFAULT):
     """(reading, page). The areas are the question's, then the chart's top three. With
     `model_fixture` the model is replayed from that recording (offline) and sentences with no
     recorded checker verdict are counted as unchecked. NarrationError propagates."""
@@ -125,8 +131,9 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     if model_fixture:
         recording = json.loads(Path(model_fixture).read_text())
         drafter, checker = FixtureDrafter(recording), FixtureChecker(recording)
-    reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress)
-    update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture)}
+    reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress,
+                      depth=depth)
+    update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth)}
     if model_fixture:
         said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
                [c.text for a in reading.areas for c in a.claims]

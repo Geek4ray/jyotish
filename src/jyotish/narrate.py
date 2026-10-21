@@ -73,6 +73,9 @@ class DraftClaim(BaseModel):
 class DraftArea(BaseModel):
     name: str
     claims: list[DraftClaim]
+    paragraph: str | None = Field(default=None, description=(
+        "Curious depth only: one short plain-language paragraph about the area, every sentence ending "
+        "with the tags of the findings it draws on. Null at the other depths."))
 
 
 class ReadingDraft(BaseModel):
@@ -136,6 +139,8 @@ class ReadingArea(BaseModel):
     # CONFIG.max_attempts: {finding_id, kind, last_error, attempt}. Shown as "not narrated
     # within the checks"; the reading never fails on narration alone.
     narration_gaps: list[dict[str, Any]] = Field(default_factory=list)
+    paragraph: str | None = None        # curious depth: the plain-language paragraph (checked like the summary)
+    paragraph_cites: list[str] = Field(default_factory=list)
 
 
 class ReadingSummary(BaseModel):
@@ -151,6 +156,7 @@ class ReadingSummary(BaseModel):
     abstained_areas: list[str]
     timing_line: str | None = None      # engine-written, for a "when" question (the model writes no timing)
     source: str = "model"               # "model", or "engine" when no drafted summary passed the checks
+    timing_note: str | None = None      # engine-written, under the timing line: what a window is and is not
 
 
 class Reading(BaseModel):
@@ -164,6 +170,7 @@ class Reading(BaseModel):
     narration_source: str = "live"      # "live", or "fixture:<path>" for an offline replay
     unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
     narration_complete: bool = True     # false when some finding or the summary was not narrated within the checks
+    depth: str = "astrologer"           # curious | learner | astrologer (SPEC Layer 7 prompt contract, item 1)
     summary: ReadingSummary
     areas: list[ReadingArea]
     fired_rules: list[dict[str, Any]]
@@ -468,10 +475,38 @@ investments. For relationships (mother, father, partner, children, siblings), de
 this chart shows about the relationship, never what will happen to the other person."""
 
 
-def payload(chart: Chart, question: str, areas: list[str]) -> tuple[str, dict[str, set[str]]]:
+DEPTHS = ("curious", "learner", "astrologer")
+
+CURIOUS_PROMPT = """
+
+Depth: curious. The reader knows no astrology. For each area, besides the claims, write \
+`paragraph`: one short paragraph of three to five sentences in plain language. No degrees, no \
+rupas, no strength ratios or other numbers, and no Sanskrit or technical term without a short gloss \
+in the same sentence (for example "Ruchaka yoga, a Mars combination for drive and courage"). Each \
+sentence of the paragraph that states something ends with the tags of the findings it draws on, \
+written exactly as in the claims, and is checked against those findings' data only; a sentence \
+citing a vote still names its family ("the house vote"). Do not state the tier, the stability or any \
+timing in the paragraph: the engine states them. The claims are still written as above: they are \
+the astrologer's reading, shown under the paragraph."""
+
+
+def system_prompt(depth: str) -> str:
+    if depth not in DEPTHS:
+        raise ValueError(f"depth must be one of {DEPTHS}, not {depth!r}")
+    return SYSTEM_PROMPT + (CURIOUS_PROMPT if depth == "curious" else "")
+
+
+def timing_note(areas: list[str]) -> str:
+    """The engine's sentence under the timing line: what the windows are, and what they are not."""
+    names = [a.replace("_", " ") for a in areas]
+    joined = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+    return f"These are periods the engine scores as favourable for {joined}; it does not predict when you will act."
+
+
+def payload(chart: Chart, question: str, areas: list[str], depth: str = "astrologer") -> tuple[str, dict[str, set[str]]]:
     """The user message for the model, and the tags allowed per finding id."""
     allowed: dict[str, set[str]] = {}
-    body = {"question": question, "areas": []}
+    body = {"question": question, "depth": depth, "areas": []}
     for name in areas:
         ok, _ = findings(chart, name)
         for f in ok:
@@ -758,6 +793,8 @@ def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
         return c.model_copy(update=fill) if fill else c
     areas = [a.model_copy(update={"claims": [up(c) for c in a.claims]}) for a in reading.areas]
     summary = reading.summary
+    if summary.timing_note is None and (summary.timing_line or any(a.windows for a in reading.areas)):
+        summary = summary.model_copy(update={"timing_note": timing_note([a.name for a in reading.areas if a.windows])})
     if summary.timing_line is None:
         lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading.areas if a.windows]
         summary = summary.model_copy(update={"timing_line": " ".join(x for x in lines if x) or None})
@@ -841,10 +878,12 @@ def _summary_checks(summary: str, finding_data: dict[str, dict]) -> list[tuple[s
 def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, checker: Checker | None = None,
             as_of: date | None = None, config: NarrationConfig = CONFIG,
             recording: list | None = None, areas: list[str] | None = None,
-            progress: Callable[[str, dict], None] | None = None) -> Reading:
+            progress: Callable[[str, dict], None] | None = None, depth: str = "astrologer") -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
-    attempt's checker calls, with the attempt number (the service's job status)."""
+    attempt's checker calls, with the attempt number (the service's job status). `depth`
+    "curious" adds a plain-language paragraph per area, validated and checked like the
+    summary; the claims and every engine field are the same at every depth."""
     progress = progress or (lambda stage, info: None)
     if chart.scored is None:
         raise ValueError("narration needs a scored chart (birth moment, Shadbala, Bhava Bala)")
@@ -852,7 +891,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     sc = chart.scored
     routed, when = route(question, chart)
     areas = list(areas) if areas is not None else routed
-    user, allowed = payload(chart, question, areas)
+    system = system_prompt(depth)
+    curious = depth == "curious"
+    user, allowed = payload(chart, question, areas, depth)
+    area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name)[0])) for name in areas}
     all_tags = set().union(*allowed.values()) if allowed else set()
     drafter = drafter or AnthropicDrafter(config)
     checker = checker or AnthropicChecker(config)
@@ -871,11 +913,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     kept: dict[tuple[str, str], DraftClaim] = {}        # (area, finding id) -> latest accepted claim
     last_error: dict[tuple[str, str], tuple[str, int]] = {}
     kept_summary, summary_error = None, None
+    kept_para: dict[str, str] = {}
+    para_error: dict[str, tuple[str, int]] = {}
     draft, errors, attempts, clean = None, [], 0, False
     for attempts in range(1, config.max_attempts + 1):
         progress("draft", {"attempt": attempts})
         try:
-            draft = drafter(SYSTEM_PROMPT, user, errors)
+            draft = drafter(system, user, errors)
         except NarrationError as e:                        # a refusal or no structured output
             errors = [str(e)] + list(e.errors)
             if recording is not None:
@@ -883,6 +927,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                                       draft=None, validator_errors=[], writer_error=errors))
             summary_error = (errors[0], attempts)
             for name in areas:
+                para_error[name] = (errors[0], attempts)
                 for f in findings(chart, name)[0]:
                     last_error[(name, f["finding_id"])] = (errors[0], attempts)
             continue
@@ -909,9 +954,21 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 claim_errs[(da.name, c.finding_id)] = errs
                 drafted.append((da.name, c))
                 errors += errs
+        para_errs: dict[str, list[str]] = {}
+        if curious:
+            # Each area's paragraph is read like the summary: tags offered for the area's findings,
+            # families named and cited, and no tier word (the engine states the tier).
+            for name in areas:
+                text = next((d.paragraph for d in draft.areas if d.name == name), None)
+                para_errs[name] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name])
+                                   if text else [f"no paragraph for {name}: at curious depth every area has one"])
+                errors += para_errs[name]
         entry["validator_errors"] = list(errors)
         if recording is not None:
             recording.append(entry)
+        for name, errs in para_errs.items():
+            if errs:
+                para_error[name] = (errs[0], attempts)
         for key, errs in claim_errs.items():
             if errs:
                 last_error[key] = (errs[0], attempts)
@@ -929,6 +986,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                   if not summary_errs else [])
         checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id, name)
                    for name, c in drafted if not claim_errs[(name, c.finding_id)]]
+        paragraphs = {d.name: d.paragraph for d in draft.areas if d.paragraph}
+        for name, errs in para_errs.items():
+            if not errs:
+                checks += [(s_, ids, data, f"paragraph:{name}", name)
+                           for s_, ids, data in _summary_checks(paragraphs[name], finding_data)]
         progress("check", {"attempt": attempts, "calls": len(checks)})
         # The checks of one attempt are independent: a checker with `check_many` runs them
         # concurrently (AnthropicChecker); any other checker is called one by one.
@@ -944,12 +1006,14 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                                       attempt=attempts, finding_id=label, findings=ids, sentence=sentence,
                                       result=result.model_dump()))
             where = (f"the derivations of {', '.join(ids)} (summary)" if label == "summary"
+                     else f"the derivations of {', '.join(ids)} ({label})" if label.startswith("paragraph:")
                      else f"the derivation of {label}")
             for prop in result.propositions:
                 if not prop.supported:
                     msg = f"unsupported by {where}: {prop.text!r} ({prop.evidence}) in {sentence!r}"
                     errors.append(msg)
-                    rejected.setdefault("summary" if label == "summary" else (name, label), msg)
+                    rejected.setdefault(label if label == "summary" or label.startswith("paragraph:")
+                                        else (name, label), msg)
         for name, c in drafted:
             key = (name, c.finding_id)
             if claim_errs[key]:
@@ -958,6 +1022,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 last_error[key] = (rejected[key], attempts)
             else:
                 kept[key] = c
+        for name, errs in para_errs.items():
+            if not errs:
+                if f"paragraph:{name}" in rejected:
+                    para_error[name] = (rejected[f"paragraph:{name}"], attempts)
+                else:
+                    kept_para[name] = paragraphs[name]
         if not summary_errs:
             if "summary" in rejected:
                 summary_error = (rejected["summary"], attempts)
@@ -970,6 +1040,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     if clean:                                              # the last draft passed every check: it is the reading
         kept = {(name, c.finding_id): c for name, c in drafted}
         kept_summary = draft.summary
+        kept_para = {d.name: d.paragraph for d in draft.areas if d.paragraph} if curious else {}
 
     by_finding = {f["finding_id"]: f for name in areas for f in findings(chart, name)[0]}
     reading_areas, depends = [], []
@@ -1011,6 +1082,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             windows = [_window(w) for w in ans.windows]
             avoid = _window(ans.avoid) if ans.avoid is not None else None
         top3 = name in sc.top
+        paragraph = kept_para.get(name) if curious else None
+        if curious and paragraph is None:
+            err, at = para_error.get(name, ("no paragraph was drafted for this area", attempts))
+            gaps.append({"finding_id": "paragraph", "kind": "paragraph", "last_error": err, "attempt": at})
         disclaimer = DISCLAIMERS["third_party"] if name in THIRD_PARTY_AREAS else (
             DISCLAIMERS[DISCLAIMER_KEYS[name]] if name in DISCLAIMER_KEYS else None)
         reading_areas.append(ReadingArea(
@@ -1018,7 +1093,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             families_agree_w=a.families_agree_w, families_total_w=a.families_total_w,
             polarity=a.polarity if top3 else [], polarity_touches=a.polarity_touches if top3 else {},
             claims=claims, school_conflicts=school_conflicts(a), windows=windows, avoid_window=avoid,
-            disclaimer=disclaimer, narration_gaps=gaps))
+            disclaimer=disclaimer, narration_gaps=gaps, paragraph=paragraph,
+            paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")]))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3),
               "stability": f.stability.time if f.stability else None}
@@ -1042,6 +1118,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         text = engine_summary(reading_areas, routed, sc, period, when_line)
     summary = ReadingSummary(
         timing_line=when_line, source=source,
+        timing_note=timing_note([a.name for a in reading_areas if a.windows]) if when_line else None,
         text=text, cites=[f"{k}:{v}" for k, v in TAG.findall(text)],
         driver_planet=sc.driver.driver, driver_alternates=sc.driver.alternates, current_period=period,
         top_areas=list(sc.top), time_window_min=u.half_width_min if u else None,
@@ -1052,4 +1129,5 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                    chart=chart_header(chart),
                    model=config.model, attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
+                   depth=depth,
                    fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)

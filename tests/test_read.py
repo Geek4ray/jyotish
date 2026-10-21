@@ -13,7 +13,8 @@ from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 FIXTURES = Path(__file__).parent / "fixtures"
 QUESTION = "How will my career go, and when is the best time for a job change?"
 BIRTH = ["--date", "2001-03-12", "--time", "10:10:25", "--tz", "Asia/Kolkata", "--lat", str(REFERENCE_LAT),
-         "--lon", str(REFERENCE_LON), "--node", "mean", "--question", QUESTION, "--as-of", "2026-10-21"]
+         "--lon", str(REFERENCE_LON), "--node", "mean", "--question", QUESTION, "--as-of", "2026-10-21",
+         "--depth", "astrologer"]          # the fixtures are astrologer drafts; curious is tested on its own
 
 
 def run(args):
@@ -258,3 +259,19 @@ def test_cli_refuses_null_island(tmp_path, capsys):
         main(["read", *args, "--out", str(tmp_path / "x"), "--model-fixture", str(FIXTURES / "narration_career_edited.json")])
     assert e.value.code == 2 and "Gulf of Guinea" in capsys.readouterr().err
     assert not (tmp_path / "x.json").exists()
+
+
+def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tmp_path):
+    out = tmp_path / "curious"
+    args = [x for x in BIRTH]
+    args[args.index("--depth") + 1] = "curious"
+    with pytest.raises(SystemExit) as e:
+        main(["read", *args, "--out", str(out), "--model-fixture", str(FIXTURES / "narration_curious_handwritten.json")])
+    assert e.value.code == 0
+    reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
+    assert reading.depth == "curious" and reading.chart["depth"] == "curious" and "--depth curious" in reading.chart["command"]
+    md = out.with_suffix(".md").read_text()
+    career = md[md.index("## Career"):md.index("## Marriage")]
+    assert career.index("Two combinations sit in your house of work") < career.index("<details><summary>Show the astrologer's reading")
+    assert career.index("<details>") < career.index("1. ") < career.index("</details>")
+    assert "*These are periods the engine scores as favourable for career; it does not predict when you will act.*" in md

@@ -83,7 +83,8 @@ def test_page_command_rerenders_without_the_model(tmp_path, capsys):
     from pathlib import Path
     out = tmp_path / "reading"
     fixture = Path(__file__).parent / "fixtures" / "narration_career_edited.json"
-    assert _cli(["read", *BIRTH, "--question", "How will my career go, and when is the best time for a job change?",
+    assert _cli(["read", *BIRTH, "--depth", "astrologer",
+                 "--question", "How will my career go, and when is the best time for a job change?",
                  "--as-of", "2026-10-21", "--out", str(out), "--model-fixture", str(fixture)]) == 0
     first = out.with_suffix(".md").read_text()
     again = tmp_path / "again.md"
