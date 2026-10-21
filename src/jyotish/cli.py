@@ -49,6 +49,7 @@ def print_chart(chart: Chart) -> None:
     print("Arudhas:", {k: SIGNS[v] for k, v in j.arudhas.items() if k in ("AL", "UL", "A2", "A7", "A10")})
     print("Sudarshana H10:", f.sudarshana_h10)
     print("KP cusp lords:", chart.lagnas.cusp_lords_kp)
+    print_ashtakavarga(chart)
     if chart.panchanga:
         print("\nPanchanga:", chart.panchanga.model_dump())
     if chart.dashas:
@@ -56,6 +57,29 @@ def print_chart(chart: Chart) -> None:
         for p in chart.dashas["vimshottari"]:
             if len(p.lords) == 1:
                 print(f"  {p.lords[0]:8} jd {p.start_jd:.2f} – {p.end_jd:.2f}  ({(p.end_jd - p.start_jd) / 365.25:.1f} y) tara {p.tara}")
+
+
+def print_ashtakavarga(chart: Chart) -> None:
+    av = chart.features.ashtakavarga
+    m = chart.meta
+
+    def row(label: str, vals: list[int]) -> str:
+        return f"  {label:9}" + "".join(f"{v:>4}" for v in vals) + f"  {sum(vals):>4}"
+
+    print("\nAshtakavarga (BAV by sign; SAV = seven planets, lagna excluded)")
+    print(f"  {'':9}" + "".join(f"{s[:3]:>4}" for s in SIGNS) + "   tot")
+    for name, vals in av.BAV.items():
+        print(row(name, vals))
+    print(row("SAV", av.SAV))
+    occ = "seven planets and nodes" if m.ekadhipatya_nodes else "seven planets"
+    zero = "zero exempt" if m.ekadhipatya_zero_exempt else "no zero exemption (BPHS 68)"
+    print(f"After Trikona and Ekadhipatya (occupants: {occ}; {zero}):")
+    for name, vals in av.ekadhipatya.items():
+        print(row(name, vals))
+    print("Sodhya Pinda (rasi + graha):",
+          {p: f"{x.rasi}+{x.graha}={x.sodhya}" for p, x in av.pinda.items()})
+    print("Kakshya lord (bindu in own BAV):",
+          {p: f"{l}{' +' if av.kakshya_bindu[p] else ' -'}" for p, l in av.kakshya.items()})
 
 
 def main(argv: list[str] | None = None) -> None:

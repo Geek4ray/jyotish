@@ -138,3 +138,95 @@ TITHI_LORD_ORDER = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Satur
 VARA_LORDS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]  # Sunday = 0
 KARANA_NAMES = ["Bava", "Balava", "Kaulava", "Taitila", "Garija", "Vanija", "Vishti",
                 "Shakuni", "Chatushpada", "Naga", "Kimstughna"]
+
+# --- Ashtakavarga -------------------------------------------------------------------
+# Benefic places (bindus), BPHS ch. 66: for each target's Bhinnashtakavarga, the houses
+# counted from each contributor (contributor's sign = 1) where the contributor gives a
+# bindu. Contributors are the seven planets and the lagna ("Asc"); the nodes contribute
+# nothing (BPHS), although some modern software adds them. The row totals are the
+# classical counts in ASHTAKAVARGA_TOTALS and are checked at import, which catches a
+# mistyped cell but not two compensating ones.
+ASHTAKAVARGA_CONTRIBUTORS = SEVEN + ["Asc"]
+ASHTAKAVARGA_BENEFIC = {
+    "Sun": {
+        "Sun": (1, 2, 4, 7, 8, 9, 10, 11), "Moon": (3, 6, 10, 11),
+        "Mars": (1, 2, 4, 7, 8, 9, 10, 11), "Mercury": (3, 5, 6, 9, 10, 11, 12),
+        "Jupiter": (5, 6, 9, 11), "Venus": (6, 7, 12),
+        "Saturn": (1, 2, 4, 7, 8, 9, 10, 11), "Asc": (3, 4, 6, 10, 11, 12),
+    },
+    "Moon": {
+        "Sun": (3, 6, 7, 8, 10, 11), "Moon": (1, 3, 6, 7, 10, 11),
+        "Mars": (2, 3, 5, 6, 9, 10, 11), "Mercury": (1, 3, 4, 5, 7, 8, 10, 11),
+        "Jupiter": (1, 4, 7, 8, 10, 11, 12), "Venus": (3, 4, 5, 7, 9, 10, 11),
+        "Saturn": (3, 5, 6, 11), "Asc": (3, 6, 10, 11),
+    },
+    "Mars": {
+        "Sun": (3, 5, 6, 10, 11), "Moon": (3, 6, 11),
+        "Mars": (1, 2, 4, 7, 8, 10, 11), "Mercury": (3, 5, 6, 11),
+        "Jupiter": (6, 10, 11, 12), "Venus": (6, 8, 11, 12),
+        "Saturn": (1, 4, 7, 8, 9, 10, 11), "Asc": (1, 3, 6, 10, 11),
+    },
+    "Mercury": {
+        "Sun": (5, 6, 9, 11, 12), "Moon": (2, 4, 6, 8, 10, 11),
+        "Mars": (1, 2, 4, 7, 8, 9, 10, 11), "Mercury": (1, 3, 5, 6, 9, 10, 11, 12),
+        "Jupiter": (6, 8, 11, 12), "Venus": (1, 2, 3, 4, 5, 8, 9, 11),
+        "Saturn": (1, 2, 4, 7, 8, 9, 10, 11), "Asc": (1, 2, 4, 6, 8, 10, 11),
+    },
+    "Jupiter": {
+        "Sun": (1, 2, 3, 4, 7, 8, 9, 10, 11), "Moon": (2, 5, 7, 9, 11),
+        "Mars": (1, 2, 4, 7, 8, 10, 11), "Mercury": (1, 2, 4, 5, 6, 9, 10, 11),
+        "Jupiter": (1, 2, 3, 4, 7, 8, 10, 11), "Venus": (2, 5, 6, 9, 10, 11),
+        "Saturn": (3, 5, 6, 12), "Asc": (1, 2, 4, 5, 6, 7, 9, 10, 11),
+    },
+    "Venus": {
+        "Sun": (8, 11, 12), "Moon": (1, 2, 3, 4, 5, 8, 9, 11, 12),
+        "Mars": (3, 5, 6, 9, 11, 12), "Mercury": (3, 5, 6, 9, 11),
+        "Jupiter": (5, 8, 9, 10, 11), "Venus": (1, 2, 3, 4, 5, 8, 9, 10, 11),
+        "Saturn": (3, 4, 5, 8, 9, 10, 11), "Asc": (1, 2, 3, 4, 5, 8, 9, 11),
+    },
+    "Saturn": {
+        "Sun": (1, 2, 4, 7, 8, 10, 11), "Moon": (3, 6, 11),
+        "Mars": (3, 5, 6, 10, 11, 12), "Mercury": (6, 8, 9, 10, 11, 12),
+        "Jupiter": (5, 6, 11, 12), "Venus": (6, 11, 12),
+        "Saturn": (3, 5, 6, 11), "Asc": (1, 3, 4, 6, 10, 11),
+    },
+    # The lagna's own table (BPHS 66.61-68). The Sanskrit of these verses is compressed
+    # and editions render it differently; this is the commonly published form, 49 bindus.
+    # It is not part of the Sarvashtakavarga.
+    "Asc": {
+        "Sun": (3, 4, 6, 10, 11, 12), "Moon": (3, 6, 10, 11, 12),
+        "Mars": (1, 3, 6, 10, 11), "Mercury": (1, 2, 4, 6, 8, 10, 11),
+        "Jupiter": (1, 2, 4, 5, 6, 7, 9, 10, 11), "Venus": (1, 2, 3, 4, 5, 8, 9),
+        "Saturn": (1, 3, 4, 6, 10, 11), "Asc": (3, 6, 10, 11),
+    },
+}
+ASHTAKAVARGA_TOTALS = {"Sun": 48, "Moon": 49, "Mars": 39, "Mercury": 54, "Jupiter": 56,
+                       "Venus": 52, "Saturn": 39, "Asc": 49}
+SARVASHTAKAVARGA_TOTAL = 337   # the seven planets' tables; lagna and nodes excluded
+for _t, _rows in ASHTAKAVARGA_BENEFIC.items():
+    assert sum(len(v) for v in _rows.values()) == ASHTAKAVARGA_TOTALS[_t], _t
+assert sum(ASHTAKAVARGA_TOTALS[p] for p in SEVEN) == SARVASHTAKAVARGA_TOTAL
+
+# Ekadhipatya Shodhana (BPHS 68.1-6) runs on the pairs of signs with one lord; Cancer and
+# Leo are exempt. Two points the texts leave open, both settings (Meta):
+#  - occupants: BPHS says "planets"; the seven are used, the nodes are not (some software
+#    counts them). Setting: Meta.ekadhipatya_nodes.
+#  - a zero sign: BPHS states a zero exemption for Trikona (67.4) but none for Ekadhipatya,
+#    so by its case table an occupied sign with 0 clears its vacant partner. Raman-school
+#    teaching skips the pair when either sign is 0. Setting: Meta.ekadhipatya_zero_exempt.
+# A third reading (both vacant and unequal: zero the smaller, keep the larger) appears in
+# some modern write-ups; it is not what BPHS 68 says and is not implemented.
+EKADHIPATYA_PAIRS = {"Mars": (0, 7), "Venus": (1, 6), "Mercury": (2, 5),
+                     "Jupiter": (8, 11), "Saturn": (9, 10)}
+
+# Pinda multipliers (BPHS 69.1-4). Rasi: Taurus, Leo 10; Gemini, Scorpio 8; Aries, Libra 7;
+# Capricorn, Virgo 5; the rest by their number (Cancer 4, Sagittarius 9, Aquarius 11,
+# Pisces 12). Graha: Jupiter 10, Mars 8, Venus 7, the rest 5.
+RASI_GUNAKARA = [7, 10, 8, 4, 10, 5, 7, 8, 9, 5, 11, 12]
+GRAHA_GUNAKARA = {"Sun": 5, "Moon": 5, "Mars": 8, "Mercury": 5, "Jupiter": 10,
+                  "Venus": 7, "Saturn": 5}
+
+# Kakshya: each sign in eight parts of 3°45', lorded in the order of the planetary spheres
+# from the outermost, ending with the lagna (B.V. Raman, Ashtakavarga System of
+# Prediction, Kakshya chapter; the verse locus in the classical texts is not checked here).
+KAKSHYA_LORDS = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon", "Asc"]

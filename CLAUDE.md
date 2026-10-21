@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -66,9 +66,10 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   Varnada) and Bhava Madhya/Sripati cusps.
 - Phase 1 (feature engine): lordship, dignity (natural + compound), avasthas, sensitive
   degrees, aspects, three dispositor chains, Parivartana, chara karakas (7 and 8), arudhas,
-  Navatara, KP sub-lords, Sudarshana H10 are done. Not yet: Shadbala, Bhava Bala,
-  Vimsopaka, Ishta/Kashta, Ashtakavarga, Argala, synastry module.
+  Navatara, KP sub-lords, Sudarshana H10, Ashtakavarga (BAV incl. lagna, SAV, Trikona and
+  Ekadhipatya, Sodhya Pinda, Kakshya) are done. Not yet: Shadbala, Bhava Bala, Vimsopaka,
+  Ishta/Kashta, Argala, synastry module.
 - Phase 2 (rules and time): Vimshottari to any depth exists; no rule evaluator yet.
 
-Next milestones in order: Ashtakavarga → Shadbala → rule evaluator over `rules/` →
+Next milestones in order: Shadbala → rule evaluator over `rules/` →
 Chara and Yogini dashas → transits.

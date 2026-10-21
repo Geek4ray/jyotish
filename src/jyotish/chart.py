@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from .ashtakavarga import ashtakavarga
 from .constants import GRAHAS, SEVEN, SIGNS
 from .dasha import vimshottari
 from .dignity import (
@@ -17,8 +18,8 @@ from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_ch
 from .ephemeris import compute_sky, julian_day, sunrise_sunset
 from .jaimini import all_arudhas, chara_karakas, karakamsa
 from .models import (
-    Birth, Body, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
-    PanchangaInfo, TaraInfo, TimePosterior,
+    Ashtakavarga, Birth, Body, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
+    PanchangaInfo, Pinda, TaraInfo, TimePosterior,
 )
 from .nakshatra import kp_sub_lords, nakshatra_of, navatara
 from .panchanga import panchanga as compute_panchanga
@@ -113,6 +114,8 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
         "from_moon": [n for n, b in bodies.items() if house_of(b.sign, moon_sign) == 10],
         "from_sun": [n for n, b in bodies.items() if house_of(b.sign, sun_sign) == 10],
     }
+    av = ashtakavarga(positions, asc, nodes_occupy=meta.ekadhipatya_nodes,
+                      zero_exempt=meta.ekadhipatya_zero_exempt)
     features = Features(
         lordship=lordships(lagna_sign), roles=functional_roles(lagna_sign),
         aspects=aspects(planet_houses), dispositors=dispositors,
@@ -120,6 +123,10 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
                         karakas_7=chara_karakas(positions, 7),
                         karakamsa=karakamsa(positions, meta.karaka_scheme),
                         arudhas=all_arudhas(lagna_sign, positions)),
+        ashtakavarga=Ashtakavarga(
+            BAV=av.bav, SAV=av.sav, trikona=av.trikona, ekadhipatya=av.ekadhipatya,
+            pinda={p: Pinda(rasi=x.rasi, graha=x.graha, sodhya=x.sodhya) for p, x in av.pinda.items()},
+            kakshya=av.kakshya, kakshya_bindu=av.kakshya_bindu),
         sudarshana_h10=sudarshana_h10,
     )
 

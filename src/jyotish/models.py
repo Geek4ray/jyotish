@@ -18,6 +18,8 @@ class Meta(BaseModel):
     kp_house_system: str = "placidus"
     dasha_year: float = 365.25
     karaka_scheme: int = 8
+    ekadhipatya_nodes: bool = False
+    ekadhipatya_zero_exempt: bool = False
     time_accuracy: str = "exact"
 
 
@@ -130,12 +132,31 @@ class DashaPeriod(BaseModel):
     tara: str | None = None
 
 
+class Pinda(BaseModel):
+    rasi: int
+    graha: int
+    sodhya: int
+
+
+class Ashtakavarga(BaseModel):
+    """Lists are indexed by sign, 0 = Aries. BAV has the seven planets and "Asc"; SAV,
+    the reductions and the pindas cover the seven planets only."""
+    BAV: dict[str, list[int]]
+    SAV: list[int]
+    trikona: dict[str, list[int]]
+    ekadhipatya: dict[str, list[int]]
+    pinda: dict[str, Pinda]
+    kakshya: dict[str, str]
+    kakshya_bindu: dict[str, bool]
+
+
 class Features(BaseModel):
     lordship: dict[str, list[int]]
     roles: dict[str, list[str]]
     aspects: list[tuple[str, int]]
     dispositors: Dispositors
     jaimini: Jaimini
+    ashtakavarga: Ashtakavarga
     sudarshana_h10: dict[str, list[str]]
 
 
