@@ -17,4 +17,5 @@ Rules are data: an astrologer can add one without touching the engine. Every rul
 | `confidence_base`, `stability_min`, `narration_key` | as in SPEC |
 
 `yoga.ruchaka.yaml` is the worked example from SPEC.md and the first rule the evaluator
-must fire on the reference chart (with the Marana Karaka Sthana modifier, scale 0.6).
+must fire on the reference chart at scale 0.408 (Saturn's aspect 0.8 × Pratyak tara 0.85 ×
+Marana Karaka Sthana 0.6; the Shadbala cut does not apply, Mars's ratio being 1.30).

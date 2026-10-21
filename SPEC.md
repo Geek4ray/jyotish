@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 64). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 65). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -579,7 +579,7 @@ Saturn is the only planet below its required minimum: 4° from the ascendant, it
 
 **Layer 3 expected rule fires**
 
-- `yoga.ruchaka` (Mars own sign in H7 kendra, basis lagna) — scale 0.6 after the Marana Karaka Sthana modifier.
+- `yoga.ruchaka` (Mars own sign in H7 kendra, basis lagna) — scale 0.408: Saturn's aspect 0.8 × Pratyak tara 0.85 × Marana Karaka Sthana 0.6. The Shadbala modifier does not apply, Mars's ratio being 1.30.
 - `yoga.parivartana` (Venus–Jupiter) — see below.
 - `yoga.budhaditya` (Sun + Mercury, H10) — scale 0.9: Mercury at 0°22' is in Bala avastha and carries a boundary flag; not combust (27° apart).
 - `lord.yogakaraka_in_lagna` (Saturn) — scale 0.6 × 0.8 × 0.5: Marana Karaka Sthana, Mrita avastha, and Shadbala below its required minimum (0.69).
