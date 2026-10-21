@@ -23,6 +23,7 @@ class Meta(BaseModel):
     twilight_minutes: float = 24.0         # one ghati either side of sunrise and sunset; BPHS 27.31 does not define it
     ishta_kashta: str = "bphs"             # bphs (28.2-6, Rasmis) | raman (geometric mean; unverified)
     argala_nodes: str = "rath"             # rath (Ketu in the sign: count backwards) | reverse_position | direct
+    driver_formula: str = "v2"             # v2 (sum of five 0-1 terms, SPEC) | v1 (product, rejected)
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
     ekadhipatya_nodes: bool = False
@@ -420,6 +421,7 @@ class AreaScore(BaseModel):
 
 class Driver(BaseModel):
     driver: str
+    formula: str = "v2"
     ranking: list[dict[str, Any]]
     dispositor_candidates: list[str]
     alternates: list[str]

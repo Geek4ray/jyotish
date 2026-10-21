@@ -47,10 +47,13 @@ Polarity (simplest named reading of SPEC's "signed contributions"): a malefic oc
 or aspecting (whole-sign drishti) the area's first house from the lagna flags it: Saturn
 "delay", Mars "intensity", Rahu "volatility", Ketu "detachment".
 
-Driver: Shadbala ratio x Vimsopaka (Shodasavarga) x (non-experimental rules fired on the
-planet / rules that could fire on it). Dasha proximity is dropped (SPEC). Final sign
-dispositors are candidates regardless and are shown as alternates; the current
-Vimshottari lords are reported separately with their as-of date.
+Driver (Meta.driver_formula). "v2", the default (SPEC hypothesis v2): the sum, equal
+weights, of five terms each scaled 0-1 across the chart's seven planets (min-max): Shadbala
+ratio, Shodasavarga Vimsopaka, rules fired / rules applicable, Sodhya Pinda rank, and a
+lordship-role term (the share held of yogakaraka, lagna lord, final sign dispositor; 0-1 by
+construction). "v1", kept for comparison: Shadbala ratio x Vimsopaka x rules share, which
+gives 0 to any planet with no rule fired. Dasha proximity is dropped (SPEC). Final sign
+dispositors are shown as alternates; the current Vimshottari lords are reported apart.
 
 Stability never enters S. uncertainty.assess fills each area's three stability numbers
 (the share of samples with the same tier) and `narrate` is false below 0.5 on time."""
@@ -89,7 +92,7 @@ READINGS = [
     "T_p: adverse tara -1, Janma 0, others +1, halved in cycles 2-3",
     "confidence: (agree - oppose) / applicable, 1 - rho weights; not emphasised below median S x confidence",
     "polarity: Saturn/Mars/Rahu/Ketu on the first house from the lagna",
-    "driver: Shadbala ratio x Shodasavarga Vimsopaka x fired/applicable rules",
+    "driver v2: sum of min-max scaled Shadbala ratio, Vimsopaka, rules share, Sodhya Pinda rank, role share",
 ]
 
 # The SPEC Layer 5 table, rows 1-18 (19, synastry, needs two charts). Houses from the
@@ -371,20 +374,47 @@ def _driver(v: _View, rules) -> Driver:
             cand |= {side["planet"]} if "planet" in side else set(side.get("planet_in", SEVEN))
         for p in cand & set(SEVEN):
             applicable[p] += 1
-    comp = {}
-    for p in SEVEN:
-        rules_share = len(fired[p]) / applicable[p] if applicable[p] else 0.0
-        comp[p] = v.ratio[p] * v.f.vimsopaka[p]["shodasavarga"] * rules_share
-    ranking = sorted(SEVEN, key=lambda p: -comp[p])
+    share = {p: len(fired[p]) / applicable[p] if applicable[p] else 0.0 for p in SEVEN}
     finals = [p for p in v.f.dispositors.final_sign if p in SEVEN]
+    formula = v.c.meta.driver_formula
+    terms: dict[str, dict[str, float]] = {}
+    if formula == "v1":
+        comp = {p: v.ratio[p] * v.f.vimsopaka[p]["shodasavarga"] * share[p] for p in SEVEN}
+    elif formula == "v2":
+        pinda = {p: v.f.ashtakavarga.pinda[p].sodhya for p in SEVEN}
+        roles = {p: (("yogakaraka" in v.f.roles[p]) + ("lagna_lord" in v.f.roles[p]) + (p in finals)) / 3.0
+                 for p in SEVEN}
+        raw = {"shadbala": v.ratio, "vimsopaka": {p: v.f.vimsopaka[p]["shodasavarga"] for p in SEVEN},
+               "rules": share, "pinda_rank": _ranks(pinda)}
+        terms = {name: _minmax(vals) for name, vals in raw.items()}
+        terms["roles"] = roles
+        comp = {p: sum(terms[t][p] for t in terms) for p in SEVEN}
+    else:
+        raise ValueError(f"driver_formula must be v1 or v2, not {formula!r}")
+    ranking = sorted(SEVEN, key=lambda p: -comp[p])
     current = {}
     if v.c.meta.jd is not None and v.c.dashas.get("vimshottari"):
         current = {"system": "vimshottari", "as_of_jd": v.c.meta.jd}
-    return Driver(driver=ranking[0], ranking=[{"planet": p, "score": comp[p],
-                                               "rules_fired": len(fired[p]), "rules_applicable": applicable[p]}
-                                              for p in ranking],
-                  dispositor_candidates=finals,
+    rows = []
+    for p in ranking:
+        row = {"planet": p, "score": comp[p], "rules_fired": len(fired[p]), "rules_applicable": applicable[p]}
+        if terms:
+            row["terms"] = {t: terms[t][p] for t in terms}
+        rows.append(row)
+    return Driver(driver=ranking[0], formula=formula, ranking=rows, dispositor_candidates=finals,
                   alternates=[p for p in finals if p != ranking[0]], current_period=current)
+
+
+def _minmax(vals: dict[str, float]) -> dict[str, float]:
+    """Scale to 0-1 across the seven planets; all equal -> 0."""
+    lo, hi = min(vals.values()), max(vals.values())
+    return {p: (x - lo) / (hi - lo) if hi > lo else 0.0 for p, x in vals.items()}
+
+
+def _ranks(vals: dict[str, float]) -> dict[str, float]:
+    """Rank 0 (lowest) to 6 (highest), ties sharing the mean rank."""
+    order = sorted(vals.values())
+    return {p: statistics.mean(i for i, x in enumerate(order) if x == v) for p, v in vals.items()}
 
 
 def current_period(chart: Chart, as_of_jd: float) -> dict:

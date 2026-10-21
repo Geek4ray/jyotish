@@ -187,7 +187,7 @@ def print_scored(chart: Chart) -> None:
         print(f"  {name:14} {a.tier:14} {a.direction:10} S {a.score_classical:6.2f}  agreement "
               f"{a.confidence:.2f}{flags}{stab}{'' if a.narrate else '  (not narrated: unstable)'}")
     d = sc.driver
-    print(f"  Top: {', '.join(sc.top)}.  Driver: {d.driver}"
+    print(f"  Top: {', '.join(sc.top)}.  Driver ({d.formula}): {d.driver}"
           f" (alternates from the dispositor graph: {', '.join(d.alternates) or 'none'})")
     print("  Driver ranking:", ", ".join(f"{r['planet']} {r['score']:.2f}" for r in d.ranking))
 

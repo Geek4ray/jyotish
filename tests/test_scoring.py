@@ -95,16 +95,35 @@ def test_rho_table_cached_in_repo():
     assert all(-0.2 < r < 0.5 for r in data["rho"].values())
 
 
-def test_driver(sc, chart):
+def test_driver_v2(sc, chart):
+    # Sum of five 0-1 terms (SPEC hypothesis v2). Venus leads: highest Shadbala ratio,
+    # lagna lord and a final dispositor. Saturn, at 0 under v1, now scores on Vimsopaka and
+    # Sodhya Pinda (both the highest) and its yogakaraka role.
     d = sc.driver
-    assert d.driver == d.ranking[0]["planet"]
+    assert d.formula == "v2" and d.driver == "Venus" == d.ranking[0]["planet"]
     assert d.dispositor_candidates == ["Jupiter", "Mars", "Venus"]   # the final sign dispositors
-    assert d.driver not in d.alternates and set(d.alternates) <= set(d.dispositor_candidates)
+    assert d.alternates == ["Jupiter", "Mars"]
     for r in d.ranking:
-        ratio = chart.features.shadbala.planets[r["planet"]].ratio
-        vim = chart.features.vimsopaka[r["planet"]]["shodasavarga"]
+        assert set(r["terms"]) == {"shadbala", "vimsopaka", "rules", "pinda_rank", "roles"}
+        assert all(0.0 <= x <= 1.0 for x in r["terms"].values())
+        assert r["score"] == pytest.approx(sum(r["terms"].values()))
+    sat = next(r for r in d.ranking if r["planet"] == "Saturn")
+    assert sat["score"] > 2 and sat["terms"]["vimsopaka"] == 1.0 and sat["terms"]["pinda_rank"] == 1.0
+    assert sat["terms"]["roles"] == pytest.approx(1 / 3)               # yogakaraka
+
+
+def test_driver_v1_kept_for_comparison(chart):
+    kw = dict(reference_time_inputs())
+    kw["meta"] = kw["meta"].model_copy(update={"driver_formula": "v1"})
+    c = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS, **kw)
+    d = c.scored.driver
+    assert d.formula == "v1" and d.driver == "Mercury"
+    for r in d.ranking:
+        ratio = c.features.shadbala.planets[r["planet"]].ratio
+        vim = c.features.vimsopaka[r["planet"]]["shodasavarga"]
         share = r["rules_fired"] / r["rules_applicable"] if r["rules_applicable"] else 0
         assert r["score"] == pytest.approx(ratio * vim * share)
+    assert {r["planet"]: r["score"] for r in d.ranking}["Saturn"] == 0.0
 
 
 def test_stability_gates_narration_not_score():
