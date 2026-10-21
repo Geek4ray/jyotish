@@ -17,10 +17,15 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
   `jaimini`, `dasha`, `panchanga`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
-- `src/jyotish/reference.py` — the reference chart from the SPEC worked example.
-- `tests/test_reference_chart.py` — the worked example as executable acceptance tests.
-  **This is the Phase 1 gate.** If a test here fails, either the code or SPEC.md is wrong;
-  fix both, never weaken the test.
+- `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
+  birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
+  Every feature you build must be exercised on this chart first.
+- `tests/test_reference_chart.py` — the worked example as executable acceptance tests
+  (positions → features). **This is the Phase 1 gate.** If a test here fails, either the
+  code or SPEC.md is wrong; fix both, never weaken the test.
+- `tests/test_ephemeris_reference.py` — birth data → positions against the reference app
+  (2″ on planets, 1′ on the ascendant). The app dropped the 25 seconds of the birth time;
+  tests compare at 10:10:00 and keep the true seconds elsewhere.
 - `rules/` — the YAML rule library (SPEC Layer 3). Rules are data, with a text source and
   edition on every one.
 

@@ -1,8 +1,21 @@
-"""The reference chart from SPEC.md (Taurus lagna). Longitudes are the app's printed
-sidereal positions (Lahiri). This is the Phase 1 acceptance target: `analyse` on these
-longitudes must reproduce every value in SPEC.md's worked example."""
+"""The reference chart from SPEC.md (Taurus lagna), used with the owner's consent to test
+everything the engine builds. Longitudes are the reference app's printed sidereal
+positions (Lahiri, mean node). This is the Phase 1 acceptance target: `analyse` on these
+longitudes must reproduce every value in SPEC.md's worked example, and `compute` on the
+birth data must reproduce the longitudes."""
 
 from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+
+# Birth data. The reference app dropped the 25 seconds (it computed 10:10:00), which moves
+# the Moon by 15" and the ascendant by 7'; tests compare against the app at 10:10:00 and
+# keep the true seconds for everything else.
+REFERENCE_BIRTH_LOCAL = datetime(2001, 3, 12, 10, 10, 25, tzinfo=timezone(timedelta(hours=5, minutes=30)))
+REFERENCE_BIRTH_UTC = REFERENCE_BIRTH_LOCAL.astimezone(timezone.utc)
+REFERENCE_APP_UTC = REFERENCE_BIRTH_UTC.replace(second=0)
+REFERENCE_LAT, REFERENCE_LON = 28.1989, 76.6170   # Rewari, Haryana, India
+REFERENCE_TZ = "Asia/Kolkata"
 
 
 def dms(d: int, m: int, s: float = 0.0) -> float:
