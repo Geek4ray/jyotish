@@ -111,8 +111,9 @@ def test_narration_that_never_passes_is_done_with_gaps(tmp_path):
 def test_progress_shows_the_chart_line_and_a_failed_job_keeps_the_header(client, done, tmp_path):
     # After the chart step the lagna, the Moon's sign and nakshatra and the UTC moment are in
     # the progress, so a wrong timezone shows at once.
-    assert done["progress"]["chart"] == {"lagna": "Taurus", "moon_sign": "Libra", "moon_nakshatra": "Chitra",
-                                         "birth_utc": "2001-03-12T04:40:25+00:00"}
+    c = done["progress"]["chart"]
+    assert (c["lagna"], c["moon_sign"], c["moon_nakshatra"], c["birth_utc"]) == \
+        ("Taurus", "Libra", "Chitra", "2001-03-12T04:40:25+00:00")
     # A job that fails after the chart (here: a fixture that does not exist) keeps both.
     app = create_app(f"sqlite:///{tmp_path / 'g.db'}", model_fixture=str(tmp_path / "missing.json"))
     with TestClient(app) as c:
@@ -140,3 +141,28 @@ def test_document_columns_are_jsonb_under_postgres():
     assert "JSONB" in str(CreateTable(ChartRow.__table__).compile(dialect=postgresql.dialect()))
     assert "JSON" in str(CreateTable(ChartRow.__table__).compile(dialect=sqlite.dialect()))
     assert set(Base.metadata.tables) == {"charts", "readings"}
+
+
+def test_places_endpoint(client):
+    r = client.get("/places", params={"q": "rewari"}).json()
+    assert r[0]["label"] == "Rewāri, Haryana, India" and r[0]["timezone"] == "Asia/Kolkata"
+    assert len(client.get("/places", params={"q": "san", "limit": 500}).json()) == 20    # capped
+    assert client.get("/places", params={"q": "x"}).json() == []
+
+
+@pytest.mark.parametrize("change,where", [({"lat": 0, "lon": 0}, ["body"]), ({"lat": 91}, ["body", "lat"]),
+                                          ({"lon": -181}, ["body", "lon"])])
+def test_null_island_and_out_of_range_are_refused(client, change, where):
+    r = client.post("/readings", json=dict(BODY, **change))
+    assert r.status_code == 422
+    assert r.json()["detail"][0]["loc"] == where
+    if change.get("lat") == 0:
+        assert "Gulf of Guinea" in r.json()["detail"][0]["msg"]
+
+
+def test_check_line_names_the_place_and_coordinates_in_words(done):
+    c = done["progress"]["chart"]
+    assert c["words"] == ("Rewari, Haryana, at 28.1989° N, 76.6170° E (timezone Asia/Kolkata). Born 2001-03-12 at "
+                          "10:10:25 local time, 04:40:25 UTC. Ascendant (lagna) Taurus; Moon in Libra, Chitra nakshatra.")
+    assert (c["place"], c["lat"], c["lon"], c["tz"], c["node"]) == ("Rewari, Haryana", REFERENCE_LAT, REFERENCE_LON,
+                                                                    "Asia/Kolkata", "mean")

@@ -159,7 +159,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                     s.add(ChartRow(id=chart_id, birth=birth.model_dump(), engine=chart.meta.engine,
                                    document=chart.model_dump(mode="json")))
             update(reading_id, chart_id=chart_id)
-            keep = {"chart": chart_line(chart),
+            keep = {"chart": chart_line(chart, birth),
                     "header": reading_header(birth, req.question, chart, req.as_of, model_fixture)}
             stage(reading_id, log, "score", keep, chart_source=source,
                   tiers={n: a.tier for n, a in chart.scored.areas.items()} if chart.scored else None)
@@ -193,6 +193,12 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                              progress={"stage": "queued", "log": []}))
         pool.submit(run, reading_id, req)
         return Accepted(id=reading_id, status="queued", url=f"/readings/{reading_id}")
+
+    @app.get("/places")
+    def get_places(q: str, limit: int = 10) -> list[dict]:
+        """Places for the birth form's Place field (GeoNames cities15000, CC BY 4.0)."""
+        from .places import search
+        return search(q, max(1, min(limit, 20)))
 
     @app.get("/readings/{reading_id}", response_model=ReadingStatus, response_model_exclude_none=True)
     def get_reading(reading_id: str) -> ReadingStatus:

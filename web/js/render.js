@@ -270,9 +270,11 @@ export function renderTiming(r) {
 function chartLine(p) {
   const c = p && p.chart;
   if (!c) return "";
-  return `<p class="chart-line">Lagna <strong>${esc(c.lagna)}</strong> · Moon in <strong>${esc(c.moon_sign)}</strong>, <strong>${esc(c.moon_nakshatra)}</strong> nakshatra · born <strong>${esc(c.birth_utc)}</strong> UTC</p>
+  const line = c.words ? esc(c.words)
+    : `Lagna <strong>${esc(c.lagna)}</strong> · Moon in <strong>${esc(c.moon_sign)}</strong>, <strong>${esc(c.moon_nakshatra)}</strong> nakshatra · born <strong>${esc(c.birth_utc)}</strong> UTC`;
+  return `<p class="chart-line">${line}</p>
     ${p.header ? `<p class="header-line">${headerLine(p.header)}</p>` : ""}
-    <p class="muted tiny">If the lagna or the Moon is not what you expect, check the date, time and timezone.</p>`;
+    <p class="muted tiny">Check these against any app you already use. If the place, the lagna or the Moon is not what you expect, check the place, date, time and timezone.</p>`;
 }
 
 export function renderProgress(status) {

@@ -215,6 +215,69 @@ def test_failed_job_still_shows_the_chart(page, servers):
     submit_reference(page, servers["fails"])
     page.wait_for_selector("#reading[data-state=failed]", timeout=60_000)
     line = page.inner_text(".chart-line")
-    assert "Lagna Taurus" in line and "Moon in Libra, Chitra nakshatra" in line and "2001-03-12T04:40:25+00:00" in line
+    assert "Ascendant (lagna) Taurus" in line and "Moon in Libra, Chitra nakshatra" in line and "04:40:25 UTC" in line
     assert "Rewari, Haryana (28.1989, 76.617)" in page.inner_text("#progress .header-line")
     assert page.locator("#failure").is_visible()
+
+
+def test_place_autocomplete_fills_coordinates_and_timezone(page, base_url):
+    page.goto(f"{base_url}/")
+    page.fill("#place", "rewar")
+    page.wait_for_selector("#place-list li")
+    first = page.locator("#place-list li").first
+    assert first.inner_text().startswith("Rewāri, Haryana, India")
+    first.dispatch_event("mousedown")
+    assert page.input_value("#place") == "Rewāri, Haryana, India"
+    assert page.input_value("#lat") == "28.199" and page.input_value("#lon") == "76.6183"
+    assert page.input_value("#tz") == "Asia/Kolkata"
+    assert "Filled from GeoNames" in page.inner_text("#place-status")
+    # A hand correction is kept, and said.
+    page.fill("#lat", "28.1989")
+    assert "corrected by hand" in page.inner_text("#place-status")
+    assert page.input_value("#lat") == "28.1989"
+    # Keyboard: arrow down and Enter choose too.
+    page.fill("#place", "bombay")
+    page.wait_for_selector("#place-list li")
+    page.press("#place", "ArrowDown")
+    page.press("#place", "Enter")
+    assert page.input_value("#place") == "Mumbai, Maharashtra, India" and page.input_value("#tz") == "Asia/Kolkata"
+
+
+def test_form_refuses_empty_and_null_island_coordinates(page, base_url):
+    page.goto(f"{base_url}/")
+    assert page.get_attribute("#lat", "placeholder") == "e.g. 28.1989"
+    assert page.get_attribute("#lon", "placeholder") == "e.g. 76.6170"
+    assert page.input_value("#node") == "mean"                                       # the form's default
+    assert page.eval_on_selector_all("#node option", "els => els.map(e => e.value)") == ["mean", "true"]
+    posts = []
+    page.on("request", lambda r: posts.append(r.url) if r.method == "POST" else None)
+    page.fill("#date", "2001-03-12")
+    page.fill("#time", "10:10:25")
+    page.fill("#question", "When is the best time for a job change?")
+    page.click("button[type=submit]")
+    assert "Enter the birthplace's latitude and longitude" in page.inner_text("#form-error")
+    page.fill("#lat", "0")
+    page.fill("#lon", "0")
+    page.click("button[type=submit]")
+    assert "Gulf of Guinea" in page.inner_text("#form-error")
+    page.fill("#lat", "95")
+    page.fill("#lon", "76.6")
+    page.click("button[type=submit]")
+    assert "Latitude must be between -90 and 90" in page.inner_text("#form-error")
+    assert posts == [] and page.url.endswith("/")
+
+
+def test_check_line_after_chart_names_place_and_coordinates(page, servers):
+    submit_reference(page, servers["fails"])
+    page.wait_for_selector("#reading[data-state=failed]", timeout=60_000)
+    line = page.inner_text(".chart-line")
+    assert line.startswith("Rewari, Haryana, at 28.1989° N, 76.6170° E (timezone Asia/Kolkata).")
+    assert "Ascendant (lagna) Taurus; Moon in Libra, Chitra nakshatra." in line
+
+
+def test_footer_carries_the_geonames_attribution(page, base_url):
+    for path in ("/", "/reading.html?src=/examples/reference_reading.json"):
+        page.goto(f"{base_url}{path}")
+        footer = page.inner_text("#site-footer")
+        assert "GeoNames" in footer and "CC BY 4.0" in footer
+        assert page.get_attribute("#site-footer a[href*='creativecommons.org/licenses/by/4.0']", "href")

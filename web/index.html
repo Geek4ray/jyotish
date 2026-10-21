@@ -35,18 +35,21 @@
             <option value="unknown">Unknown</option>
           </select></div>
       </div>
-      <div class="field"><label for="tz">Timezone of the birthplace</label><select id="tz" name="tz" required></select>
-        <p class="hint">Your browser's timezone is preselected; choose the birthplace's if it differs.</p></div>
-      <div class="field"><label for="place">Place of birth (a label for your reading)</label><input id="place" name="place" type="text" placeholder="City, country" autocomplete="off"></div>
+      <div class="field place-field"><label for="place">Place of birth</label>
+        <input id="place" name="place" type="text" placeholder="Start typing a town or city" autocomplete="off"
+               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="place-list">
+        <ul class="place-list" id="place-list" role="listbox" hidden></ul>
+        <p class="hint" id="place-status">Choose a place to fill the latitude, longitude and timezone; you can correct them below.</p></div>
       <div class="field-row">
-        <div class="field"><label for="lat">Latitude</label><input id="lat" name="lat" type="number" step="any" min="-90" max="90" placeholder="28.1989" required></div>
-        <div class="field"><label for="lon">Longitude</label><input id="lon" name="lon" type="number" step="any" min="-180" max="180" placeholder="76.617" required></div>
+        <div class="field"><label for="lat">Latitude (north +, south −)</label><input id="lat" name="lat" type="number" step="any" min="-90" max="90" placeholder="e.g. 28.1989" required></div>
+        <div class="field"><label for="lon">Longitude (east +, west −)</label><input id="lon" name="lon" type="number" step="any" min="-180" max="180" placeholder="e.g. 76.6170" required></div>
       </div>
-      <p class="hint">Positions use the latitude and longitude; the place name only labels the reading.</p>
+      <div class="field"><label for="tz">Timezone of the birthplace</label><select id="tz" name="tz" required></select>
+        <p class="hint">Set from the place you choose; otherwise your browser's timezone is preselected.</p></div>
       <div class="field"><label for="node">Lunar node</label>
         <select id="node" name="node">
-          <option value="true">True node (engine default)</option>
-          <option value="mean">Mean node</option>
+          <option value="mean" selected>Mean node (the convention of Indian software)</option>
+          <option value="true">True node (the engine's own default)</option>
         </select></div>
       <div class="field"><label for="question">Your question</label><textarea id="question" name="question" rows="3" required placeholder="How will my career go, and when is the best time for a job change?"></textarea></div>
       <button class="button" type="submit">Compute my reading</button>

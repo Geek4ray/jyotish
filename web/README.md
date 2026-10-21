@@ -6,7 +6,7 @@ app (`src/jyotish/api.py`) at `/`. Built from `design/mockups/` with the palette
 
 | screen | file | shows |
 | --- | --- | --- |
-| Home | `index.html` | birth-data form (accuracy class, place as a label with latitude and longitude, node, question); the honest-scope text from SPEC "Goal and honest scope" |
+| Home | `index.html` | birth-data form: Place autocomplete (GeoNames, `GET /places`) filling latitude, longitude and timezone, each correctable by hand; accuracy class; node (mean by default); question; empty, out-of-range and 0, 0 coordinates refused; the honest-scope text from SPEC "Goal and honest scope" |
 | Reading | `reading.html?id=<job>` | polls `GET /readings/{id}` and shows the progress log, then the reading: summary with the engine's timing line and fields, each area with tier, three stability numbers, polarity touches, claims with citations as footnotes, school conflicts, windows, a collapsed learner panel per claim; "depends on exact birth time"; disclaimers |
 | When | `timing.html?id=<job>` | the windows and the avoid window with q, t, strongest piece and the q components |
 | Phone | the same pages under 720 px | one column and the tab bar from `mockups/Phone.html` |
@@ -22,3 +22,6 @@ Run locally:
     open http://127.0.0.1:8000/
 
 Tests: `tests/test_web.py` (Playwright; `.venv/bin/playwright install chromium` once).
+
+Place data: GeoNames cities15000 (https://www.geonames.org), CC BY 4.0, bundled as
+`src/jyotish/data/places.tsv.gz` by `scripts/make_places.py`; the footer carries the attribution.

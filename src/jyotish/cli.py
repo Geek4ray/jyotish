@@ -302,7 +302,18 @@ def _birth_utc(day: str, clock: str, tz: str):
 
 
 def _birth(args):
+    import sys
+    from pydantic import ValidationError
     from .service import BirthInput
+    try:
+        return _birth_input(args, BirthInput)
+    except ValidationError as e:
+        for err in e.errors():
+            print(f"birth data refused: {err['msg']}", file=sys.stderr)
+        raise SystemExit(2)
+
+
+def _birth_input(args, BirthInput):
     return BirthInput(date=args.date, time=args.time, tz=args.tz, lat=args.lat, lon=args.lon,
                       accuracy=args.accuracy, node=args.node, place=args.place, seed=args.seed)
 

@@ -247,3 +247,14 @@ def test_example_reading_is_current():
     ex = Reading(**json.loads((Path(__file__).parents[1] / "examples" / "reference_reading.json").read_text()))
     assert ex.summary.timing_line == TIMING_LINE
     assert all(c.learner for a in ex.areas for c in a.claims) and ex.unchecked_sentences == 0
+
+
+
+def test_cli_refuses_null_island(tmp_path, capsys):
+    args = [x for x in BIRTH]
+    args[args.index("--lat") + 1] = "0"
+    args[args.index("--lon") + 1] = "0"
+    with pytest.raises(SystemExit) as e:
+        main(["read", *args, "--out", str(tmp_path / "x"), "--model-fixture", str(FIXTURES / "narration_career_edited.json")])
+    assert e.value.code == 2 and "Gulf of Guinea" in capsys.readouterr().err
+    assert not (tmp_path / "x.json").exists()

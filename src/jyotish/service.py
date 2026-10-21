@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .models import Chart
 
@@ -22,12 +22,21 @@ class BirthInput(BaseModel):
     date: str                                   # YYYY-MM-DD, local
     time: str                                   # HH:MM[:SS], local
     tz: str                                     # IANA name (Asia/Kolkata) or offset (+05:30)
-    lat: float
-    lon: float
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
     accuracy: Literal["exact", "within_15", "approximate", "unknown"] = "exact"
     node: Literal["true", "mean"] = "true"
     place: str | None = None
     seed: int = 0
+
+    @model_validator(mode="after")
+    def _not_null_island(self):
+        # 0, 0 is the Gulf of Guinea, and the value an empty or placeholder-filled form sends:
+        # a reading there is for nobody's birthplace, so it is refused rather than computed.
+        if self.lat == 0 and self.lon == 0:
+            raise ValueError("latitude and longitude are both 0 (a point in the Gulf of Guinea): "
+                             "enter the birthplace's coordinates")
+        return self
 
 
 def birth_utc(day: str, clock: str, tz: str) -> tuple[datetime, str | None]:
@@ -70,12 +79,25 @@ def read_command(birth: BirthInput, question: str, as_of: str | None, model_fixt
     return shlex.join(parts)
 
 
-def chart_line(chart: Chart) -> dict:
-    """The lagna sign, the Moon's sign and nakshatra and the birth moment in UTC: what a person
-    recognises in the first second, so a wrong timezone shows before the reading runs."""
+def _coord(x: float, pos: str, neg: str) -> str:
+    return f"{abs(x):.4f}° {pos if x >= 0 else neg}"
+
+
+def chart_line(chart: Chart, birth: BirthInput | None = None) -> dict:
+    """What a person can check against any app they already use, in the first second: the
+    place and the coordinates the chart was computed for, the local and UTC birth moment, the
+    lagna, and the Moon's sign and nakshatra. A wrong place, timezone or date shows here."""
     moon = chart.bodies["Moon"]
-    return {"lagna": chart.lagnas.asc_sign_name, "moon_sign": moon.sign_name, "moon_nakshatra": moon.nak_name,
-            "birth_utc": chart.birth.utc}
+    out = {"lagna": chart.lagnas.asc_sign_name, "moon_sign": moon.sign_name, "moon_nakshatra": moon.nak_name,
+           "birth_utc": chart.birth.utc}
+    if birth is not None:
+        utc = datetime.fromisoformat(chart.birth.utc)
+        out |= {"place": birth.place, "lat": birth.lat, "lon": birth.lon, "tz": birth.tz, "node": birth.node,
+                "words": (f"{birth.place or 'Place not named'}, at {_coord(birth.lat, 'N', 'S')}, "
+                          f"{_coord(birth.lon, 'E', 'W')} (timezone {birth.tz}). Born {birth.date} at {birth.time} "
+                          f"local time, {utc:%H:%M:%S} UTC. Ascendant (lagna) {chart.lagnas.asc_sign_name}; "
+                          f"Moon in {moon.sign_name}, {moon.nak_name} nakshatra.")}
+    return out
 
 
 def reading_header(birth: BirthInput, question: str, chart: Chart, as_of: str | None = None,

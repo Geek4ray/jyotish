@@ -187,3 +187,14 @@ table.windows td:nth-child(-n+6), table.windows th { white-space: nowrap; }
 .gaps { border-left: 3px solid var(--moderate); padding: 4px 12px; }
 .gaps ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .chart-line { margin: 0; font-size: 15px; }
+
+.place-field { position: relative; }
+.place-list {
+  position: absolute; z-index: 20; left: 0; right: 0; top: 74px; margin: 0; padding: 4px; list-style: none;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; max-height: 280px; overflow-y: auto;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+.place-list li { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; min-height: 44px; }
+.place-list li small { display: block; color: var(--muted); font-size: 12px; }
+.place-list li[aria-selected="true"], .place-list li:hover { background: var(--bg); }
+.place-status-ok { color: var(--positive); }
