@@ -22,6 +22,7 @@ class Meta(BaseModel):
     rising_signs: str = "bphs"             # bphs | phaladeepika (Bhava Bala time bonus)
     twilight_minutes: float = 24.0         # one ghati either side of sunrise and sunset; BPHS 27.31 does not define it
     ishta_kashta: str = "bphs"             # bphs (28.2-6, Rasmis) | raman (geometric mean; unverified)
+    argala_nodes: str = "rath"             # rath (Ketu in the sign: count backwards) | reverse_position | direct
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
     ekadhipatya_nodes: bool = False
@@ -237,6 +238,22 @@ class IshtaKashta(BaseModel):
     cheshta_rasmi: float | None = None
 
 
+class ArgalaPlace(BaseModel):
+    house: int                 # 2, 4, 11 (primary) or 5 (secondary), from the reference sign
+    kind: str
+    by: list[str]
+    obstruction_house: int     # 12, 10, 3 or 9
+    blocked_by: list[str]
+    outcome: str               # unobstructed | prevails | obstructed | bandhana (equal strength)
+
+
+class ArgalaOn(BaseModel):
+    places: list[ArgalaPlace]
+    vipareeta: bool            # three or more malefics in the 3rd
+    third_malefics: list[str]
+    reversed: bool             # counted backwards (Ketu in the reference sign, Rath)
+
+
 class BhavaBala(BaseModel):
     birth_time: str                              # day | twilight | night
     whole_sign: dict[int, HouseStrength]         # madhyas equal from the lagna degree
@@ -254,6 +271,7 @@ class Features(BaseModel):
     bhava_bala: BhavaBala | None = None   # needs Shadbala and the MC
     vimsopaka: dict[str, dict[str, float]]          # planet -> scheme -> 0-20 (BPHS 7.17-25)
     ishta_kashta: dict[str, IshtaKashta] | None = None   # needs Shadbala
+    argala: dict[str, ArgalaOn]                      # H1-H12 and AL (BPHS 31.2-9)
     sudarshana_h10: dict[str, list[str]]
 
 

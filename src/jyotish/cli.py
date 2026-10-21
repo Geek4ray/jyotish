@@ -53,6 +53,7 @@ def print_chart(chart: Chart) -> None:
     print_shadbala(chart)
     print_bhava_bala(chart)
     print_vimsopaka_ishta(chart)
+    print_argala(chart)
     print_fired_rules(chart)
     if chart.meta.jd is not None:
         print_current_transits(chart)
@@ -146,6 +147,18 @@ def print_vimsopaka_ishta(chart: Chart) -> None:
     if f.ishta_kashta:
         print(f"Ishta / Kashta ({chart.meta.ishta_kashta}):",
               "  ".join(f"{p} {x.ishta:.1f}/{x.kashta:.1f}" for p, x in f.ishta_kashta.items()))
+
+
+def print_argala(chart: Chart) -> None:
+    print(f"\nArgala (Jaimini Upadesa Sutras 1.1.4-9 as read by Rath; BPHS 31.2-9; nodes: {chart.meta.argala_nodes})")
+    print("  place: planets [obstructors] outcome; (rev) = counted backwards, Ketu in the sign")
+    for key, a in chart.features.argala.items():
+        if not a.places and not a.vipareeta:
+            continue
+        parts = [f"{x.house}: {' '.join(x.by)}" + (f" [{' '.join(x.blocked_by)}]" if x.blocked_by else "")
+                 + f" {x.outcome}" for x in a.places]
+        extra = f"  Vipareeta ({' '.join(a.third_malefics)})" if a.vipareeta else ""
+        print(f"  {key:4} " + "; ".join(parts) + extra + ("  (rev)" if a.reversed else ""))
 
 
 def print_bhava_bala(chart: Chart) -> None:

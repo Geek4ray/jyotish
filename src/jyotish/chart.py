@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from .argala import argala as compute_argala
 from .ashtakavarga import ashtakavarga
 from .bhava_bala import bhava_bala as compute_bhava_bala
 from .constants import GRAHAS, SEVEN, SIGNS
@@ -19,7 +20,7 @@ from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_ch
 from .ephemeris import ayanamsa_value, compute_sky, julian_day, next_sunrise, sunrise_sunset
 from .jaimini import all_arudhas, chara_karakas, karakamsa
 from .models import (
-    Ashtakavarga, BhavaBala, Birth, Body, HouseStrength, IshtaKashta, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
+    ArgalaOn, Ashtakavarga, BhavaBala, Birth, Body, HouseStrength, IshtaKashta, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
     KalaBala, PanchangaInfo, Pinda, PlanetShadbala, Shadbala, SthanaBala, TaraInfo,
     TimePosterior, Yuddha,
 )
@@ -148,6 +149,10 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
         sudarshana_h10=sudarshana_h10,
         shadbala=sb_model,
         vimsopaka=vimsopaka(positions),
+        argala={k: ArgalaOn(**v) for k, v in compute_argala(
+            positions, lagna_sign, all_arudhas(lagna_sign, positions)["AL"], nodes=meta.argala_nodes,
+            ak=chara_karakas(positions, meta.karaka_scheme)["AK"],
+            mercury_nature=meta.mercury_nature).items()},
     )
 
     pinfo = None
