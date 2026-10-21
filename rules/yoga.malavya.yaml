@@ -1,0 +1,25 @@
+id: yoga.malavya
+family: pancha_mahapurusha
+school: parashari
+source:
+  - {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 2, checked: false,
+     note: "chapter defines the five together, as cited for yoga.ruchaka"}
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 1, checked: false}
+status: classical_unconfirmed
+when:
+  planet: Venus
+  dignity_in: [own, moolatrikona, exalted]
+  house_in: [1, 4, 7, 10]
+  basis: [lagna, moon, sun]
+modifiers:
+  - if: shadbala_ratio < 1.0
+    scale: 0.5
+  - if: combust
+    scale: 0.5
+  - if: marana_karaka_sthana
+    scale: 0.6
+themes: { comforts: +3, relationships: +2, arts: +2 }
+outcomes: [marriage, property_purchase]
+confidence_base: 0.7
+stability_min: 0.5
+narration_key: malavya

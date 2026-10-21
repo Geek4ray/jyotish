@@ -24,6 +24,7 @@ from .models import (
 )
 from .nakshatra import kp_sub_lords, nakshatra_of, navatara
 from .panchanga import panchanga as compute_panchanga
+from .rules import default_rules, evaluate_all
 from .shadbala import ShadbalaSettings, shadbala as compute_shadbala
 from .vargas import PRODUCTION_VARGAS, VARGAS, is_vargottama
 
@@ -39,8 +40,10 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             meta: Meta | None = None, birth: Birth | None = None, jd: float | None = None,
             mc: float | None = None, cusps: list[float] | None = None,
             sunrise: float | None = None, sunset: float | None = None,
-            next_sunrise: float | None = None, dasha_levels: int = 2) -> Chart:
-    """Build the chart object from sidereal longitudes (all nine grahas) and the ascendant."""
+            next_sunrise: float | None = None, dasha_levels: int = 2,
+            rules=None) -> Chart:
+    """Build the chart object from sidereal longitudes (all nine grahas) and the ascendant.
+    `rules` is the rule library to evaluate (default: every rules/*.yaml); pass [] to skip."""
     meta = meta or Meta()
     birth = birth or Birth()
     speeds = speeds or {}
@@ -150,8 +153,11 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             for p in periods
         ]
 
-    return Chart(meta=meta, birth=birth, bodies=bodies, lagnas=lagnas, panchanga=pinfo,
-                 vargas=vargas, features=features, dashas=dashas)
+    chart = Chart(meta=meta, birth=birth, bodies=bodies, lagnas=lagnas, panchanga=pinfo,
+                  vargas=vargas, features=features, dashas=dashas)
+    # Layer 3 reads only the finished feature object, never raw longitudes.
+    chart.fired_rules = evaluate_all(default_rules() if rules is None else rules, chart)
+    return chart
 
 
 def _shadbala(positions, asc, meta, birth, jd, mc, sunrise, sunset, next_sunrise) -> Shadbala | None:

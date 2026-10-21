@@ -1,0 +1,33 @@
+id: yoga.parivartana
+family: parivartana
+school: parashari
+source:
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: false,
+     note: "Maha / Khala / Dainya by the houses exchanged"}
+  - {text: Uttara Kalamrita, edition: P.S. Sastri translation, chapter: 4, verse: unverified,
+     checked: false, note: "the same classes judged by every house the two planets own"}
+status: classical_unconfirmed
+# Two of the seven in each other's signs. Classified both ways because the texts define
+# it both ways; both classes are reported, and each weakens the fire on its own terms.
+when:
+  pair:
+    a: {planet_in: [Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn]}
+    b: {planet_in: [Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn]}
+    related_by: [exchange]
+  basis: [lagna]
+modifiers:
+  - if: class_by_houses == dainya
+    of: pair
+    scale: 0.5
+  - if: class_by_houses == kahala
+    of: pair
+    scale: 0.75
+  - if: class_by_lordship == dainya
+    of: pair
+    scale: 0.8
+report: [parivartana_class]
+themes: { fortune: +2, house_linkage: +2 }
+outcomes: [career_status, property_purchase]
+confidence_base: 0.6
+stability_min: 0.5
+narration_key: parivartana

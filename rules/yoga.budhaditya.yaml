@@ -1,0 +1,27 @@
+id: yoga.budhaditya
+family: solar
+school: parashari
+source:
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 3, checked: false,
+     note: "locus as given in the SPEC citation example; verify against the edition"}
+status: classical_unconfirmed
+# Sun and Mercury in one sign. House-independent, so one basis; the H-node it records is
+# counted from the lagna.
+when:
+  pair:
+    a: {planet: Sun}
+    b: {planet: Mercury}
+    related_by: [conjunction]
+  basis: [lagna]
+modifiers:
+  - if: combust
+    of: b
+    scale: 0.5
+  - if: avastha in [bala, mrita]
+    of: b
+    scale: 0.9
+themes: { intellect: +2, communication: +2, reputation: +1 }
+outcomes: [career_status]
+confidence_base: 0.6
+stability_min: 0.5
+narration_key: budhaditya

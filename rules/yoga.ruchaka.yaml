@@ -7,13 +7,13 @@ source:
 status: classical_unconfirmed
 when:
   planet: Mars
-  dignity_in: [own, exalted]
+  dignity_in: [own, moolatrikona, exalted]
   house_in: [1, 4, 7, 10]
   basis: [lagna, moon, sun]
 modifiers:
   - if: shadbala_ratio < 1.0
     scale: 0.5
-  - if: aspected_by: [Saturn]
+  - if: {aspected_by: [Saturn]}
     scale: 0.8
   - if: tara_from_moon in [vipat, pratyak, vadha]
     scale: 0.85

@@ -51,6 +51,7 @@ def print_chart(chart: Chart) -> None:
     print("KP cusp lords:", chart.lagnas.cusp_lords_kp)
     print_ashtakavarga(chart)
     print_shadbala(chart)
+    print_fired_rules(chart)
     if chart.panchanga:
         print("\nPanchanga:", chart.panchanga.model_dump())
     if chart.dashas:
@@ -103,6 +104,21 @@ def print_shadbala(chart: Chart) -> None:
     print(f"  Settings: drekkana={m.drekkana_bala} saptavargaja={m.saptavargaja_scale} dig={m.dig_bala_points} "
           f"noon={m.nathonnata_noon} mercury={m.mercury_nature} moon_paksha_x2={m.paksha_moon_double} "
           f"ayana={m.ayana_obliquity} sun_ayana_x2={m.ayana_sun_double} chesta_luminaries={m.chesta_luminaries}")
+
+
+def print_fired_rules(chart: Chart) -> None:
+    print("\nFired rules (scale = product of applied modifiers; stability not yet sampled)")
+    if not chart.fired_rules:
+        print("  none")
+    for f in chart.fired_rules:
+        print(f"  {f.id:26} {f.basis:6} {' '.join(f.nodes):24} scale {f.scale:.3f}")
+        for a in f.applied:
+            print(f"      applied: {a}")
+        for u in f.unknown:
+            print(f"      not evaluated (feature not computed): {u}")
+        extra = {k: v for k, v in f.details.items() if k != "relations"}
+        if extra or f.details.get("relations"):
+            print(f"      {', '.join(f.details.get('relations', []))} {extra if extra else ''}".rstrip())
 
 
 def main(argv: list[str] | None = None) -> None:

@@ -1,0 +1,28 @@
+id: yoga.kendra_trikona_raja
+family: raja
+school: parashari
+source:
+  - {text: BPHS, edition: Santhanam 1984, chapter: 39, verse: unverified, checked: false}
+status: classical_unconfirmed
+# A kendra lord and a different trikona lord related by conjunction, mutual aspect or
+# exchange (sambandha). The lagna counts as both a kendra and a trikona. A lord who also
+# owns a dusthana weakens the yoga.
+when:
+  pair:
+    a: {lord_of: [1, 4, 7, 10]}
+    b: {lord_of: [1, 5, 9]}
+    related_by: [conjunction, mutual_aspect, exchange]
+  basis: [lagna]
+modifiers:
+  - if: {lord_of: [6, 8, 12]}
+    of: a
+    scale: 0.75
+  - if: {lord_of: [6, 8, 12]}
+    of: b
+    scale: 0.75
+report: [lordships]
+themes: { authority: +3, reputation: +3, career: +2 }
+outcomes: [career_status]
+confidence_base: 0.6
+stability_min: 0.5
+narration_key: kendra_trikona_raja

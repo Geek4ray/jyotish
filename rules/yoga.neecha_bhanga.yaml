@@ -1,0 +1,27 @@
+id: yoga.neecha_bhanga
+family: raja
+school: parashari
+source:
+  - {text: Phaladeepika, edition: Sastri 1937, chapter: 7, verse: 26, checked: false}
+status: classical_unconfirmed
+# A debilitated planet whose debilitation is cancelled by any of the four commonest
+# conditions. Texts list more (and disagree on which make it a Raja yoga); the fire
+# reports which conditions held so the narration can name them.
+when:
+  planet_in: [Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn]
+  dignity: debilitated
+  any:
+    - {dispositor_house_in: [1, 4, 7, 10]}
+    - {exaltation_lord_house_in: [1, 4, 7, 10]}
+    - {exalted_here_house_in: [1, 4, 7, 10]}
+    - {aspected_by_dispositor: true}
+  basis: [lagna, moon]
+modifiers:
+  - if: combust
+    scale: 0.75
+report: [neecha_bhanga]
+themes: { rise_after_struggle: +3, authority: +2 }
+outcomes: [career_status]
+confidence_base: 0.5
+stability_min: 0.5
+narration_key: neecha_bhanga

@@ -1,0 +1,702 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Geek4ray/jyotish/rules/rule.schema.json",
+  "title": "Jyotish rule (SPEC Layer 3)",
+  "description": "One rule per YAML file in rules/. Loaded and validated by jyotish.rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "family",
+    "school",
+    "source",
+    "status",
+    "when",
+    "themes",
+    "outcomes"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "family": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "school": {
+      "type": "string",
+      "pattern": "^(parashari|jaimini|kp|nadi|tajaka|regional:[a-z0-9_]+)$"
+    },
+    "source": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "minItems": 1
+    },
+    "status": {
+      "enum": [
+        "classical_unconfirmed",
+        "classical_rejected",
+        "not_testable_yet",
+        "experimental",
+        "data_confirmed"
+      ]
+    },
+    "when": {
+      "$ref": "#/$defs/when"
+    },
+    "modifiers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/modifier"
+      }
+    },
+    "themes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "report": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "parivartana_class",
+          "neecha_bhanga",
+          "lordships"
+        ]
+      }
+    },
+    "confidence_base": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "stability_min": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "narration_key": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "planet": {
+          "enum": [
+            "Sun",
+            "Moon",
+            "Mars",
+            "Mercury",
+            "Jupiter",
+            "Venus",
+            "Saturn",
+            "Rahu",
+            "Ketu"
+          ]
+        },
+        "planet_in": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Sun",
+              "Moon",
+              "Mars",
+              "Mercury",
+              "Jupiter",
+              "Venus",
+              "Saturn",
+              "Rahu",
+              "Ketu"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "all": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subject"
+          },
+          "minItems": 1
+        },
+        "any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subject"
+          },
+          "minItems": 1
+        },
+        "not": {
+          "$ref": "#/$defs/subject"
+        },
+        "dignity": {
+          "type": "string"
+        },
+        "dignity_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "dignity_compound": {
+          "type": "string"
+        },
+        "dignity_compound_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sign": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "sign_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11
+          },
+          "minItems": 1
+        },
+        "lord_of": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "avastha": {
+          "type": "string"
+        },
+        "avastha_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "tara_from_moon": {
+          "type": "string"
+        },
+        "tara_from_moon_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "combust": {
+          "type": "boolean"
+        },
+        "retro": {
+          "type": "boolean"
+        },
+        "marana_karaka_sthana": {
+          "type": "boolean"
+        },
+        "vargottama": {
+          "type": "boolean"
+        },
+        "boundary": {
+          "type": "boolean"
+        },
+        "aspected_by": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Sun",
+              "Moon",
+              "Mars",
+              "Mercury",
+              "Jupiter",
+              "Venus",
+              "Saturn",
+              "Rahu",
+              "Ketu"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "conjoined_with": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Sun",
+              "Moon",
+              "Mars",
+              "Mercury",
+              "Jupiter",
+              "Venus",
+              "Saturn",
+              "Rahu",
+              "Ketu"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "dispositor_house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "dispositor_house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "exaltation_lord_house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "exaltation_lord_house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "exalted_here_house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "exalted_here_house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "aspected_by_dispositor": {
+          "type": "boolean"
+        }
+      }
+    },
+    "pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "a",
+        "b",
+        "related_by"
+      ],
+      "properties": {
+        "a": {
+          "$ref": "#/$defs/subject"
+        },
+        "b": {
+          "$ref": "#/$defs/subject"
+        },
+        "related_by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "conjunction",
+              "mutual_aspect",
+              "exchange"
+            ]
+          }
+        }
+      }
+    },
+    "when": {
+      "type": "object",
+      "required": [
+        "basis"
+      ],
+      "properties": {
+        "planet": {
+          "enum": [
+            "Sun",
+            "Moon",
+            "Mars",
+            "Mercury",
+            "Jupiter",
+            "Venus",
+            "Saturn",
+            "Rahu",
+            "Ketu"
+          ]
+        },
+        "planet_in": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Sun",
+              "Moon",
+              "Mars",
+              "Mercury",
+              "Jupiter",
+              "Venus",
+              "Saturn",
+              "Rahu",
+              "Ketu"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "all": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subject"
+          },
+          "minItems": 1
+        },
+        "any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subject"
+          },
+          "minItems": 1
+        },
+        "not": {
+          "$ref": "#/$defs/subject"
+        },
+        "dignity": {
+          "type": "string"
+        },
+        "dignity_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "dignity_compound": {
+          "type": "string"
+        },
+        "dignity_compound_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sign": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "sign_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11
+          },
+          "minItems": 1
+        },
+        "lord_of": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "avastha": {
+          "type": "string"
+        },
+        "avastha_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "tara_from_moon": {
+          "type": "string"
+        },
+        "tara_from_moon_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "combust": {
+          "type": "boolean"
+        },
+        "retro": {
+          "type": "boolean"
+        },
+        "marana_karaka_sthana": {
+          "type": "boolean"
+        },
+        "vargottama": {
+          "type": "boolean"
+        },
+        "boundary": {
+          "type": "boolean"
+        },
+        "aspected_by": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Sun",
+              "Moon",
+              "Mars",
+              "Mercury",
+              "Jupiter",
+              "Venus",
+              "Saturn",
+              "Rahu",
+              "Ketu"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "conjoined_with": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Sun",
+              "Moon",
+              "Mars",
+              "Mercury",
+              "Jupiter",
+              "Venus",
+              "Saturn",
+              "Rahu",
+              "Ketu"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "dispositor_house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "dispositor_house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "exaltation_lord_house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "exaltation_lord_house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "exalted_here_house": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "exalted_here_house_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "aspected_by_dispositor": {
+          "type": "boolean"
+        },
+        "pair": {
+          "$ref": "#/$defs/pair"
+        },
+        "basis": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "lagna",
+              "moon",
+              "sun"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "planet"
+          ]
+        },
+        {
+          "required": [
+            "planet_in"
+          ]
+        },
+        {
+          "required": [
+            "pair"
+          ]
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "edition",
+        "chapter",
+        "verse"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "edition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapter": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "verse": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "checked": {
+          "type": "boolean",
+          "description": "false: chapter/verse not yet verified against the named edition"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "modifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "if",
+        "scale"
+      ],
+      "properties": {
+        "if": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "$ref": "#/$defs/subject"
+            }
+          ]
+        },
+        "of": {
+          "type": "string",
+          "description": "a | b | pair (pair rules), or a planet name"
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    }
+  }
+}

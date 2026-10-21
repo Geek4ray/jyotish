@@ -4,6 +4,8 @@ phases are added when their layer lands, never stubbed with placeholder values."
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -219,6 +221,23 @@ class Features(BaseModel):
     sudarshana_h10: dict[str, list[str]]
 
 
+class FiredRule(BaseModel):
+    """One rule fired from one basis (SPEC Layer 3). `scale` is the product of the
+    modifiers in `applied`; `themes` are the rule's themes times that scale. Modifiers
+    whose condition the chart could not evaluate are in `unknown`, never silently dropped.
+    Stability (Layer 1b) is added by the sampler, not here."""
+    id: str
+    family: str
+    school: str
+    basis: str
+    nodes: list[str]
+    scale: float
+    themes: dict[str, float]
+    applied: list[str] = Field(default_factory=list)
+    unknown: list[str] = Field(default_factory=list)
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
 class Chart(BaseModel):
     meta: Meta
     birth: Birth
@@ -228,4 +247,5 @@ class Chart(BaseModel):
     vargas: dict[str, dict[str, int]]
     features: Features
     dashas: dict[str, list[DashaPeriod]] = Field(default_factory=dict)
+    fired_rules: list[FiredRule] = Field(default_factory=list)
     uncertainty: dict | None = None

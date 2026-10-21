@@ -1,0 +1,444 @@
+"""Rule evaluator (SPEC Layer 3). Rules are YAML data in `rules/`, one rule per file,
+validated against `rules/rule.schema.json`. A rule's `when` names a subject (one planet,
+a list, or a pair) and conditions over chart features; it is evaluated once per basis
+(lagna, moon, sun) and every fire records its basis. Modifiers apply in file order.
+
+The condition vocabulary is closed: every feature a rule may name is in FEATURES below
+and in the schema, so a typo fails at load time instead of silently never firing.
+Conditions are three-valued: a feature the chart has not computed (for example
+`shadbala_ratio` on a chart without a birth moment) is unknown. An unknown `when` does
+not fire; an unknown modifier is not applied and is listed in the fire's `unknown`."""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Callable
+
+import jsonschema
+import yaml
+
+from .constants import EXALTATION, GRAHAS, SEVEN, SIGN_LORD
+from .dignity import aspected_houses, house_of, lordships
+from .dispositors import parivartanas
+from .models import Chart, FiredRule
+
+RULES_DIR = Path(os.environ.get("JYOTISH_RULES_PATH", Path(__file__).resolve().parents[2] / "rules"))
+SCHEMA_FILE = "rule.schema.json"
+
+
+class RuleError(ValueError):
+    pass
+
+
+class _Unknown:
+    def __repr__(self) -> str:
+        return "UNKNOWN"
+
+    def __bool__(self) -> bool:
+        raise TypeError("UNKNOWN has no truth value; test `is UNKNOWN` first")
+
+
+UNKNOWN = _Unknown()
+
+
+# --- features: what a rule can read about one planet from one basis -------------------
+
+class Ctx:
+    """One chart seen from one basis."""
+
+    def __init__(self, chart: Chart, basis: str):
+        self.chart = chart
+        self.basis = basis
+        self.bodies = chart.bodies
+        self.basis_sign = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign,
+                           "sun": chart.bodies["Sun"].sign}[basis]
+        self.lords = lordships(self.basis_sign)
+        self.lagna_sign = chart.lagnas.asc_sign
+
+    def sign(self, p: str) -> int:
+        return self.bodies[p].sign
+
+    def house(self, p: str) -> int:
+        return house_of(self.sign(p), self.basis_sign)
+
+    def house_of_sign(self, sign: int) -> int:
+        return house_of(sign, self.basis_sign)
+
+    def aspects(self, q: str, p: str) -> bool:
+        """Whole-sign graha drishti of q on p's sign. Only the seven aspect: node aspects
+        are a setting that is off by default and not implemented here."""
+        if q not in SEVEN or q == p:
+            return False
+        hq = house_of(self.sign(q), self.lagna_sign)
+        hp = house_of(self.sign(p), self.lagna_sign)
+        return hp in aspected_houses(q, hq)
+
+
+def _lower(v):
+    return v.lower() if isinstance(v, str) else v
+
+
+def _shadbala_ratio(c: Ctx, p: str):
+    sb = c.chart.features.shadbala
+    if sb is None:
+        return UNKNOWN
+    x = sb.planets.get(p)
+    return x.ratio if x else None
+
+
+def _exaltation_lord_house(c: Ctx, p: str):
+    if p not in EXALTATION:
+        return None
+    return c.house(SIGN_LORD[EXALTATION[p][0]])
+
+
+def _exalted_here_house(c: Ctx, p: str):
+    here = [q for q, (s, _) in EXALTATION.items() if s == c.sign(p)]
+    return c.house(here[0]) if here else None
+
+
+FEATURES: dict[str, Callable[[Ctx, str], Any]] = {
+    "dignity": lambda c, p: c.bodies[p].dignity or "node",
+    "dignity_compound": lambda c, p: c.bodies[p].dignity_compound or "node",
+    "house": lambda c, p: c.house(p),
+    "sign": lambda c, p: c.sign(p),
+    "lord_of": lambda c, p: set(c.lords.get(p, [])),
+    "avastha": lambda c, p: _lower(c.bodies[p].avastha_baladi),
+    "tara_from_moon": lambda c, p: _lower(c.bodies[p].tara.name),
+    "combust": lambda c, p: c.bodies[p].combust,
+    "retro": lambda c, p: c.bodies[p].retro,
+    "marana_karaka_sthana": lambda c, p: c.bodies[p].marana_karaka_sthana,
+    "vargottama": lambda c, p: c.bodies[p].vargottama,
+    "boundary": lambda c, p: c.bodies[p].boundary,
+    "aspected_by": lambda c, p: {q for q in SEVEN if c.aspects(q, p)},
+    "conjoined_with": lambda c, p: {q for q in GRAHAS if q != p and c.sign(q) == c.sign(p)},
+    "dispositor_house": lambda c, p: c.house(SIGN_LORD[c.sign(p)]),
+    "exaltation_lord_house": _exaltation_lord_house,
+    "exalted_here_house": _exalted_here_house,
+    "aspected_by_dispositor": lambda c, p: c.aspects(SIGN_LORD[c.sign(p)], p),
+    "shadbala_ratio": _shadbala_ratio,
+}
+# Features whose value changes with the basis. A rule using none of them must name one
+# basis only, or it would fire the same thing three times.
+HOUSE_FEATURES = {"house", "lord_of", "dispositor_house", "exaltation_lord_house", "exalted_here_house"}
+BINDERS = {"planet", "planet_in", "basis", "pair"}   # keys that are not conditions
+LOGIC = {"all", "any", "not"}
+
+
+def _feature_name(key: str) -> str:
+    return key[:-3] if key.endswith("_in") and key[:-3] in FEATURES else key
+
+
+# --- three-valued conditions ----------------------------------------------------------
+
+def _and(values) -> object:
+    values = list(values)
+    if any(v is False for v in values):
+        return False
+    return UNKNOWN if any(v is UNKNOWN for v in values) else True
+
+
+def _or(values) -> object:
+    values = list(values)
+    if any(v is True for v in values):
+        return True
+    return UNKNOWN if any(v is UNKNOWN for v in values) else False
+
+
+def _test(value, wanted) -> object:
+    """A feature value against a rule's wanted value (scalar, bool or list)."""
+    if value is UNKNOWN:
+        return UNKNOWN
+    if isinstance(value, set):
+        want = set(wanted) if isinstance(wanted, list) else {wanted}
+        return bool(value & want)
+    if isinstance(wanted, list):
+        return _lower(value) in {_lower(w) for w in wanted}
+    if isinstance(wanted, bool):
+        return bool(value) == wanted
+    return _lower(value) == _lower(wanted)
+
+
+def match(spec: dict, c: Ctx, p: str) -> object:
+    """True / False / UNKNOWN for a subject spec on planet p."""
+    out = []
+    for key, wanted in spec.items():
+        if key in BINDERS:
+            continue
+        if key == "all":
+            out.append(_and(match(s, c, p) for s in wanted))
+        elif key == "any":
+            out.append(_or(match(s, c, p) for s in wanted))
+        elif key == "not":
+            r = match(wanted, c, p)
+            out.append(r if r is UNKNOWN else not r)
+        else:
+            out.append(_test(FEATURES[_feature_name(key)](c, p), wanted))
+    return _and(out)
+
+
+_EXPR = re.compile(r"^\s*([a-z_]+)\s*(?:(<=|>=|==|!=|<|>|in)\s*(.+?))?\s*$")
+
+
+def parse_expr(text: str) -> tuple[str, str | None, Any]:
+    """`name`, `name <op> number`, `name == word` or `name in [a, b]`."""
+    m = _EXPR.match(text)
+    if not m:
+        raise RuleError(f"cannot parse condition {text!r}")
+    name, op, raw = m.groups()
+    if name not in FEATURES and name not in PAIR_FEATURES:
+        raise RuleError(f"unknown feature {name!r} in {text!r}")
+    if op is None:
+        return name, None, None
+    if op == "in":
+        if not (raw.startswith("[") and raw.endswith("]")):
+            raise RuleError(f"'in' needs a [list] in {text!r}")
+        return name, op, [w.strip() for w in raw[1:-1].split(",") if w.strip()]
+    try:
+        return name, op, float(raw)
+    except ValueError:
+        if op not in ("==", "!="):
+            raise RuleError(f"{op} needs a number in {text!r}") from None
+        return name, op, raw.strip()
+
+
+def _eval_expr(expr, value) -> object:
+    name, op, arg = expr
+    if value is UNKNOWN:
+        return UNKNOWN
+    if op is None:
+        return bool(value)
+    if op == "in":
+        return _test(value, arg)
+    if op == "==":
+        return _test(value, arg)
+    if op == "!=":
+        return not _test(value, arg)
+    if value is None:
+        return False
+    return {"<": value < arg, "<=": value <= arg, ">": value > arg, ">=": value >= arg}[op]
+
+
+# --- pairs ----------------------------------------------------------------------------
+
+def _relations(c: Ctx, a: str, b: str, wanted: list[str]) -> list[str]:
+    found = []
+    if "conjunction" in wanted and c.sign(a) == c.sign(b):
+        found.append("conjunction")
+    if "mutual_aspect" in wanted and c.aspects(a, b) and c.aspects(b, a):
+        found.append("mutual_aspect")
+    if "exchange" in wanted and a in SEVEN and b in SEVEN and \
+            SIGN_LORD[c.sign(a)] == b and SIGN_LORD[c.sign(b)] == a:
+        found.append("exchange")
+    return found
+
+
+def _parivartana(c: Ctx, a: str, b: str):
+    positions = {p: c.bodies[p].lon for p in SEVEN}
+    for x in parivartanas(positions, c.basis_sign):
+        if set(x.planets) == {a, b}:
+            return x
+    return None
+
+
+PAIR_FEATURES: dict[str, Callable[[Ctx, str, str, list[str]], Any]] = {
+    "relations": lambda c, a, b, rel: set(rel),
+    "class_by_houses": lambda c, a, b, rel: (x := _parivartana(c, a, b)) and x.class_by_houses,
+    "class_by_lordship": lambda c, a, b, rel: (x := _parivartana(c, a, b)) and x.class_by_lordship,
+}
+
+
+# --- loading ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class Rule:
+    id: str
+    data: dict
+    path: Path
+
+    @property
+    def when(self) -> dict:
+        return self.data["when"]
+
+
+def _walk_subject_keys(spec: dict):
+    for k, v in spec.items():
+        if k in ("all", "any"):
+            for s in v:
+                yield from _walk_subject_keys(s)
+        elif k == "not":
+            yield from _walk_subject_keys(v)
+        elif k not in BINDERS:
+            yield _feature_name(k)
+
+
+def _check(rule: dict, path: Path) -> None:
+    rid = rule["id"]
+    if path.stem != rid:
+        raise RuleError(f"{path.name}: file name must be the rule id ({rid}.yaml)")
+    when = rule["when"]
+    sides = [when["pair"]["a"], when["pair"]["b"]] if "pair" in when else [when]
+    used = {k for s in sides for k in _walk_subject_keys(s)}
+    pair = "pair" in when
+    for m in rule.get("modifiers", []):
+        of = m.get("of")
+        if pair and of is None:
+            raise RuleError(f"{rid}: a pair rule's modifier needs `of` (a, b, pair or a planet)")
+        if not pair and of in ("a", "b", "pair"):
+            raise RuleError(f"{rid}: `of: {of}` is only for pair rules")
+        if of not in (None, "a", "b", "pair") and of not in GRAHAS:
+            raise RuleError(f"{rid}: unknown modifier subject {of!r}")
+        if isinstance(m["if"], str):
+            name = parse_expr(m["if"])[0]
+            if (name in PAIR_FEATURES) != (of == "pair"):
+                raise RuleError(f"{rid}: {name!r} {'needs' if name in PAIR_FEATURES else 'cannot take'} `of: pair`")
+            used.add(name)
+        else:
+            used |= set(_walk_subject_keys(m["if"]))
+    if not (used & HOUSE_FEATURES) and len(when["basis"]) > 1:
+        raise RuleError(f"{rid}: no house-dependent condition, so it must name one basis "
+                        f"(it would fire identically from {when['basis']})")
+
+
+@lru_cache(maxsize=None)
+def _schema(directory: Path) -> jsonschema.Draft202012Validator:
+    return jsonschema.Draft202012Validator(json.loads((directory / SCHEMA_FILE).read_text()))
+
+
+def load_rules(directory: Path | str | None = None) -> list[Rule]:
+    """Every rules/*.yaml, validated against the schema and the checks in `_check`."""
+    directory = Path(directory) if directory is not None else RULES_DIR
+    validator = _schema(directory)
+    rules, seen = [], set()
+    for path in sorted(directory.glob("*.yaml")):
+        try:
+            data = yaml.safe_load(path.read_text())
+        except yaml.YAMLError as e:
+            raise RuleError(f"{path.name}: not valid YAML: {e}") from e
+        errors = sorted(validator.iter_errors(data), key=lambda e: list(e.path))
+        if errors:
+            e = errors[0]
+            where = "/".join(str(x) for x in e.path) or "(top)"
+            raise RuleError(f"{path.name}: {where}: {e.message}")
+        _check(data, path)
+        if data["id"] in seen:
+            raise RuleError(f"{path.name}: duplicate id {data['id']}")
+        seen.add(data["id"])
+        rules.append(Rule(id=data["id"], data=data, path=path))
+    return rules
+
+
+@lru_cache(maxsize=1)
+def default_rules() -> tuple[Rule, ...]:
+    return tuple(load_rules())
+
+
+# --- evaluation ------------------------------------------------------------------------
+
+def _subjects(spec: dict) -> list[str]:
+    if "planet" in spec:
+        return [spec["planet"]]
+    return list(spec.get("planet_in", SEVEN))
+
+
+def _cond_text(cond) -> str:
+    """A condition as the rule file wrote it: `marana_karaka_sthana`, `aspected_by: [Saturn]`."""
+    if isinstance(cond, str):
+        return cond
+
+    def fmt(v):
+        if isinstance(v, list):
+            return "[" + ", ".join(fmt(x) for x in v) + "]"
+        if isinstance(v, dict):
+            return "{" + _cond_text(v) + "}"
+        return str(v).lower() if isinstance(v, bool) else str(v)
+    return ", ".join(f"{k}: {fmt(v)}" for k, v in cond.items())
+
+
+def _report(name: str, c: Ctx, bound: dict[str, str]) -> dict:
+    if name == "parivartana_class":
+        x = _parivartana(c, bound["a"], bound["b"])
+        return {} if x is None else {"class_by_houses": x.class_by_houses,
+                                     "class_by_lordship": x.class_by_lordship,
+                                     "houses": list(x.houses), "taint": list(x.taint)}
+    if name == "neecha_bhanga":
+        p = bound["subject"]
+        kendra = {1, 4, 7, 10}
+        return {"cancelled_by": [k for k, ok in (
+            ("dispositor_in_kendra", c.house(SIGN_LORD[c.sign(p)]) in kendra),
+            ("exaltation_lord_in_kendra", _exaltation_lord_house(c, p) in kendra),
+            ("exalted_here_in_kendra", _exalted_here_house(c, p) in kendra),
+            ("aspected_by_dispositor", c.aspects(SIGN_LORD[c.sign(p)], p))) if ok]}
+    if name == "lordships":
+        return {"lordships": {k: sorted(c.lords.get(v, [])) for k, v in bound.items() if k in ("a", "b")}}
+    raise RuleError(name)
+
+
+def _fire(rule: Rule, c: Ctx, bound: dict[str, str], relations: list[str] | None) -> FiredRule:
+    scale, applied, unknown = 1.0, [], []
+    for m in rule.data.get("modifiers", []):
+        of = m.get("of")
+        cond = m["if"]
+        if of == "pair":
+            expr = parse_expr(cond)
+            value = PAIR_FEATURES[expr[0]](c, bound["a"], bound["b"], relations or [])
+            r = _eval_expr(expr, value)
+        else:
+            p = bound.get(of, of) if of else bound["subject"]
+            if isinstance(cond, str):
+                expr = parse_expr(cond)
+                r = _eval_expr(expr, FEATURES[expr[0]](c, p))
+            else:
+                r = match(cond, c, p)
+        text = _cond_text(cond) + (f" [{of}]" if of else "")
+        if r is UNKNOWN:
+            unknown.append(text)
+        elif r:
+            scale *= m["scale"]
+            applied.append(f"{text} -> x{m['scale']}")
+    planets = [bound[k] for k in ("subject", "a", "b") if k in bound]
+    nodes = planets + sorted({f"H{c.house(p)}" for p in planets}, key=lambda h: int(h[1:]))
+    details: dict[str, Any] = {}
+    if relations is not None:
+        details["relations"] = relations
+    for name in rule.data.get("report", []):
+        details |= _report(name, c, bound)
+    return FiredRule(id=rule.id, family=rule.data["family"], school=rule.data["school"],
+                     basis=c.basis, nodes=nodes, scale=scale,
+                     themes={k: v * scale for k, v in rule.data["themes"].items()},
+                     applied=applied, unknown=unknown, details=details)
+
+
+def evaluate(rule: Rule, chart: Chart) -> list[FiredRule]:
+    when = rule.when
+    fires = []
+    for basis in when["basis"]:
+        c = Ctx(chart, basis)
+        if "pair" in when:
+            spec = when["pair"]
+            side_a = [p for p in _subjects(spec["a"]) if match(spec["a"], c, p) is True]
+            side_b = [p for p in _subjects(spec["b"]) if match(spec["b"], c, p) is True]
+            seen = set()
+            for a in side_a:
+                for b in side_b:
+                    key = frozenset((a, b))
+                    if a == b or key in seen:
+                        continue
+                    rel = _relations(c, a, b, spec["related_by"])
+                    if rel:
+                        seen.add(key)
+                        fires.append(_fire(rule, c, {"a": a, "b": b}, rel))
+        else:
+            for p in _subjects(when):
+                if match(when, c, p) is True:
+                    fires.append(_fire(rule, c, {"subject": p}, None))
+    return fires
+
+
+def evaluate_all(rules, chart: Chart) -> list[FiredRule]:
+    return [f for r in rules for f in evaluate(r, chart)]

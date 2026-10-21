@@ -1,0 +1,24 @@
+id: yoga.gaja_kesari
+family: lunar
+school: parashari
+source:
+  - {text: BPHS, edition: Santhanam 1984, chapter: 36, verse: unverified, checked: false}
+status: classical_unconfirmed
+# Jupiter in a kendra from the Moon. Some texts also count kendras from the lagna; that
+# reading would add `lagna` to the basis list.
+when:
+  planet: Jupiter
+  house_in: [1, 4, 7, 10]
+  basis: [moon]
+modifiers:
+  - if: dignity == debilitated
+    scale: 0.5
+  - if: combust
+    scale: 0.5
+  - if: shadbala_ratio < 1.0
+    scale: 0.75
+themes: { reputation: +3, wealth: +2, wisdom: +2 }
+outcomes: [career_status, property_purchase]
+confidence_base: 0.6
+stability_min: 0.5
+narration_key: gaja_kesari
