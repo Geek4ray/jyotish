@@ -242,15 +242,19 @@ def print_timing(chart: Chart, query) -> None:
           f"({', '.join(query.systems)}; basis {query.basis})")
     print(f"  area {ans.area_tier} (S {ans.area_score:.2f}"
           + (f", stability {st.time:.2f}/{st.ayanamsa:.2f}/{st.house:.2f}" if st else "") + "), narrated beside the windows")
-    print("  joint = 0.6 q + 0.4 t" if ans.formula == "v2" else "  joint = (S / population p90) x dasha quality + transit activation")
+    print("  joint = 0.6 q + 0.4 t" if ans.formula in ("v2", "v2.1") else "  joint = (S / population p90) x dasha quality + transit activation")
 
     def line(w, label=""):
         per = "; ".join(f"{k} {'/'.join(v)}" for k, v in w.periods.items())
         stab = (f"  edges ±{w.stability['time_range_days'] / 2:.1f} d (ayanamsa {w.stability['ayanamsa_range_days']:.0f} d)"
                 if w.stability else "")
         conf = f" {w.confidence}" if w.confidence else ""
+        marks = "".join(f"  {t.replace('dasha_', '')}" for t in w.tags)
         print(f"  {label}{_date(w.start_jd)} – {_date(w.end_jd)}  joint {w.joint:.2f} (q {w.dasha_quality:.2f}, "
-              f"t {w.transit_activation:.2f}){conf}  [{per}]{stab}{'  sandhi' if 'dasha_sandhi' in w.tags else ''}")
+              f"t {w.transit_activation:.2f}){conf}  [{per}]{stab}{marks}")
+        sp = w.derivation.get("strongest_piece")
+        if sp and (sp["start_jd"], sp["end_jd"]) != (w.start_jd, w.end_jd):
+            print(f"      strongest {_date(sp['start_jd'])} – {_date(sp['end_jd'])}: joint {sp['joint']:.2f} (t {sp['t']:.2f})")
     for w in ans.windows:
         line(w)
     if ans.avoid is not None:

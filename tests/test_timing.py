@@ -19,8 +19,12 @@ def chart():
     return assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
 
 
+def with_formula(chart, formula):
+    return chart.model_copy(update={"meta": chart.meta.model_copy(update={"timing_formula": formula})})
+
+
 def v1(chart):
-    return chart.model_copy(update={"meta": chart.meta.model_copy(update={"timing_formula": "v1"})})
+    return with_formula(chart, "v1")
 
 
 @pytest.fixture(scope="module")
@@ -103,7 +107,7 @@ def test_dasha_rows_cover_the_range(chart):
 
 @pytest.fixture(scope="module")
 def v2(chart):
-    return answer(chart, TimingQuery(**CAREER))
+    return answer(with_formula(chart, "v2"), TimingQuery(**CAREER))
 
 
 def test_career_v2_windows(v2, chart):
@@ -134,7 +138,7 @@ def test_v2_transit_term_saturates_for_career(v2):
 
 
 def test_v2_sandhi_caps_confidence(chart):
-    full = answer(chart, TimingQuery(**dict(CAREER, top=50)))
+    full = answer(with_formula(chart, "v2"), TimingQuery(**dict(CAREER, top=50)))
     allw = full.windows + [full.avoid]
     sandhi = [w for w in allw if "dasha_sandhi" in w.tags]
     assert sandhi and all(w.confidence in ("moderate", "weak") for w in sandhi)
@@ -142,3 +146,63 @@ def test_v2_sandhi_caps_confidence(chart):
     # (2028-08-02) maha changes.
     jm = next(w for w in allw if w.periods["vimshottari"] == ["Jupiter", "Mercury"])
     assert "dasha_sandhi" in jm.tags and jm.confidence == "moderate"
+
+
+# --- v2.1 (default): K.N. Rao's double-transit targets ------------------------------
+
+def _d(jd):
+    y, m, d, _ = swe.revjul(jd, swe.GREG_CAL)
+    return f"{y:04d}-{m:02d}"
+
+
+def test_v21_is_the_default(chart):
+    assert chart.meta.timing_formula == "v2.1"
+
+
+def test_career_v21_decade(chart):
+    # The numbers SPEC's prototype gave for 2026-2036 (rev 76), reproduced by the engine.
+    a = answer(chart, TimingQuery(**CAREER))
+    assert a.formula == "v2.1"
+    rows = [(w.periods["vimshottari"], _d(w.start_jd), _d(w.end_jd), round(w.joint, 2), round(w.transit_activation, 2))
+            for w in a.windows]
+    assert rows == [(["Jupiter", "Venus"], "2029-10", "2032-06", 0.84, 0.88),
+                    (["Jupiter", "Mercury"], "2027-10", "2028-02", 0.84, 1.0),
+                    (["Jupiter", "Saturn"], "2026-01", "2026-08", 0.83, 0.95)]
+    av = a.avoid
+    assert (av.periods["vimshottari"], _d(av.start_jd), _d(av.end_jd), round(av.joint, 2),
+            round(av.transit_activation, 2)) == (["Jupiter", "Ketu"], "2028-11", "2029-08", 0.47, 0.67)
+    top = a.windows[0].derivation
+    assert top["targets"] == {"full": ["Aquarius", "Taurus"], "secondary": ["Gemini", "Libra", "Pisces"]}
+    sp = top["strongest_piece"]
+    assert sp["t"] == 1.0 and sp["end_jd"] - sp["start_jd"] >= 30 and _d(sp["start_jd"]).startswith("2030")
+    assert "truncated" in a.windows[2].tags                    # Jupiter-Saturn began before 2026
+    assert "dasha_sandhi" in a.windows[1].tags and a.windows[1].confidence == "moderate"
+    for w in a.windows + [a.avoid]:
+        d = w.derivation
+        assert w.joint == pytest.approx(0.6 * w.dasha_quality + 0.4 * w.transit_activation)
+        assert d["t"] == w.transit_activation and set(d["q_terms"]) and "relevant_systems" in d
+
+
+def test_v21_t_no_longer_saturates(chart):
+    a = answer(chart, TimingQuery(**dict(CAREER, top=50)))
+    ts = [w.transit_activation for w in a.windows + [a.avoid]]
+    assert min(ts) < 0.7 and max(ts) == pytest.approx(1.0)
+
+
+def test_career_v21_from_today(chart):
+    a = answer(chart, TimingQuery(area="career", start="2026-10-21", end="2036-10-21"))
+    assert [w.periods["vimshottari"] for w in a.windows] == [["Jupiter", "Venus"], ["Jupiter", "Mercury"],
+                                                            ["Jupiter", "Mercury"]]
+    third = a.windows[2]
+    assert "truncated" in third.tags and _d(third.start_jd) == "2026-10"
+    assert a.avoid.periods["vimshottari"] == ["Jupiter", "Ketu"]
+
+
+def test_absorbed_piece_keeps_host_label(chart):
+    a = answer(chart, TimingQuery(**dict(CAREER, top=50)))
+    hosts = [w for w in a.windows + [a.avoid] if w.derivation["absorbed"]]
+    assert hosts                      # 2029-10-05 - 10-23, absorbed by Jupiter-Ketu Aug - Oct 2029
+    for w in hosts:
+        for piece in w.derivation["absorbed"]:
+            assert piece["end_jd"] - piece["start_jd"] < 30
+            assert w.start_jd <= piece["start_jd"] and piece["end_jd"] <= w.end_jd

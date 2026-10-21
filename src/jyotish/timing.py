@@ -146,10 +146,11 @@ def _p90(area: str) -> float:
 
 def answer(chart: Chart, query: TimingQuery) -> TimingAnswer:
     """The timing join under `chart.meta.timing_formula` ("v2" default, "v1" kept)."""
-    if chart.meta.timing_formula == "v2":
-        return answer_v2(chart, query)
-    if chart.meta.timing_formula != "v1":
-        raise ValueError(f"timing_formula must be v1 or v2, not {chart.meta.timing_formula!r}")
+    formula = chart.meta.timing_formula
+    if formula in ("v2", "v2.1"):
+        return answer_v2(chart, query, formula=formula)
+    if formula != "v1":
+        raise ValueError(f"timing_formula must be v1, v2 or v2.1, not {formula!r}")
     return answer_v1(chart, query)
 
 
@@ -245,6 +246,16 @@ READINGS_V2 = [
     "avoid: the window with the lowest joint",
 ]
 SLOW_MOVERS = ("Saturn", "Jupiter", "Rahu", "Ketu")
+READINGS_V21 = READINGS_V2[:3] + [
+    "t (v2.1): mean over Saturn, Jupiter and the nodal axis of a touch credit against K.N. Rao's "
+    "double-transit targets: 1 for the primary house, its lord's sign or the main karaka's sign "
+    "(occupation or whole-sign aspect; nodes by occupation), 1/2 for the other area houses and "
+    "their lords' signs only; Saturn and Jupiter both on a full target = 1; time-weighted",
+] + READINGS_V2[4:] + [
+    "an absorbed sub-month piece keeps the host's label and is listed under derivation.absorbed",
+    "truncated: the window's Vimshottari antar runs past the edge of the queried range",
+    "strongest piece: the highest-joint piece of at least 30 days (else of any length)",
+]
 
 
 def _relevant(chart: Chart, planet: str, basis_sign: int, area_signs: set[int], karakas: set[str]) -> bool:
@@ -299,7 +310,34 @@ def _transit_share(rows, a: float, b: float, area_signs: set[int], lord_signs: s
     return total / (b - a)
 
 
-def answer_v2(chart: Chart, query: TimingQuery) -> TimingAnswer:
+def _transit_credit_rao(rows, a: float, b: float, full: set[int], secondary: set[int], lagna: int):
+    """v2.1: time-weighted t over [a, b] against K.N. Rao's double-transit targets. Per mover
+    (Saturn, Jupiter, the nodal axis): credit 1 for touching a full target sign (the primary
+    house, its lord's sign, the main karaka's sign), 1/2 for touching only a secondary one
+    (the other area houses and their lords' signs), else 0. t is the mean of the three
+    credits, and 1 when Saturn and Jupiter both touch a full target. Returns (t, the slice
+    detail of the longest slice, for the derivation)."""
+    edges = sorted({a, b} | {x for r in rows for x in (r.start_jd, r.end_jd) if a < x < b})
+    total, detail, longest = 0.0, None, -1.0
+    for x, y in zip(edges, edges[1:]):
+        m = (x + y) / 2.0
+        credit = {"Saturn": 0.0, "Jupiter": 0.0, "nodes": 0.0}
+        signs = {}
+        for r in rows:
+            if r.body in SLOW_MOVERS and r.start_jd <= m < r.end_jd:
+                key = "nodes" if r.body in ("Rahu", "Ketu") else r.body
+                c = 1.0 if any(_touches(r.sign, r.body, t, lagna) for t in full) else \
+                    0.5 if any(_touches(r.sign, r.body, t, lagna) for t in secondary) else 0.0
+                credit[key] = max(credit[key], c)
+                signs.setdefault(key, []).append(f"{r.body} {SIGNS[r.sign]}")
+        t = 1.0 if credit["Saturn"] == 1.0 and credit["Jupiter"] == 1.0 else sum(credit.values()) / 3.0
+        total += t * (y - x)
+        if y - x > longest:
+            longest, detail = y - x, {"credits": credit, "bodies": signs}
+    return total / (b - a), detail
+
+
+def answer_v2(chart: Chart, query: TimingQuery, formula: str = "v2") -> TimingAnswer:
     if chart.scored is None:
         raise ValueError("the chart has no Layer 5 score (it needs the birth moment)")
     start, end = _jd(query.start), _jd(query.end)
@@ -309,8 +347,15 @@ def answer_v2(chart: Chart, query: TimingQuery) -> TimingAnswer:
             "sun": chart.bodies["Sun"].sign}[query.basis]
     area_signs = {(base + h - 1) % 12 for h in spec["houses"]}
     lord_signs = {chart.bodies[SIGN_LORD[s]].sign for s in area_signs}
-    karakas = set(_karakas(_View(chart), spec["karakas"]))
+    karaka_list = _karakas(_View(chart), spec["karakas"])
+    karakas = set(karaka_list)
     lagna = chart.lagnas.asc_sign
+    primary = (base + spec["houses"][0] - 1) % 12
+    full_targets = {primary, chart.bodies[SIGN_LORD[primary]].sign}
+    if karaka_list:
+        full_targets.add(chart.bodies[karaka_list[0]].sign)
+    secondary_targets = ({s for s in area_signs if s != primary}
+                         | {chart.bodies[SIGN_LORD[s]].sign for s in area_signs if s != primary}) - full_targets
 
     def relevant(system: str, lords: list[str]) -> bool:
         planet = _lord_planet(system, lords[-1])
@@ -340,9 +385,12 @@ def answer_v2(chart: Chart, query: TimingQuery) -> TimingAnswer:
         terms = period_quality_v2(chart, list(per.lords), 1.0 if antar_rel else 0.0)
         q = sum(terms.values()) / len(terms)
         for x, y in zip(cuts, cuts[1:]):
-            t = _transit_share(transit.rows, x, y, area_signs, lord_signs, lagna)
+            if formula == "v2.1":
+                t, tdetail = _transit_credit_rao(transit.rows, x, y, full_targets, secondary_targets, lagna)
+            else:
+                t, tdetail = _transit_share(transit.rows, x, y, area_signs, lord_signs, lagna), None
             pieces.append({"a": x, "b": y, "lords": tuple(per.lords), "q": q, "t": t, "terms": terms,
-                           "joint": 0.6 * q + 0.4 * t})
+                           "joint": 0.6 * q + 0.4 * t, "transit": tdetail})
 
     def weighted(ws):
         span = sum(w["b"] - w["a"] for w in ws)
@@ -367,7 +415,10 @@ def answer_v2(chart: Chart, query: TimingQuery) -> TimingAnswer:
                 j = i - 1 if i > 0 else i + 1
                 host = merged[j]
                 group = (host["parts"] + w["parts"]) if j < i else (w["parts"] + host["parts"])
-                host.update(weighted(group), a=min(host["a"], w["a"]), b=max(host["b"], w["b"]), parts=group)
+                absorbed = host.get("absorbed", []) + [{"start_jd": w["a"], "end_jd": w["b"], "lords": list(w["lords"])}] \
+                    + w.get("absorbed", [])
+                host.update(weighted(group), a=min(host["a"], w["a"]), b=max(host["b"], w["b"]), parts=group,
+                            absorbed=absorbed)   # the host keeps its own label (lords, q terms)
                 del merged[i]
                 changed = True
                 break
@@ -398,15 +449,28 @@ def answer_v2(chart: Chart, query: TimingQuery) -> TimingAnswer:
                 stab = {"time_range_days": max(x.time_range_days for x in edge),
                         "ayanamsa_range_days": max((x.ayanamsa_range_days or 0.0) for x in edge),
                         "boundaries": len(edge)}
+        vim = next((x for x in periods["vimshottari"] if x.start_jd <= mid < x.end_jd), None)
+        if vim is not None and ((w["a"] <= start + 1e-9 and vim.start_jd < start - 1e-9)
+                                or (w["b"] >= end - 1e-9 and vim.end_jd > end + 1e-9)):
+            tags.append("truncated")
+        long_parts = [p for p in w["parts"] if p["b"] - p["a"] >= 30.0] or w["parts"]
+        best = max(long_parts, key=lambda p: p["joint"])
         windows.append(TimingWindow(
             start_jd=w["a"], end_jd=w["b"], joint=w["joint"], dasha_quality=w["q"],
             transit_activation=w["t"], periods={k: v for k, v in per_sys.items() if k in query.systems},
             stability=stab, tags=tags, confidence=conf,
-            derivation={"formula": "0.6 q + 0.4 t", "q_terms": w["terms"], "pieces": len(w["parts"]),
+            derivation={"formula": "0.6 q + 0.4 t", "transit_formula": formula, "q_terms": w["terms"],
+                        "t": w["t"], "pieces": len(w["parts"]),
                         "relevant_systems": [s for s in query.systems if rel.get(s)],
+                        "strongest_piece": {"start_jd": best["a"], "end_jd": best["b"], "joint": best["joint"],
+                                            "q": best["q"], "t": best["t"], "transit": best.get("transit")},
+                        "absorbed": w.get("absorbed", []),
+                        "targets": ({"full": sorted(SIGNS[x] for x in full_targets),
+                                     "secondary": sorted(SIGNS[x] for x in secondary_targets)}
+                                    if formula == "v2.1" else None),
                         "area_tier": area.tier}))
     ranked = sorted(windows, key=lambda x: -x.joint)
     avoid = min(windows, key=lambda x: x.joint) if windows else None
-    return TimingAnswer(query=query, formula="v2", area_tier=area.tier, area_score=area.score_classical,
-                        area_stability=area.stability, windows=ranked[:3], avoid=avoid,
-                        readings=READINGS_V2)
+    readings = READINGS_V2 if formula == "v2" else READINGS_V21
+    return TimingAnswer(query=query, formula=formula, area_tier=area.tier, area_score=area.score_classical,
+                        area_stability=area.stability, windows=ranked[:query.top], avoid=avoid, readings=readings)

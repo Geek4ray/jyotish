@@ -24,7 +24,7 @@ class Meta(BaseModel):
     twilight_minutes: float = 24.0         # one ghati either side of sunrise and sunset; BPHS 27.31 does not define it
     ishta_kashta: str = "bphs"             # bphs (28.2-6, Rasmis) | raman (geometric mean; unverified)
     argala_nodes: str = "rath"             # rath (Ketu in the sign: count backwards) | reverse_position | direct
-    timing_formula: str = "v2"             # v2 (0.6 q + 0.4 t, merged windows, SPEC) | v1
+    timing_formula: str = "v2.1"           # v2.1 (Rao double-transit targets, SPEC) | v2 | v1
     driver_formula: str = "v2"             # v2 (sum of five 0-1 terms, SPEC) | v1 (product, rejected)
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
@@ -472,7 +472,7 @@ class TimingQuery(BaseModel):
     systems: list[Literal["vimshottari", "yogini", "chara"]] = ["vimshottari", "yogini", "chara"]
     basis: Literal["lagna", "moon", "sun"] = "lagna"
     question: str = ""
-    top: int = Field(default=5, ge=1, le=50)
+    top: int = Field(default=3, ge=1, le=50)
 
     @model_validator(mode="after")
     def _check(self):
@@ -501,7 +501,7 @@ class TimingWindow(BaseModel):
 
 class TimingAnswer(BaseModel):
     query: TimingQuery
-    formula: str = "v2"
+    formula: str = "v2.1"
     area_tier: str
     area_score: float | None
     area_stability: Stability | None
