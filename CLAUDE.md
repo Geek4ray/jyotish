@@ -70,8 +70,9 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   Navatara, KP sub-lords, Sudarshana H10, Ashtakavarga (BAV incl. lagna, SAV, Trikona and
   Ekadhipatya, Sodhya Pinda, Kakshya), Shadbala (BPHS 27, all six balas with settings in
   `Meta`) are done. Not yet: Bhava Bala, Vimsopaka, Ishta/Kashta, Argala, synastry module.
-- Phase 2 (rules and time): Vimshottari to any depth exists. Rule evaluator (`rules.py`,
-  schema in `rules/rule.schema.json`) and the first ten rules are done; their verse loci are
-  `checked: false` until verified against the cited editions.
+- Phase 2 (rules and time): Vimshottari to any depth; Yogini and Chara (K.N. Rao default,
+  Raman and Rath via `Meta.chara_variant`) to two levels. Rule evaluator (`rules.py`,
+  schema in `rules/rule.schema.json`) and the first ten rules are done; a source is `checked: true` only
+  where its verse was read in the named edition.
 
-Next milestones in order: Chara and Yogini dashas → transits.
+Next milestones in order: transits.

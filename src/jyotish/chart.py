@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 from .ashtakavarga import ashtakavarga
 from .constants import GRAHAS, SEVEN, SIGNS
-from .dasha import vimshottari
+from .dasha import chara, vimshottari, yogini
 from .dignity import (
     aspects, baladi_avastha, deep_exaltation_distance, dignity, functional_roles, gandanta,
     house_of, is_boundary, is_combust, lordships, marana_karaka_sthana, pushkara_bhaga,
@@ -151,6 +151,17 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             DashaPeriod(lords=list(p.lords), start_jd=p.start_jd, end_jd=p.end_jd,
                         tara=bodies[p.lord].tara.name)
             for p in periods
+        ]
+        dashas["yogini"] = [
+            DashaPeriod(lords=list(p.lords), start_jd=p.start_jd, end_jd=p.end_jd,
+                        tara=bodies[p.lord].tara.name, names=list(p.names))
+            for p in yogini(positions["Moon"], jd, levels=min(dasha_levels, 2),
+                            year_length=meta.dasha_year)
+        ]
+        dashas["chara"] = [
+            DashaPeriod(lords=list(p.lords), start_jd=p.start_jd, end_jd=p.end_jd)
+            for p in chara(positions, lagna_sign, jd, levels=min(dasha_levels, 2),
+                           year_length=meta.dasha_year, variant=meta.chara_variant)
         ]
 
     chart = Chart(meta=meta, birth=birth, bodies=bodies, lagnas=lagnas, panchanga=pinfo,

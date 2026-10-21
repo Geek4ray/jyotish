@@ -331,3 +331,25 @@ MERCURY_SPOILERS = {"Sun", "Mars", "Saturn", "Rahu", "Ketu"}
 YUDDHA_PLANETS = ["Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
 YUDDHA_ORB = 1.0
 BIMBA_DIAMETER = {"Mars": 9.4, "Mercury": 6.6, "Jupiter": 190.4, "Venus": 16.6, "Saturn": 158.0}
+
+# --- Yogini dasha ---------------------------------------------------------------------
+# Eight yoginis, their planets and years (36 in all). The first is found from the Moon's
+# nakshatra: (nakshatra number, Ashwini = 1, + 3) mod 8, with 0 read as 8 (Sankata), and
+# its balance is the Moon's unelapsed share of the nakshatra. Antardashas start with the
+# maha yogini and run in order, each maha_years * antar_years / 36. (BPHS, Yogini dasha
+# chapter; verse locus not checked here.)
+YOGINIS = [("Mangala", "Moon", 1), ("Pingala", "Sun", 2), ("Dhanya", "Jupiter", 3),
+           ("Bhramari", "Mars", 4), ("Bhadrika", "Mercury", 5), ("Ulka", "Saturn", 6),
+           ("Siddha", "Venus", 7), ("Sankata", "Rahu", 8)]
+YOGINI_TOTAL = 36
+
+# --- Chara (Jaimini) dasha --------------------------------------------------------------
+# Odd-footed (savya, vishamapada) signs: Aries, Taurus, Gemini, Libra, Scorpio, Sagittarius.
+# The other six are even-footed (apasavya, samapada). Every variant uses these groups.
+SAVYA = {0, 1, 2, 6, 7, 8}
+# Scorpio and Aquarius have two lords for Chara dasha.
+CHARA_CO_LORD = {7: "Ketu", 10: "Rahu"}
+# Exaltation of the nodes for Rath's Phalita dashas (Narayana Dasa, Sagar, pp. 41-42,
+# following Mantreswara): Rahu in Gemini, Ketu in Sagittarius, debilitated opposite. The
+# other variants' sources are silent on the nodes, so they get no exaltation adjustment.
+RATH_NODE_EXALTATION = {"Rahu": 2, "Ketu": 8}

@@ -59,6 +59,32 @@ def print_chart(chart: Chart) -> None:
         for p in chart.dashas["vimshottari"]:
             if len(p.lords) == 1:
                 print(f"  {p.lords[0]:8} jd {p.start_jd:.2f} – {p.end_jd:.2f}  ({(p.end_jd - p.start_jd) / 365.25:.1f} y) tara {p.tara}")
+        print_dasha_sequence(chart)
+
+
+def _date(jd: float) -> str:
+    import swisseph as swe
+    y, m, d, _ = swe.revjul(jd, swe.GREG_CAL)
+    return f"{y:04d}-{m:02d}-{d:02d}"
+
+
+def print_dasha_sequence(chart: Chart) -> None:
+    """Yogini and Chara: maha periods, and the antardashas running at birth."""
+    birth = chart.meta.jd
+    for system in ("yogini", "chara"):
+        periods = chart.dashas.get(system)
+        if not periods:
+            continue
+        label = {"yogini": "Yogini", "chara": f"Chara ({chart.meta.chara_variant})"}[system]
+        print(f"\n{label} (maha; year {chart.meta.dasha_year} days):")
+        mahas = [p for p in periods if len(p.lords) == 1]
+        for p in mahas[:12]:
+            name = f"{p.names[0]}/{p.lords[0]}" if p.names else p.lords[0]
+            print(f"  {name:18} {_date(p.start_jd)} – {_date(p.end_jd)}  ({(p.end_jd - p.start_jd) / chart.meta.dasha_year:5.2f} y)")
+        if birth is not None:
+            now = [p for p in periods if len(p.lords) == 2 and p.start_jd <= birth < p.end_jd]
+            if now:
+                print(f"  at birth: {' / '.join(now[0].names or now[0].lords)}")
 
 
 def print_ashtakavarga(chart: Chart) -> None:

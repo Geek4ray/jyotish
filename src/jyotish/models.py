@@ -19,6 +19,7 @@ class Meta(BaseModel):
     house_system: str = "whole_sign"
     kp_house_system: str = "placidus"
     dasha_year: float = 365.25
+    chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
     ekadhipatya_nodes: bool = False
     ekadhipatya_zero_exempt: bool = False
@@ -138,10 +139,12 @@ class Jaimini(BaseModel):
 
 
 class DashaPeriod(BaseModel):
+    """`lords` are planets (Vimshottari, Yogini) or sign names (Chara), maha first."""
     lords: list[str]
     start_jd: float
     end_jd: float
     tara: str | None = None
+    names: list[str] | None = None   # Yogini: the yogini names
 
 
 class Pinda(BaseModel):
