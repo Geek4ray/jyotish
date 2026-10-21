@@ -48,7 +48,8 @@ reported as such, not as a low score. Emphasised areas are ranked by S x confide
 Polarity: Saturn "delay" and Mars "intensity" need at least two touches (occupy, conjoin
 or aspect, whole-sign) among the area's first house, that house's lord and the area's
 main karaka (its first listed); a planet does not touch itself, and a lord that is also
-the main karaka is one object, one touch (SPEC Layer 5 revision).
+the main karaka is one object, one touch. A malefic that is itself the lord of the primary
+house does not flag the area (v3: Mars in its own 7th is not an affliction of the 7th).
 Rahu "volatility" and Ketu "detachment" need one touch of the first house. Each flag
 records the touches that raised it.
 
@@ -98,7 +99,7 @@ READINGS = [
     "V: D1 vs varga dignity sign agreement, +1 vargottama in D9",
     "T_p: adverse tara -1, Janma 0, others +1, halved in cycles 2-3",
     "confidence: (agree - oppose) / applicable, 1 - rho weights; not emphasised: S below the area's population p40",
-    "polarity: Saturn/Mars need 2 of first house, its lord, main karaka; Rahu/Ketu 1 (first house)",
+    "polarity v3: Saturn/Mars need 2 of first house, its lord, main karaka, and are not its lord; Rahu/Ketu 1",
     "driver v2: sum of min-max scaled Shadbala ratio, Vimsopaka, rules share, Sodhya Pinda rank, role share",
 ]
 
@@ -368,7 +369,9 @@ def _polarity(v: _View, first: int, main_karaka: str | None) -> tuple[list[str],
         if _touches_sign(v, planet, house_sign):
             hits.append(f"house H{first}")
         if planet in ("Saturn", "Mars"):
-            if lord != planet and _touches_sign(v, planet, v.sign[lord]):
+            if lord == planet:
+                continue          # v3: the lord of the primary house does not afflict it
+            if _touches_sign(v, planet, v.sign[lord]):
                 hits.append(f"lord {lord}")
             if (main_karaka and main_karaka not in (planet, lord)
                     and _touches_sign(v, planet, v.sign[main_karaka])):

@@ -35,7 +35,10 @@ def test_nineteen_areas(sc):
 def test_career_strong(sc):
     a = sc.areas["career"]
     assert a.tier == "strong" and a.direction == "supportive" and a.confidence > 0.7
-    assert {"delay", "intensity"} <= set(a.polarity)     # Saturn and Mars aspect the 10th
+    # v3: Saturn is the 10th lord, so it does not flag career (it did under v2); Mars
+    # touches the 10th, its lord Saturn and the karaka Sun.
+    assert a.polarity == ["intensity"]
+    assert a.polarity_touches == {"intensity": ["house H10", "lord Saturn", "karaka Sun"]}
 
 
 def test_wealth_is_moderate_not_strong(sc):
@@ -72,8 +75,20 @@ def test_two_touch_rule(sc):
     # Gains: Jupiter is both the 11th lord and the main karaka, one object, one touch.
     assert sc.areas["gains"].polarity == []
     # The literal rule flags more of this chart than the one-touch rule did (13 vs 9 areas):
-    # Saturn in H1 and Mars in H7 aspect H1, H2, H3, H7, H10, where most planets sit.
+    # Saturn in H1 and Mars in H7 aspect H1, H2, H3, H7, H10, where most planets sit. v3
+    # removes career's and reputation's "delay" but no area loses its last flag.
     assert sum(1 for a in sc.areas.values() if a.polarity) == 13
+    assert "delay" not in sc.areas["reputation"].polarity
+
+
+def test_v3_lord_does_not_flag_its_own_house(chart, sc):
+    from jyotish.scoring import AREAS
+    for name, spec in AREAS.items():
+        lord = chart.features.lordship and next(p for p, hs in chart.features.lordship.items()
+                                                 if spec["houses"][0] in hs)
+        for flag, planet in (("delay", "Saturn"), ("intensity", "Mars")):
+            if planet == lord:
+                assert flag not in sc.areas[name].polarity, name
 
 
 def test_not_emphasised_is_reported_not_scored_low(chart, sc, capsys):
