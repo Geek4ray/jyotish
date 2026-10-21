@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 57). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-21 (doc rev 58). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -494,7 +494,7 @@ The same phases as a table, so the plan survives export and the gates are quotab
 
 ## Worked example — the reference chart
 
-The Taurus-lagna chart from the app screenshots is the engine's reference case, used with its owner's consent to test every feature as it is built: born 2001-03-12 at 10:10:25 IST in Rewari, Haryana (28.20 N, 76.62 E). Every layer must reproduce the values below before anything else is built. Layer 1 values come from the app and are the target the ephemeris must match; the app dropped the 25 seconds of the birth time (its Moon and ascendant correspond to 10:10:00), which moves the ascendant by 7 arc-minutes and is itself a demonstration of Layer 1b.
+The Taurus-lagna chart from the app screenshots is the engine's reference case, used with its owner's consent to test every feature as it is built: born 2001-03-12 at 10:10:25 IST in Rewari, Haryana (28.20 N, 76.62 E). Every layer must reproduce the values below before anything else is built. Layer 1 values come from the app's screenshots, which were made with the time entered as 10:10:00, and are the target the ephemeris must match at that time. At the true time, 10:10:25, the ascendant is 06°17'31" Taurus (7 arc-minutes later) and the Moon 15" further on; every house, sign and varga conclusion below is unchanged except the D24 lagna. Those 25 seconds are themselves a demonstration of Layer 1b.
 
 **Layer 1 targets (D1, Lahiri)**
 

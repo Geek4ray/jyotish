@@ -8,9 +8,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-# Birth data. The reference app dropped the 25 seconds (it computed 10:10:00), which moves
-# the Moon by 15" and the ascendant by 7'; tests compare against the app at 10:10:00 and
-# keep the true seconds for everything else.
+# Birth data. The reference app's screenshots were produced with the time entered as
+# 10:10:00; the true birth time is 10:10:25. Those 25 seconds move the Moon by 15" and the
+# ascendant by 7' (06°09'50" -> 06°17'31" Taurus), with every house, sign and varga
+# conclusion unchanged except the D24 lagna. Tests compare printed positions at 10:10:00
+# and use the true time for everything else.
 REFERENCE_BIRTH_LOCAL = datetime(2001, 3, 12, 10, 10, 25, tzinfo=timezone(timedelta(hours=5, minutes=30)))
 REFERENCE_BIRTH_UTC = REFERENCE_BIRTH_LOCAL.astimezone(timezone.utc)
 REFERENCE_APP_UTC = REFERENCE_BIRTH_UTC.replace(second=0)

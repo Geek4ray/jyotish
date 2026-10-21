@@ -24,8 +24,9 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   (positions → features). **This is the Phase 1 gate.** If a test here fails, either the
   code or SPEC.md is wrong; fix both, never weaken the test.
 - `tests/test_ephemeris_reference.py` — birth data → positions against the reference app
-  (2″ on planets, 1′ on the ascendant). The app dropped the 25 seconds of the birth time;
-  tests compare at 10:10:00 and keep the true seconds elsewhere.
+  (2″ on planets, 1′ on the ascendant). The app screenshots were made with the time entered
+  as 10:10:00; the true time is 10:10:25. Tests compare printed positions at 10:10:00 and
+  use the true time elsewhere.
 - `rules/` — the YAML rule library (SPEC Layer 3). Rules are data, with a text source and
   edition on every one.
 

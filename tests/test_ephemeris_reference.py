@@ -19,7 +19,7 @@ def arcsec(a: float, b: float) -> float:
 
 @pytest.fixture(scope="module")
 def app_chart():
-    """Computed at the second the app used (10:10:00 IST), mean node as the app does."""
+    """Computed at the time the app was given (10:10:00 IST), mean node as the app does."""
     return compute(REFERENCE_APP_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
 
 
