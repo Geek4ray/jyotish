@@ -28,6 +28,7 @@ class Meta(BaseModel):
     driver_formula: str = "v2"             # v2 (sum of five 0-1 terms, SPEC) | v1 (product, rejected)
     chara_variant: str = "kn_rao"          # kn_rao | raman | rath (rules in dasha.CHARA_VARIANTS)
     karaka_scheme: int = 8
+    varga_term: str = "v2"                 # v2 (varga's own dignity; agreement as consistency, SPEC) | v1 (D1/varga agreement)
     ekadhipatya_nodes: bool = False
     ekadhipatya_zero_exempt: bool = False
     # Shadbala conventions where texts differ (sources in constants.py, Shadbala section).
@@ -415,6 +416,7 @@ class AreaScore(BaseModel):
     votes: dict[str, int | None]
     vote_details: dict[str, Any] = Field(default_factory=dict)    # what each family's vote used
     vote_stability: dict[str, float] = Field(default_factory=dict)  # time share with the same vote (sampler)
+    varga_consistency: float | None = None  # varga v2: share of (planet, varga) pairs whose D1 and varga dignities agree in sign
     polarity: list[str]
     polarity_touches: dict[str, list[str]] = Field(default_factory=dict)
     terms: dict[str, float]

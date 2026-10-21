@@ -55,12 +55,14 @@ def test_wealth_is_moderate_not_strong(sc):
 def test_marriage_flags_and_tier(sc):
     # Two-touch polarity: Saturn aspects the 7th and its lord Mars (in the 7th), so "delay";
     # Mars occupies the 7th but is its own lord and does not touch Venus, so one touch and
-    # no "intensity" (SPEC's reader expected delay/intensity). The tier is "strong" by a
-    # hair (0.706) where the reader expected "moderate": the Upapada family opposes.
+    # no "intensity" (SPEC's reader expected delay/intensity). Under varga v1 the tier was
+    # "strong" by a hair (0.706); under v2 the varga family's weight is scaled by its
+    # consistency (half the D9 pairs agree with D1, so x0.75) and the tier is "moderate",
+    # as SPEC's reader expected: the Upapada family opposes.
     a = sc.areas["marriage"]
     assert a.polarity == ["delay"]
     assert a.polarity_touches == {"delay": ["house H7", "lord Mars"]}
-    assert a.tier == "strong" and 0.70 < a.confidence < 0.72
+    assert a.tier == "moderate" and 0.69 < a.confidence < 0.70 and a.varga_consistency == 0.5
     assert a.votes["arudha"] == -1 and a.votes["kp"] == 1
 
 
@@ -137,10 +139,17 @@ def test_percentiles_cached_beside_rho():
 
 
 def test_rho_table_cached_in_repo():
-    data = json.loads(RHO_FILE.read_text())
-    assert data["n_charts"] == 10_000 and set(data["rho"]) == set(FAMILIES)
-    assert family_rho() == data["rho"]
-    assert all(-0.2 < r < 0.5 for r in data["rho"].values())
+    # One table per (varga_term, kp_vote): v1 keeps the original name, varga v2 (the default) has its own.
+    from jyotish.scoring import table_path
+    for vt, kv in (("v1", "v1"), ("v2", "v1")):
+        data = json.loads(table_path(RHO_FILE, vt, kv).read_text())
+        assert data["n_charts"] == 10_000 and set(data["rho"]) == set(FAMILIES)
+        assert family_rho(vt, kv) == data["rho"]
+        assert all(-0.2 < r < 0.5 for r in data["rho"].values())
+    assert table_path(RHO_FILE, "v1", "v1") == RHO_FILE
+    assert "varga_term v2, kp v1" in json.loads(table_path(RHO_FILE).read_text())["settings"]
+    with pytest.raises(FileNotFoundError, match="varga_term=v1, kp_vote=v2"):
+        family_rho("v1", "v2")
 
 
 def test_driver_v2(sc, chart):
@@ -194,3 +203,60 @@ def test_unknown_time_is_cannot_be_assessed():
                time_accuracy="unknown", n=40)
     shaky = [a for a in c.scored.areas.values() if a.stability is not None and a.stability.time < 0.5]
     assert shaky and all(a.tier == "cannot be assessed" and not a.narrate for a in shaky)
+
+
+# --- SPEC Layer 5 revision (2026-10-21): varga term v2 ---------------------
+
+@pytest.fixture(scope="module")
+def timed():
+    from jyotish.chart import compute
+    return compute(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+
+
+def _rescored(chart, **meta):
+    from jyotish.scoring import score
+    c = chart.model_copy(deep=True)
+    c.meta = c.meta.model_copy(update=meta)
+    return score(c)
+
+
+def test_varga_v2_is_the_vargas_own_dignity(timed):
+    sc = timed.scored
+    assert timed.meta.varga_term == "v2"
+    rows = {(r["planet"], r["varga"]): r for r in sc.areas["career"].vote_details["varga"]}
+    # Jupiter: friendly in D10 (Aries), enemy's sign in D1. v1 scored the disagreement -1;
+    # v2 scores the varga's verdict, +0.5 halved.
+    jup = rows[("Jupiter", "D10")]
+    assert (jup["varga_dignity"], jup["signed"], jup["agrees_with_d1"], jup["score"]) == (0.5, 0.25, False, 0.25)
+    assert rows[("Mars", "D10")]["score"] == 1.0                       # exalted in Capricorn: +2 halved
+    assert sc.areas["career"].varga_consistency == pytest.approx(5 / 7)
+    # Health: the Sun is debilitated in D30 and D3. v1 counted that agreeing with its D1
+    # enemy sign as +1 each; v2 scores -1 each, and the health varga vote turns against.
+    h = {(r["planet"], r["varga"]): r for r in sc.areas["health"].vote_details["varga"]}
+    assert h[("Sun", "D30")]["score"] == -1.0 and h[("Sun", "D3")]["score"] == -1.0
+    assert sc.areas["health"].votes["varga"] == -1
+    v1 = _rescored(timed, varga_term="v1")
+    assert v1.areas["health"].votes["varga"] == 1 and v1.areas["career"].varga_consistency is None
+    assert {(r["planet"], r["varga"]): r["score"] for r in v1.areas["career"].vote_details["varga"]}[
+        ("Jupiter", "D10")] == -1
+
+
+def test_varga_consistency_scales_the_varga_weight(timed):
+    from jyotish.scoring import family_weights
+    a = timed.scored.areas["marriage"]
+    rho = family_rho()
+    w = family_weights(a, rho)
+    assert w["varga"] == pytest.approx((1 - rho["varga"]) * (0.5 + 0.5 * a.varga_consistency))
+    assert w["house"] == pytest.approx(1 - rho["house"])
+    conf, agree, total = confidence(a.score_classical, a.votes, rho, w)
+    assert conf == pytest.approx(a.confidence) and total == pytest.approx(a.families_total_w)
+
+
+def test_reference_tiers_varga_v1_and_v2(timed):
+    v2 = {n: a.tier for n, a in timed.scored.areas.items()}
+    v1 = {n: a.tier for n, a in _rescored(timed, varga_term="v1").areas.items()}
+    changed = {n: (v1[n], v2[n]) for n in v2 if v1[n] != v2[n]}
+    assert changed == {"health": ("strong", "moderate"), "debts_enemies": ("strong", "moderate"),
+                       "marriage": ("strong", "moderate")}
+    assert timed.scored.top == ["health", "career", "marriage"]
+    assert any("V v2" in r for r in timed.scored.readings)

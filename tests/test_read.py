@@ -59,7 +59,7 @@ def test_page_sections_in_order(page):
                   "- Abstained areas: children, father, gains, synastry"):
         assert field in md
     career = md[md.index("## Career"):md.index("## Health")]
-    assert "- Stability: time 0.60 · ayanamsa 0.67 · house 0.50 (sensitive)" in career
+    assert "- Stability: time 0.60 · ayanamsa 0.67 · house 1.00 (sensitive)" in career
     assert "- Polarity: intensity (house H10, lord Saturn, karaka Sun)" in career
     assert "the KP family (kp) is against" in career
     assert "| avoid | 2028-11-17 | 2029-08-08 |" in career and "strongest piece" in career

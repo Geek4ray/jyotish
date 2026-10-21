@@ -1,0 +1,48 @@
+{
+  "description": "Mean correlation of each Layer 5 signal family with the others (scripts/family_rho.py). Confluence weights are 1 - rho.",
+  "n_charts": 10000,
+  "seed": 20261021,
+  "rows": 180000,
+  "settings": "Lahiri, true node, whole sign, default Meta (varga_term v2, kp v1); UTC 1900-2050, lat -60..60",
+  "rho": {
+    "house": 0.01858627670866417,
+    "lord": 0.07631236592886023,
+    "karaka": 0.06441210365887733,
+    "varga": 0.020608044859484035,
+    "arudha": -0.0004064729306634248,
+    "kp": -0.0005404352506442155,
+    "panchanga": 0.02821581777638961
+  },
+  "pairwise": {
+    "house|lord": 0.047416251333636555,
+    "house|karaka": 0.004144810359353222,
+    "house|varga": 0.008000466920135616,
+    "house|arudha": 0.011801458321052971,
+    "house|kp": -0.00016902250414268296,
+    "house|panchanga": 0.040323695821949355,
+    "lord|karaka": 0.3065845426958918,
+    "lord|varga": 0.06707994888088575,
+    "lord|arudha": 0.0006952192610140217,
+    "lord|kp": 0.0002618253991990257,
+    "lord|panchanga": 0.035836408002534285,
+    "karaka|varga": 0.05009010178889828,
+    "karaka|arudha": -0.004488482613472311,
+    "karaka|kp": -0.005571042481649883,
+    "karaka|panchanga": 0.035712692204242814,
+    "varga|arudha": -0.007266060977964585,
+    "varga|kp": -0.00825774625943936,
+    "varga|panchanga": 0.014001558804388506,
+    "arudha|kp": -0.018054074528832866,
+    "arudha|panchanga": 0.01487310295422222,
+    "kp|panchanga": 0.028547448871000473
+  },
+  "applicable_share": {
+    "house": 1.0,
+    "lord": 1.0,
+    "karaka": 1.0,
+    "varga": 1.0,
+    "arudha": 0.9444444444444444,
+    "kp": 0.3333333333333333,
+    "panchanga": 0.9874666666666667
+  }
+}

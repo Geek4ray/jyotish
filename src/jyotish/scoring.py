@@ -21,9 +21,15 @@ READINGS, which the scored block carries so a reading can always say what it ass
                enemy -0.5, debilitated -2; nodes 0. Multiplied by the Shadbala ratio.
   theta_r      a fire's scaled themes that map to the area (THEME_AREAS), times the basis
                weight 1, 2/3, 1/3. Experimental fires are left out.
-  V            for each lord and karaka (not nodes) and each of the area's vargas: +1 when
-               the D1 and varga dignities have the same sign, -1 when opposite, 0 if either
-               is 0; +1 more for a vargottama planet when the varga is D9. Averaged.
+  V            (Meta.varga_term) v2, the default (SPEC revision 2026-10-21): the varga's
+               own verdict, the mean over the area's lords and karakas (not nodes) and its
+               vargas of the signed varga dignity (-2..+2 halved to -1..+1), +1 for a
+               vargottama planet when the varga is D9. The share of (planet, varga) pairs
+               whose D1 and varga dignities have the same sign (both zero counts as the
+               same) is the area's varga_consistency, and scales the varga family's weight
+               in the confluence by 0.5 + 0.5 x share. v1, kept for comparison: +1 when the
+               D1 and varga dignities have the same sign, -1 when opposite, 0 if either is 0
+               (two negatives agreeing counted for the area), +1 vargottama in D9.
   T_p          Navatara: Vipat, Pratyak, Vadha -1; Janma 0; the rest +1; halved in the
                2nd and 3rd cycles.
   Delta_p      D of the lord's final sign dispositor (mean over a loop).
@@ -61,6 +67,9 @@ construction). "v1", kept for comparison: Shadbala ratio x Vimsopaka x rules sha
 gives 0 to any planet with no rule fired. Dasha proximity is dropped (SPEC). Final sign
 dispositors are shown as alternates; the current Vimshottari lords are reported apart.
 
+The rho and percentile tables are measured per (varga_term, KP vote version): the v1 pair
+keeps family_rho.json / area_percentiles.json, other pairs add ".varga-<v>.kp-<v>".
+
 Stability never enters S. uncertainty.assess fills each area's three stability numbers
 (the share of samples with the same tier) and `narrate` is false below 0.5 on time."""
 
@@ -90,13 +99,19 @@ RHO_FILE = Path(__file__).with_name("data") / "family_rho.json"
 PCT_FILE = Path(__file__).with_name("data") / "area_percentiles.json"
 EMPHASIS_PERCENTILE = "p40"
 
+READINGS_VARGA = {
+    "v1": "V v1: D1 vs varga dignity sign agreement, +1 vargottama in D9",
+    "v2": "V v2: mean signed varga dignity halved, +1 vargottama in D9; consistency share scales the varga weight 0.5 + 0.5 x share",
+}
+READINGS_KP = {
+    "v1": "KP v1: sub-lord occupies/owns an area house +1, else a 6/8/12 outside them -1",
+}
 READINGS = [
     "weights lord 3, occupant 2, karaka 2, rule 1, varga 1, navatara/dispositor/panchanga 0.5",
     "houses and lords combined from lagna, Moon, Sun 3:2:1",
     "B_h: Bhava Bala z-score among the chart's 12 houses, clipped +-2, halved",
     "Bhavat Bhavam of each area's first house added as a house",
     "D_p: exalted +2, MT/own +1, friend +0.5, neutral 0, enemy -0.5, debilitated -2",
-    "V: D1 vs varga dignity sign agreement, +1 vargottama in D9",
     "T_p: adverse tara -1, Janma 0, others +1, halved in cycles 2-3",
     "confidence: (agree - oppose) / applicable, 1 - rho weights; not emphasised: S below the area's population p40",
     "polarity v3: Saturn/Mars need 2 of first house, its lord, main karaka, and are not its lord; Rahu/Ketu 1",
@@ -156,20 +171,52 @@ THEME_AREAS = {
 }
 
 
-@lru_cache(maxsize=1)
-def family_rho() -> dict[str, float]:
-    """Mean correlation of each family with the others (data/family_rho.json); zeros if
-    the table has not been made."""
-    if RHO_FILE.exists():
-        return json.loads(RHO_FILE.read_text())["rho"]
-    return {f: 0.0 for f in FAMILIES}
+def table_path(base: Path, varga_term: str = "v2", kp_vote: str = "v1") -> Path:
+    """The population table for a (varga_term, kp_vote) pair: the v1 pair keeps the
+    original file name; any other pair adds ".varga-<v>.kp-<v>"."""
+    if (varga_term, kp_vote) == ("v1", "v1"):
+        return base
+    return base.with_name(f"{base.stem}.varga-{varga_term}.kp-{kp_vote}{base.suffix}")
 
 
-@lru_cache(maxsize=1)
-def area_thresholds() -> dict[str, float]:
-    """Each area's 40th-percentile S over the population run (data/area_percentiles.json)."""
-    data = json.loads(PCT_FILE.read_text())["percentiles"]
+# Set by scripts/family_rho.py only: the population run records votes and S, which do not
+# depend on these tables, so a table not yet made reads as rho 0 and no emphasis cut there.
+POPULATION_RUN = False
+
+
+def _table(base: Path, varga_term: str, kp_vote: str) -> dict:
+    path = table_path(base, varga_term, kp_vote)
+    if not path.exists() and POPULATION_RUN:
+        if base == RHO_FILE:
+            return {"rho": {f: 0.0 for f in FAMILIES}}
+        return {"percentiles": {a: {EMPHASIS_PERCENTILE: float("-inf")} for a in AREAS}}
+    if not path.exists():
+        raise FileNotFoundError(f"{path.name} has not been made for varga_term={varga_term}, kp_vote={kp_vote}: "
+                                "run scripts/family_rho.py with those settings")
+    return json.loads(path.read_text())
+
+
+@lru_cache(maxsize=None)
+def family_rho(varga_term: str = "v2", kp_vote: str = "v1") -> dict[str, float]:
+    """Mean correlation of each family with the others, measured with these vote versions."""
+    return _table(RHO_FILE, varga_term, kp_vote)["rho"]
+
+
+@lru_cache(maxsize=None)
+def area_thresholds(varga_term: str = "v2", kp_vote: str = "v1") -> dict[str, float]:
+    """Each area's 40th-percentile S over the population run, with these vote versions."""
+    data = _table(PCT_FILE, varga_term, kp_vote)["percentiles"]
     return {a: v[EMPHASIS_PERCENTILE] for a, v in data.items()}
+
+
+def family_weights(area, rho: dict[str, float]) -> dict[str, float]:
+    """Each family's confluence weight on an area: 1 - rho, and for the varga family under
+    v2 times 0.5 + 0.5 x the area's varga_consistency."""
+    w = {f: 1.0 - rho.get(f, 0.0) for f in FAMILIES}
+    share = area.get("varga_consistency") if isinstance(area, dict) else getattr(area, "varga_consistency", None)
+    if share is not None:
+        w["varga"] *= 0.5 + 0.5 * share
+    return w
 
 
 def _sgn(x: float, eps: float = 1e-9) -> int:
@@ -307,18 +354,29 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
         theta = sum(val for th, val in f.themes.items() if name in THEME_AREAS.get(th, []))
         rule_term += WEIGHTS["rule"] * FIRE_BASIS[f.basis] * theta
 
-    vparts, varga_rows = [], []
+    vparts, agree, varga_rows = [], [], []
+    v2 = v.c.meta.varga_term == "v2"
+    if v.c.meta.varga_term not in ("v1", "v2"):
+        raise ValueError(f"varga_term must be v1 or v2, not {v.c.meta.varga_term!r}")
     for p in [q for q in dict.fromkeys(list(lords_all) + karakas) if q in SEVEN]:
         for varga in spec["vargas"]:
-            d1, dv = _sgn(v.D[p]), _sgn(v.varga_dignity(p, varga))
-            x = 0 if d1 == 0 or dv == 0 else (1 if d1 == dv else -1)
-            if varga == "D9" and v.c.bodies[p].vargottama:
-                x += 1
+            dignity = v.varga_dignity(p, varga)
+            d1, dv = _sgn(v.D[p]), _sgn(dignity)
+            vott = varga == "D9" and v.c.bodies[p].vargottama
+            if v2:
+                x = dignity / 2.0 + (1 if vott else 0)
+            else:
+                x = 0 if d1 == 0 or dv == 0 else (1 if d1 == dv else -1)
+                x += 1 if vott else 0
             vparts.append(x)
-            varga_rows.append({"planet": p, "varga": varga, "d1": v.c.bodies[p].dignity,
-                               "varga_sign": SIGNS[VARGAS[varga](v.lon[p])],
-                               "varga_dignity": v.varga_dignity(p, varga), "score": x})
+            agree.append(d1 == dv)
+            row = {"planet": p, "varga": varga, "d1": v.c.bodies[p].dignity,
+                   "varga_sign": SIGNS[VARGAS[varga](v.lon[p])], "varga_dignity": dignity}
+            if v2:
+                row |= {"signed": dignity / 2.0, "vargottama_d9": vott, "agrees_with_d1": d1 == dv}
+            varga_rows.append(dict(row, score=x))
     V = statistics.mean(vparts) if vparts else 0.0
+    consistency = statistics.mean(agree) if (v2 and agree) else None
     nav = sum(v.tara(p) for p in dict.fromkeys(list(lords_all) + karakas))
     pl = v.c.panchanga
     touching = []
@@ -336,12 +394,13 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
     if spec.get("mks"):
         mks = sum(1 for b in v.c.bodies.values() if b.marana_karaka_sthana)
         arudha_vote = -1 if mks else 0
-    kp_votes = [x for x in (_kp_vote(v, c, spec["houses"]) for c in spec.get("kp", [])) if x is not None]
     details = _vote_details(v, spec, houses, karakas, lords_all, varga_rows, arudha_signs, occ, touching)
+    kp_votes = [x for x in (_kp_vote(v, c, spec["houses"]) for c in spec.get("kp", [])) if x is not None]
+    kp = _sgn(sum(kp_votes)) if kp_votes else None
     votes = {
         "house": _sgn(house_term), "lord": _sgn(lord_term + disp_term), "karaka": _sgn(karaka_term),
         "varga": _sgn(V), "arudha": arudha_vote,
-        "kp": _sgn(sum(kp_votes)) if kp_votes else None,
+        "kp": kp,
         "panchanga": _sgn(P) if touching else None,
     }
 
@@ -350,7 +409,8 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
              "varga": WEIGHTS["varga"] * V, "navatara": WEIGHTS["navatara"] * nav,
              "dispositor": disp_term, "panchanga": WEIGHTS["panchanga"] * P}
     return {"S": S, "votes": votes, "polarity": polarity, "touches": touches, "terms": terms,
-            "lords": sorted(lords_all), "karakas": karakas, "details": details}
+            "lords": sorted(lords_all), "karakas": karakas, "details": details,
+            "varga_consistency": consistency}
 
 
 def _vote_details(v: _View, spec, houses, karakas, lords_all, varga_rows, arudha_signs, occ, touching) -> dict:
@@ -445,10 +505,12 @@ def _polarity(v: _View, first: int, main_karaka: str | None) -> tuple[list[str],
     return flags, record
 
 
-def confidence(S: float, votes: dict[str, int | None], rho: dict[str, float]) -> tuple[float, float, float]:
+def confidence(S: float, votes: dict[str, int | None], rho: dict[str, float],
+               weights: dict[str, float] | None = None) -> tuple[float, float, float]:
+    """`weights` overrides 1 - rho per family (family_weights: the varga consistency)."""
     direction = _sgn(S)
     applicable = {f: x for f, x in votes.items() if x is not None}
-    w = {f: 1.0 - rho.get(f, 0.0) for f in applicable}
+    w = {f: (weights[f] if weights and f in weights else 1.0 - rho.get(f, 0.0)) for f in applicable}
     total = sum(w.values())
     agree = sum(w[f] for f, x in applicable.items() if direction and x == direction)
     oppose = sum(w[f] for f, x in applicable.items() if direction and x == -direction)
@@ -537,14 +599,15 @@ def score(chart: Chart, rules=None) -> Scored | None:
     from .rules import default_rules
     rules = default_rules() if rules is None else rules
     v = _View(chart)
-    rho = family_rho()
+    vt, kv = chart.meta.varga_term, "v1"
+    rho = family_rho(vt, kv)
     raw = {name: score_area(v, name, spec) for name, spec in AREAS.items()}
     rows = {}
     for name, r in raw.items():
-        conf, agree, total = confidence(r["S"], r["votes"], rho)
+        conf, agree, total = confidence(r["S"], r["votes"], rho, family_weights(r, rho))
         rows[name] = (r, conf, agree, total)
     emphasis = {n: x[0]["S"] * x[1] for n, x in rows.items()}
-    cut = area_thresholds()
+    cut = area_thresholds(vt, kv)
     areas = {}
     for name, (r, conf, agree, total) in rows.items():
         emphasised = r["S"] >= cut[name]
@@ -553,7 +616,8 @@ def score(chart: Chart, rules=None) -> Scored | None:
             tier=tier(conf) if emphasised else "not emphasised", confidence=conf,
             direction={1: "supportive", -1: "adverse", 0: "neutral"}[_sgn(r["S"])],
             emphasised=emphasised, families_agree_w=agree, families_total_w=total,
-            votes=r["votes"], vote_details=r["details"], polarity=r["polarity"],
+            votes=r["votes"], vote_details=r["details"], varga_consistency=r["varga_consistency"],
+            polarity=r["polarity"],
             polarity_touches=r["touches"], terms=r["terms"],
             lords=r["lords"], karakas=r["karakas"])
     areas["synastry"] = AreaScore(score_classical=None, score_learned=None, tier="needs two charts",
@@ -561,5 +625,6 @@ def score(chart: Chart, rules=None) -> Scored | None:
                                   families_agree_w=0.0, families_total_w=0.0, votes={}, polarity=[],
                                   terms={}, lords=[], karakas=[])
     ranked = sorted((n for n in areas if areas[n].emphasised), key=lambda n: -emphasis[n])
-    return Scored(weights="classical-1.0", readings=READINGS, areas=areas, top=ranked[:3],
+    readings = READINGS[:5] + [READINGS_VARGA[vt], READINGS_KP[kv]] + READINGS[5:]
+    return Scored(weights="classical-1.0", readings=readings, areas=areas, top=ranked[:3],
                   driver=_driver(v, rules))

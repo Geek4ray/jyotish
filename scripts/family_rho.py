@@ -24,11 +24,17 @@ from pathlib import Path
 import numpy as np
 
 from jyotish.chart import compute
-from jyotish.scoring import AREAS, FAMILIES
+import jyotish.scoring
+from jyotish.models import Meta
+from jyotish.scoring import AREAS, FAMILIES, table_path
+
+jyotish.scoring.POPULATION_RUN = True   # votes and S only; the tables being made are not read
 
 DATA = Path(__file__).resolve().parents[1] / "src" / "jyotish" / "data"
-OUT = DATA / "family_rho.json"
-PCT = DATA / "area_percentiles.json"
+# The tables are per (varga_term, kp_vote): written for the Meta defaults.
+META = Meta()
+OUT = table_path(DATA / "family_rho.json", META.varga_term)
+PCT = table_path(DATA / "area_percentiles.json", META.varga_term)
 
 
 def main(n: int = 10_000, seed: int = 20261021) -> None:
@@ -67,14 +73,16 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
         "description": "Mean correlation of each Layer 5 signal family with the others "
                        "(scripts/family_rho.py). Confluence weights are 1 - rho.",
         "n_charts": n, "seed": seed, "rows": int(X.shape[0]),
-        "settings": "Lahiri, true node, whole sign, default Meta; UTC 1900-2050, lat -60..60",
+        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp v1); "
+                    "UTC 1900-2050, lat -60..60",
         "rho": rho, "pairwise": pair, "applicable_share": applicable,
     }, indent=2) + "\n")
     PCT.write_text(json.dumps({
         "description": "Percentiles of each life area's S_area over the population run "
                        "(scripts/family_rho.py). Not emphasised: S below p40.",
         "n_charts": n, "seed": seed,
-        "settings": "Lahiri, true node, whole sign, default Meta; UTC 1900-2050, lat -60..60",
+        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp v1); "
+                    "UTC 1900-2050, lat -60..60",
         "percentiles": {a: {f"p{q}": float(np.percentile(v, q)) for q in (10, 25, 40, 50, 75, 90)}
                         for a, v in scores.items()},
     }, indent=2) + "\n")

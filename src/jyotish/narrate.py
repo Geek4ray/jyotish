@@ -371,7 +371,9 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
         (shaky if unstable else ok).append(item)
     a = chart.scored.areas.get(area)
     if a is not None and a.score_classical is not None:
-        rho = family_rho()
+        from .scoring import family_weights
+        rho = family_rho(chart.meta.varga_term)
+        weights = family_weights(a, rho)
         for family, vote in a.votes.items():
             if not vote:
                 continue
@@ -381,7 +383,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                     if family in ("house", "lord") else "lagna", "school": FAMILY_SCHOOL[family],
                     "derivation": a.vote_details.get(family), "term": a.terms.get(family),
                     "allowed_tags": [tag], "stability": a.vote_stability.get(family),
-                    "confidence": min(1.0, 1.0 - rho.get(family, 0.0)) * abs(vote)}
+                    "confidence": min(1.0, weights[family]) * abs(vote)}
             st = item["stability"]
             (shaky if st is not None and st < 0.5 else ok).append(item)
     return ok, shaky
