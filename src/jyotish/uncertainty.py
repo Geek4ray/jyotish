@@ -175,6 +175,10 @@ def assess(utc: datetime, lat: float, lon: float, *, time_accuracy: str = "exact
                            label=label(same(t_tiers)))
             area.stability = st
             area.narrate = st.time >= 0.5
+            area.vote_stability = {
+                fam: sum(1 for x in samples if x.chart.scored and
+                         x.chart.scored.areas[name].votes.get(fam) == vote) / len(samples)
+                for fam, vote in area.votes.items() if vote is not None}
             if time_accuracy == "unknown" and st.time < 0.5:
                 area.tier = "cannot be assessed"
 

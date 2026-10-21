@@ -79,9 +79,11 @@ class ReadingDraft(BaseModel):
 class ReadingClaim(BaseModel):
     text: str
     cites: list[str]
+    kind: str                           # rule | vote
     school: str
     basis: str
     stability: float | None
+    confidence: float                   # rule: scale x confidence_base; vote: family weight x |vote|
 
 
 class ReadingWindow(BaseModel):
@@ -89,9 +91,16 @@ class ReadingWindow(BaseModel):
     start: str
     end: str
     score: float
+    q: float
+    q_terms: dict[str, float]
+    t: float
+    relevant_systems: list[str]
+    strongest_piece: dict[str, Any] | None
     confidence: str | None
     stability: float | None             # edge movement over the time samples, in days
     sandhi: bool
+    truncated: bool
+    tags: list[str]
     why: list[dict[str, Any]]
 
 
@@ -112,6 +121,7 @@ class ReadingArea(BaseModel):
     claims: list[ReadingClaim]
     school_conflicts: list[dict[str, Any]]
     windows: list[ReadingWindow] = Field(default_factory=list)
+    avoid_window: ReadingWindow | None = None
     disclaimer: str | None = None
 
 
@@ -153,7 +163,7 @@ class NarrationError(RuntimeError):
 
 # --- the validator ---------------------------------------------------------------------
 
-TAG = re.compile(r"\[(rule|text):([^\]\s]+)\]")
+TAG = re.compile(r"\[(rule|text|vote):([^\]\s]+)\]")
 CLAIM_VERBS = re.compile(
     r"\b(is|are|was|were|has|have|gives|give|shows|show|indicates|indicate|suggests|suggest|"
     r"brings|bring|forms|form|makes|make|supports|support|favours|favors|promises|denotes|"
@@ -168,8 +178,9 @@ FORBIDDEN = {
                         r"passing away|pass away)\b", re.I),
     "medical": re.compile(r"\b(diagnos\w*|cancer|diabetes|tumou?r|disorder|syndrome|prescri\w*|"
                           r"medication|surgery)\b", re.I),
-    "trade": re.compile(r"\b(buy|sell|invest(?:ing|ment)? in|stocks?|shares|crypto\w*|trading|trade|"
-                        r"portfolio|securities)\b", re.I),
+    "trade": re.compile(r"(?=.*\b(buy|buying|bought|sell|selling|sold|invest|investing|invested|purchase|"
+                        r"purchasing|short|shorting)\b)(?=.*\b(stocks?|shares|equit(?:y|ies)|crypto\w*|bitcoin|"
+                        r"securities|bonds?|options|futures|commodit(?:y|ies)|mutual funds?|forex|etfs?)\b)", re.I),
     "third_party": re.compile(r"\b(mother|father|parents?|partner|spouse|wife|husband|child|children|son|"
                               r"daughter|sibling|brother|sister)s?(?:'s)?\s+(?:\w+\s+){0,2}"
                               r"(will|is going to|shall|would|must|has to|gets?|suffers?)\b", re.I),
@@ -197,7 +208,8 @@ def validate(text: str, allowed: set[str]) -> list[str]:
         for kind, rx in FORBIDDEN.items():
             m = rx.search(bare)
             if m:
-                errors.append(f"{kind} language ({m.group(0)!r}) in {s!r}")
+                word = m.group(0) or " + ".join(g for g in m.groups() if g)
+                errors.append(f"{kind} language ({word!r}) in {s!r}")
     return errors
 
 
@@ -246,9 +258,18 @@ def _text_tag(src: dict) -> str:
     return "text:" + "/".join(str(x).replace(" ", "-") for x in (src["text"], src["edition"], src["chapter"], src["verse"]))
 
 
+FAMILY_SCHOOL = {"house": "parashari", "lord": "parashari", "karaka": "parashari", "varga": "parashari",
+                 "arudha": "jaimini", "kp": "kp", "panchanga": "parashari"}
+
+
 def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
-    """(narratable, depends-on-birth-time) findings for an area: the non-experimental fired
-    rules whose themes map to it, split at time-stability 0.5."""
+    """(narratable, depends-on-birth-time) findings for an area, split at time-stability
+    0.5. Two kinds (SPEC Layer 7 item 8): the non-experimental fired rules whose themes map
+    to the area, tagged by rule id and each checked source; and the area's family votes
+    that voted (+1 or -1), tagged [vote:<area>.<family>] with the vote's derivation.
+    Each carries its claim confidence: a fire's scale x the rule's confidence_base, a
+    vote's family weight (1 - rho) x |vote|."""
+    from .scoring import family_rho
     lib = {r.id: r for r in default_rules()}
     ok, shaky = [], []
     for f in chart.fired_rules:
@@ -257,11 +278,28 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
         rule = lib.get(f.id)
         tags = [f"rule:{f.id}"] + [_text_tag(s) for s in (rule.data.get("source", []) if rule else [])
                                    if s.get("checked")]
-        item = {"finding_id": f"{f.id}@{f.basis}", "rule_id": f.id, "basis": f.basis, "school": f.school,
-                "nodes": f.nodes, "scale": round(f.scale, 3), "themes": {k: round(v, 2) for k, v in f.themes.items()},
+        base = rule.data.get("confidence_base", 0.5) if rule else 0.5
+        item = {"finding_id": f"{f.id}@{f.basis}", "kind": "rule", "rule_id": f.id, "basis": f.basis,
+                "school": f.school, "nodes": f.nodes, "scale": round(f.scale, 3),
+                "themes": {k: round(v, 2) for k, v in f.themes.items()},
                 "modifiers_applied": f.applied, "details": f.details, "allowed_tags": tags,
-                "stability": f.stability.time if f.stability else None}
+                "stability": f.stability.time if f.stability else None, "confidence": f.scale * base}
         (shaky if f.stability is not None and f.stability.time < 0.5 else ok).append(item)
+    a = chart.scored.areas.get(area)
+    if a is not None and a.score_classical is not None:
+        rho = family_rho()
+        for family, vote in a.votes.items():
+            if not vote:
+                continue
+            tag = f"vote:{area}.{family}"
+            item = {"finding_id": tag, "kind": "vote", "family": family, "vote": vote,
+                    "direction": "for" if vote > 0 else "against", "basis": "lagna, moon, sun 3:2:1"
+                    if family in ("house", "lord") else "lagna", "school": FAMILY_SCHOOL[family],
+                    "derivation": a.vote_details.get(family), "term": a.terms.get(family),
+                    "allowed_tags": [tag], "stability": a.vote_stability.get(family),
+                    "confidence": (1.0 - rho.get(family, 0.0)) * abs(vote)}
+            st = item["stability"]
+            (shaky if st is not None and st < 0.5 else ok).append(item)
     return ok, shaky
 
 
@@ -282,13 +320,16 @@ def school_conflicts(area) -> list[dict]:
 
 
 SYSTEM_PROMPT = """You write one part of a Vedic-astrology reading: plain sentences about findings an \
-engine has already computed. You add no facts. Every finding you are given has an id, the rule \
-that fired, the planets and houses it involves, and the citation tags you may use.
+engine has already computed. You add no facts. A finding is either a rule that fired (with the \
+planets, houses and modifiers it involved) or a family vote (house, lord, karaka, varga, arudha, \
+KP, panchanga) with its derivation: the planets, houses, dignities, cusp sub-lords or varga \
+placements the vote used, and whether it is for or against the area. Each finding has an id and \
+the citation tags you may use.
 
 Write, for each area, one claim per finding, in the order given. Each claim narrates that finding \
 only and ends with one or more of that finding's allowed tags, written exactly, for example \
-[rule:yoga.ruchaka] or [text:BPHS/Santhanam-1984/75/1-2]. Put the tags at the very end of the \
-sentence. Also write a two- or three-sentence summary answering the question; each summary \
+[rule:yoga.ruchaka], [text:BPHS/Santhanam-1984/75/1-2] or [vote:career.kp]. For a vote, say \
+in words what the derivation shows. Put the tags at the very end of the sentence. Also write a two- or three-sentence summary answering the question; each summary \
 sentence that states something ends with a tag from the findings.
 
 The engine states the confidence tier, the stability and any timing windows itself, so do not \
@@ -354,6 +395,22 @@ def _date_str(jd: float) -> str:
     return f"{y:04d}-{m:02d}-{d:02d}"
 
 
+def _window(w) -> ReadingWindow:
+    d = w.derivation
+    sp = d.get("strongest_piece")
+    return ReadingWindow(
+        start=_date_str(w.start_jd), end=_date_str(w.end_jd), score=round(w.joint, 3),
+        q=round(w.dasha_quality, 3), q_terms={k: round(v, 3) for k, v in d.get("q_terms", {}).items()},
+        t=round(w.transit_activation, 3), relevant_systems=d.get("relevant_systems", []),
+        strongest_piece=({"start": _date_str(sp["start_jd"]), "end": _date_str(sp["end_jd"]),
+                          "score": round(sp["joint"], 3), "t": round(sp["t"], 3)} if sp else None),
+        confidence=w.confidence, stability=(w.stability or {}).get("time_range_days"),
+        sandhi="dasha_sandhi" in w.tags, truncated="truncated" in w.tags, tags=w.tags,
+        why=[{"kind": "dasha", "system": s, "lords": l} for s, l in w.periods.items()]
+        + [{"kind": "transit", "activation": round(w.transit_activation, 3),
+            "targets": d.get("targets")}])
+
+
 def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, as_of: date | None = None,
             config: NarrationConfig = CONFIG) -> Reading:
     if chart.scored is None:
@@ -394,26 +451,26 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, as_o
         for c in drafted.claims:
             f = by_finding[c.finding_id]
             claims.append(ReadingClaim(text=c.text, cites=[f"{k}:{v}" for k, v in TAG.findall(c.text)],
-                                       school=f["school"], basis=f["basis"], stability=f["stability"]))
-        claims.sort(key=lambda c: -((c.stability if c.stability is not None else 1.0) * conf))
+                                       kind=f["kind"], school=f["school"], basis=f["basis"],
+                                       stability=f["stability"], confidence=f["confidence"]))
+        # Ordered by stability x the claim's own confidence (SPEC Layer 7 item 4), not the
+        # area's confidence, which is the same for every claim in the area.
+        claims.sort(key=lambda c: -((c.stability if c.stability is not None else 1.0) * c.confidence))
         _, shaky = findings(chart, name)
-        depends += [{"area": name, "rule": f["rule_id"], "basis": f["basis"], "stability": f["stability"]} for f in shaky]
+        depends += [({"area": name, "rule": f["rule_id"], "basis": f["basis"], "stability": f["stability"]}
+                     if f["kind"] == "rule" else
+                     {"area": name, "vote": f["finding_id"], "direction": f["direction"], "stability": f["stability"]})
+                    for f in shaky]
         if a.stability is not None and a.stability.time < 0.5:
             depends.append({"area": name, "tier": a.tier, "stability": a.stability.time})
-        windows = []
+        windows, avoid = [], None
         if when and name in AREAS:
             q = TimingQuery(area=name, start=as_of, end=as_of + timedelta(days=round(365.25 * config.timing_years)),
                             question=question)
             from .timing import answer
             ans = answer(chart, q)
-            for w in ans.windows:
-                windows.append(ReadingWindow(
-                    start=_date_str(w.start_jd), end=_date_str(w.end_jd), score=round(w.joint, 3),
-                    confidence=w.confidence,
-                    stability=(w.stability or {}).get("time_range_days"),
-                    sandhi="dasha_sandhi" in w.tags,
-                    why=[{"kind": "dasha", "system": s, "lords": l} for s, l in w.periods.items()]
-                    + [{"kind": "transit", "activation": round(w.transit_activation, 3)}]))
+            windows = [_window(w) for w in ans.windows]
+            avoid = _window(ans.avoid) if ans.avoid is not None else None
         top3 = name in sc.top
         disclaimer = DISCLAIMERS["third_party"] if name in THIRD_PARTY_AREAS else (
             DISCLAIMERS[DISCLAIMER_KEYS[name]] if name in DISCLAIMER_KEYS else None)
@@ -421,7 +478,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, as_o
             name=name, score_classical=a.score_classical, tier=a.tier, stability=a.stability,
             families_agree_w=a.families_agree_w, families_total_w=a.families_total_w,
             polarity=a.polarity if top3 else [], polarity_touches=a.polarity_touches if top3 else {},
-            claims=claims, school_conflicts=school_conflicts(a), windows=windows, disclaimer=disclaimer))
+            claims=claims, school_conflicts=school_conflicts(a), windows=windows, avoid_window=avoid,
+            disclaimer=disclaimer))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3),
               "stability": f.stability.time if f.stability else None}

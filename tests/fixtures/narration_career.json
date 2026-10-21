@@ -1,9 +1,9 @@
 {
-  "note": "Hand-authored, NOT recorded: no API credentials were available when this was written. It has the exact shape of narrate.ReadingDraft (the structured output the model returns). Re-record from the live model with: JYOTISH_LIVE_NARRATION=1 JYOTISH_RECORD_FIXTURE=1 .venv/bin/pytest tests/test_narrate_live.py",
+  "note": "Hand-authored, NOT recorded: no API credentials were available when this was written. It has the exact shape of narrate.ReadingDraft and narrates the four rule findings and the six family votes the engine offers for career on the reference chart. Re-record from the live model with: JYOTISH_LIVE_NARRATION=1 JYOTISH_RECORD_FIXTURE=1 .venv/bin/pytest tests/test_narrate_live.py",
   "question": "How will my career go, and when is the best time for a job change?",
   "drafts": [
     {
-      "summary": "The Sun and Mercury together in the 10th house form both Budhaditya yoga and a kendra-trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Mars in its own sign in the 7th forms Ruchaka yoga, which Saturn's aspect and its Marana Karaka Sthana weaken [rule:yoga.ruchaka].",
+      "summary": "The Sun and Mercury together in the 10th house form both Budhaditya yoga and a kendra-trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Most signal families lean for career, led by an exalted Venus as Amatyakaraka [vote:career.karaka]. The KP reading of the 10th cusp, through its sub-lord Ketu in the 8th, is the one family against [vote:career.kp].",
       "areas": [
         {
           "name": "career",
@@ -23,6 +23,30 @@
             {
               "finding_id": "yoga.ruchaka@sun",
               "text": "Counted from the Sun, Mars sits in the 10th house, so Ruchaka yoga also forms from the Sun [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1]."
+            },
+            {
+              "finding_id": "vote:career.house",
+              "text": "By Bhava Bala the 10th house itself is the weakest of the twelve at 4.51 rupas, but the career houses read together from the lagna, the Moon and the Sun still lean for career [vote:career.house]."
+            },
+            {
+              "finding_id": "vote:career.lord",
+              "text": "Among the career lords, Venus, lord of the 6th, is exalted in the 11th and Mars, lord of the 7th, holds its own sign, which outweighs Saturn, lord of the 10th, in a friend's sign in the 1st at a Shadbala ratio of 0.69, and Jupiter, lord of the 11th, in an enemy's sign [vote:career.lord]."
+            },
+            {
+              "finding_id": "vote:career.karaka",
+              "text": "Venus, the Amatyakaraka, is exalted with a Shadbala ratio of 1.33 and carries the karaka vote for career, while the Sun in an enemy's sign weighs against it [vote:career.karaka]."
+            },
+            {
+              "finding_id": "vote:career.varga",
+              "text": "In the D10, Venus, Saturn and Mars keep dignities that agree with their D1 standing while the Sun and Jupiter do not, so the varga family leans narrowly for career [vote:career.varga]."
+            },
+            {
+              "finding_id": "vote:career.kp",
+              "text": "The sub-lord of the 10th cusp is Ketu, which sits in the 8th house and owns no house, so the KP family votes against career [vote:career.kp]."
+            },
+            {
+              "finding_id": "vote:career.panchanga",
+              "text": "Mars, lord of the birth tithi and nakshatra, and the Moon, lord of the weekday, are both career lords counted from one of the three lagnas and both exceed their required Shadbala, so the panchanga family votes for career [vote:career.panchanga]."
             }
           ]
         }

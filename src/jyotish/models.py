@@ -413,6 +413,8 @@ class AreaScore(BaseModel):
     families_agree_w: float
     families_total_w: float
     votes: dict[str, int | None]
+    vote_details: dict[str, Any] = Field(default_factory=dict)    # what each family's vote used
+    vote_stability: dict[str, float] = Field(default_factory=dict)  # time share with the same vote (sampler)
     polarity: list[str]
     polarity_touches: dict[str, list[str]] = Field(default_factory=dict)
     terms: dict[str, float]

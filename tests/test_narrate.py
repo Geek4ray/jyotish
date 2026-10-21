@@ -57,6 +57,8 @@ OK = {"rule:yoga.ruchaka", "text:BPHS/Santhanam-1984/75/1-2"}
     ("Mars in the 7th shows when you will die [rule:yoga.ruchaka].", "death"),
     ("Mars indicates a blood disorder [rule:yoga.ruchaka].", "medical"),
     ("Mars favours buying stocks this year [rule:yoga.ruchaka].", "trade"),
+    ("Mars says to sell your shares [rule:yoga.ruchaka].", "trade"),
+    ("The KP vote [vote:career.house] is against career.", "must end"),
     ("Your partner will fall ill when Mars rules the 7th [rule:yoga.ruchaka].", "third_party"),
 ])
 def test_validator_rejects(text, needle):
@@ -66,6 +68,9 @@ def test_validator_rejects(text, needle):
 
 def test_validator_accepts_tagged_claims_and_plain_lines():
     assert validate("Mars in its own sign forms Ruchaka yoga [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].", OK) == []
+    # "trade" names a profession; only a buy/sell/invest verb with an instrument is advice.
+    assert validate("Mercury rules trade and trading careers [rule:yoga.ruchaka].", OK) == []
+    assert validate("The KP family votes against career [vote:career.kp].", {"vote:career.kp"}) == []
     assert validate("Career.", OK) == []                       # no claim verb, no tag needed
 
 
@@ -91,6 +96,9 @@ def test_model_sees_no_longitudes_and_no_experimental_fires(reading_and_drafter)
     _, d = reading_and_drafter
     sent = d.calls[0]["user"]
     assert "lon" not in json.loads(sent)["areas"][0]["findings"][0]
+    offered = {f["finding_id"] for f in json.loads(sent)["areas"][0]["findings"]}
+    assert {"vote:career.kp", "vote:career.house", "vote:career.panchanga"} <= offered
+    assert "vote:career.arudha" not in offered                # arudha abstained (0): no finding
     assert "kendra_trikona_raja_weak" not in sent             # experimental: excluded
     assert "certain" in d.calls[0]["system"]                  # the instructions name the banned words
 
@@ -104,10 +112,18 @@ def test_schema_and_engine_words_verbatim(reading_and_drafter, chart):
     assert career.probability is None and career.calibrated is False and career.bin_n == 0
     assert career.score_classical == src.score_classical
     for c in career.claims:
-        assert c.cites and all(t.split(":", 1)[0] in ("rule", "text") for t in c.cites)
-        assert c.school == "parashari" and c.basis in ("lagna", "sun")
-    keys = [(c.stability or 1.0) * (src.confidence or 0) for c in career.claims]
-    assert keys == sorted(keys, reverse=True)                                     # stability x confidence
+        assert c.cites and all(t.split(":", 1)[0] in ("rule", "text", "vote") for t in c.cites)
+    keys = [(c.stability if c.stability is not None else 1.0) * c.confidence for c in career.claims]
+    assert keys == sorted(keys, reverse=True)                # stability x the claim's own confidence
+    kinds = {c.kind for c in career.claims}
+    assert kinds == {"rule", "vote"}
+    # The KP vote against career is narrated in words, as SPEC item 8 asks.
+    kp = next(c for c in career.claims if c.cites == ["vote:career.kp"])
+    assert "Ketu" in kp.text and "8th" in kp.text and kp.school == "kp" and kp.stability == pytest.approx(0.605)
+    raja = next(c for c in career.claims if "rule:yoga.kendra_trikona_raja" in c.cites)
+    assert raja.confidence == pytest.approx(1.0 * 0.6)       # scale x confidence_base
+    ruchaka = next(c for c in career.claims if "rule:yoga.ruchaka" in c.cites)
+    assert ruchaka.confidence == pytest.approx(0.408 * 0.7)
     assert reading.summary.driver_planet == chart.scored.driver.driver
     assert reading.summary.top_areas == list(chart.scored.top)
     assert reading.summary.current_period == "Jupiter-Mercury"                   # Vimshottari on 2026-10-21
@@ -117,9 +133,15 @@ def test_schema_and_engine_words_verbatim(reading_and_drafter, chart):
 
 def test_when_question_gets_engine_windows(reading_and_drafter):
     reading, _ = reading_and_drafter
-    ws = reading.areas[0].windows
-    assert ws and all("2026-10-21" <= w.start < w.end <= "2036-10-21" for w in ws)
+    area = reading.areas[0]
+    ws = area.windows
+    assert len(ws) == 3 and all("2026-10-21" <= w.start < w.end <= "2036-10-21" for w in ws)
     assert ws[0].why[0]["kind"] == "dasha" and ws[-1].why[-1]["kind"] == "transit"
+    for w in ws + [area.avoid_window]:
+        assert set(w.q_terms) and 0 <= w.t <= 1 and w.relevant_systems and w.strongest_piece
+        assert w.score == pytest.approx(0.6 * w.q + 0.4 * w.t, abs=2e-3)
+    assert area.avoid_window.why[0]["lords"] == ["Jupiter", "Ketu"]
+    assert any(w.truncated for w in ws)                       # Jupiter-Mercury from 2026-10-21
 
 
 def test_polarity_only_for_top_three_and_disclaimers(chart):

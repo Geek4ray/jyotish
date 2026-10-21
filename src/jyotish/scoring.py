@@ -71,7 +71,7 @@ import statistics
 from functools import lru_cache
 from pathlib import Path
 
-from .constants import EXALTATION, GRAHAS, SEVEN, SIGN_LORD
+from .constants import EXALTATION, GRAHAS, SEVEN, SIGN_LORD, SIGNS
 from .dignity import aspected_houses, house_of, natural_relation
 from .models import AreaScore, Chart, Driver, Scored
 from .shadbala import natural_benefics
@@ -307,7 +307,7 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
         theta = sum(val for th, val in f.themes.items() if name in THEME_AREAS.get(th, []))
         rule_term += WEIGHTS["rule"] * FIRE_BASIS[f.basis] * theta
 
-    vparts = []
+    vparts, varga_rows = [], []
     for p in [q for q in dict.fromkeys(list(lords_all) + karakas) if q in SEVEN]:
         for varga in spec["vargas"]:
             d1, dv = _sgn(v.D[p]), _sgn(v.varga_dignity(p, varga))
@@ -315,6 +315,9 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
             if varga == "D9" and v.c.bodies[p].vargottama:
                 x += 1
             vparts.append(x)
+            varga_rows.append({"planet": p, "varga": varga, "d1": v.c.bodies[p].dignity,
+                               "varga_sign": SIGNS[VARGAS[varga](v.lon[p])],
+                               "varga_dignity": v.varga_dignity(p, varga), "score": x})
     V = statistics.mean(vparts) if vparts else 0.0
     nav = sum(v.tara(p) for p in dict.fromkeys(list(lords_all) + karakas))
     pl = v.c.panchanga
@@ -334,6 +337,7 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
         mks = sum(1 for b in v.c.bodies.values() if b.marana_karaka_sthana)
         arudha_vote = -1 if mks else 0
     kp_votes = [x for x in (_kp_vote(v, c, spec["houses"]) for c in spec.get("kp", [])) if x is not None]
+    details = _vote_details(v, spec, houses, karakas, lords_all, varga_rows, arudha_signs, occ, touching)
     votes = {
         "house": _sgn(house_term), "lord": _sgn(lord_term + disp_term), "karaka": _sgn(karaka_term),
         "varga": _sgn(V), "arudha": arudha_vote,
@@ -346,7 +350,41 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
              "varga": WEIGHTS["varga"] * V, "navatara": WEIGHTS["navatara"] * nav,
              "dispositor": disp_term, "panchanga": WEIGHTS["panchanga"] * P}
     return {"S": S, "votes": votes, "polarity": polarity, "touches": touches, "terms": terms,
-            "lords": sorted(lords_all), "karakas": karakas}
+            "lords": sorted(lords_all), "karakas": karakas, "details": details}
+
+
+def _vote_details(v: _View, spec, houses, karakas, lords_all, varga_rows, arudha_signs, occ, touching) -> dict:
+    """What each family's vote used, in chart terms (no longitudes), for narration."""
+    bb = v.f.bhava_bala.whole_sign
+    house = [{"house": h, "sign": SIGNS[v.sign_of_house(h, "lagna")], "bhava_bala_rupas": round(bb[h].rupas, 2),
+              "relative": round(v.B[h], 2)} for h in houses]
+    lords = []
+    for h in houses:
+        p = v.lord_of(h, "lagna")
+        lords.append({"house": h, "lord": p, "lord_house": v.c.bodies[p].house, "lord_sign": SIGNS[v.sign[p]],
+                      "dignity": v.c.bodies[p].dignity, "shadbala_ratio": round(v.ratio[p], 2),
+                      "final_dispositor": v.f.dispositors.sign[p][-1]})
+    karaka = [{"planet": p, "house": v.c.bodies[p].house, "sign": SIGNS[v.sign[p]], "dignity": v.c.bodies[p].dignity,
+               "shadbala_ratio": round(v.ratio.get(p, 0.0), 2) if p in SEVEN else None} for p in karakas]
+    pads = spec.get("arudha", [])
+    arudha = {"padas": [{"pada": n, "sign": SIGNS[s], "occupants": [q for q in GRAHAS if v.sign[q] == s],
+                         "benefics": [q for q in GRAHAS if v.sign[q] == s and q in v.benefics]}
+                        for n, s in zip(pads, arudha_signs)]}
+    if spec.get("mks"):
+        arudha = {"marana_karaka_sthana": [q for q, b in v.c.bodies.items() if b.marana_karaka_sthana]}
+    kp = []
+    for c in spec.get("kp", []):
+        lords_c = v.c.lagnas.cusp_lords_kp.get(c)
+        if lords_c:
+            sub = lords_c["sub"]
+            kp.append({"cusp": c, "star": lords_c["star"], "sub": sub, "sub_house": v.c.bodies[sub].house,
+                       "sub_owns": v.f.lordship.get(sub, []), "area_houses": spec["houses"]})
+    pl = v.c.panchanga
+    panchanga = [{"planet": q, "role": [r for r, x in (("tithi", pl.tithi_lord), ("vara", pl.vara_lord),
+                                                       ("nakshatra", pl.nakshatra_lord), ("yoga", pl.yoga_lord))
+                                         if x == q], "shadbala_ratio": round(v.ratio[q], 2)} for q in touching]
+    return {"house": house, "lord": lords, "karaka": karaka, "varga": varga_rows, "arudha": arudha,
+            "kp": kp, "panchanga": panchanga}
 
 
 def _touches_sign(v: _View, planet: str, sign: int) -> bool:
@@ -493,7 +531,8 @@ def score(chart: Chart, rules=None) -> Scored | None:
             tier=tier(conf) if emphasised else "not emphasised", confidence=conf,
             direction={1: "supportive", -1: "adverse", 0: "neutral"}[_sgn(r["S"])],
             emphasised=emphasised, families_agree_w=agree, families_total_w=total,
-            votes=r["votes"], polarity=r["polarity"], polarity_touches=r["touches"], terms=r["terms"],
+            votes=r["votes"], vote_details=r["details"], polarity=r["polarity"],
+            polarity_touches=r["touches"], terms=r["terms"],
             lords=r["lords"], karakas=r["karakas"])
     areas["synastry"] = AreaScore(score_classical=None, score_learned=None, tier="needs two charts",
                                   confidence=None, direction="neutral", emphasised=False,
