@@ -239,6 +239,7 @@ def synthetic(card: Card, sizes=SYNTHETIC_SIZES, out_dir: Path = DOCS):
                 card.num(f"{k}.survived_bh_share", round(c["survived_bh_share"], 4), "higher", gate=False)
                 card.num(f"{k}.recovery_gap", round(abs(c["recovered_share"] - c["predicted_power_mean"]), 4), None)
                 card.num(f"{k}.timing_recovered_share", round(c["timing_recovered_share"], 4), "higher", gate=False)
+                card.num(f"{k}.unplanted_areas_surviving_bh", len(c["unplanted_surviving_bh"]), "lower", gate=False)
                 ok = min(c["recovered_share"], c["survived_bh_share"], c["timing_recovered_share"]) >= 0.75
                 if gated:
                     card.num(f"{k}.pipeline_recovers", int(ok), "higher")
@@ -246,7 +247,11 @@ def synthetic(card: Card, sizes=SYNTHETIC_SIZES, out_dir: Path = DOCS):
                              f"timing weight {truth['timing_weight']}): {len(c['planted_areas'])} planted areas; predicted "
                              f"power {c['predicted_power_mean']:.2f}, recovered {c['recovered_share']:.2f} (p < 0.05), "
                              f"{c['survived_bh_share']:.2f} surviving BH; the timing effect recovered in "
-                             f"{c['timing_recovered_share']:.2f}; {time.time() - t:.0f} s."
+                             f"{c['timing_recovered_share']:.2f}; {len(c['unplanted_surviving_bh'])} of the "
+                             f"{len(c['unplanted_areas'])} unplanted areas ({', '.join(c['unplanted_areas'])}: they own none "
+                             f"of their events) also survive BH, lift inherited through the shared outcome map"
+                             + (f" ({', '.join(c['unplanted_surviving_bh'])})" if c["unplanted_surviving_bh"] else "")
+                             + f"; {time.time() - t:.0f} s."
                              + (f" Gated check: at least three quarters of the planted areas recovered, surviving BH and "
                                 f"timing-recovered: {'passes' if ok else 'FAILS'}." if gated else ""))
             else:

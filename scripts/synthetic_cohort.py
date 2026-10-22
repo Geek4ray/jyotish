@@ -165,7 +165,14 @@ def compare(truth: dict, res: dict) -> dict:
                   "timing_recovered": (x["timing"]["p_random_windows"] or 1) < 0.05}
     mean = lambda xs: float(sum(xs) / len(xs)) if xs else float("nan")
     rules = res["rules"].values()
+    # The areas that own none of their events (father, gains, reputation: every event of theirs is
+    # drawn from another area's score) carry no planted effect, so one surviving BH in a planted run
+    # is lift inherited through the shared outcome map, which per-area tests cannot tell from an
+    # effect of its own (review 2026-10-23, F12). Counted, never gated.
+    unplanted = [a for a in tested if truth["mode"] == "planted" and not truth["areas"].get(a, {}).get("planted")]
     return {"mode": truth["mode"], "n": truth["n"], "planted_areas": planted, "per_area": per,
+            "unplanted_areas": unplanted,
+            "unplanted_surviving_bh": [a for a in unplanted if res["areas"][a]["survives"]],
             "predicted_power_mean": mean([v["predicted_power"] for v in per.values()]),
             "recovered_share": mean([v["recovered"] for v in per.values()]),
             "survived_bh_share": mean([v["survives_bh"] for v in per.values()]),

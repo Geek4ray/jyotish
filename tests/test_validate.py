@@ -137,6 +137,12 @@ def test_the_permutation_null_is_calibrated_and_finds_a_real_lift(V):
     assert lift > 1.5 and p < 0.01
 
 
+def test_the_delong_cell_marks_a_fall(V):
+    assert V._delong_cell({"delong_p": 0.012, "auc_covariates": 0.494, "auc_with_engine": 0.487}) == "0.0120 (AUC fell)"
+    assert V._delong_cell({"delong_p": 0.012, "auc_covariates": 0.494, "auc_with_engine": 0.540}) == "0.0120"
+    assert V._delong_cell({"delong_p": float("nan"), "auc_covariates": float("nan"), "auc_with_engine": 0.5}) == "–"
+
+
 def test_outcome_rows(V):
     ev = [{"type": "occupation", "age": 35, "censor": 50, "value": {"isei": 72}},
           {"type": "tenure_change", "age": None, "censor": 50, "value": None}]

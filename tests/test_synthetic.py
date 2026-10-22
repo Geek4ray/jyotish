@@ -45,6 +45,9 @@ def test_a_planted_effect_is_recovered(mods, tmp_path):
     assert c["recovered_share"] >= 0.75 and c["survived_bh_share"] >= 0.6
     assert abs(c["recovered_share"] - c["predicted_power_mean"]) < 0.3          # roughly the predicted power
     assert c["timing_recovered_share"] >= 0.5                                   # the planted window effect
+    # The areas owning none of their events are counted apart: lift there is inherited, not planted.
+    assert set(c["unplanted_areas"]) == {"father", "gains", "reputation"}
+    assert set(c["unplanted_surviving_bh"]) <= set(c["unplanted_areas"])
     assert all(res["areas"][a]["nested"]["p_lr"] < 0.05 for a in c["planted_areas"])   # terms add to covariates
     assert not truth["areas"]["father"]["planted"] and truth["areas"]["father"]["owns_events"] == []
     md = V.report(res, label="planted, N = 900")
@@ -55,7 +58,7 @@ def test_a_null_cohort_has_no_area_surviving_bh(mods, tmp_path):
     V, SC, truth, res = _run(mods, tmp_path, "null", 900)
     c = SC.compare(truth, res)
     assert c["planted_areas"] == [] and c["areas_tested"] >= 10
-    assert c["areas_surviving_bh"] == 0
+    assert c["areas_surviving_bh"] == 0 and c["unplanted_areas"] == []          # a null plants nothing, owns nothing
     assert c["rules_with_effect"] <= 2                                          # BH across rules at q 0.01
     assert all(abs(t["planted_points"]) < 1e-9 for t in truth["areas"].values())
 

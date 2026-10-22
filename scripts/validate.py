@@ -732,6 +732,16 @@ def _f(x, nd=3):
     return "–" if x is None or (isinstance(x, float) and math.isnan(x)) else (f"{x:.{nd}f}" if isinstance(x, float) else str(x))
 
 
+def _delong_cell(nm: dict) -> str:
+    """DeLong's p with its direction: the test is two-sided, so a small p with the engine's AUC
+    below the covariates' is a fall, and the cell says so (review 2026-10-23, F12)."""
+    p = _f(nm.get("delong_p"), 4)
+    a, b = nm.get("auc_covariates"), nm.get("auc_with_engine")
+    if a is not None and b is not None and not (math.isnan(a) or math.isnan(b)) and b < a:
+        return f"{p} (AUC fell)"
+    return p
+
+
 def report(res: dict, label: str = "") -> str:
     syn = "Synthetic — " if res["synthetic"] else ""
     h = res["hashes"]
@@ -762,13 +772,13 @@ def report(res: dict, label: str = "") -> str:
                  f"{_f(a['lift_ci'][0])}–{_f(a['lift_ci'][1])} | {_f(a['p_permutation'], 4)} | {_f(a['p_adj'], 4)} | "
                  f"{'yes' if a['survives'] else 'no'} | {_f(a['power_5pt'])} |")
     L += ["", f"## {syn}Incremental validity: nested models (test 3)", "",
-          "| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p |",
+          "| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p (two-sided; a fall is marked) |",
           "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for area, a in res["areas"].items():
         if a.get("status") == "tested" and "lr" in a["nested"]:
             nm = a["nested"]
             L.append(f"| {area} | {a['n']} | {_f(a['coverage'])} | {len(nm['terms'])} | {_f(nm['lr'], 2)} | {nm['df']} | "
-                     f"{_f(nm['p_lr'], 4)} | {_f(nm['auc_covariates'])} | {_f(nm['auc_with_engine'])} | {_f(nm['delong_p'], 4)} |")
+                     f"{_f(nm['p_lr'], 4)} | {_f(nm['auc_covariates'])} | {_f(nm['auc_with_engine'])} | {_delong_cell(nm)} |")
     L += ["", f"## {syn}Timing as a discrete-time hazard (test 4)", "",
           "Activation: the year mostly inside one of the engine's own windows, the timing join's pieces over the life "
           f"to {res.get('as_of') or 'today'}, the best third of the life by joint (so a third of the person-years are "
