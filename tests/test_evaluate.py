@@ -77,5 +77,8 @@ def test_ci_runs_the_suite_then_the_gate_with_the_crosscheck_install_apart():
     assert ci.index("run: .venv/bin/pytest -q") < ci.index("run: .venv/bin/python scripts/evaluate.py")
     job = yaml.safe_load(ci)["jobs"]["test"]
     assert 60 <= job["timeout-minutes"] <= 120                                   # a cap on a hang, not on the harness
+    assert job["runs-on"] != "ubuntu-latest" and job["runs-on"].startswith("ubuntu-")   # pinned: a stable cache key
     setup = next(s for s in steps if "setup-python" in s.get("uses", ""))
     assert setup["with"]["cache"] == "pip" and setup["with"]["cache-dependency-path"] == "pyproject.toml"
+    browser = next(s for s in steps if "actions/cache" in s.get("uses", ""))
+    assert "ms-playwright" in browser["with"]["path"] and "pyproject.toml" in browser["with"]["key"]
