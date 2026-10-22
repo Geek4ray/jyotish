@@ -11,3 +11,5 @@ scripts/last_recording.json
 # Client data: the review step's judgements (jyotish export-reviews) and, apart, any outcome log
 data/preferences/
 data/outcomes/
+# The frozen sequestered split of a real cohort: it names subject ids and lives with the database
+data/sequestered.txt

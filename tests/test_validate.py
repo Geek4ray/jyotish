@@ -1,0 +1,162 @@
+"""scripts/validate.py: the splits and the statistics (SPEC Layer 6 tests 1-8, 10), unit by unit,
+and one run end to end over a small cohort imported through the capture path."""
+
+import importlib.util
+import math
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+pytest.importorskip("sklearn", reason="the validate extra is not installed: pip install -e '.[validate]'")
+pytest.importorskip("statsmodels")
+ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(scope="module")
+def V():
+    sys.path.insert(0, str(ROOT / "scripts"))
+    spec = importlib.util.spec_from_file_location("validate", ROOT / "scripts" / "validate.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["validate"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_the_sequestered_cohort_is_frozen_and_never_redrawn(V, tmp_path):
+    f = tmp_path / "sequestered.txt"
+    ids = [f"S-{i:04d}" for i in range(400)]
+    seq, meta = V.sequester(ids, f)
+    assert 0.18 < len(seq) / len(ids) < 0.32 and f.read_text().startswith("# The sequestered cohort")
+    before = f.read_text()
+    again, _ = V.sequester(ids, f)
+    assert again == seq and f.read_text() == before                          # frozen
+    more, _ = V.sequester(ids + ["S-9999", "S-9998"], f)
+    assert seq <= more and f.read_text().startswith(before.rstrip("\n"))       # appended, nothing redrawn
+    other, _ = V.sequester(ids, tmp_path / "other.txt")
+    assert other != seq                                                       # a new salt is a new draw
+
+
+def test_groups_and_folds(V):
+    subs = [{"id": str(i), "household": f"H{i // 3}", "cluster": "BPx" if i in (2, 3) else None,
+             "decade": 1950 + 10 * (i % 4), "sex": "female" if i % 2 else "male", "region": "r"} for i in range(60)]
+    g = V.groups_of(subs)
+    assert g[0] == g[1] == g[2] == g[3] == g[4] == g[5] and g[6] != g[0]      # households joined by the cluster
+    fold = V.folds(subs)
+    for grp in set(g):
+        assert len({fold[i] for i in range(60) if g[i] == grp}) == 1         # no group straddles a fold
+    assert len(set(fold)) == 5
+
+
+def test_benjamini_hochberg(V):
+    r = V.bh({"a": 0.001, "b": 0.02, "c": 0.04, "d": 0.6})
+    assert [r[k]["survives"] for k in "abcd"] == [True, True, False, False]
+    assert r["c"]["p_adj"] == pytest.approx(0.04 * 4 / 3) and r["a"]["p_adj"] == pytest.approx(0.004)
+
+
+def test_delong_matches_the_auc_and_detects_a_difference(V):
+    from sklearn.metrics import roc_auc_score
+    rng = np.random.default_rng(0)
+    y = rng.integers(0, 2, 400)
+    good = y + rng.normal(0, 0.8, 400)
+    noise = rng.normal(0, 1, 400)
+    d = V.delong(y, noise, good)
+    assert d["auc_a"] == pytest.approx(roc_auc_score(y, noise)) and d["auc_b"] == pytest.approx(roc_auc_score(y, good))
+    assert d["p"] < 1e-6
+    twin = y + rng.normal(0, 0.8, 400)                                       # the same signal, other noise
+    assert V.delong(y, good, twin)["p"] > 0.01
+
+
+def test_power_follows_n(V):
+    # SPEC Layer 6: a rule firing on 5% of 2,000 charts (n ~ 100) has ~0.2 power for a 5-point lift at
+    # alpha 0.01, ~0.9 at 20,000; that holds for a base rate near 10%.
+    small, big = V.power_two_props(0.1, 100, 1900), V.power_two_props(0.1, 1000, 19000)
+    assert 0.15 < small < 0.25 and big > 0.9
+    assert V.power_two_props(0.3, 100, 1900) < small                           # a commoner outcome needs more n
+    assert V.power_two_props(0.3, 0, 10) == 0.0
+
+
+def test_the_permutation_null_is_calibrated_and_finds_a_real_lift(V):
+    rng = np.random.default_rng(1)
+    strata = np.array(["a", "b"] * 150)
+    pred = rng.random(300) < 0.3
+    ps = []
+    for _ in range(40):
+        y = (rng.random(300) < 0.3).astype(float)
+        ps.append(V.permutation_lift(y, pred, strata, rng, 200)[1])
+    assert 0.3 < np.mean(ps) < 0.7                                            # uniform-ish under the null
+    y = np.where(pred, rng.random(300) < 0.6, rng.random(300) < 0.25).astype(float)
+    lift, p = V.permutation_lift(y, pred, strata, rng, 500)
+    assert lift > 1.5 and p < 0.01
+
+
+def test_outcome_rows(V):
+    ev = [{"type": "occupation", "age": 35, "censor": 50, "value": {"isei": 72}},
+          {"type": "tenure_change", "age": None, "censor": 50, "value": None}]
+    assert V.outcome(ev, ["occupation", "tenure_change"], 60) == {"case": True, "age": 35, "censor": 50}
+    low = [dict(ev[0], value={"isei": 30}), ev[1]]
+    assert V.outcome(low, ["occupation", "tenure_change"], 60) == {"case": False, "age": 50, "censor": 50}
+    assert V.outcome(ev, ["first_child"], 60) is None                         # no data is not a non-case
+
+
+def test_hazard_finds_a_planted_window_and_not_a_random_one(V):
+    rng = np.random.default_rng(2)
+    rows = []
+    for i in range(400):
+        active = [(20.0, 30.0)] if i % 2 else [(40.0, 50.0)]
+        if rng.random() < 0.6:
+            a, b = active[0]
+            age = float(rng.uniform(a, b)) if rng.random() < 0.7 else float(rng.uniform(15, 60))
+            rows.append({"case": True, "age": age, "active": active})
+        else:
+            rows.append({"case": False, "age": 60.0, "active": active})
+    h = V.hazard(rows, rng, shifts=100)
+    assert h["rate_ratio"] > 2 and h["p_random_windows"] < 0.05 and h["logistic"]["log_odds"] > 0.5
+    assert 0 < h["coverage"] < 1 and h["person_years"] > 10000
+
+
+def test_hashes_name_the_rule_weight_split_and_code(V, tmp_path):
+    _, meta = V.sequester(["a", "b"], tmp_path / "s.txt")
+    h = V.hashes(meta)
+    assert all(len(h[k]) == 64 for k in ("rule_set", "weight_set", "split_definition", "analysis_code"))
+    _, meta2 = V.sequester(["a", "b"], tmp_path / "s2.txt")
+    assert V.hashes(meta2)["split_definition"] != h["split_definition"] and V.hashes(meta2)["rule_set"] == h["rule_set"]
+
+
+def test_end_to_end_on_a_small_imported_cohort(V, tmp_path):
+    from datetime import date
+    from jyotish import outcomes as oc
+    rng = np.random.default_rng(3)
+    url = f"sqlite:///{tmp_path / 'c.db'}"
+    Session = oc.sessionmaker_for(url)
+    rows = []
+    with Session.begin() as s:
+        for i in range(160):
+            sid = f"T-{i:04d}"
+            oc.add_consent(s, f"C-{sid}", sid, "test", "new", "test")
+            y, m, d = 1950 + int(rng.integers(0, 50)), 1 + int(rng.integers(0, 12)), 1 + int(rng.integers(0, 28))
+            age = (date(2026, 10, 22) - date(y, m, d)).days / 365.25
+            base = {"consent_id": f"C-{sid}", "subject_id": sid, "date": f"{y}-{m:02d}-{d:02d}", "time": "06:30",
+                    "tz": "UTC", "lat": f"{rng.uniform(-50, 50):.3f}", "lon": f"{rng.uniform(-170, 170):.3f}",
+                    "node": "mean", "accuracy": "exact" if i % 10 else "unknown", "sex": "female" if i % 2 else "male",
+                    "region": "north" if i % 3 else "south", "source": "file", "rectified": "no",
+                    "household_key": f"H{i // 2}", "censor_age": f"{age:.1f}", "self_report": "no"}
+            for e in ("first_marriage", "first_child", "first_relocation_abroad"):
+                happened = rng.random() < 0.4
+                rows.append(dict(base, event_type=e, age_at_event=f"{rng.uniform(18, age - 1):.1f}" if happened else ""))
+        res = oc.import_rows(s, rows, entered_by="test")
+    assert res.accepted == len(rows)
+    res = V.run(V.load_cohort(url), tmp_path / "seq.txt", permutations=100, bootstrap=100, shifts=20)
+    assert res["groups_straddling_folds"] == 0 and res["n_sequestered"] + res["n_development"] == 160
+    m = res["areas"]["marriage"]
+    assert m["status"] == "tested" and 0 < m["coverage"] < 1 and m["n_with_outcome"] == res["n_development"]
+    assert {"lift", "lift_ci", "p_permutation", "p_adj", "survives", "nested", "timing", "calibration", "power_5pt"} <= set(m)
+    assert m["calibration"]["gate"] is None and m["probability_language"] is False   # the sequestered cohort was not scored
+    assert res["areas"]["personality"]["status"] == "not_testable_yet"
+    assert res["areas"]["career"]["status"] == "insufficient"                 # no occupation rows in this cohort
+    md = V.report(res)
+    for heading in ("Pre-registration hashes", "Lift of the tier", "nested models", "discrete-time hazard",
+                    "Calibration", "Power at the current n", "Per-rule effects"):
+        assert heading in md
+    assert "Synthetic" not in md
