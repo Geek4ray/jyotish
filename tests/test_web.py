@@ -444,3 +444,40 @@ def test_review_verdict_buttons_and_reason(browser, review_url):
     client.wait_for_selector("#reading[data-state=done]")
     assert client.inner_text("#reading") == shown                                  # the client sees nothing of it
     ctx.close()
+
+
+def test_curious_paragraph_gap_opens_the_claims_on_the_site(page, curious_url):
+    # The same reading with career's paragraph turned into a gap: the gap note sits above the
+    # astrologer's reading, which is open; marriage's paragraph passed and keeps the toggle.
+    submit_reference(page, curious_url, depth="curious")
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams(location.search).get('id')).then(r => r.json())")["reading"]
+    for a in reading["areas"]:
+        if a["name"] == "career":
+            a["paragraph"], a["paragraph_cites"] = None, []
+            a["narration_gaps"] = [{"finding_id": "paragraph", "kind": "paragraph", "attempt": 3,
+                                    "last_error": "unsupported: 'the house of career'"}] + a["narration_gaps"]
+    page.route(f"{curious_url}/gap-reading.json", lambda route: route.fulfill(json=reading))
+    page.goto(f"{curious_url}/reading.html?src=/gap-reading.json")
+    page.wait_for_selector("#reading[data-state=done]")
+    career = page.locator('section.area[data-area="career"]')
+    assert career.locator("p.paragraph").count() == 0
+    toggle = career.locator("details.astrologer")
+    assert toggle.get_attribute("open") is not None and career.locator("li.claim").first.is_visible()
+    order = career.evaluate("""el => [...el.querySelectorAll('.gap-lead, .gaps, details.astrologer')].map(e => e.className)""")
+    assert order == ["gap-lead muted", "gaps", "astrologer"]                # the gap note above the claims, once
+    assert career.locator('.gaps li[data-finding="paragraph"]').count() == 1
+    marriage = page.locator('section.area[data-area="marriage"]')
+    assert marriage.locator("details.astrologer").get_attribute("open") is None
+    assert marriage.locator(".gap-lead").count() == 0
+
+
+def test_fired_chip_counts_rules_and_drafts_apart(page, base_url):
+    submit_reference(page, base_url)
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    chips = page.inner_text(".summary .chips")
+    assert "Fired: 5 rules, 21 draft placements" in chips and "Rules stable / unstable: 5 / 0" in chips
+    # The example reading predates the split and keeps its one chip.
+    page.goto(f"{base_url}/reading.html?src=/examples/reference_reading.json")
+    page.wait_for_selector("#reading[data-state=done]")
+    assert "Fired rules stable / unstable: 5 / 0" in page.inner_text(".summary .chips")

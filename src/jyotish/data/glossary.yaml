@@ -95,6 +95,69 @@
   aliases: [bhava]
   definition: "A house of the chart."
   source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false}
+# The twelve houses: one line each of the classical significations (BPHS 11, Phaladeepika 15),
+# paraphrased and not yet read against either edition. A finding's `area_houses` names the area's
+# houses it involves ("the 10th, a career house"), which is what attaches these entries.
+- term: 1st house
+  aliases: [1st house, first house, the 1st, H1]
+  definition: "The 1st house: the self, the body, temperament and general well-being."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 2nd house
+  aliases: [2nd house, second house, the 2nd, H2]
+  definition: "The 2nd house: wealth, family, speech and food."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 3rd house
+  aliases: [3rd house, third house, the 3rd, H3]
+  definition: "The 3rd house: courage, younger siblings, effort and short journeys."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 4th house
+  aliases: [4th house, fourth house, the 4th, H4]
+  definition: "The 4th house: mother, home, land, vehicles and inner contentment."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 5th house
+  aliases: [5th house, fifth house, the 5th, H5]
+  definition: "The 5th house: children, intellect, learning and the merit of past deeds."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 6th house
+  aliases: [6th house, sixth house, the 6th, H6]
+  definition: "The 6th house: debts, adversaries, illness and service."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 7th house
+  aliases: [7th house, seventh house, the 7th, H7]
+  definition: "The 7th house: marriage, partners, partnerships and travel."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 8th house
+  aliases: [8th house, eighth house, the 8th, H8]
+  definition: "The 8th house: longevity, inheritance, sudden events and hidden matters."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 9th house
+  aliases: [9th house, ninth house, the 9th, H9]
+  definition: "The 9th house: fortune, father, dharma, teachers and long journeys."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 10th house
+  aliases: [10th house, tenth house, the 10th, H10]
+  definition: "The 10th house: career, public standing, authority and deeds."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 11th house
+  aliases: [11th house, eleventh house, the 11th, H11]
+  definition: "The 11th house: gains, income, elder siblings and the fulfilment of wishes."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
+- term: 12th house
+  aliases: [12th house, twelfth house, the 12th, H12]
+  definition: "The 12th house: losses, expenses, foreign lands, sleep and liberation."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false,
+           also: {text: Phaladeepika, edition: Sastri 1937, chapter: 15, checked: false}}
 - term: kendra
   aliases: [kendra, angular house]
   definition: "An angular house: the 1st, 4th, 7th or 10th."

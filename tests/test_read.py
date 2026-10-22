@@ -56,7 +56,8 @@ def test_page_sections_in_order(page):
     assert pos == sorted(pos)
     assert "10 sentence(s) on this page have no recorded checker verdict" in md
     for field in ("- Driver: Venus", "- Current period (Vimshottari): Jupiter-Mercury", "- Top areas: career, marriage, longevity",
-                  "- Birth-time window: ±2 min", "- Fired rules stable / unstable under that window: 26 / 0",   # 5 yogas and 21 placements
+                  "- Birth-time window: ±2 min", "- Fired rules: 5 rules, 21 draft placements (drafts carry no weight in any score)",
+                      "- Rules stable / unstable under that window: 5 / 0; draft placements unstable: 0",
                   "- Abstained areas: children, father, gains, synastry"):
         assert field in md
     career = md[md.index("## Career"):md.index("## Marriage")]
@@ -281,3 +282,44 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
         career.index("<details><summary>Show the astrologer's reading")
     assert career.index("<details>") < career.index("1. ") < career.index("</details>")
     assert "*These are periods the engine scores as favourable for career; it does not predict when you will act.*" in md
+
+
+def test_curious_paragraph_gap_opens_the_claims_under_the_gap_note(tmp_path):
+    # An area whose plain paragraph ended as a gap shows its gap note first and the astrologer's
+    # reading open, not one click away; an area whose paragraph passed keeps the toggle.
+    from jyotish.page import render
+    from jyotish.uncertainty import assess
+    out = tmp_path / "curious"
+    args = [x for x in BIRTH]
+    args[args.index("--depth") + 1] = "curious"
+    with pytest.raises(SystemExit):
+        main(["read", *args, "--out", str(out), "--model-fixture", str(FIXTURES / "narration_curious.json")])
+    reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
+    gap = {"finding_id": "paragraph", "kind": "paragraph", "attempt": 3, "last_error": "unsupported: 'the house of career'"}
+    areas = [a.model_copy(update={"paragraph": None, "paragraph_cites": [], "narration_gaps": [gap] + a.narration_gaps})
+             if a.name == "career" else a for a in reading.areas]
+    md = render(reading.model_copy(update={"areas": areas}),
+                assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False))
+    career = md[md.index("## Career"):md.index("## Marriage")]
+    note = career.index("The plain paragraph for this area did not pass the checks")
+    assert note < career.index("Not narrated within the checks:") < career.index("- `paragraph` (paragraph)") \
+        < career.index("<details open><summary>Show the astrologer's reading") < career.index("1. ") < career.index("</details>")
+    assert career.count("Not narrated within the checks:") == 1           # listed once, above the claims
+    marriage = md[md.index("## Marriage"):md.index("## Longevity")]
+    assert "<details><summary>Show the astrologer's reading" in marriage and "did not pass the checks" not in marriage
+    assert marriage.index("</details>") < marriage.index("Not narrated within the checks:")
+
+
+def test_summary_counts_scored_rules_and_draft_placements_apart(page):
+    reading, md = page
+    s = reading.summary
+    assert (s.rules_fired, s.drafts_fired, s.drafts_unstable) == (5, 21, 0)
+    assert s.rules_fired + s.drafts_fired == len(reading.fired_rules)
+    assert sum(1 for f in reading.fired_rules if f["status"] == "draft") == s.drafts_fired
+    assert "- Fired rules: 5 rules, 21 draft placements (drafts carry no weight in any score)" in md
+    # A reading made before the split keeps its one line.
+    from jyotish.page import fired_lines
+    old = s.model_copy(update={"rules_fired": None, "drafts_fired": None, "drafts_unstable": None})
+    assert fired_lines(old) == ["- Fired rules stable / unstable under that window: 5 / 0"]
+    one = s.model_copy(update={"rules_fired": 1, "drafts_fired": 1})
+    assert fired_lines(one)[0].startswith("- Fired rules: 1 rule, 1 draft placement (")

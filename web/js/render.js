@@ -171,7 +171,19 @@ function conflict(sc) {
   return `<p class="conflict">School conflict: the Parashari families (${esc(sc.families[0])}) are ${esc(sc.parashari)}, the ${esc(other === "kp" ? "KP" : title(other))} family (${esc(sc.families[1])}) is ${esc(sc[other])}. The two are not averaged.</p>`;
 }
 
+// Scored rules and draft placements counted apart (a reading made before the split keeps its one chip).
+function counted(n, one, many) { return `${num(n)} ${n === 1 ? one : many}`; }
+function firedChips(s) {
+  if (s.rules_fired === null || s.rules_fired === undefined)
+    return `<span class="chip">Fired rules stable / unstable: <strong>${num(s.stable_findings)} / ${num(s.unstable_findings)}</strong></span>`;
+  return `<span class="chip fired" title="Draft placements fire and are recorded but carry no weight in any score">Fired: <strong>${counted(s.rules_fired, "rule", "rules")}, ${counted(s.drafts_fired, "draft placement", "draft placements")}</strong></span>
+      <span class="chip">Rules stable / unstable: <strong>${num(s.stable_findings)} / ${num(s.unstable_findings)}</strong></span>`;
+}
+
 function areaCard(a, notes, depth) {
+  // A curious paragraph that ended as a gap: its gap note first, then the claims open.
+  const gaps = a.narration_gaps || [];
+  const paraGap = depth === "curious" && gaps.some((g) => g.finding_id === "paragraph");
   const probability = a.probability === null || a.probability === undefined ? "not calibrated" : num(a.probability);
   const polarity = a.polarity.length
     ? a.polarity.map((p) => `${esc(p)} (${cell(a.polarity_touches[p] || [])})`).join("; ") : "none";
@@ -185,11 +197,12 @@ function areaCard(a, notes, depth) {
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
+    ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
     ${a.claims.length ? (depth === "curious"
-      ? `<details class="astrologer"><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
+      ? `<details class="astrologer"${paraGap ? " open" : ""}><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
       : `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}`)
-      : (a.narration_gaps || []).length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
-    ${gapsList(a.narration_gaps || [])}
+      : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
+    ${paraGap ? "" : gapsList(gaps)}
     ${a.school_conflicts.map(conflict).join("")}
     ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
     ${a.astrologer_note ? astrologerNote(a.astrologer_note) : ""}
@@ -256,7 +269,7 @@ export function renderReading(r) {
       <span class="chip">Current period (Vimshottari): <strong>${esc(s.current_period || "–")}</strong></span>
       <span class="chip">Top areas: <strong>${esc(s.top_areas.join(", "))}</strong></span>
       <span class="chip">Birth-time window: <strong>${s.time_window_min === null ? "–" : `±${num(s.time_window_min)} min`}</strong></span>
-      <span class="chip">Fired rules stable / unstable: <strong>${num(s.stable_findings)} / ${num(s.unstable_findings)}</strong></span>
+      ${firedChips(s)}
       <span class="chip">Abstained areas: <strong>${esc(s.abstained_areas.join(", ") || "none")}</strong></span>
     </div>
   </section>

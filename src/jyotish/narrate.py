@@ -156,12 +156,17 @@ class ReadingSummary(BaseModel):
     current_period: str | None
     top_areas: list[str]
     time_window_min: float | None
-    stable_findings: int
+    stable_findings: int                # scored rules' fires (drafts counted apart, below)
     unstable_findings: int
     abstained_areas: list[str]
     timing_line: str | None = None      # engine-written, for a "when" question (the model writes no timing)
     source: str = "model"               # "model", or "engine" when no drafted summary passed the checks
     timing_note: str | None = None      # engine-written, under the timing line: what a window is and is not
+    # Fires of scored rules and of draft placements (which fire and are recorded but carry no
+    # weight), counted apart; None on readings made before they were.
+    rules_fired: int | None = None
+    drafts_fired: int | None = None
+    drafts_unstable: int | None = None
 
 
 class Reading(BaseModel):
@@ -380,6 +385,51 @@ FAMILY_SCHOOL = {"house": "parashari", "lord": "parashari", "karaka": "parashari
 
 
 PLACEMENTS_PER_AREA = 3
+_ORD = {1: "1st", 2: "2nd", 3: "3rd"} | {n: f"{n}th" for n in range(4, 13)}
+# "the 10th, a career house": the area as an adjective, where its name is not one.
+AREA_LABEL = {"personality": "self", "siblings": "sibling", "mother_home": "home and mother", "children": "children's",
+              "intellect": "learning", "debts_enemies": "debts and adversaries", "father": "father's",
+              "spirituality": "spiritual"}
+
+
+def houses_involved(item: dict, area: str) -> list[dict]:
+    """Which of the area's houses a finding involves, each with its basis and in words ("the
+    10th, a career house"; "the 10th from the Sun, a career house"; "the 7th, the 10th's Bhavat
+    Bhavam"), so a sentence calling it "the house of career" can be checked against the data."""
+    from .scoring import AREAS, _houses
+    spec = AREAS.get(area)
+    if spec is None:
+        return []
+    houses = _houses(spec)
+    primary = spec["houses"][0]
+    found: list[tuple[str, int]] = []
+    if item["kind"] == "rule":
+        for fire in item.get("fires", []):
+            found += [(fire["basis"], int(n[1:])) for n in fire["nodes"] if n.startswith("H")]
+            for side in (fire.get("details") or {}).get("lordships", {}).values():
+                found += [(fire["basis"], h) for h in side]
+        for h in (item.get("placement") or {}).get("lord_of", []):
+            found.append(("lagna", h))
+    else:
+        d = item.get("derivation")
+        rows = d if isinstance(d, list) else [r for v in (d or {}).values() if isinstance(v, list) for r in v]
+        for r in rows:
+            if "house" in r and "basis" in r and "planet" not in r:
+                found.append((r["basis"], r["house"]))
+            for x in r.get("area_house_from", []) + r.get("rules", []):
+                found.append((x["basis"], x["house"]))
+            if "cusp" in r:
+                found.append(("lagna", r["cusp"]))
+    out, seen = [], set()
+    label = AREA_LABEL.get(area, area.replace("_", " "))
+    for basis, h in found:
+        if h not in houses or (basis, h) in seen:
+            continue
+        seen.add((basis, h))
+        where = "" if basis == "lagna" else f" from the {basis.capitalize()}"
+        what = f"a {label} house" if h in spec["houses"] else f"the {_ORD[primary]}'s Bhavat Bhavam"
+        out.append({"basis": basis, "house": h, "words": f"the {_ORD[h]}{where}, {what}"})
+    return out
 
 
 def other_placements(chart: Chart, area: str) -> list[dict]:
@@ -461,6 +511,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
             else:
                 # A promoted placement's classical effect, read in the named edition.
                 item["classical_effect"] = rule.data.get("narration_key")
+        item["area_houses"] = houses_involved(item, area)
         item["glossary"] = glossary_for(_check_data(item))
         (shaky if unstable else ok).append(item)
     # SPEC Layer 6b item 4: an area offers at most its three strongest placements (by theme
@@ -486,6 +537,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                     "derivation": a.vote_details.get(family), "term": a.terms.get(family),
                     "allowed_tags": [tag], "stability": a.vote_stability.get(family),
                     "confidence": min(1.0, weights[family]) * abs(vote)}
+            item["area_houses"] = houses_involved(item, area)
             item["glossary"] = glossary_for(_check_data(item))
             st = item["stability"]
             (shaky if st is not None and st < 0.5 else ok).append(item)
@@ -582,7 +634,9 @@ sub-lord's. Never write about death or its timing, medical conditions, or buying
 investments. For relationships (mother, father, partner, children, siblings), describe only what \
 this chart shows about the relationship, never what will happen to the other person. A finding with \
 status draft is a placement fact only: say where the planet is and which house it rules, and nothing \
-it is said to mean, since its effect has not been read in the text."""
+it is said to mean, since its effect has not been read in the text. A house is called by its area \
+("the house of career", "a career house") only where the finding's area_houses words it so ("the \
+10th, a career house"); say "the 10th" otherwise."""
 
 
 DEPTHS = ("curious", "learner", "astrologer")
@@ -685,7 +739,9 @@ Generic framing ("for career", "the vote is against") is supported when the data
 area says so. A gloss, a short definition given beside a term ("marana karaka sthana, a placement \
 in which a planet cannot give its good results"), is supported when it matches the meaning of \
 that term's entry in the data's glossary, and unsupported when it does not match or the term has \
-no entry there. Ignore the bracketed citation tags."""
+no entry there. A house called by its area ("the house of career", "a career house") is supported \
+when the data's area_houses lists that house in those words, and unsupported otherwise. Ignore the \
+bracketed citation tags."""
 
 
 def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
@@ -1012,7 +1068,8 @@ def _check_payload(f: dict) -> str:
 def _check_data(f: dict) -> dict:
     keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
             "school", "planets",
-            "themes", "fires", "derivation", "area_votes", "glossary", "classical_effect", "status", "placement")
+            "themes", "fires", "derivation", "area_votes", "glossary", "classical_effect", "status", "placement",
+            "area_houses")
     return {k: f[k] for k in keep if k in f}
 
 
@@ -1267,7 +1324,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     if cur:
         period = "-".join(cur.lords)
     u = chart.uncertainty
-    stable_n = sum(1 for x in fired if x["stability"] is not None and x["stability"] >= 0.5)
+    scored = [x for x in fired if x["status"] != "draft"]
+    drafts = [x for x in fired if x["status"] == "draft"]
+    stable_n = sum(1 for x in scored if x["stability"] is not None and x["stability"] >= 0.5)
+    unstable_of = lambda xs: sum(1 for x in xs if x["stability"] is not None and x["stability"] < 0.5)
     lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading_areas if a.windows]
     when_line = " ".join(x for x in lines if x) or None
     source, text = "model", kept_summary
@@ -1280,7 +1340,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         text=text, cites=[f"{k}:{v}" for k, v in TAG.findall(text)],
         driver_planet=sc.driver.driver, driver_alternates=sc.driver.alternates, current_period=period,
         top_areas=list(sc.top), time_window_min=u.half_width_min if u else None,
-        stable_findings=stable_n, unstable_findings=len(unstable),
+        stable_findings=stable_n, unstable_findings=unstable_of(scored),
+        rules_fired=len(scored), drafts_fired=len(drafts), drafts_unstable=unstable_of(drafts),
         abstained_areas=[n for n, x in sc.areas.items() if x.tier in ("not emphasised", "cannot be assessed",
                                                                    "needs two charts")])
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,

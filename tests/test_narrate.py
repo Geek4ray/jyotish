@@ -993,3 +993,44 @@ def test_checker_prompt_supports_a_gloss_that_matches_the_glossary():
     p = " ".join(CHECKER_PROMPT.split())
     assert "supported when it matches the meaning of that term's entry in the data's glossary" in p
     assert "unsupported when it does not match or the term has no entry there" in p
+
+
+# --- the houses: "the house of career" is checkable -------------------------------------------
+
+def test_glossary_has_the_twelve_houses_unchecked(chart):
+    from jyotish.narrate import glossary, glossary_for
+    houses = {e["term"]: e for e in glossary() if e["term"].endswith(" house") and e["term"][0].isdigit()}
+    assert len(houses) == 12
+    assert houses["10th house"]["definition"] == "The 10th house: career, public standing, authority and deeds."
+    for e in houses.values():
+        src = e["source"]
+        assert (src["text"], src["chapter"], src["checked"]) == ("BPHS", 11, False)
+        assert (src["also"]["text"], src["also"]["chapter"], src["also"]["checked"]) == ("Phaladeepika", 15, False)
+    # Whole words: H10 and "the 10th" are the 10th, never the 1st.
+    assert set(k for k in glossary_for({"nodes": ["H10"], "w": "the 10th, a career house"}) if "house" in k) == {"10th house"}
+    assert "1st house" in glossary_for({"nodes": ["H1"]}) and "10th house" not in glossary_for({"nodes": ["H1"]})
+
+
+def test_each_finding_names_the_area_houses_it_involves(chart):
+    from jyotish.narrate import _check_data, findings
+    by = {f["finding_id"]: f for f in findings(chart, "career")[0]}
+    words = lambda fid: [x["words"] for x in by[fid]["area_houses"]]
+    assert words("place.sun_h10@lagna") == ["the 10th, a career house"]
+    assert words("yoga.kendra_trikona_raja@lagna") == ["the 10th, a career house", "the 2nd, a career house"]
+    # Ruchaka: Mars in the 7th from the lagna (the 10th's Bhavat Bhavam), the 10th from the Sun.
+    assert words("yoga.ruchaka@lagna+sun") == ["the 7th, the 10th's Bhavat Bhavam", "the 10th from the Sun, a career house"]
+    assert {"10th house", "7th house"} <= set(by["yoga.ruchaka@lagna+sun"]["glossary"])
+    assert "the 10th, a career house" in words("vote:career.house")
+    assert words("vote:career.varga") == []                             # a varga vote counts no house
+    assert _check_data(by["place.sun_h10@lagna"])["area_houses"] == by["place.sun_h10@lagna"]["area_houses"]
+    marriage = {f["finding_id"]: f for f in findings(chart, "marriage")[0]}
+    assert [x["words"] for x in marriage["vote:marriage.kp"]["area_houses"]] == ["the 7th, a marriage house"]
+    # A house outside the area is never named as one of its houses.
+    assert all(x["house"] in (10, 6, 2, 11, 7) for f in by.values() for x in f["area_houses"])
+
+
+def test_prompts_tie_an_area_house_to_area_houses():
+    from jyotish.narrate import CHECKER_PROMPT, SYSTEM_PROMPT
+    assert "A house called by its area (\"the house of career\", \"a career house\") is supported when the data's " \
+           "area_houses lists that house in those words" in " ".join(CHECKER_PROMPT.split())
+    assert "only where the finding's area_houses words it so" in " ".join(SYSTEM_PROMPT.split())

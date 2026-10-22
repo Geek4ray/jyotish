@@ -176,6 +176,21 @@ def _vote_learner(d: dict) -> list[str]:
     return out + derivation_table(d["derivation"])
 
 
+def counted(n: int, one: str, many: str) -> str:
+    return f"{n} {one if n == 1 else many}"
+
+
+def fired_lines(s) -> list[str]:
+    """Scored rules and draft placements counted apart (a reading made before the split keeps
+    its one line)."""
+    if s.rules_fired is None:
+        return [f"- Fired rules stable / unstable under that window: {s.stable_findings} / {s.unstable_findings}"]
+    return [f"- Fired rules: {counted(s.rules_fired, 'rule', 'rules')}, "
+            f"{counted(s.drafts_fired, 'draft placement', 'draft placements')} (drafts carry no weight in any score)",
+            f"- Rules stable / unstable under that window: {s.stable_findings} / {s.unstable_findings}; "
+            f"draft placements unstable: {s.drafts_unstable}"]
+
+
 def render(reading: Reading, chart: Chart) -> str:
     notes = _Notes(chart)
     s = reading.summary
@@ -210,7 +225,7 @@ def render(reading: Reading, chart: Chart) -> str:
           f"- Current period (Vimshottari): {s.current_period or '–'}",
           f"- Top areas: {', '.join(s.top_areas)}",
           f"- Birth-time window: ±{s.time_window_min:g} min" if s.time_window_min is not None else "- Birth-time window: –",
-          f"- Fired rules stable / unstable under that window: {s.stable_findings} / {s.unstable_findings}",
+          *fired_lines(s),
           f"- Abstained areas: {', '.join(s.abstained_areas) or 'none'}", ""]
 
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name)[0]}
@@ -224,10 +239,18 @@ def render(reading: Reading, chart: Chart) -> str:
             L.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})" for p in a.polarity))
         L.append("")
         curious = reading.depth == "curious"
+        # A curious paragraph that ended as a gap: its gap note first, then the claims open.
+        para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
         if curious and a.paragraph:
             L += [notes.render(a.paragraph), ""]
+        gaps = (["Not narrated within the checks:", ""] +
+                [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
+                 for g in a.narration_gaps]) if a.narration_gaps else []
+        if para_gap:
+            L += ["The plain paragraph for this area did not pass the checks; the astrologer's reading is shown "
+                  "instead.", ""] + gaps + [""]
         if curious and a.claims:
-            L += ["<details><summary>Show the astrologer's reading</summary>", ""]
+            L += [f"<details{' open' if para_gap else ''}><summary>Show the astrologer's reading</summary>", ""]
         if a.claims:
             L += [f"{i}. {_claim(notes, c)}" for i, c in enumerate(a.claims, 1)]
             missing = [c.finding_id for c in a.claims if c.finding_id not in by_id]
@@ -244,10 +267,8 @@ def render(reading: Reading, chart: Chart) -> str:
                   f"{o['classical_effect']}" for o in a.other_placements]
         if curious and a.claims:
             L += ["", "</details>"]
-        if a.narration_gaps:
-            L += ["", "Not narrated within the checks:", ""]
-            L += [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
-                  for g in a.narration_gaps]
+        if gaps and not para_gap:
+            L += [""] + gaps
         if a.astrologer_note:
             n = a.astrologer_note
             L += ["", f"> **The astrologer's note** ({n['by']}, {n['at'][:10]}; not checked by the engine)", ">"]
