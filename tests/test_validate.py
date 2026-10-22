@@ -44,7 +44,7 @@ def test_the_sequestered_cohort_is_frozen_and_never_redrawn(V, tmp_path):
 def test_households_land_on_one_side_and_newcomers_follow(V, tmp_path):
     f = tmp_path / "s.txt"
     subs = [{"id": f"S-{i:04d}", "household": f"H-{i // 3:04d}" if i % 7 else None} for i in range(600)]
-    seq, meta = V.sequester(subs, f)
+    seq, meta = V.sequester(subs, f, salt="households")       # fixed: ~200 units draw a share of 0.25 +- 0.03
     assert meta["unit"] == "household" and 0.18 < len(seq) / len(subs) < 0.32
     assert V.households_straddling(subs, seq) == 0
     by_h = {}
@@ -135,6 +135,32 @@ def test_the_permutation_null_is_calibrated_and_finds_a_real_lift(V):
     y = np.where(pred, rng.random(300) < 0.6, rng.random(300) < 0.25).astype(float)
     lift, p = V.permutation_lift(y, pred, strata, rng, 500)
     assert lift > 1.5 and p < 0.01
+
+
+def test_the_bootstrap_resamples_households(V):
+    # Thirty households of ten with one outcome each: the row bootstrap treats 300 draws as independent
+    # and gives a narrow interval; the household bootstrap, which is the data's real sample size, a wide one.
+    rng = np.random.default_rng(7)
+    house = np.repeat(np.arange(30), 10)
+    y = np.repeat((rng.random(30) < 0.4).astype(float), 10)
+    pred = np.repeat(rng.random(30) < 0.5, 10)
+    lo_r, hi_r = V.bootstrap_ci(y, pred, np.random.default_rng(1), 400)
+    lo_h, hi_h = V.bootstrap_ci(y, pred, np.random.default_rng(1), 400, groups=house)
+    assert hi_h - lo_h > 1.5 * (hi_r - lo_r)
+    assert lo_h <= V.lift_stats(y, pred) <= hi_h
+
+
+def test_the_analysis_code_hash_covers_the_feature_code(V, tmp_path, monkeypatch):
+    _, meta = V.sequester(["a", "b"], tmp_path / "s.txt")
+    before = V.hashes(meta)["analysis_code"]
+    src = V.ROOT / "src" / "jyotish" / "cohort.py"
+    original = src.read_bytes()
+    try:
+        src.write_bytes(original + b"\n# touched\n")
+        assert V.hashes(meta)["analysis_code"] != before
+    finally:
+        src.write_bytes(original)
+    assert V.hashes(meta)["analysis_code"] == before
 
 
 def test_the_delong_cell_marks_a_fall(V):

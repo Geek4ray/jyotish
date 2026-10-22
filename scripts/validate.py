@@ -44,8 +44,9 @@ terms, its fired rules and its window activation.
    house, lord, karaka, varga, panchanga; Jaimini: arudha; KP: kp; Nadi has no Layer 5 family in
    v1), its AUC on the development set with DeLong's interval; the school with the highest is chosen
    there and its AUC estimated once on the sequestered cohort when that is scored.
-10. Pre-registration hashes: the rule set, the weight set, the split definition and this script;
-   with the power table per area at the current n. (Test 9, the decoy test, is not a script.)"""
+10. Pre-registration hashes: the rule set, the weight set, the split definition and the analysis
+   code (this script, jyotish.cohort, jyotish.outcomes and the outcome map); with the power table per
+   area at the current n. (Test 9, the decoy test, is not a script.)"""
 
 from __future__ import annotations
 
@@ -329,10 +330,20 @@ def permutation_lift(y: np.ndarray, pred: np.ndarray, strata: np.ndarray, rng, n
     return obs, (1 + count) / (1 + n)
 
 
-def bootstrap_ci(y, pred, rng, n: int = BOOTSTRAP):
+def bootstrap_ci(y, pred, rng, n: int = BOOTSTRAP, groups=None):
+    """A 95% bootstrap interval for the lift. With `groups` (one key per row: the household, or the
+    subject itself) whole groups are resampled, so related charts, whose outcomes travel together,
+    do not count as independent draws and narrow the interval (review 2026-10-23)."""
     vals = []
+    if groups is not None:
+        keys = np.asarray(groups)
+        uniq = np.unique(keys)
+        members = {g: np.flatnonzero(keys == g) for g in uniq}
     for _ in range(n):
-        ix = rng.integers(0, len(y), len(y))
+        if groups is None:
+            ix = rng.integers(0, len(y), len(y))
+        else:
+            ix = np.concatenate([members[g] for g in uniq[rng.integers(0, len(uniq), len(uniq))]])
         v = lift_stats(y[ix], pred[ix])
         if not math.isnan(v):
             vals.append(v)
@@ -595,7 +606,7 @@ def area_rows(cohort: Cohort, area: str, ids: set[str]) -> list[dict]:
         abstain = f["score"] is None or f["tier"] == "needs two charts" or s["accuracy"] in ABSTAIN_ACCURACY
         out.append(dict(o, id=s["id"], sex=s["sex"], region=s["region"], decade=s["decade"], tier=f["tier"],
                         score=f["score"], terms=f["terms"], votes=f.get("votes", {}), active=f["active"],
-                        abstain=abstain, stratum=stratum(s)))
+                        abstain=abstain, stratum=stratum(s), household=s.get("household") or f"s:{s['id']}"))
     return out
 
 
@@ -611,9 +622,15 @@ def hashes(seq_meta: dict) -> dict:
              "unit": seq_meta.get("unit", "subject"),
              "groups": "household and birthplace cluster, connected components",
              "strata": "birth decade x sex x region", "sequestered_file_sha256": seq_meta["file_sha256"]}
+    # The analysis code: this script, and the engine-side code and table it reads through
+    # (jyotish.cohort, jyotish.outcomes and the outcome map), not this script alone.
+    code = hashlib.sha256()
+    for p in (Path(__file__), ROOT / "src" / "jyotish" / "cohort.py", ROOT / "src" / "jyotish" / "outcomes.py",
+              ROOT / "src" / "jyotish" / "data" / "outcome_map.yaml"):
+        code.update(p.name.encode() + p.read_bytes())
     return {"rule_set": rules.hexdigest(), "weight_set": weights.hexdigest(),
             "split_definition": hashlib.sha256(json.dumps(split, sort_keys=True).encode()).hexdigest(),
-            "analysis_code": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "split": split}
+            "analysis_code": code.hexdigest(), "split": split}
 
 
 def run(cohort: Cohort, sequestered_file: Path = SEQUESTERED, score_sequestered: bool = False, seed: int = 0,
@@ -657,7 +674,7 @@ def run(cohort: Cohort, sequestered_file: Path = SEQUESTERED, score_sequestered:
         pred = np.array([r["tier"] in POSITIVE_TIERS for r in rows_c])
         strata = np.array([r["stratum"] for r in rows_c])
         lift, p = permutation_lift(y, pred, strata, rng, permutations)
-        lo, hi = bootstrap_ci(y, pred, rng, bootstrap)
+        lo, hi = bootstrap_ci(y, pred, rng, bootstrap, groups=[r["household"] for r in rows_c])
         a |= {"status": "tested", "base_rate": float(y.mean()), "n_predicted": int(pred.sum()),
               "rate_predicted": float(y[pred].mean()) if pred.any() else None,
               "rate_other": float(y[~pred].mean()) if (~pred).any() else None,
@@ -758,6 +775,8 @@ def report(res: dict, label: str = "") -> str:
             if res["split"]["registered"] else "No registry was given (a test run)."), "",
          f"## {syn}Pre-registration hashes (test 10)", "",
          f"- rule set `{h['rule_set']}`", f"- weight set `{h['weight_set']}`",
+         "- (the analysis code is validate.py with jyotish.cohort, jyotish.outcomes and the outcome map; the lift "
+         "interval resamples households)",
          f"- split definition `{h['split_definition']}` ({json.dumps(h['split'])})", f"- analysis code `{h['analysis_code']}`", "",
          f"## {syn}Lift of the tier, per area (tests 2 and 5)", "",
          "Positive prediction: tier strong or moderate. n is the predicted charts with the outcome recorded; coverage "
