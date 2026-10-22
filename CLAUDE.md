@@ -150,4 +150,14 @@ checker run is marked live. `jyotish export-reviews` writes the judgements to da
 docs/scorecard.{md,json}, and `.github/workflows/ci.yml` runs pytest and then fails when any
 scorecard number is worse than the committed one. Re-run `scripts/evaluate.py` and commit the
 scorecard when a change is meant to move a number.
+Outcome side (SPEC Layer 6, 2026-10-22). `outcomes.py` with the consents, subjects, events and
+erasures tables, the fixed event vocabulary, and `data/outcome_map.yaml` (areas and rule outcomes to
+events; an unmapped rule is not_testable_yet). `jyotish outcomes import|consent|withdraw|status` and
+POST /outcomes (clerk tokens in JYOTISH_CLERKS) refuse bad rows with reasons, and `jyotish subject
+erase` removes a subject and logs it. `scripts/validate.py` (extra "validate": scipy, scikit-learn,
+statsmodels) runs SPEC tests 1-8 and 10 over the database: a salted-hash sequestered 25% frozen in
+data/sequestered.txt (gitignored), grouped stratified K-fold, and docs/validation.md. Chart features
+for cohorts come from `jyotish.cohort`. `scripts/synthetic_cohort.py` makes planted and null cohorts;
+the suite runs them at small N, and the harness at 2,000 and 20,000, writing
+docs/validation_synthetic_*.md (every heading says synthetic).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

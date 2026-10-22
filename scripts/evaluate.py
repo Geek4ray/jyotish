@@ -11,7 +11,10 @@ It runs, in order:
      changes, the seed agreement per birth);
   4. the offline part of the checker benchmark (scripts/checker_bench.py: the validator alone) and
      its tests;
-  5. the placement generator check (scripts/make_placements.py --check).
+  5. the placement generator check (scripts/make_placements.py --check);
+  6. the synthetic validation runs (scripts/synthetic_cohort.py, scripts/validate.py): a planted and a
+     null cohort at N = 2,000 and 20,000 (--quick: 2,000 only), each written to
+     docs/validation_synthetic_<mode>_<n>.md, with what was recovered against what was planted.
 Every number carries its direction (higher or lower is better, or informational). --compare reads
 a committed scorecard JSON and exits 1 when any number is worse than there; a number skipped now
 (PyJHora absent, say) is reported and not counted as worse."""
@@ -169,6 +172,51 @@ def placements_check(card: Card):
                                                         "differ from scripts/placements.csv."]))
 
 
+SYNTHETIC_SIZES = (2000, 20000)
+
+
+def synthetic(card: Card, sizes=SYNTHETIC_SIZES):
+    import tempfile
+    try:
+        V, SC = _load("validate"), _load("synthetic_cohort")
+        import sklearn, statsmodels  # noqa: F401
+    except ImportError as e:
+        card.skip("synthetic validation runs", f"the validate extra is not installed ({e}): pip install -e '.[validate]'")
+        return
+    lines = []
+    for n in sizes:
+        for mode in ("planted", "null"):
+            t = time.time()
+            with tempfile.TemporaryDirectory() as d:
+                url = f"sqlite:///{Path(d) / 'cohort.db'}"
+                feats, truth = SC.make(n, mode, url, seed=0)
+                res = V.run(V.load_cohort(url, features=feats, synthetic=True), Path(d) / "sequestered.txt",
+                            score_sequestered=True)
+            c = SC.compare(truth, res)
+            (DOCS / f"validation_synthetic_{mode}_{n}.md").write_text(
+                V.report(res, label=f"{mode}, N = {n:,}, odds ratio {truth['odds_ratio_per_sd']} per SD"))
+            k = f"synthetic.{mode}.{n}"
+            if mode == "planted":
+                card.num(f"{k}.predicted_power", round(c["predicted_power_mean"], 4), None)
+                card.num(f"{k}.recovered_share", round(c["recovered_share"], 4), "higher")
+                card.num(f"{k}.survived_bh_share", round(c["survived_bh_share"], 4), "higher")
+                card.num(f"{k}.recovery_gap", round(abs(c["recovered_share"] - c["predicted_power_mean"]), 4), None)
+                card.num(f"{k}.timing_recovered_share", round(c["timing_recovered_share"], 4), "higher")
+                lines.append(f"Planted, N = {n:,} (odds ratio {truth['odds_ratio_per_sd']} per SD of the area score, "
+                             f"timing weight {truth['timing_weight']}): {len(c['planted_areas'])} planted areas; predicted "
+                             f"power {c['predicted_power_mean']:.2f}, recovered {c['recovered_share']:.2f} (p < 0.05), "
+                             f"{c['survived_bh_share']:.2f} surviving BH; the timing effect recovered in "
+                             f"{c['timing_recovered_share']:.2f}; {time.time() - t:.0f} s.")
+            else:
+                card.num(f"{k}.areas_surviving_bh", c["areas_surviving_bh"], "lower")
+                card.num(f"{k}.rules_with_effect", c["rules_with_effect"], "lower")
+                lines.append(f"Null, N = {n:,}: {c['areas_surviving_bh']} of {c['areas_tested']} areas survive BH; "
+                             f"{c['rules_with_effect']} of {c['rules_tested']} rules show an effect after BH; "
+                             f"{time.time() - t:.0f} s.")
+    card.sections.append(("Synthetic validation (the pipeline, not the engine)", lines +
+                          ["Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic)."]))
+
+
 def markdown(card: Card) -> str:
     L = ["# Scorecard", "", f"Run {date.today().isoformat()} at commit `{_commit()}` by `scripts/evaluate.py`. "
          "CI fails when any number with a direction is worse than in the committed `docs/scorecard.json`.", ""]
@@ -201,10 +249,12 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(DOCS / "scorecard"), help="path without extension: writes .md and .json")
     ap.add_argument("--compare", help="a committed scorecard JSON: exit 1 if any number is worse")
+    ap.add_argument("--quick", action="store_true", help="synthetic runs at N = 2,000 only")
     a = ap.parse_args(argv)
     card = Card()
     for step in (reference, crosscheck, metamorphic, checker, placements_check):
         step(card)
+    synthetic(card, SYNTHETIC_SIZES[:1] if a.quick else SYNTHETIC_SIZES)
     data = {"date": date.today().isoformat(), "commit": _commit(), "numbers": card.numbers, "skips": card.skips}
     out = Path(a.out)
     out.with_suffix(".md").write_text(markdown(card))

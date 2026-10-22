@@ -167,7 +167,12 @@ def folds(subjects: list[dict], seed: int = 0) -> np.ndarray:
     y = np.array([stratum(s) for s in subjects])
     out = np.zeros(len(subjects), dtype=int)
     k = min(K, len(set(g)))
-    for f, (_, test) in enumerate(StratifiedGroupKFold(n_splits=k, shuffle=True, random_state=seed).split(y, y, g)):
+    try:
+        splits = list(StratifiedGroupKFold(n_splits=k, shuffle=True, random_state=seed).split(y, y, g))
+    except ValueError:                       # a cohort too small to stratify: groups only
+        from sklearn.model_selection import GroupKFold
+        splits = list(GroupKFold(n_splits=k).split(y, y, g))
+    for f, (_, test) in enumerate(splits):
         out[test] = f
     return out
 

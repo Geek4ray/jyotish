@@ -6,7 +6,7 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -16,7 +16,7 @@ jobs:
         run: |
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -e ".[dev]"
+          .venv/bin/pip install -e ".[dev,validate]"
           .venv/bin/playwright install --with-deps chromium
       # Its own step: a PyJHora install failure fails only this step. The cross-check test then
       # skips, and the harness reports the cross-check as skipped rather than worse.
