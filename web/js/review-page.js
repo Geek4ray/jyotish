@@ -4,7 +4,10 @@
 // browser until it is sent, so closing the tab loses nothing. The page reopens at the first
 // step not yet answered. ?mode=blind is the judge page: the same flow, but for each area the
 // reviewer first answers from the chart alone, and the server sends the engine's reading and
-// period only after. Every label comes from strings.js.
+// period only after. Every question but the note has an optional box for the reviewer's own words,
+// sent in the same answer row (Ctrl+Enter sends it and goes on), and a last question asks about the
+// reading as a whole. Answers and words are judgements: never shown to the client, never checked.
+// Every label comes from strings.js.
 import { chrome } from "./chrome.js";
 import { esc } from "./render.js";
 import { pickLanguage, t } from "./strings.js";
@@ -53,10 +56,18 @@ function saved(text, bad = false) {
   if (el) { el.textContent = text; el.classList.toggle("bad", bad); }
 }
 
+// The reviewer's own words on this step, when it has the box.
+function words() {
+  const box = panel.querySelector("#own-words");
+  return box ? box.value.trim() : undefined;
+}
+
 async function answer(step, area, value) {
   saved(t("saving"));
+  const comment = words();
   try {
-    state.view = await call("/answer", "POST", { step, area, answer: value, mode: MODE });
+    state.view = await call("/answer", "POST", { step, area, answer: value, mode: MODE, ...(comment !== undefined ? { comment } : {}) });
+    if (comment !== undefined) dropDraft(`c:${step}:${area}`);
     saved(t("saved"));
     return true;
   } catch (e) {
@@ -81,10 +92,15 @@ function dropDraft(k) { try { localStorage.removeItem(draftKey(k)); } catch { /*
 const areas = () => state.view.reading.areas;
 const areaName = (n) => { try { return t(`areaname.${n}`); } catch { return n.replaceAll("_", " "); } };
 const hasWindows = (a) => (a.hidden ? a.has_windows : (a.windows || []).length > 0);
-function latest(area, step) {
+function latestRow(area, step) {
   const xs = state.view.answers.filter((x) => x.mode === MODE && x.step === step && (x.area ?? null) === (area ?? null));
-  return xs.length ? xs[xs.length - 1].answer : undefined;
+  return xs.length ? xs[xs.length - 1] : undefined;
 }
+function latest(area, step) {
+  const row = latestRow(area, step);
+  return row ? row.answer : undefined;
+}
+const COMMENTED = new Set(["blind_reading", "blind_period", "match", "off", "sentences", "period"]);
 
 function steps() {
   const v = state.view;
@@ -102,12 +118,13 @@ function steps() {
     out.push(at("sentences"), at("note"));
     if (hasWindows(a)) out.push(at("period"));
   });
-  out.push({ k: "summary", key: "summary" }, { k: "done", key: "done" });
+  out.push({ k: "whole", key: "whole" }, { k: "summary", key: "summary" }, { k: "done", key: "done" });
   return out;
 }
 
 function answered(s) {
   if (s.k === "intro") return state.view.intro_done;
+  if (s.k === "whole") return latest(null, "whole") !== undefined;
   if (s.k === "summary" || s.k === "done") return state.view.review_status === "reviewed";
   return latest(s.area, s.k) !== undefined;
 }
@@ -150,6 +167,18 @@ const month = (iso) => {
   const d = new Date(`${iso.length === 7 ? `${iso}-01` : iso}T00:00:00`);
   return d.toLocaleDateString(document.documentElement.lang, { month: "short", year: "numeric" });
 };
+
+// "In your own words": beside the choices, kept in this browser until it is sent.
+function ownWords(s) {
+  const row = latestRow(s.area, s.k);
+  const value = draft(`c:${s.key}`) ?? (row && row.comment) ?? "";
+  return `<div class="own-words field"><label for="own-words">${esc(t("comment.label"))}</label>
+    <textarea id="own-words" rows="4">${esc(value)}</textarea><p class="tiny muted">${esc(t("comment.hint"))}</p></div>`;
+}
+
+function beside(s, body) {
+  return `<div class="question-row"><div class="question-body">${body}</div>${ownWords(s)}</div>`;
+}
 
 function choices(options, current) {
   return `<div class="choices" role="group">${options.map(([value, label], i) =>
@@ -207,12 +236,12 @@ const VIEWS = {
   blind_reading(s) {
     const cur = state.local.choice ?? latest(s.area, s.k);
     return `${stepHead(s)}<h3 class="question">${esc(t("blind_reading.q", { area: areaName(s.area) }))}</h3>
-      ${choices(["promising", "mixed", "difficult"].map((x) => [x, t(`blind_reading.${x}`)]), cur)}${footer()}`;
+      ${beside(s, choices(["promising", "mixed", "difficult"].map((x) => [x, t(`blind_reading.${x}`)]), cur))}${footer()}`;
   },
   blind_period(s) {
     const cur = draft(s.key) || latest(s.area, s.k);
     return `${stepHead(s)}<h3 class="question">${esc(t("blind_period.q", { area: areaName(s.area) }))}</h3>
-      <p class="small muted">${esc(t("blind_period.hint"))}</p>${rangeInputs("own", cur)}${footer()}`;
+      ${beside(s, `<p class="small muted">${esc(t("blind_period.hint"))}</p>${rangeInputs("own", cur)}`)}${footer()}`;
   },
   match(s) {
     const cur = state.local.choice ?? latest(s.area, s.k);
@@ -220,16 +249,16 @@ const VIEWS = {
     return `${stepHead(s)}<p class="small muted">${esc(t("match.lead", { area: areaName(s.area) }))}</p>${quoted(s.area)}
       ${own ? `<p class="small own">${esc(t("match.your_blind", { answer: t(`blind_reading.${own}`) }))}</p>` : ""}
       <h3 class="question">${esc(t("match.q", { area: areaName(s.area) }))}</h3>
-      ${choices(["agree", "partly", "disagree"].map((x) => [x, t(`match.${x}`)]), cur)}${footer()}`;
+      ${beside(s, choices(["agree", "partly", "disagree"].map((x) => [x, t(`match.${x}`)]), cur))}${footer()}`;
   },
   off(s) {
     const cur = draft(s.key) || latest(s.area, s.k) || { reasons: [], line: "" };
     state.local.off = state.local.off || { reasons: [...cur.reasons], line: cur.line || "" };
     const on = new Set(state.local.off.reasons);
     return `${stepHead(s)}<h3 class="question">${esc(t("off.q"))}</h3><p class="small muted">${esc(t("off.hint"))}</p>
-      <div class="choices multi" role="group">${["missing_combination", "weight", "timing", "wording", "other"].map((x, i) =>
+      ${beside(s, `<div class="choices multi" role="group">${["missing_combination", "weight", "timing", "wording", "other"].map((x, i) =>
         `<button type="button" class="choice toggle" data-value="${x}" data-key="${i + 1}" aria-pressed="${on.has(x)}"><span class="choice-key">${i + 1}</span>${esc(t(`off.${x}`))}</button>`).join("")}</div>
-      <div class="field"><label for="off-line">${esc(t("off.line"))}</label><input id="off-line" type="text" value="${esc(state.local.off.line)}"></div>
+      <div class="field"><label for="off-line">${esc(t("off.line"))}</label><input id="off-line" type="text" value="${esc(state.local.off.line)}"></div>`)}
       ${footer()}`;
   },
   sentences(s) {
@@ -256,7 +285,8 @@ const VIEWS = {
         ${rewrite}</div>`;
     }).join("");
     return `${stepHead(s)}<h3 class="question">${esc(t("sentences.q"))}</h3><p class="small muted">${esc(t("sentences.hint"))}</p>
-      ${us.length ? `<div class="sentence-cards">${cards}</div>` : `<p class="muted">${esc(t("sentences.none"))}</p>`}${footer()}`;
+      ${us.length ? `<div class="sentence-cards">${cards}</div>` : `<p class="muted">${esc(t("sentences.none"))}</p>`}
+      ${ownWords(s)}${footer()}`;
   },
   note(s) {
     const a = areaOf(s.area);
@@ -276,32 +306,48 @@ const VIEWS = {
       ${a.avoid_window ? `<p class="small muted">${esc(t("period.avoid", { start: month(a.avoid_window.start), end: month(a.avoid_window.end) }))}</p>` : ""}
       ${own ? `<p class="small own">${esc(t("period.your_blind", { start: month(own.from), end: month(own.to) }))}</p>` : ""}
       <h3 class="question">${esc(t("period.q"))}</h3>
-      ${choices(["yes", "earlier", "later", "different"].map((x) => [x, t(`period.${x}`)]), cur.choice)}
+      ${beside(s, `${choices(["yes", "earlier", "later", "different"].map((x) => [x, t(`period.${x}`)]), cur.choice)}
       <div class="your-period"${cur.choice && cur.choice !== "yes" ? "" : " hidden"}>
-        <p class="small">${esc(t("period.yours"))}</p>${rangeInputs("yours", cur)}</div>${footer(t("nav.next"))}`;
+        <p class="small">${esc(t("period.yours"))}</p>${rangeInputs("yours", cur)}</div>`)}${footer(t("nav.next"))}`;
+  },
+  whole() {
+    const cur = draft("whole") ?? (latest(null, "whole") || {}).text ?? "";
+    return `<p class="kicker">${esc(t("whole.label"))}</p><h2 class="display">${esc(t("whole.q"))}</h2>
+      <p class="small muted">${esc(t("whole.hint"))}</p>
+      <div class="field"><label for="whole-text">${esc(t("whole.label"))}</label><textarea id="whole-text" rows="6">${esc(cur)}</textarea></div>
+      ${footer()}`;
   },
   summary() {
     const v = state.view;
-    const row = (label, value) => `<div><dt>${esc(label)}</dt><dd>${value ? esc(value) : esc(t("summary.empty"))}</dd></div>`;
-    const blocks = areas().map((a) => {
-      const own = latest(a.name, "blind_reading");
-      const ownP = latest(a.name, "blind_period");
-      const m = latest(a.name, "match");
-      const off = latest(a.name, "off");
-      const dec = (latest(a.name, "sentences") || {}).decisions || {};
-      const note = (latest(a.name, "note") || {}).text;
-      const p = latest(a.name, "period");
-      return `<section class="summary-area" data-area="${esc(a.name)}"><h3>${esc(areaName(a.name))}</h3><dl class="facts">
-        ${MODE === "blind" ? row(t("summary.blind_reading"), own && t(`blind_reading.${own}`)) : ""}
-        ${MODE === "blind" && ownP ? row(t("summary.blind_period"), t("period.range", { start: month(ownP.from), end: month(ownP.to) })) : ""}
-        ${row(t("summary.match"), m && t(`match.${m}`))}
-        ${off ? row(t("summary.off"), [...off.reasons.map((x) => t(`off.${x}`)), off.line].filter(Boolean).join("; ")) : ""}
-        ${row(t("summary.sentences"), String(Object.values(dec).filter((x) => x === "rewritten").length))}
-        ${row(t("summary.note"), note)}
-        ${p ? row(t("summary.period"), p.choice === "yes" ? t("period.yes") : `${t(`period.${p.choice}`)}: ${t("period.range", { start: month(p.from), end: month(p.to) })}`) : ""}
-        </dl><button type="button" class="button secondary edit-area" data-area="${esc(a.name)}">${esc(t("summary.edit"))}</button></section>`;
-    }).join("");
+    const range = (x) => t("period.range", { start: month(x.from), end: month(x.to) });
+    const says = {
+      blind_reading: (a) => t(`blind_reading.${a}`),
+      blind_period: (a) => range(a),
+      match: (a) => t(`match.${a}`),
+      off: (a) => [...a.reasons.map((x) => t(`off.${x}`)), a.line].filter(Boolean).join("; "),
+      sentences: (a) => String(Object.values(a.decisions || {}).filter((x) => x === "rewritten").length),
+      note: (a) => a.text,
+      period: (a) => (a.choice === "yes" ? t("period.yes") : `${t(`period.${a.choice}`)}: ${range(a)}`),
+      whole: (a) => a.text,
+    };
+    const label = { blind_reading: "summary.blind_reading", blind_period: "summary.blind_period", match: "summary.match",
+                    off: "summary.off", sentences: "summary.sentences", note: "summary.note", period: "summary.period",
+                    whole: "summary.whole" };
+    // One line per question: what was chosen, the reviewer's words, and a way back to change either.
+    const line = (st) => {
+      const row = latestRow(st.area ?? null, st.k);
+      const chosen = row ? says[st.k](row.answer) : "";
+      return `<li class="summary-line" data-step="${esc(st.key)}"><span class="q">${esc(t(label[st.k]))}</span>
+        <span class="a">${chosen ? esc(chosen) : esc(t("summary.empty"))}</span>
+        ${row && row.comment ? `<span class="words">${esc(t("summary.words", { words: row.comment }))}</span>` : ""}
+        ${st.k.startsWith("blind_") ? "" : `<button type="button" class="button secondary change" data-go="${esc(st.key)}">${esc(t("summary.change"))}</button>`}</li>`;
+    };
+    const all = steps().filter((x) => x.k in says);
+    const blocks = areas().map((a) => `<section class="summary-area" data-area="${esc(a.name)}"><h3>${esc(areaName(a.name))}</h3>
+      <ul class="summary-lines">${all.filter((x) => x.area === a.name).map(line).join("")}</ul></section>`).join("");
+    const whole = all.filter((x) => x.k === "whole").map(line).join("");
     return `<h2 class="display">${esc(t("summary.heading"))}</h2>${blocks}
+      <section class="summary-area" data-area=""><ul class="summary-lines">${whole}</ul></section>
       <div class="approve-box"><p class="approve-line">${esc(t("summary.approve_line", { name: v.reviewer }))}</p>
         <button type="button" class="button approve big">${esc(t("summary.approve"))}</button></div>
       <div class="step-nav"><button type="button" class="button secondary back">${esc(t("nav.back"))}</button><span class="save-state small muted" role="status"></span><span></span></div>`;
@@ -357,12 +403,19 @@ const NEXT = {
     }
     if (await answer(s.k, s.area, value)) { dropDraft(s.key); goNext(); }
   },
+  async whole() {
+    const text = panel.querySelector("#whole-text").value.trim();
+    if (await answer("whole", null, { text })) { dropDraft("whole"); goNext(); }
+  },
   async summary() {},
   async done() {},
 };
 
 async function chosen(s) {
-  if (latest(s.area, s.k) === undefined) return saved(t("choose_first"), true);
+  const row = latestRow(s.area, s.k);
+  if (row === undefined) return saved(t("choose_first"), true);
+  // Words typed after the choice was saved go in a new answer row with the same choice.
+  if ((words() || "") !== (row.comment || "") && !(await answer(s.k, s.area, row.answer))) return;
   goNext();
 }
 
@@ -376,6 +429,8 @@ async function next() {
 function bind(s) {
   panel.querySelector(".next")?.addEventListener("click", next);
   panel.querySelector(".back")?.addEventListener("click", goBack);
+  panel.querySelector("#own-words")?.addEventListener("input", (e) => draft(`c:${s.key}`, e.target.value));
+  if (s.k === "whole") panel.querySelector("#whole-text").addEventListener("input", (e) => draft("whole", e.target.value));
   if (["blind_reading", "match"].includes(s.k)) {
     panel.querySelectorAll(".choice").forEach((b) => b.addEventListener("click", async () => {
       state.local.choice = b.dataset.value;
@@ -425,7 +480,7 @@ function bind(s) {
     panel.querySelectorAll(".your-period input").forEach((i) => i.addEventListener("input", keep));
   }
   if (s.k === "summary") {
-    panel.querySelectorAll(".edit-area").forEach((b) => b.addEventListener("click", () => go(`match:${b.dataset.area}`)));
+    panel.querySelectorAll(".change").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
     panel.querySelector(".approve").addEventListener("click", async () => {
       try { state.view = await call("/approve", "POST"); go("done"); }
       catch (e) { saved(t("save_failed", { message: e.message }), true); if (e.auth) ask(); }

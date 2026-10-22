@@ -14,7 +14,9 @@ Targets name what is edited: "summary:<i>" (the i-th sentence of the summary),
 "claim:<area>:<finding id>", "paragraph:<area>:<i>" (the i-th sentence of a curious paragraph).
 
 The guided review (web/review.html) asks its questions one step at a time and logs every answer
-(`check_answer` says which answers each step takes). Its words are an astrologer's: the chart
+(`check_answer` says which answers each step takes), each with an optional comment in the
+reviewer's own words; a last step asks about the reading as a whole. Answers and comments are
+judgement data: never shown to the client, never checked. Its words are an astrologer's: the chart
 facts beside a sentence (`facts`) and the reasons an edit is refused (`plain_reasons`) are
 written without the engine's own vocabulary. In blind mode (the judge page) an area's paragraph
 and windows are withheld (`redact`) until the reviewer has answered from the chart alone."""
@@ -237,7 +239,7 @@ OFF = ("missing_combination", "weight", "timing", "wording", "other")
 PERIOD = ("yes", "earlier", "later", "different")
 OWN_READING = ("promising", "mixed", "difficult")
 AREA_STEPS = ("blind_reading", "blind_period", "match", "off", "sentences", "note", "period")
-STEPS = ("intro",) + AREA_STEPS
+STEPS = ("intro",) + AREA_STEPS + ("whole",)      # whole: "Anything about the reading as a whole?"
 
 
 def _month(x: Any) -> str:
@@ -273,7 +275,7 @@ def check_answer(step: str, answer: Any) -> None:
               and set(answer["reasons"]) <= set(OFF) and isinstance(answer.get("line", ""), str))
     elif step == "sentences":
         ok = isinstance(answer, dict) and all(v in ("keep", "rewritten") for v in answer.get("decisions", {}).values())
-    elif step == "note":
+    elif step in ("note", "whole"):
         ok = isinstance(answer, dict) and isinstance(answer.get("text"), str)
     else:                                                                   # period
         ok = isinstance(answer, dict) and answer.get("choice") in PERIOD

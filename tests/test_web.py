@@ -499,7 +499,10 @@ def test_guided_review_whole_flow(browser, guided_url):
     key(rev, "2")
     rev.wait_for_selector('.choice[data-value="partly"][aria-pressed="true"]')
     assert progress(rev)[1] == total0 + 1                                            # "What is off?" joins
-    rev.keyboard.press("Enter")
+    # Beside the choices, in his own words; Ctrl+Enter sends them in the same answer row and goes on.
+    assert rev.locator(".question-row #own-words").count() == 1
+    rev.fill("#own-words", "The 10th lord carries the reading here.")
+    rev.press("#own-words", "Control+Enter")
     # (2) What is off: several, and a line; Enter in the line goes on.
     at(rev, "off:career")
     assert progress(rev)[0] == n0 + 1
@@ -527,7 +530,8 @@ def test_guided_review_whole_flow(browser, guided_url):
     rev.fill("#rw-text", rewrite)
     rev.click(".check-rewrite")
     rev.wait_for_selector(".sentence-card.rewritten .accepted")
-    rev.keyboard.press("Enter")
+    rev.fill("#own-words", "The second and fourth sentences overlap.")
+    rev.press("#own-words", "Control+Enter")
     # (4) The note; the tab closes with it half written, and nothing is lost.
     at(rev, "note:career")
     assert "the client sees this as the astrologer's own words" in rev.inner_text("#guided-panel").lower()
@@ -539,10 +543,15 @@ def test_guided_review_whole_flow(browser, guided_url):
     at(rev, "note:career")                                                           # reopens where it was left
     assert rev.input_value("#note-text") == note
     rev.press("#note-text", "Control+Enter")
-    # (5) The best period: 2 is Earlier, with a range.
+    # (5) The best period: 2 is Earlier, with a range. Words typed and not yet sent survive a reload.
     at(rev, "period:career")
     assert rev.inner_text(".engine-period") == "Oct 2029 to Jun 2032"
     plain_words(rev)
+    rev.fill("#own-words", "Saturn's return pulls it forward.")
+    rev.reload()
+    at(rev, "period:career")
+    assert rev.input_value("#own-words") == "Saturn's return pulls it forward."
+    rev.locator("#guided-panel").focus()
     assert not rev.locator(".your-period").is_visible()
     rev.keyboard.press("2")                                  # Earlier: saved once the range is given
     assert rev.locator(".your-period").is_visible()
@@ -558,12 +567,33 @@ def test_guided_review_whole_flow(browser, guided_url):
         rev.keyboard.press("Enter")
         at(rev, f"note:{area}")
         rev.keyboard.press("Enter")
+    # The last question, after the areas.
+    at(rev, "whole")
+    assert "Anything about the reading as a whole?" in rev.inner_text("#guided-panel")
+    plain_words(rev)
+    rev.fill("#whole-text", "Sound, but it underplays the 10th lord.")
+    rev.press("#whole-text", "Control+Enter")
     at(rev, "summary")
     plain_words(rev)
-    career = rev.inner_text('.summary-area[data-area="career"]')
-    for bit in ("Partly", "A combination is missing; The timing; The 10th lord's weakness is underplayed",
-                "Sentences rewritten\n1", note, "Earlier: Oct 2027 to Dec 2028"):
-        assert bit in career, bit
+    line = lambda step: rev.inner_text(f'.summary-line[data-step="{step}"]')
+    assert "Partly" in line("match:career") and "“The 10th lord carries the reading here.”" in line("match:career")
+    assert "A combination is missing; The timing; The 10th lord's weakness is underplayed" in line("off:career")
+    assert "1" in line("sentences:career") and "“The second and fourth sentences overlap.”" in line("sentences:career")
+    assert note in line("note:career")
+    assert "Earlier: Oct 2027 to Dec 2028" in line("period:career") and "Saturn's return pulls it forward." in line("period:career")
+    assert "Sound, but it underplays the 10th lord." in line("whole")
+    assert rev.locator(".summary-line").count() == rev.locator(".summary-line .change").count()
+    # Changing either the choice or the words: back to that question, then the summary again.
+    rev.click('.summary-line[data-step="match:career"] .change')
+    at(rev, "match:career")
+    assert rev.input_value("#own-words") == "The 10th lord carries the reading here."
+    key(rev, "3")
+    rev.fill("#own-words", "On reflection the 10th lord decides it.")
+    with rev.expect_response(lambda r: "/review/answer" in r.url and r.status == 200):
+        rev.press("#own-words", "Control+Enter")
+    rev.reload()
+    at(rev, "summary")
+    assert "Disagree" in line("match:career") and "“On reflection the 10th lord decides it.”" in line("match:career")
     assert rev.inner_text(".approve-line") == "The client will see: reviewed by judge-1"
     rev.click(".approve")
     at(rev, "done")
@@ -585,6 +615,13 @@ def test_guided_review_whole_flow(browser, guided_url):
     period = next(h for h in log if h["step"] == "period")
     assert period["answer"] == {"choice": "earlier", "from": "2027-10", "to": "2028-12"}
     assert period["reviewer"] == "judge-1" and period["at"] and period["mode"] == "review"
+    assert period["comment"] == "Saturn's return pulls it forward."
+    assert [h["comment"] for h in log if h["step"] == "match" and h["area"] == "career"][-1] == "On reflection the 10th lord decides it."
+    assert next(h for h in log if h["step"] == "whole")["answer"] == {"text": "Sound, but it underplays the 10th lord."}
+    client.reload()
+    client.wait_for_selector("#reading[data-state=done]")
+    shown = client.inner_text("#reading")
+    assert not any(w in shown for w in ("10th lord carries", "Saturn's return pulls", "underplays the 10th lord"))
     ctx.close()
 
 
@@ -606,10 +643,12 @@ def test_judge_page_hides_the_reading_until_answered_from_the_chart(browser, gui
     view = rev.evaluate(f"""fetch('/readings/{rid}/review?mode=blind', {{headers: {{Authorization: 'Bearer tok-2'}}}}).then(r => r.json())""")
     assert all(a.get("hidden") for a in view["reading"]["areas"]) and view["units"] == []
     key(rev, "1")
-    rev.keyboard.press("Enter")
+    rev.fill("#own-words", "Saturn in the 1st, the 10th lord, holds it up.")
+    rev.press("#own-words", "Control+Enter")
     at(rev, "blind_period:career")
     rev.fill("#own-from", "2027-06")
     rev.fill("#own-to", "2028-12")
+    rev.fill("#own-words", "Mercury's sub-period.")
     rev.press("#own-to", "Enter")
     # Now shown: the same flow as the review, with their own answers beside the engine's.
     at(rev, "match:career")
@@ -649,17 +688,29 @@ def test_judge_page_hides_the_reading_until_answered_from_the_chart(browser, gui
     for step in ("match:longevity", "sentences:longevity", "note:longevity"):
         at(rev, step)
         rev.keyboard.press("Enter")
+    at(rev, "whole")
+    rev.fill("#whole-text", "Close to my own reading.")
+    rev.press("#whole-text", "Control+Enter")
     at(rev, "summary")
     plain_words(rev)
-    career = rev.inner_text('.summary-area[data-area="career"]')
-    assert "From the chart alone\nPromising" in career and "Your period from the chart alone\nJun 2027 to Dec 2028" in career
-    assert "From the chart alone\nDifficult" in rev.inner_text('.summary-area[data-area="marriage"]')
+    line = lambda step: rev.inner_text(f'.summary-line[data-step="{step}"]')
+    assert "Promising" in line("blind_reading:career") and "“Saturn in the 1st, the 10th lord, holds it up.”" in line("blind_reading:career")
+    assert "Jun 2027 to Dec 2028" in line("blind_period:career") and "Mercury's sub-period." in line("blind_period:career")
+    assert "Difficult" in line("blind_reading:marriage")
+    # Answers from the chart alone stand once the reading is shown: no way back to change them.
+    assert rev.locator('.summary-line[data-step^="blind_"] .change').count() == 0
+    assert rev.locator('.summary-line[data-step="match:career"] .change').count() == 1
+    assert "Close to my own reading." in line("whole")
     rev.click(".approve")
     at(rev, "done")
     log = rev.evaluate(f"""fetch('/readings/{rid}/review?mode=blind', {{headers: {{Authorization: 'Bearer tok-2'}}}}).then(r => r.json())""")
     blind = [(a["step"], a["area"]) for a in log["answers"] if a["mode"] == "blind"]
     assert blind.index(("blind_reading", "career")) < blind.index(("blind_period", "career")) < blind.index(("match", "career"))
     assert ("blind_period", "marriage") not in blind
+    rows = {(a["step"], a["area"]): a for a in log["answers"] if a["mode"] == "blind"}
+    assert rows[("blind_reading", "career")]["comment"] == "Saturn in the 1st, the 10th lord, holds it up."
+    assert rows[("blind_period", "career")]["comment"] == "Mercury's sub-period."
+    assert rows[("whole", None)]["answer"] == {"text": "Close to my own reading."}
     ctx.close()
 
 

@@ -307,3 +307,16 @@ blockquote.paragraph-quote { border-left: 3px solid var(--accent); padding: 4px 
 .chain-list .in-loop { color: var(--accent); font-weight: 600; }
 .loop-back { color: var(--muted); }
 .loop-chip { display: inline-block; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 1px 10px; margin-right: 4px; }
+
+/* the reviewer's own words beside the choices; the summary as one line per question */
+.question-row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.question-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.own-words textarea { min-height: 96px; }
+.own-words p { margin: 0; }
+.summary-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.summary-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--rule); padding: 6px 0; }
+.summary-line .q { color: var(--muted); min-width: 180px; font-size: 13px; }
+.summary-line .a { font-weight: 600; }
+.summary-line .words { font-family: var(--display); color: var(--text); }
+.summary-line .change { margin-left: auto; min-height: 32px; padding: 4px 12px; font-size: 13px; }
+@media (max-width: 900px) { .question-row { grid-template-columns: minmax(0, 1fr); } }

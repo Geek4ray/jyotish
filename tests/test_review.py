@@ -351,3 +351,40 @@ def test_the_chart_drawing_takes_a_choice_of_vargas(guided):
     assert 'data-varga="D1"' in svg and 'data-varga="D9"' in svg and 'data-varga="D10"' not in svg
     assert c.get(f"/charts/{cid}/chart.svg?vargas=D60").status_code == 422
     assert 'data-varga="D10"' in c.get(f"/charts/{cid}/chart.svg").text
+
+
+# --- comments in the reviewer's own words, and the reading as a whole ------------------------
+
+def test_a_comment_is_stored_in_the_answer_row_and_never_reaches_the_client(guided):
+    app, c, rid = guided
+    before = c.get(f"/readings/{rid}").json()
+    post = lambda body: c.post(f"/readings/{rid}/review/answer", headers=J1, json=body)
+    v = post({"step": "match", "area": "career", "answer": "partly",
+              "comment": "  The 10th lord's weakness is the story here.  "}).json()
+    assert v["answers"][-1]["comment"] == "The 10th lord's weakness is the story here."
+    assert post({"step": "period", "area": "career", "answer": {"choice": "yes"}, "comment": ""}).json()["answers"][-1]["comment"] is None
+    with app.state.Session() as s:
+        row = s.query(ReviewRow).filter_by(reading_id=rid, step="match").one()
+        assert (row.comment, row.answer, row.verdict) == ("The 10th lord's weakness is the story here.", "partly", "partly")
+    hist = c.get(f"/readings/{rid}/review", headers=J1).json()["history"]
+    assert any(h["comment"] == "The 10th lord's weakness is the story here." for h in hist)
+    after = c.get(f"/readings/{rid}").json()
+    assert after["reading"] == before["reading"] and after["page"] == before["page"]           # not shown, not checked
+    assert "story here" not in json.dumps(after)
+    assert post({"step": "match", "area": "career", "answer": "agree", "comment": 12}).status_code == 422
+    assert post({"step": "match", "area": "career", "answer": "agree", "comment": "x" * 4001}).status_code == 422
+
+
+def test_the_reading_as_a_whole(guided):
+    app, c, rid = guided
+    post = lambda body, mode="review", tok=J1: c.post(f"/readings/{rid}/review/answer", headers=tok, json=dict(body, mode=mode))
+    r = post({"step": "whole", "answer": {"text": "Balanced; the timing reads early."}, "comment": "seen in practice"})
+    assert r.status_code == 200
+    last = r.json()["answers"][-1]
+    assert (last["step"], last["area"], last["answer"], last["comment"]) == \
+        ("whole", None, {"text": "Balanced; the timing reads early."}, "seen in practice")
+    assert post({"step": "whole", "area": "career", "answer": {"text": "x"}}).status_code == 422     # no area
+    assert post({"step": "whole", "answer": "fine"}).status_code == 422                              # {text}
+    # Blind: the whole reading is asked only once every area has been shown.
+    assert post({"step": "whole", "answer": {"text": "x"}}, mode="blind", tok=J2).status_code == 409
+    assert "Balanced" not in json.dumps(c.get(f"/readings/{rid}").json())

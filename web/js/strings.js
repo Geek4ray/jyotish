@@ -111,6 +111,13 @@ export const STRINGS = {
     "reason.name": "Name the combination this sentence is about: {detail}.",
     "reason.other": "The sentence could not be tied to the chart facts it rests on.",
 
+    "comment.label": "In your own words (optional)",
+    "comment.hint": "Ctrl+Enter sends it with your answer. It stays with us: the client never sees it.",
+
+    "whole.q": "Anything about the reading as a whole?",
+    "whole.hint": "What the areas do not say on their own: the balance of the reading, what you would tell the client first. It stays with us.",
+    "whole.label": "The reading as a whole",
+
     "note.q": "What would you add?",
     "note.hint": "The client sees this as the astrologer's own words, under your name. Leave it empty to add nothing.",
     "note.label": "Your note on {area}",
@@ -141,6 +148,9 @@ export const STRINGS = {
     "summary.approve": "Approve",
     "summary.approve_line": "The client will see: reviewed by {name}",
     "summary.edit": "Change an answer",
+    "summary.change": "Change",
+    "summary.whole": "The reading as a whole",
+    "summary.words": "“{words}”",
 
     "done.heading": "Done",
     "done.body": "The reading is approved. The client sees it now, reviewed by {name}.",

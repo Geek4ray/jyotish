@@ -45,7 +45,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
@@ -110,6 +110,7 @@ class ReviewRow(Base):
     step: Mapped[str | None] = mapped_column(String(32), nullable=True)         # a guided-review step
     answer: Mapped[Any | None] = mapped_column(DOCUMENT, nullable=True)         # its answer
     mode: Mapped[str | None] = mapped_column(String(16), nullable=True)         # review | blind
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)            # "in your own words", never shown
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
@@ -165,6 +166,7 @@ class AnswerRequest(BaseModel):
     area: str | None = None
     answer: Any
     mode: Literal["review", "blind"] = "review"
+    comment: str | None = Field(default=None, max_length=4000)   # the reviewer's own words: judgement, never checked
 
 
 VERDICTS = ("agree", "partly", "disagree")
@@ -382,7 +384,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     fact_cache: dict = {}
 
     def answers_of(s, row, who: str) -> list[dict]:
-        return [{"step": r.step, "area": r.area, "answer": r.answer, "mode": r.mode, "at": r.created_at.isoformat()}
+        return [{"step": r.step, "area": r.area, "answer": r.answer, "mode": r.mode, "comment": r.comment,
+                 "at": r.created_at.isoformat()}
                 for r in s.query(ReviewRow).filter_by(reading_id=row.id, reviewer_id=who, action="answer")
                 .order_by(ReviewRow.id)]
 
@@ -414,7 +417,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         rows = list(s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id))
         history = [{"action": r.action, "target": r.target, "reviewer": r.reviewer_id, "accepted": r.accepted,
                     "before": r.before, "after": r.after, "errors": r.errors, "area": r.area, "verdict": r.verdict,
-                    "reason": r.reason, "step": r.step, "answer": r.answer, "mode": r.mode,
+                    "reason": r.reason, "step": r.step, "answer": r.answer, "mode": r.mode, "comment": r.comment,
                     "at": r.created_at.isoformat()} for r in rows]
         verdicts = {r.area: {"verdict": r.verdict, "reason": r.reason, "by": r.reviewer_id, "at": r.created_at.isoformat()}
                     for r in rows if r.action == "verdict" or (r.action == "answer" and r.step == "match")}  # the latest per area
@@ -459,8 +462,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 raise HTTPException(status_code=422, detail=str(e))
             if req.step in AREA_STEPS and req.area not in names:
                 raise HTTPException(status_code=422, detail=f"no area {req.area!r} in this reading")
-            if req.step == "intro" and req.area is not None:
-                raise HTTPException(status_code=422, detail="the introduction belongs to no area")
+            if req.step in ("intro", "whole") and req.area is not None:
+                raise HTTPException(status_code=422, detail=f"the {req.step} step belongs to no area")
+            if req.step == "whole" and len(shown_areas(s, row, reading, who, req.mode)) < len(names):
+                raise HTTPException(status_code=409, detail="answer every area before the reading as a whole")
             blind_step = req.step.startswith("blind_")
             if blind_step and req.mode != "blind":
                 raise HTTPException(status_code=422, detail=f"{req.step} is asked in blind mode only")
@@ -470,7 +475,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 blind_gate(s, row, reading, who, req.mode, req.area)
             log(s, row, who, "answer", seen=req.mode == "review", step=req.step, area=req.area, answer=req.answer,
                 mode=req.mode, target=f"{req.step}:{req.area}" if req.area else req.step,
-                verdict=req.answer if req.step == "match" else None)
+                verdict=req.answer if req.step == "match" else None,
+                comment=req.comment.strip() if req.comment and req.comment.strip() else None)
             s.flush()
             if req.mode == "blind" and req.area in shown_areas(s, row, reading, who, req.mode) \
                     and s.get(ExclusionRow, row.chart_id) is None:     # the reading is now seen
