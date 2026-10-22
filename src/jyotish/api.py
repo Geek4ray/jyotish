@@ -67,6 +67,7 @@ class ChartRow(Base):
     """One chart object per chart id (SPEC data schema), with the birth data it came from."""
     __tablename__ = "charts"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)   # cache.birth_key: the birth, no engine
     birth: Mapped[dict] = mapped_column(DOCUMENT)
     engine: Mapped[str] = mapped_column(String(32))
     document: Mapped[dict] = mapped_column(DOCUMENT)
@@ -78,6 +79,7 @@ class ReadingRow(Base):
     __tablename__ = "readings"
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
     chart_id: Mapped[str | None] = mapped_column(ForeignKey("charts.id"), nullable=True)
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     question: Mapped[str] = mapped_column(Text)
     request: Mapped[dict] = mapped_column(DOCUMENT)
     status: Mapped[str] = mapped_column(String(16))                 # queued | running | done | failed
@@ -118,6 +120,7 @@ class ExclusionRow(Base):
     """A chart whose reading a judge has seen: excluded from the blind learning set for good."""
     __tablename__ = "exclusions"
     chart_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     reason: Mapped[str] = mapped_column(String(64))
     reviewer_id: Mapped[str] = mapped_column(String(64))
     reading_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -140,10 +143,13 @@ class ConsentRow(Base):
 
 class SubjectRow(Base):
     """A person whose dated events are recorded. `chart_id` is the engine's chart key for the birth
-    data. Rectified charts are refused at import (SPEC Layer 6: excluded from every test)."""
+    data at the first import (it carries the engine hash and the accuracy class); `birth_key` is the
+    birth as a person (cache.birth_key), by which the subject's rows are matched and erased.
+    Rectified charts are refused at import (SPEC Layer 6: excluded from every test)."""
     __tablename__ = "subjects"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     chart_id: Mapped[str] = mapped_column(String(64))
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     birth: Mapped[dict] = mapped_column(DOCUMENT)                       # date, time, tz, lat, lon, place, node
     accuracy: Mapped[str] = mapped_column(String(16))
     sex: Mapped[str] = mapped_column(String(16))
@@ -191,7 +197,8 @@ def excluded_charts(session) -> set[str]:
 
 
 def _add_missing_columns(engine) -> None:
-    """create_all makes new tables but never alters old ones: add columns a newer model has."""
+    """create_all makes new tables but never alters old ones: add columns a newer model has, then
+    fill the birth keys of rows stored before they existed."""
     insp = inspect(engine)
     for table in Base.metadata.sorted_tables:
         if not insp.has_table(table.name):
@@ -203,6 +210,27 @@ def _add_missing_columns(engine) -> None:
                 with engine.begin() as conn:
                     conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {col.name} "
                                       f"{col.type.compile(engine.dialect)}{default}"))
+    _backfill_birth_keys(engine)
+
+
+def _backfill_birth_keys(engine) -> None:
+    """Charts and subjects stored before the birth key existed get theirs from their birth data,
+    readings and exclusions from their chart; a record that cannot be keyed is left as it is."""
+    from .cache import birth_key_of_record
+    with sessionmaker(engine)() as s:
+        for row in list(s.query(ChartRow).filter(ChartRow.birth_key.is_(None))) + \
+                list(s.query(SubjectRow).filter(SubjectRow.birth_key.is_(None))):
+            try:
+                row.birth_key = birth_key_of_record(row.birth)
+            except (KeyError, ValueError, TypeError):
+                pass
+        s.flush()
+        keys = dict(s.query(ChartRow.id, ChartRow.birth_key))
+        for r in s.query(ReadingRow).filter(ReadingRow.birth_key.is_(None), ReadingRow.chart_id.isnot(None)):
+            r.birth_key = keys.get(r.chart_id)
+        for x in s.query(ExclusionRow).filter(ExclusionRow.birth_key.is_(None)):
+            x.birth_key = keys.get(x.chart_id)
+        s.commit()
 
 
 class ReadingRequest(BirthInput):
@@ -342,18 +370,19 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     def run(reading_id: str, req: ReadingRequest) -> None:
         from .narrate import NarrationError
-        from .service import assess_birth, chart_line, make_reading, reading_header
+        from .service import assess_birth, birth_key_of, chart_line, make_reading, reading_header
         log: list[str] = []
         keep: dict = {}
         try:
             stage(reading_id, log, "chart", keep)
             birth = BirthInput(**req.model_dump(include=set(BirthInput.model_fields)))
             chart, source, chart_id = assess_birth(birth)
+            bkey = birth_key_of(birth)
             with Session.begin() as s:
                 if s.get(ChartRow, chart_id) is None:
-                    s.add(ChartRow(id=chart_id, birth=birth.model_dump(), engine=chart.meta.engine,
+                    s.add(ChartRow(id=chart_id, birth_key=bkey, birth=birth.model_dump(), engine=chart.meta.engine,
                                    document=chart.model_dump(mode="json")))
-            update(reading_id, chart_id=chart_id)
+            update(reading_id, chart_id=chart_id, birth_key=bkey)
             keep = {"chart": chart_line(chart, birth),
                     "header": reading_header(birth, req.question, chart, req.as_of, model_fixture, req.depth)}
             stage(reading_id, log, "score", keep, chart_source=source,
@@ -442,8 +471,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     def log(s, row, who: str, action: str, seen: bool = True, **fields) -> None:
         s.add(ReviewRow(reading_id=row.id, chart_id=row.chart_id, reviewer_id=who, action=action, **fields))
         if seen and row.chart_id and s.get(ExclusionRow, row.chart_id) is None:
-            s.add(ExclusionRow(chart_id=row.chart_id, reason="reading seen in review", reviewer_id=who,
-                               reading_id=row.id))
+            s.add(ExclusionRow(chart_id=row.chart_id, birth_key=row.birth_key, reason="reading seen in review",
+                               reviewer_id=who, reading_id=row.id))
 
     def save(s, row, reading) -> None:
         from .page import render
@@ -549,8 +578,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             s.flush()
             if req.mode == "blind" and req.area in shown_areas(s, row, reading, who, req.mode) \
                     and s.get(ExclusionRow, row.chart_id) is None:     # the reading is now seen
-                s.add(ExclusionRow(chart_id=row.chart_id, reason="reading seen in review", reviewer_id=who,
-                                   reading_id=row.id))
+                s.add(ExclusionRow(chart_id=row.chart_id, birth_key=row.birth_key, reason="reading seen in review",
+                                   reviewer_id=who, reading_id=row.id))
                 s.flush()
             return review_view(s, row, reading, who, req.mode)
 

@@ -11,7 +11,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from jyotish import outcomes as oc
-from jyotish.api import ChartRow, ConsentRow, ErasureRow, EventRow, ReadingRow, ReviewRow, SubjectRow, create_app
+from jyotish.api import (ChartRow, ConsentRow, ErasureRow, EventRow, ExclusionRow, ReadingRow, ReviewRow, SubjectRow,
+                         create_app)
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "docs" / "intake_template.csv"
@@ -56,6 +57,7 @@ def test_the_template_imports(Session):
     with Session() as s:
         subj = s.get(SubjectRow, "S-0001")
         assert subj.accuracy == "exact" and subj.source == "file" and len(subj.chart_id) == 64
+        assert len(subj.birth_key) == 64 and subj.birth_key != subj.chart_id
         ev = {e.event_type: e for e in s.query(EventRow)}
         assert ev["first_marriage"].age_at_event == 27.5 and ev["first_marriage"].censor_age == 41
         assert ev["first_relocation_abroad"].age_at_event is None              # censored: not by 41
@@ -126,17 +128,99 @@ def test_post_outcomes_and_erasure(tmp_path):
     with Session() as s:
         subj = s.get(SubjectRow, "S-0001")
         assert s.query(ReadingRow).filter_by(chart_id=subj.chart_id).count() == 1
-        assert s.get(ChartRow, subj.chart_id) is not None
+        chart = s.get(ChartRow, subj.chart_id)
+        assert chart is not None and chart.birth_key == subj.birth_key
+        assert s.query(ReadingRow).one().birth_key == subj.birth_key and s.query(ExclusionRow).one().birth_key == subj.birth_key
+    # A reading of the same birth made under an earlier engine (another chart id, the same birth key).
+    with Session.begin() as s:
+        s.add(ChartRow(id="e" * 64, birth_key=subj.birth_key, birth=chart.birth, engine="0.9", document=chart.document))
+        s.add(ReadingRow(id="r-old", chart_id="e" * 64, birth_key=subj.birth_key, question="q", request={}, status="done",
+                         progress={}))
+        s.add(ExclusionRow(chart_id="e" * 64, birth_key=subj.birth_key, reason="reading seen in review", reviewer_id="judge-1"))
     with Session.begin() as s:
         counts = oc.erase(s, "S-0001", "dpo-1")
-    assert counts == {"reviews": 1, "readings": 1, "exclusions": 1, "charts": 1, "events": 4, "consents": 1,
+    assert counts == {"reviews": 1, "readings": 2, "exclusions": 2, "charts": 2, "events": 4, "consents": 1,
                       "subjects": 1}
     with Session() as s:
         assert s.get(SubjectRow, "S-0001") is None and s.query(EventRow).count() == 0
         assert s.query(ReadingRow).count() == 0 and s.query(ReviewRow).count() == 0 and s.query(ConsentRow).count() == 0
+        assert s.query(ChartRow).count() == 0 and s.query(ExclusionRow).count() == 0
         log = s.query(ErasureRow).one()
         assert (log.subject_id, log.erased_by, log.counts["events"]) == ("S-0001", "dpo-1", 4)
-        assert "1984" not in str(log.counts)                                  # the log holds no birth data
+        assert "1984" not in str(log.counts) and subj.birth_key not in str(log.counts)   # the log holds no birth data
+
+
+def test_the_birth_key_outlives_the_engine_and_the_accuracy_class(Session, monkeypatch):
+    import jyotish.cache as cache
+    with Session.begin() as s:
+        oc.add_consent(s, "C-0001", "S-0001", "v1", "backlog", "clerk-1")
+        res = oc.import_rows(s, _rows()[:2], entered_by="clerk-1", today=TODAY)
+    assert res.accepted == 2
+    with Session() as s:
+        subj = s.get(SubjectRow, "S-0001")
+        first_chart_id, bkey = subj.chart_id, subj.birth_key
+    # The engine changes, and with it its hash; the clerk corrects the accuracy class: later rows still belong.
+    monkeypatch.setattr(cache, "engine_hash", lambda: "0" * 64)
+    later = [dict(r, accuracy="within_15") for r in _rows()[2:]]
+    with Session.begin() as s:
+        res = oc.import_rows(s, later, entered_by="clerk-1", today=TODAY)
+    assert (res.accepted, res.subjects_created, res.refused) == (2, 0, [])
+    with Session() as s:
+        subj = s.get(SubjectRow, "S-0001")
+        assert subj.birth_key == bkey and subj.chart_id == first_chart_id          # the key at first import stands
+        assert s.query(EventRow).count() == 4
+    # Another birth for the same subject is still refused.
+    with Session.begin() as s:
+        res = oc.import_rows(s, [dict(_rows()[0], time="08:45")], entered_by="clerk-1", today=TODAY)
+    assert len(res.refused) == 1 and "differs" in res.refused[0]["reasons"][0]
+
+
+def test_twins_keep_their_shared_chart(Session):
+    with Session.begin() as s:
+        oc.add_consent(s, "C-0001", "S-0001", "v1", "backlog", "clerk-1")
+        oc.add_consent(s, "C-0002", "S-0002", "v1", "backlog", "clerk-1")
+        twin = [dict(_rows()[0], subject_id="S-0002", consent_id="C-0002")]
+        res = oc.import_rows(s, _rows() + twin, entered_by="clerk-1", today=TODAY)
+        assert (res.accepted, res.subjects_created) == (5, 2)
+        a, b = s.get(SubjectRow, "S-0001"), s.get(SubjectRow, "S-0002")
+        assert a.birth_key == b.birth_key and a.chart_id == b.chart_id
+        s.add(ChartRow(id=a.chart_id, birth_key=a.birth_key, birth=a.birth, engine="x", document={}))
+        cid = a.chart_id
+    with Session.begin() as s:
+        counts = oc.erase(s, "S-0001", "dpo-1")
+    assert counts["charts"] == 0 and counts["kept_for_another_subject"] == 1
+    assert (counts["events"], counts["consents"], counts["subjects"]) == (4, 1, 1)
+    with Session() as s:
+        assert s.get(ChartRow, cid) is not None and s.get(SubjectRow, "S-0002") is not None
+        assert s.query(EventRow).count() == 1
+    with Session.begin() as s:
+        counts = oc.erase(s, "S-0002", "dpo-1")
+    assert counts["charts"] == 1 and "kept_for_another_subject" not in counts
+    with Session() as s:
+        assert s.get(ChartRow, cid) is None and s.query(SubjectRow).count() == 0
+
+
+def test_rows_from_before_the_birth_key_get_theirs_on_open(tmp_path):
+    from sqlalchemy import create_engine, text
+    url = f"sqlite:///{tmp_path / 'old.db'}"
+    Session = oc.sessionmaker_for(url)
+    with Session.begin() as s:
+        oc.add_consent(s, "C-0001", "S-0001", "v1", "backlog", "clerk-1")
+        oc.import_rows(s, _rows(), entered_by="clerk-1", today=TODAY)
+        subj = s.get(SubjectRow, "S-0001")
+        key, cid = subj.birth_key, subj.chart_id
+        s.add(ChartRow(id=cid, birth=dict(subj.birth, accuracy="exact", seed=0), engine="x", document={}))
+        s.add(ReadingRow(id="r1", chart_id=cid, question="q", request={}, status="done", progress={}))
+        s.add(ExclusionRow(chart_id=cid, reason="reading seen in review", reviewer_id="judge-1"))
+    with create_engine(url).begin() as conn:
+        conn.execute(text("UPDATE subjects SET birth_key = NULL"))
+    with Session() as s:
+        assert s.get(ChartRow, cid).birth_key is None and s.get(SubjectRow, "S-0001").birth_key is None
+    oc.sessionmaker_for(url)                                                  # opening the database again backfills
+    with Session() as s:
+        assert s.get(SubjectRow, "S-0001").birth_key == key
+        assert s.get(ChartRow, cid).birth_key == key and s.get(ReadingRow, "r1").birth_key == key
+        assert s.query(ExclusionRow).one().birth_key == key
 
 
 def test_the_commands(tmp_path):

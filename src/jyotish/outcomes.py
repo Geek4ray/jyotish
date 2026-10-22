@@ -149,18 +149,23 @@ def check_row(row: dict, consents: dict, today: date | None = None) -> list[str]
     return out
 
 
-def _chart_id(row: dict) -> str:
-    from .cache import chart_key
+def _keys(row: dict) -> tuple[str, str]:
+    """(the engine's chart key, the birth key) of a sheet row's birth data. The chart key carries the
+    engine hash and the accuracy class and changes with them; the birth key does not, and is what a
+    subject's rows are matched and erased by."""
+    from .cache import birth_key, chart_key
     from .service import BirthInput, assess_kwargs
     b = BirthInput(date=row["date"], time=row["time"], tz=row["tz"], lat=float(row["lat"]), lon=float(row["lon"]),
                    accuracy=row["accuracy"], node=row.get("node") or "mean", place=row.get("place") or None)
     utc, kw = assess_kwargs(b)
-    return chart_key(utc, b.lat, b.lon, **kw)
+    return chart_key(utc, b.lat, b.lon, **kw), birth_key(utc, b.lat, b.lon)
 
 
 def import_rows(session, rows: list[dict], entered_by: str, today: date | None = None) -> ImportResult:
-    """Validate and store sheet rows (the CLI and POST /outcomes share this)."""
+    """Validate and store sheet rows (the CLI and POST /outcomes share this). A later row for a known
+    subject must carry the same birth (birth key), whatever the engine version or accuracy class."""
     from .api import ConsentRow, EventRow, SubjectRow
+    from .cache import birth_key_of_record
     consents = {c.id: {"subject_id": c.subject_id, "withdrawn_at": c.withdrawn_at} for c in session.query(ConsentRow).all()}
     res = ImportResult()
     now = datetime.now(timezone.utc)
@@ -169,7 +174,7 @@ def import_rows(session, rows: list[dict], entered_by: str, today: date | None =
         reasons = check_row(row, consents, today)
         if not reasons:
             try:
-                cid = _chart_id(row)
+                cid, bkey = _keys(row)
             except Exception as e:                      # bad timezone or coordinates
                 reasons = [f"birth data: {e}"]
         if reasons:
@@ -178,17 +183,19 @@ def import_rows(session, rows: list[dict], entered_by: str, today: date | None =
         sid = row["subject_id"]
         subj = session.get(SubjectRow, sid)
         if subj is None:
-            subj = SubjectRow(id=sid, chart_id=cid, birth={k: row.get(k) for k in ("date", "time", "tz", "lat", "lon",
-                                                                                   "place", "node")},
+            subj = SubjectRow(id=sid, chart_id=cid, birth_key=bkey,
+                              birth={k: row.get(k) for k in ("date", "time", "tz", "lat", "lon", "place", "node")},
                               accuracy=row["accuracy"], sex=row.get("sex") or "unknown", region=row.get("region") or "unknown",
                               source=row["source"], rectified=False, seen_by_astrologer=_bool(row.get("seen_by_astrologer")),
                               household_key=row.get("household_key") or None,
                               birthplace_cluster=row.get("birthplace_cluster") or None)
             session.add(subj)
             res.subjects_created += 1
-        elif subj.chart_id != cid:
+        elif (subj.birth_key or birth_key_of_record(subj.birth)) != bkey:
             res.refused.append({"row": i, "subject_id": sid, "reasons": ["the birth data differs from this subject's earlier rows"]})
             continue
+        elif subj.birth_key is None:
+            subj.birth_key = bkey
         entered = _when(row.get("entered_at")) or now
         shown = _when(row.get("reading_shown_at"))
         after = shown is not None and shown <= entered
@@ -232,24 +239,36 @@ def withdraw_consent(session, consent_id: str) -> None:
 
 def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
     """Remove a subject's chart, readings, reviews, exclusions, events, consents and the subject
-    itself; log the erasure (who, when, how many rows), never the data."""
+    itself; log the erasure (who, when, how many rows), never the data. Charts, readings and
+    exclusions are found by the birth key, so a reading of the same birth made under another engine
+    version goes too. When another subject shares the birth (twins) the chart and its readings are
+    theirs as well: they stay, and the log counts them as kept."""
+    from sqlalchemy import or_
     from .api import ChartRow, ConsentRow, ErasureRow, EventRow, ExclusionRow, ReadingRow, ReviewRow, SubjectRow
+    from .cache import birth_key_of_record
     subj = session.get(SubjectRow, subject_id)
     if subj is None:
         raise ValueError(f"no subject {subject_id}")
-    cid = subj.chart_id
-    readings = [r.id for r in session.query(ReadingRow).filter_by(chart_id=cid)]
-    counts = {
-        "reviews": session.query(ReviewRow).filter(ReviewRow.reading_id.in_(readings)).delete(synchronize_session=False)
-        if readings else 0,
-        "readings": session.query(ReadingRow).filter_by(chart_id=cid).delete(synchronize_session=False),
-        "exclusions": session.query(ExclusionRow).filter_by(chart_id=cid).delete(synchronize_session=False),
-        "charts": session.query(ChartRow).filter_by(id=cid).delete(synchronize_session=False),
-        "events": session.query(EventRow).filter_by(subject_id=subject_id).delete(synchronize_session=False),
-        "consents": session.query(ConsentRow).filter_by(subject_id=subject_id).delete(synchronize_session=False),
-    }
+    bkey = subj.birth_key or birth_key_of_record(subj.birth)
+    twins = session.query(SubjectRow).filter(SubjectRow.birth_key == bkey, SubjectRow.id != subject_id).count()
+    chart_ids = {c.id for c in session.query(ChartRow).filter(or_(ChartRow.birth_key == bkey, ChartRow.id == subj.chart_id))}
+    readings = [r.id for r in session.query(ReadingRow).filter(
+        or_(ReadingRow.birth_key == bkey, *([ReadingRow.chart_id.in_(chart_ids)] if chart_ids else [])))]
+    counts = {"reviews": 0, "readings": 0, "exclusions": 0, "charts": 0}
+    if not twins:
+        if readings:
+            counts["reviews"] = session.query(ReviewRow).filter(ReviewRow.reading_id.in_(readings)).delete(synchronize_session=False)
+            counts["readings"] = session.query(ReadingRow).filter(ReadingRow.id.in_(readings)).delete(synchronize_session=False)
+        counts["exclusions"] = session.query(ExclusionRow).filter(
+            or_(ExclusionRow.birth_key == bkey, *([ExclusionRow.chart_id.in_(chart_ids)] if chart_ids else []))).delete(synchronize_session=False)
+        if chart_ids:
+            counts["charts"] = session.query(ChartRow).filter(ChartRow.id.in_(chart_ids)).delete(synchronize_session=False)
+    counts["events"] = session.query(EventRow).filter_by(subject_id=subject_id).delete(synchronize_session=False)
+    counts["consents"] = session.query(ConsentRow).filter_by(subject_id=subject_id).delete(synchronize_session=False)
     session.delete(subj)
     counts["subjects"] = 1
+    if twins:
+        counts["kept_for_another_subject"] = twins          # the chart and its readings are also theirs
     session.add(ErasureRow(subject_id=subject_id, erased_by=erased_by, counts=counts))
     session.flush()
     return counts

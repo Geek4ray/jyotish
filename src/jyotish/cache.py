@@ -44,6 +44,25 @@ def chart_key(utc: datetime, lat: float, lon: float, **kw) -> str:
     return hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()
 
 
+def birth_key(utc: datetime, lat: float, lon: float) -> str:
+    """The key of a birth as a person: the UTC instant to the second and the place to four decimals
+    (about 11 m), and nothing of the engine. It is the same under every engine version, convention,
+    seed and accuracy class, so a subject's chart, readings and exclusions stay findable after the
+    engine changes (outcomes.erase; review 2026-10-23, F4). Two people born at one instant and place
+    share it, which erase() allows for."""
+    utc = utc.astimezone(timezone.utc) if utc.tzinfo else utc.replace(tzinfo=timezone.utc)
+    body = {"utc": utc.replace(microsecond=0).isoformat(), "lat": round(float(lat), 4), "lon": round(float(lon), 4)}
+    return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
+
+
+def birth_key_of_record(b: dict) -> str:
+    """The birth key of a stored birth record (date, time, tz, lat, lon, as the sheet or the form gave
+    them)."""
+    from .service import birth_utc
+    utc, _ = birth_utc(str(b["date"]), str(b["time"]), str(b["tz"]))
+    return birth_key(utc, float(b["lat"]), float(b["lon"]))
+
+
 def cache_dir() -> Path | None:
     if os.environ.get("JYOTISH_CACHE", "").lower() in ("off", "0", "no", "false"):
         return None

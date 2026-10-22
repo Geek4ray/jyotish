@@ -65,6 +65,13 @@ def assess_birth(birth: BirthInput) -> tuple[Chart, str, str]:
     return chart, source, chart_key(utc, birth.lat, birth.lon, **kw)
 
 
+def birth_key_of(birth: BirthInput) -> str:
+    """The birth's key as a person (cache.birth_key): no engine hash, no accuracy class, no seed."""
+    from .cache import birth_key
+    utc, _ = birth_utc(birth.date, birth.time, birth.tz)
+    return birth_key(utc, birth.lat, birth.lon)
+
+
 DEPTH_DEFAULT = "curious"          # SPEC Layer 7: the request's depth, curious unless asked otherwise
 
 
