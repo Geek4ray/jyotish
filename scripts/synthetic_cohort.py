@@ -65,8 +65,10 @@ def tested_areas() -> list[str]:
 
 
 def make(n: int, mode: str, database_url: str, seed: int = 0, odds_ratio: float = ODDS_RATIO,
-         timing_weight: float = TIMING_WEIGHT) -> tuple[dict, dict]:
-    """Build the cohort in `database_url`; returns (features by chart id, the planted truth)."""
+         timing_weight: float = TIMING_WEIGHT, features: dict | None = None) -> tuple[dict, dict]:
+    """Build the cohort in `database_url`; returns (features by birth key, the planted truth).
+    `features` are those of an earlier call with the same n and seed (the births are the same),
+    so the planted and the null cohort of one size compute their charts once."""
     import validate as V
     from jyotish.outcomes import add_consent, area_events, import_rows, sessionmaker_for
     from jyotish.service import BirthInput, assess_kwargs
@@ -78,7 +80,10 @@ def make(n: int, mode: str, database_url: str, seed: int = 0, odds_ratio: float 
         bi = BirthInput(date=b["date"], time=b["time"], tz=b["tz"], lat=b["lat"], lon=b["lon"], node="mean")
         utc, _ = assess_kwargs(bi)
         keys[b["subject_id"]] = birth_key(utc, bi.lat, bi.lon)
-    feats = V.features_for({keys[b["subject_id"]]: b for b in bs}, until=TODAY.isoformat())
+    feats = features if features is not None else \
+        V.features_for({keys[b["subject_id"]]: b for b in bs}, until=TODAY.isoformat())
+    if set(feats) != set(keys.values()):
+        raise ValueError("features given for other births: they must come from make() with the same n and seed")
     beta = math.log(odds_ratio) if mode == "planted" else 0.0
     truth = {"mode": mode, "n": n, "odds_ratio_per_sd": odds_ratio if mode == "planted" else 1.0, "base_rate": BASE_RATE,
              "timing_weight": timing_weight if mode == "planted" else 1.0, "areas": {}}

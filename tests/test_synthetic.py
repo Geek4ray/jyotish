@@ -60,6 +60,16 @@ def test_a_null_cohort_has_no_area_surviving_bh(mods, tmp_path):
     assert all(abs(t["planted_points"]) < 1e-9 for t in truth["areas"].values())
 
 
+def test_features_are_shared_between_the_planted_and_the_null_cohort_of_one_size(mods, tmp_path):
+    V, SC = mods
+    feats, truth = SC.make(60, "planted", f"sqlite:///{tmp_path / 'p.db'}", seed=3)
+    again, truth2 = SC.make(60, "null", f"sqlite:///{tmp_path / 'n.db'}", seed=3, features=feats)
+    assert again is feats and set(truth2["areas"]) == set(truth["areas"])
+    assert all(abs(t["planted_points"]) < 1e-9 for t in truth2["areas"].values())      # a null: identical means
+    with pytest.raises(ValueError, match="other births"):
+        SC.make(50, "null", f"sqlite:///{tmp_path / 'o.db'}", seed=3, features=feats)
+
+
 def test_a_fixed_salt_makes_a_synthetic_run_reproducible_and_is_refused_for_a_real_cohort(mods, tmp_path):
     V, SC = mods
     url = f"sqlite:///{tmp_path / 'r.db'}"

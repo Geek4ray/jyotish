@@ -218,11 +218,12 @@ def synthetic(card: Card, sizes=SYNTHETIC_SIZES, out_dir: Path = DOCS):
         return
     lines = []
     for n in sizes:
+        feats = None                                       # one feature computation a size: the births are the same
         for mode in ("planted", "null"):
             t = time.time()
             with tempfile.TemporaryDirectory() as d:
                 url = f"sqlite:///{Path(d) / 'cohort.db'}"
-                feats, truth = SC.make(n, mode, url, seed=0)
+                feats, truth = SC.make(n, mode, url, seed=0, features=feats)
                 res = V.run(V.load_cohort(url, features=feats, synthetic=True), Path(d) / "sequestered.txt",
                             score_sequestered=True, salt=f"synthetic-{n}-{mode}")
             c = SC.compare(truth, res)
@@ -257,6 +258,7 @@ def synthetic(card: Card, sizes=SYNTHETIC_SIZES, out_dir: Path = DOCS):
                              f"{time.time() - t:.0f} s."
                              + (f" Gated check: at most one area and three rules survive: {'passes' if ok else 'FAILS'}."
                                 if gated else ""))
+            print(f"synthetic {mode} {n:,}: {time.time() - t:.0f} s", flush=True)      # progress, for a CI log
     card.sections.append(("Synthetic validation (the pipeline, not the engine)", lines + [
         "The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from "
         "the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, "
@@ -303,7 +305,9 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     card = Card()
     for step in (reference, crosscheck, metamorphic, checker, placements_check):
+        t = time.time()
         step(card)
+        print(f"{step.__name__}: {time.time() - t:.0f} s", flush=True)                 # progress, for a CI log
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     synthetic(card, SYNTHETIC_SIZES[:1] if a.quick else SYNTHETIC_SIZES, out_dir=out.parent)

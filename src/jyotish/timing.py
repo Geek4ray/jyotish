@@ -314,29 +314,52 @@ def rao_targets(chart: Chart, area: str, basis: str = "lagna") -> dict[str, Any]
             "karakas": set(karaka_list), "full": full, "secondary": secondary}
 
 
-def _share_slice(signs: dict[str, int], area_signs: set[int], lord_signs: set[int], lagna: int) -> float:
+def _share_credit(area_signs: set[int], lord_signs: set[int], lagna: int):
+    """v2: whether a slow mover in a sign touches an area house or an area-house lord's sign, as a
+    function of (body, sign), remembered: at most 48 answers an area."""
+    memo: dict[tuple[str, int], bool] = {}
+
+    def hit(body: str, sign: int) -> bool:
+        if (body, sign) not in memo:
+            memo[(body, sign)] = any(_touches(sign, body, s, lagna) for s in area_signs | lord_signs)
+        return memo[(body, sign)]
+    return hit
+
+
+def _share_slice(signs: dict[str, int], hit) -> float:
     """v2's t for one slice, from each slow mover's sign: the share of Saturn, Jupiter and the
-    nodal axis touching an area house or an area-house lord's sign; 1 when Saturn and Jupiter
-    both do."""
+    nodal axis touching an area house or an area-house lord's sign (`hit`, from _share_credit);
+    1 when Saturn and Jupiter both do."""
     on: dict[str, bool] = {}
     for body, sign in signs.items():
         key = "nodes" if body in ("Rahu", "Ketu") else body
-        on[key] = on.get(key, False) or any(_touches(sign, body, s, lagna) for s in area_signs | lord_signs)
+        on[key] = on.get(key, False) or hit(body, sign)
     return 1.0 if on.get("Saturn") and on.get("Jupiter") else sum(on.values()) / 3.0
 
 
-def _rao_slice(signs: dict[str, int], full: set[int], secondary: set[int], lagna: int) -> tuple[float, dict]:
+def _rao_credit(full: set[int], secondary: set[int], lagna: int):
+    """v2.1: a slow mover's credit in a sign, 1 for touching a full target, 1/2 for touching only a
+    secondary one, else 0, as a function of (body, sign), remembered: at most 48 answers an area,
+    where a life has thousands of slices."""
+    memo: dict[tuple[str, int], float] = {}
+
+    def credit(body: str, sign: int) -> float:
+        if (body, sign) not in memo:
+            memo[(body, sign)] = (1.0 if any(_touches(sign, body, t, lagna) for t in full) else
+                                 0.5 if any(_touches(sign, body, t, lagna) for t in secondary) else 0.0)
+        return memo[(body, sign)]
+    return credit
+
+
+def _rao_slice(signs: dict[str, int], credit_of) -> tuple[float, dict]:
     """v2.1's t for one slice, from each slow mover's sign: per mover (Saturn, Jupiter, the nodal
-    axis) credit 1 for touching a full target, 1/2 for touching only a secondary one, else 0; t
-    is the mean of the three, and 1 when Saturn and Jupiter both touch a full target. Returns
-    (t, the slice detail for the derivation)."""
+    axis) its credit (`credit_of`, from _rao_credit); t is the mean of the three, and 1 when
+    Saturn and Jupiter both touch a full target. Returns (t, the slice detail for the derivation)."""
     credit = {"Saturn": 0.0, "Jupiter": 0.0, "nodes": 0.0}
     bodies: dict[str, list[str]] = {}
     for body, sign in signs.items():
         key = "nodes" if body in ("Rahu", "Ketu") else body
-        c = 1.0 if any(_touches(sign, body, t, lagna) for t in full) else \
-            0.5 if any(_touches(sign, body, t, lagna) for t in secondary) else 0.0
-        credit[key] = max(credit[key], c)
+        credit[key] = max(credit[key], credit_of(body, sign))
         bodies.setdefault(key, []).append(f"{body} {SIGNS[sign]}")
     t = 1.0 if credit["Saturn"] == 1.0 and credit["Jupiter"] == 1.0 else sum(credit.values()) / 3.0
     return t, {"credits": credit, "bodies": bodies}
@@ -399,6 +422,7 @@ def window_pieces(chart: Chart, area: str, start: float, end: float, spans: list
                    for q in [planet] + activation_set(chart, planet))
     gate: dict[tuple, tuple[bool, bool]] = {}
     quality: dict[tuple, tuple[dict, float]] = {}
+    rao, share = _rao_credit(tg["full"], tg["secondary"], lagna), _share_credit(tg["area_signs"], tg["lord_signs"], lagna)
     pieces = []
     for x, y, per, signs in (cut if cut is not None else slices(chart, start, end, spans)):
         key = tuple(per.lords)
@@ -412,9 +436,9 @@ def window_pieces(chart: Chart, area: str, start: float, end: float, spans: list
             quality[key] = (terms, sum(terms.values()) / len(terms))
         terms, q = quality[key]
         if formula == "v2.1":
-            t, tdetail = _rao_slice(signs, tg["full"], tg["secondary"], lagna)
+            t, tdetail = _rao_slice(signs, rao)
         else:
-            t, tdetail = _share_slice(signs, tg["area_signs"], tg["lord_signs"], lagna), None
+            t, tdetail = _share_slice(signs, share), None
         pieces.append({"a": x, "b": y, "lords": key, "q": q, "t": t, "terms": terms,
                        "joint": 0.6 * q + 0.4 * t, "transit": tdetail})
     return pieces
