@@ -1,13 +1,13 @@
 # Synthetic — Validation — null, N = 20,000, odds ratio 1.0 per SD
 
-Run 2026-10-22 by `scripts/validate.py` on a synthetic cohort: these numbers prove the pipeline, not the engine. 20000 subjects: 14934 development, 5066 sequestered (scored in this run); 5 grouped folds, 0 groups straddling a fold.
+Run 2026-10-22 by `scripts/validate.py` on a synthetic cohort: these numbers prove the pipeline, not the engine. 20000 subjects: 15108 development, 4892 sequestered (scored in this run); 5 grouped folds, 0 groups straddling a fold. The split assigns by household: 0 households straddle it. The registry is not used for a synthetic cohort.
 
 ## Synthetic — Pre-registration hashes (test 10)
 
 - rule set `fe4a45353690525365741ebe19d5e291a49bb4fdbb09b07ea839f67ad4e15c60`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `baa520e885d6df218ef3701f5e25063c0b43cf3cba4e3fe3fc258c042825dcc0` ({"salt_sha256": "b40112f146d454146b91259ad7adc209cdce21e41cabb6406ccc8d9a7c66e9c2", "fraction": 0.25, "k": 5, "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "4c87c96d886a1424b200197495b363a1035e738eca099a9b0ac24a69b16ad344"})
-- analysis code `494dae55f6a48ddf1c97767f4f82d77adf00c78f1bdbab2488c65c423b7b012c`
+- split definition `c8a068e928ba0f2e992eae2475e36ca2567479689b5f72ffb4c4ea2dde65e5bf` ({"salt_sha256": "b40112f146d454146b91259ad7adc209cdce21e41cabb6406ccc8d9a7c66e9c2", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "786c1157f952312748ae43e69c6ad766aebd5d070bca43f30dd485cc400ea24a"})
+- analysis code `c8c5b0d57a30545f28152516302d2a6c15ec580306bf41055f5d690ea76296e6`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -16,57 +16,57 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 | area | n | coverage | base rate | lift | 95% CI | p (permutation) | BH p | survives | power (5 pt, α 0.01) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | personality | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| wealth | 14934 | 1.000 | 0.300 | 0.994 | 0.962–1.025 | 0.6763 | 0.8657 | no | 1.000 |
+| wealth | 15108 | 1.000 | 0.299 | 1.003 | 0.970–1.035 | 0.4456 | 0.8168 | no | 1.000 |
 | siblings | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| mother_home | 14934 | 1.000 | 0.509 | 1.011 | 0.988–1.035 | 0.1908 | 0.8657 | no | 0.999 |
-| children | 14934 | 1.000 | 0.305 | 0.995 | 0.958–1.034 | 0.6044 | 0.8657 | no | 0.999 |
-| intellect | 14934 | 1.000 | 0.303 | 0.991 | 0.956–1.027 | 0.7083 | 0.8657 | no | 1.000 |
-| health | 14934 | 1.000 | 0.509 | 1.000 | 0.981–1.018 | 0.4805 | 0.8657 | no | 1.000 |
+| mother_home | 15108 | 1.000 | 0.506 | 1.008 | 0.984–1.033 | 0.2408 | 0.8168 | no | 0.999 |
+| children | 15108 | 1.000 | 0.307 | 0.976 | 0.937–1.016 | 0.8691 | 0.8831 | no | 0.999 |
+| intellect | 15108 | 1.000 | 0.299 | 0.984 | 0.947–1.023 | 0.7782 | 0.8831 | no | 1.000 |
+| health | 15108 | 1.000 | 0.508 | 1.008 | 0.990–1.027 | 0.1698 | 0.8168 | no | 1.000 |
 | debts_enemies | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| marriage | 14934 | 1.000 | 0.297 | 1.006 | 0.966–1.045 | 0.3766 | 0.8657 | no | 0.999 |
+| marriage | 15108 | 1.000 | 0.299 | 0.994 | 0.956–1.035 | 0.6633 | 0.8831 | no | 0.999 |
 | longevity | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| father | 14934 | 1.000 | 0.303 | 0.978 | 0.945–1.012 | 0.8901 | 0.8901 | no | 1.000 |
+| father | 15108 | 1.000 | 0.299 | 0.981 | 0.947–1.014 | 0.8831 | 0.8831 | no | 1.000 |
 | fortune | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| career | 14934 | 1.000 | 0.512 | 1.005 | 0.980–1.027 | 0.3976 | 0.8657 | no | 0.999 |
-| gains | 14934 | 1.000 | 0.300 | 0.995 | 0.965–1.028 | 0.5864 | 0.8657 | no | 1.000 |
-| foreign | 14934 | 1.000 | 0.304 | 0.983 | 0.952–1.018 | 0.8621 | 0.8901 | no | 1.000 |
+| career | 15108 | 1.000 | 0.507 | 1.004 | 0.980–1.028 | 0.4236 | 0.8168 | no | 0.999 |
+| gains | 15108 | 1.000 | 0.299 | 0.997 | 0.964–1.032 | 0.5664 | 0.8831 | no | 1.000 |
+| foreign | 15108 | 1.000 | 0.302 | 1.002 | 0.972–1.034 | 0.4356 | 0.8168 | no | 1.000 |
 | spirituality | 0 | – | – | – | – | – | – | not_testable_yet | – |
 | mind | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| reputation | 14934 | 1.000 | 0.303 | 1.015 | 0.979–1.051 | 0.1858 | 0.8657 | no | 1.000 |
+| reputation | 15108 | 1.000 | 0.299 | 1.011 | 0.972–1.047 | 0.2617 | 0.8168 | no | 1.000 |
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
 | area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| wealth | 14934 | 1.000 | 8 | 4.18 | 8 | 0.8406 | 0.498 | 0.496 | 0.4796 |
-| mother_home | 14934 | 1.000 | 8 | 13.04 | 8 | 0.1105 | 0.494 | 0.498 | 0.2390 |
-| children | 14934 | 1.000 | 7 | 2.08 | 7 | 0.9555 | 0.500 | 0.496 | 0.3616 |
-| intellect | 14934 | 1.000 | 8 | 22.00 | 8 | 0.0049 | 0.498 | 0.512 | 0.0037 |
-| health | 14934 | 1.000 | 8 | 2.33 | 8 | 0.9691 | 0.496 | 0.492 | 0.2157 |
-| marriage | 14934 | 1.000 | 8 | 5.89 | 8 | 0.6597 | 0.494 | 0.487 | 0.0120 |
-| father | 14934 | 1.000 | 7 | 8.65 | 7 | 0.2792 | 0.496 | 0.495 | 0.7920 |
-| career | 14934 | 1.000 | 8 | 7.35 | 8 | 0.4997 | 0.499 | 0.501 | 0.6009 |
-| gains | 14934 | 1.000 | 8 | 6.25 | 8 | 0.6196 | 0.498 | 0.497 | 0.6734 |
-| foreign | 14934 | 1.000 | 7 | 5.05 | 7 | 0.6537 | 0.494 | 0.493 | 0.9380 |
-| reputation | 14934 | 1.000 | 8 | 21.41 | 8 | 0.0061 | 0.498 | 0.513 | 0.0022 |
+| wealth | 15108 | 1.000 | 8 | 8.81 | 8 | 0.3589 | 0.502 | 0.501 | 0.7977 |
+| mother_home | 15108 | 1.000 | 8 | 14.72 | 8 | 0.0648 | 0.492 | 0.506 | 0.0033 |
+| children | 15108 | 1.000 | 7 | 1.63 | 7 | 0.9774 | 0.493 | 0.492 | 0.8127 |
+| intellect | 15108 | 1.000 | 8 | 18.39 | 8 | 0.0185 | 0.499 | 0.512 | 0.0140 |
+| health | 15108 | 1.000 | 8 | 5.69 | 8 | 0.6817 | 0.493 | 0.493 | 0.8653 |
+| marriage | 15108 | 1.000 | 8 | 11.49 | 8 | 0.1757 | 0.493 | 0.500 | 0.0967 |
+| father | 15108 | 1.000 | 7 | 7.92 | 7 | 0.3395 | 0.500 | 0.507 | 0.0624 |
+| career | 15108 | 1.000 | 8 | 5.61 | 8 | 0.6905 | 0.490 | 0.498 | 0.0915 |
+| gains | 15108 | 1.000 | 8 | 8.60 | 8 | 0.3775 | 0.502 | 0.503 | 0.7981 |
+| foreign | 15108 | 1.000 | 7 | 2.86 | 7 | 0.8973 | 0.494 | 0.495 | 0.8232 |
+| reputation | 15108 | 1.000 | 8 | 17.44 | 8 | 0.0259 | 0.499 | 0.503 | 0.4229 |
 
 ## Synthetic — Timing as a discrete-time hazard (test 4)
 
-Activation: the year mostly inside an antardasha the engine's window gate counts as relevant to the area. Rate ratio: Mantel-Haenszel over 5-year age bins; p against coverage-matched random windows.
+Activation: the year mostly inside one of the engine's own windows, the timing join's pieces over the life to 2026-10-22, the best third of the life by joint (so a third of the person-years are active for everyone). Rate ratio: Mantel-Haenszel over 5-year age bins; p against coverage-matched random windows.
 
 | area | n | coverage | person-years | events | active share | rate ratio | p (random windows) | log-odds (95% CI) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| wealth | 14934 | 1.000 | 724118 | 4475 | 0.932 | 1.054 | 0.0199 | 0.053 (-0.067, 0.173) |
-| mother_home | 14934 | 1.000 | 622402 | 7598 | 0.943 | 0.989 | 0.0348 | -0.011 (-0.109, 0.086) |
-| children | 14934 | 1.000 | 722490 | 4562 | 0.903 | 1.003 | 0.4030 | 0.003 (-0.095, 0.102) |
-| intellect | 14934 | 1.000 | 723349 | 4530 | 0.946 | 0.978 | 0.1244 | -0.023 (-0.151, 0.105) |
-| health | 14934 | 1.000 | 626186 | 7604 | 0.939 | 1.012 | 0.0995 | 0.012 (-0.083, 0.107) |
-| marriage | 14934 | 1.000 | 726280 | 4442 | 0.940 | 0.937 | 0.7015 | -0.066 (-0.187, 0.055) |
-| father | 14934 | 1.000 | 722096 | 4522 | 0.879 | 0.979 | 0.2139 | -0.022 (-0.110, 0.067) |
-| career | 14934 | 1.000 | 623593 | 7649 | 0.953 | 1.110 | 0.0050 | 0.105 (-0.007, 0.218) |
-| gains | 14934 | 1.000 | 724118 | 4475 | 0.869 | 1.022 | 0.1045 | 0.021 (-0.066, 0.109) |
-| foreign | 14934 | 1.000 | 723340 | 4536 | 0.951 | 1.053 | 0.0249 | 0.052 (-0.087, 0.192) |
-| reputation | 14934 | 1.000 | 723349 | 4530 | 0.892 | 1.044 | 0.1095 | 0.043 (-0.052, 0.139) |
+| wealth | 15108 | 1.000 | 735477 | 4522 | 0.285 | 1.030 | 0.6866 | 0.030 (-0.035, 0.094) |
+| mother_home | 15108 | 1.000 | 634107 | 7652 | 0.287 | 0.980 | 0.9851 | -0.020 (-0.070, 0.030) |
+| children | 15108 | 1.000 | 731937 | 4642 | 0.282 | 1.035 | 0.4478 | 0.035 (-0.029, 0.099) |
+| intellect | 15108 | 1.000 | 734563 | 4516 | 0.287 | 1.039 | 0.7214 | 0.038 (-0.026, 0.102) |
+| health | 15108 | 1.000 | 636303 | 7676 | 0.290 | 1.037 | 0.4726 | 0.037 (-0.012, 0.086) |
+| marriage | 15108 | 1.000 | 735052 | 4512 | 0.286 | 0.974 | 0.9950 | -0.027 (-0.092, 0.038) |
+| father | 15108 | 1.000 | 734180 | 4522 | 0.286 | 0.988 | 0.9602 | -0.012 (-0.077, 0.053) |
+| career | 15108 | 1.000 | 633685 | 7666 | 0.289 | 1.026 | 0.7015 | 0.026 (-0.024, 0.075) |
+| gains | 15108 | 1.000 | 735477 | 4522 | 0.284 | 1.079 | 0.0896 | 0.076 (0.013, 0.140) |
+| foreign | 15108 | 1.000 | 734176 | 4570 | 0.287 | 0.978 | 0.9950 | -0.023 (-0.087, 0.042) |
+| reputation | 15108 | 1.000 | 734563 | 4516 | 0.287 | 1.075 | 0.2786 | 0.072 (0.009, 0.136) |
 
 ## Synthetic — Calibration (test 7)
 
@@ -74,404 +74,422 @@ Isotonic map from the area score to the event rate. Probability language needs �
 
 | area | n | coverage | ECE (development folds) | ECE (sequestered) | bins | smallest bin positives | probability language |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| wealth | 14934 | 1.000 | 0.009 | 0.006 | 5 | 0 | not allowed |
-| mother_home | 14934 | 1.000 | 0.001 | 0.015 | 4 | 0 | not allowed |
-| children | 14934 | 1.000 | 0.009 | 0.005 | 4 | 1 | not allowed |
-| intellect | 14934 | 1.000 | 0.010 | 0.016 | 4 | 0 | not allowed |
-| health | 14934 | 1.000 | 0.011 | 0.005 | 6 | 0 | not allowed |
-| marriage | 14934 | 1.000 | 0.013 | 0.012 | 3 | 0 | not allowed |
-| father | 14934 | 1.000 | 0.003 | 0.011 | 2 | 1 | not allowed |
-| career | 14934 | 1.000 | 0.006 | 0.012 | 3 | 2 | not allowed |
-| gains | 14934 | 1.000 | 0.007 | 0.011 | 5 | 0 | not allowed |
-| foreign | 14934 | 1.000 | 0.007 | 0.008 | 3 | 0 | not allowed |
-| reputation | 14934 | 1.000 | 0.018 | 0.016 | 5 | 0 | not allowed |
+| wealth | 15108 | 1.000 | 0.002 | 0.012 | 4 | 0 | not allowed |
+| mother_home | 15108 | 1.000 | 0.004 | 0.001 | 3 | 0 | not allowed |
+| children | 15108 | 1.000 | 0.016 | 0.012 | 3 | 6 | not allowed |
+| intellect | 15108 | 1.000 | 0.009 | 0.003 | 3 | 0 | not allowed |
+| health | 15108 | 1.000 | 0.015 | 0.006 | 4 | 1 | not allowed |
+| marriage | 15108 | 1.000 | 0.009 | 0.010 | 5 | 0 | not allowed |
+| father | 15108 | 1.000 | 0.011 | 0.003 | 4 | 1 | not allowed |
+| career | 15108 | 1.000 | 0.011 | 0.010 | 4 | 1 | not allowed |
+| gains | 15108 | 1.000 | 0.003 | 0.010 | 4 | 1 | not allowed |
+| foreign | 15108 | 1.000 | 0.013 | 0.004 | 4 | 1 | not allowed |
+| reputation | 15108 | 1.000 | 0.005 | 0.007 | 4 | 1 | not allowed |
+
+## Synthetic — School-split (test 8)
+
+Each school's score is the sum of its families' votes (Parashari: house, lord, karaka, varga, panchanga; Jaimini: arudha; KP: kp; Nadi has no Layer 5 family in v1). The school with the highest AUC on the development set is chosen there; its AUC on the sequestered cohort is estimated only when that cohort is scored, so the winner's curse is paid on development data.
+
+| area | n | Parashari AUC (95% CI) | Jaimini | KP | chosen | AUC on sequestered (95% CI) |
+| --- | --- | --- | --- | --- | --- | --- |
+| wealth | 15108 | 0.500 (0.490–0.510), n 15108 | 0.496 (0.487–0.505), n 15108 | no vote in this area | parashari | 0.495 (0.478–0.512) |
+| mother_home | 15108 | 0.502 (0.493–0.511), n 15108 | 0.501 (0.493–0.509), n 15108 | 0.502 (0.494–0.511), n 15108 | kp | 0.503 (0.487–0.518) |
+| children | 15108 | 0.496 (0.487–0.506), n 15108 | 0.505 (0.496–0.514), n 15108 | 0.491 (0.482–0.501), n 15108 | jaimini | 0.499 (0.483–0.515) |
+| intellect | 15108 | 0.500 (0.491–0.510), n 15108 | 0.503 (0.493–0.512), n 15108 | no vote in this area | jaimini | 0.500 (0.484–0.516) |
+| health | 15108 | 0.508 (0.499–0.517), n 15108 | no vote in this area | 0.499 (0.491–0.508), n 15108 | parashari | 0.496 (0.481–0.512) |
+| marriage | 15108 | 0.502 (0.492–0.511), n 15108 | 0.496 (0.487–0.505), n 15108 | 0.499 (0.490–0.509), n 15108 | parashari | 0.510 (0.493–0.527) |
+| father | 15108 | 0.497 (0.487–0.506), n 15108 | 0.499 (0.490–0.508), n 15108 | no vote in this area | jaimini | 0.510 (0.494–0.525) |
+| career | 15108 | 0.501 (0.492–0.510), n 15108 | 0.502 (0.494–0.511), n 15108 | 0.496 (0.488–0.505), n 15108 | jaimini | 0.504 (0.489–0.518) |
+| gains | 15108 | 0.499 (0.489–0.509), n 15108 | 0.498 (0.489–0.507), n 15108 | no vote in this area | parashari | 0.504 (0.487–0.521) |
+| foreign | 15108 | 0.502 (0.492–0.511), n 15108 | 0.503 (0.494–0.512), n 15108 | no vote in this area | jaimini | 0.490 (0.474–0.506) |
+| reputation | 15108 | 0.500 (0.490–0.510), n 15108 | 0.500 (0.491–0.509), n 15108 | no vote in this area | parashari | 0.498 (0.481–0.515) |
 
 ## Synthetic — Power at the current n (pre-registration table)
 
 | area | n | coverage | predicted | power, 5-point lift, α 0.01 | power, 5-point lift, α 0.05 |
 | --- | --- | --- | --- | --- | --- |
-| wealth | 14934 | 1.000 | 5381 | 1.000 | 1.000 |
-| mother_home | 14934 | 1.000 | 4372 | 0.999 | 1.000 |
-| children | 14934 | 1.000 | 4006 | 0.999 | 1.000 |
-| intellect | 14934 | 1.000 | 4688 | 1.000 | 1.000 |
-| health | 14934 | 1.000 | 6235 | 1.000 | 1.000 |
-| marriage | 14934 | 1.000 | 4085 | 0.999 | 1.000 |
-| father | 14934 | 1.000 | 5254 | 1.000 | 1.000 |
-| career | 14934 | 1.000 | 4458 | 0.999 | 1.000 |
-| gains | 14934 | 1.000 | 5150 | 1.000 | 1.000 |
-| foreign | 14934 | 1.000 | 5648 | 1.000 | 1.000 |
-| reputation | 14934 | 1.000 | 4559 | 1.000 | 1.000 |
+| wealth | 15108 | 1.000 | 5468 | 1.000 | 1.000 |
+| mother_home | 15108 | 1.000 | 4465 | 0.999 | 1.000 |
+| children | 15108 | 1.000 | 4084 | 0.999 | 1.000 |
+| intellect | 15108 | 1.000 | 4792 | 1.000 | 1.000 |
+| health | 15108 | 1.000 | 6225 | 1.000 | 1.000 |
+| marriage | 15108 | 1.000 | 4123 | 0.999 | 1.000 |
+| father | 15108 | 1.000 | 5243 | 1.000 | 1.000 |
+| career | 15108 | 1.000 | 4443 | 0.999 | 1.000 |
+| gains | 15108 | 1.000 | 5229 | 1.000 | 1.000 |
+| foreign | 15108 | 1.000 | 5661 | 1.000 | 1.000 |
+| reputation | 15108 | 1.000 | 4619 | 1.000 | 1.000 |
 
 ## Synthetic — Per-rule effects (test 6)
 
 Effect: event rate where the rule fires minus where it does not, on the development set; an effect counts after Benjamini-Hochberg across the rules tested (q 0.01). classical_rejected is a recommendation for a powered null (power ≥ 0.8 for a 5-point lift), never applied by this script.
 
-- classical_rejected (recommended: powered null): 251 rules
+- classical_rejected (recommended: powered null): 271 rules
 - not_testable_yet: 51 rules
-- not_testable_yet (under-powered): 109 rules
+- not_testable_yet (under-powered): 89 rules
 
 | rule | n | fired | effect | 95% CI | p | power (5 pt, α 0.01) | status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `place.jupiter_h1` | 14934 | 1205 | 0.002 | -0.027–0.032 | 0.8831 | 0.776 | not_testable_yet (under-powered) |
-| `place.jupiter_h10` | 14934 | 1269 | 0.008 | -0.021–0.037 | 0.5957 | 0.799 | not_testable_yet (under-powered) |
-| `place.jupiter_h11` | 14934 | 1295 | -0.015 | -0.044–0.013 | 0.2877 | 0.808 | classical_rejected (recommended: powered null) |
-| `place.jupiter_h12` | 14934 | 1254 | 0.028 | 0.001–0.055 | 0.0434 | 0.857 | classical_rejected (recommended: powered null) |
-| `place.jupiter_h2` | 14934 | 1217 | 0.004 | -0.025–0.033 | 0.7799 | 0.781 | not_testable_yet (under-powered) |
-| `place.jupiter_h3` | 14934 | 1263 | 0.002 | -0.027–0.031 | 0.9013 | 0.797 | not_testable_yet (under-powered) |
-| `place.jupiter_h4` | 14934 | 1271 | 0.016 | -0.010–0.043 | 0.2262 | 0.864 | classical_rejected (recommended: powered null) |
-| `place.jupiter_h5` | 14934 | 1223 | -0.032 | -0.058–-0.005 | 0.0178 | 0.843 | classical_rejected (recommended: powered null) |
-| `place.jupiter_h6` | 14934 | 1246 | -0.000 | -0.029–0.029 | 0.9797 | 0.791 | not_testable_yet (under-powered) |
-| `place.jupiter_h7` | 14934 | 1228 | -0.013 | -0.039–0.014 | 0.3477 | 0.851 | classical_rejected (recommended: powered null) |
-| `place.jupiter_h8` | 14934 | 1221 | 0.001 | -0.028–0.030 | 0.9381 | 0.782 | not_testable_yet (under-powered) |
-| `place.jupiter_h9` | 14934 | 1242 | -0.002 | -0.029–0.025 | 0.8850 | 0.852 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_aquarius` | 14934 | 1168 | 0.004 | -0.025–0.032 | 0.8043 | 0.824 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_aries` | 14934 | 1310 | -0.013 | -0.040–0.014 | 0.3347 | 0.870 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_cancer` | 14934 | 1325 | 0.010 | -0.016–0.037 | 0.4563 | 0.873 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_capricorn` | 14934 | 1275 | -0.009 | -0.037–0.018 | 0.5064 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_gemini` | 14934 | 1177 | 0.016 | -0.012–0.044 | 0.2738 | 0.827 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_leo` | 14934 | 1325 | -0.005 | -0.032–0.022 | 0.7245 | 0.874 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_libra` | 14934 | 1362 | 0.010 | -0.016–0.037 | 0.4411 | 0.883 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_pisces` | 14934 | 1053 | -0.024 | -0.054–0.006 | 0.1219 | 0.779 | not_testable_yet (under-powered) |
-| `place.jupiter_in_sagittarius` | 14934 | 1210 | 0.016 | -0.011–0.044 | 0.2466 | 0.838 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_scorpio` | 14934 | 1243 | -0.017 | -0.045–0.011 | 0.2229 | 0.851 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_taurus` | 14934 | 1202 | 0.004 | -0.024–0.032 | 0.7797 | 0.836 | classical_rejected (recommended: powered null) |
-| `place.jupiter_in_virgo` | 14934 | 1284 | 0.006 | -0.021–0.033 | 0.6536 | 0.862 | classical_rejected (recommended: powered null) |
-| `place.ketu_h1` | 14934 | 1295 | -0.007 | -0.036–0.021 | 0.6260 | 0.808 | classical_rejected (recommended: powered null) |
-| `place.ketu_h10` | 14934 | 1208 | -0.015 | -0.044–0.014 | 0.3155 | 0.777 | not_testable_yet (under-powered) |
-| `place.ketu_h11` | 14934 | 1243 | 0.003 | -0.026–0.032 | 0.8425 | 0.790 | not_testable_yet (under-powered) |
-| `place.ketu_h12` | 14934 | 1278 | -0.000 | -0.027–0.026 | 0.9911 | 0.862 | classical_rejected (recommended: powered null) |
-| `place.ketu_h2` | 14934 | 1225 | -0.012 | -0.041–0.017 | 0.4232 | 0.784 | not_testable_yet (under-powered) |
-| `place.ketu_h3` | 14934 | 1222 | -0.026 | -0.055–0.003 | 0.0844 | 0.783 | not_testable_yet (under-powered) |
-| `place.ketu_h4` | 14934 | 1225 | 0.002 | -0.025–0.029 | 0.9003 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.ketu_h5` | 14934 | 1236 | -0.003 | -0.030–0.024 | 0.8175 | 0.849 | classical_rejected (recommended: powered null) |
-| `place.ketu_h6` | 14934 | 1262 | 0.012 | -0.017–0.040 | 0.4293 | 0.796 | not_testable_yet (under-powered) |
-| `place.ketu_h7` | 14934 | 1271 | 0.013 | -0.014–0.039 | 0.3423 | 0.865 | classical_rejected (recommended: powered null) |
-| `place.ketu_h8` | 14934 | 1263 | -0.022 | -0.051–0.007 | 0.1400 | 0.797 | not_testable_yet (under-powered) |
-| `place.ketu_h9` | 14934 | 1206 | -0.014 | -0.041–0.013 | 0.3121 | 0.840 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_aquarius` | 14934 | 1571 | -0.006 | -0.030–0.018 | 0.6341 | 0.924 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_aries` | 14934 | 1116 | 0.002 | -0.026–0.030 | 0.8909 | 0.810 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_cancer` | 14934 | 1079 | -0.025 | -0.053–0.003 | 0.0825 | 0.794 | not_testable_yet (under-powered) |
-| `place.ketu_in_capricorn` | 14934 | 1499 | -0.014 | -0.039–0.010 | 0.2478 | 0.912 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_gemini` | 14934 | 1208 | 0.028 | 0.000–0.056 | 0.0467 | 0.843 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_leo` | 14934 | 1152 | 0.007 | -0.021–0.034 | 0.6378 | 0.823 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_libra` | 14934 | 1160 | -0.012 | -0.039–0.016 | 0.4078 | 0.825 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_pisces` | 14934 | 1433 | -0.017 | -0.042–0.008 | 0.1729 | 0.899 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_sagittarius` | 14934 | 1280 | -0.002 | -0.029–0.024 | 0.8593 | 0.863 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_scorpio` | 14934 | 1156 | 0.011 | -0.017–0.039 | 0.4328 | 0.825 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_taurus` | 14934 | 1124 | -0.001 | -0.029–0.027 | 0.9247 | 0.813 | classical_rejected (recommended: powered null) |
-| `place.ketu_in_virgo` | 14934 | 1156 | 0.036 | 0.008–0.065 | 0.0116 | 0.826 | classical_rejected (recommended: powered null) |
-| `place.l10_h1` | 14934 | 1305 | -0.029 | -0.054–-0.004 | 0.0215 | 0.950 | classical_rejected (recommended: powered null) |
-| `place.l10_h10` | 14934 | 1266 | 0.020 | -0.008–0.049 | 0.1653 | 0.798 | not_testable_yet (under-powered) |
-| `place.l10_h11` | 14934 | 1264 | 0.001 | -0.027–0.030 | 0.9252 | 0.798 | not_testable_yet (under-powered) |
-| `place.l10_h12` | 14934 | 1221 | -0.001 | -0.029–0.027 | 0.9403 | 0.842 | classical_rejected (recommended: powered null) |
-| `place.l10_h2` | 14934 | 1222 | -0.011 | -0.040–0.019 | 0.4776 | 0.783 | not_testable_yet (under-powered) |
-| `place.l10_h3` | 14934 | 1227 | -0.009 | -0.038–0.020 | 0.5333 | 0.784 | not_testable_yet (under-powered) |
-| `place.l10_h4` | 14934 | 1288 | -0.002 | -0.029–0.025 | 0.8765 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.l10_h5` | 14934 | 1204 | 0.001 | -0.027–0.029 | 0.9457 | 0.837 | classical_rejected (recommended: powered null) |
-| `place.l10_h6` | 14934 | 1209 | 0.006 | -0.019–0.031 | 0.6481 | 0.929 | classical_rejected (recommended: powered null) |
-| `place.l10_h7` | 14934 | 1235 | -0.011 | -0.039–0.017 | 0.4487 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.l10_h8` | 14934 | 1262 | 0.015 | -0.009–0.039 | 0.2314 | 0.939 | classical_rejected (recommended: powered null) |
-| `place.l10_h9` | 14934 | 1231 | -0.015 | -0.043–0.013 | 0.2965 | 0.846 | classical_rejected (recommended: powered null) |
-| `place.l11_h1` | 14934 | 1252 | 0.008 | -0.016–0.033 | 0.5001 | 0.938 | classical_rejected (recommended: powered null) |
-| `place.l11_h10` | 14934 | 1211 | 0.010 | -0.020–0.039 | 0.5192 | 0.778 | not_testable_yet (under-powered) |
-| `place.l11_h11` | 14934 | 1227 | 0.008 | -0.022–0.037 | 0.6103 | 0.784 | not_testable_yet (under-powered) |
-| `place.l11_h12` | 14934 | 1247 | -0.021 | -0.049–0.007 | 0.1338 | 0.851 | classical_rejected (recommended: powered null) |
-| `place.l11_h2` | 14934 | 1242 | -0.003 | -0.032–0.026 | 0.8525 | 0.790 | not_testable_yet (under-powered) |
-| `place.l11_h3` | 14934 | 1225 | -0.014 | -0.043–0.016 | 0.3575 | 0.784 | not_testable_yet (under-powered) |
-| `place.l11_h4` | 14934 | 1270 | -0.015 | -0.043–0.012 | 0.2772 | 0.855 | classical_rejected (recommended: powered null) |
-| `place.l11_h5` | 14934 | 1232 | 0.024 | -0.004–0.051 | 0.0900 | 0.845 | classical_rejected (recommended: powered null) |
-| `place.l11_h6` | 14934 | 1283 | -0.003 | -0.027–0.022 | 0.8348 | 0.944 | classical_rejected (recommended: powered null) |
-| `place.l11_h7` | 14934 | 1257 | 0.019 | -0.008–0.047 | 0.1600 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.l11_h8` | 14934 | 1213 | -0.001 | -0.026–0.024 | 0.9088 | 0.930 | classical_rejected (recommended: powered null) |
-| `place.l11_h9` | 14934 | 1275 | 0.011 | -0.017–0.038 | 0.4466 | 0.858 | classical_rejected (recommended: powered null) |
-| `place.l12_h1` | 14934 | 1249 | 0.018 | -0.010–0.045 | 0.2066 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.l12_h10` | 14934 | 1271 | 0.005 | -0.022–0.032 | 0.7153 | 0.857 | classical_rejected (recommended: powered null) |
-| `place.l12_h11` | 14934 | 1230 | 0.006 | -0.021–0.034 | 0.6645 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.l12_h12` | 14934 | 1172 | -0.010 | -0.037–0.017 | 0.4639 | 0.829 | classical_rejected (recommended: powered null) |
-| `place.l12_h2` | 14934 | 1222 | 0.005 | -0.023–0.032 | 0.7450 | 0.842 | classical_rejected (recommended: powered null) |
-| `place.l12_h3` | 14934 | 1334 | 0.017 | -0.010–0.043 | 0.2127 | 0.874 | classical_rejected (recommended: powered null) |
-| `place.l12_h4` | 14934 | 1279 | -0.006 | -0.035–0.022 | 0.6579 | 0.803 | classical_rejected (recommended: powered null) |
-| `place.l12_h5` | 14934 | 1202 | -0.016 | -0.046–0.013 | 0.2842 | 0.776 | not_testable_yet (under-powered) |
-| `place.l12_h6` | 14934 | 1206 | 0.009 | -0.018–0.037 | 0.5089 | 0.836 | classical_rejected (recommended: powered null) |
-| `place.l12_h7` | 14934 | 1248 | 0.012 | -0.017–0.041 | 0.4200 | 0.792 | not_testable_yet (under-powered) |
-| `place.l12_h8` | 14934 | 1292 | -0.017 | -0.045–0.010 | 0.2170 | 0.865 | classical_rejected (recommended: powered null) |
-| `place.l12_h9` | 14934 | 1229 | -0.012 | -0.038–0.015 | 0.3849 | 0.847 | classical_rejected (recommended: powered null) |
-| `place.l1_h1` | 14934 | 1170 | 0.009 | -0.021–0.038 | 0.5723 | 0.762 | not_testable_yet (under-powered) |
-| `place.l1_h10` | 14934 | 1197 | -0.023 | -0.049–0.003 | 0.0793 | 0.929 | classical_rejected (recommended: powered null) |
-| `place.l1_h11` | 14934 | 1268 | -0.003 | -0.028–0.021 | 0.8045 | 0.941 | classical_rejected (recommended: powered null) |
-| `place.l1_h12` | 14934 | 1252 | 0.003 | -0.025–0.030 | 0.8487 | 0.852 | classical_rejected (recommended: powered null) |
-| `place.l1_h2` | 14934 | 1267 | -0.005 | -0.030–0.020 | 0.6886 | 0.941 | classical_rejected (recommended: powered null) |
-| `place.l1_h3` | 14934 | 1212 | 0.007 | -0.017–0.032 | 0.5629 | 0.929 | classical_rejected (recommended: powered null) |
-| `place.l1_h4` | 14934 | 1320 | 0.007 | -0.020–0.033 | 0.6313 | 0.869 | classical_rejected (recommended: powered null) |
-| `place.l1_h5` | 14934 | 1215 | -0.005 | -0.033–0.023 | 0.7147 | 0.840 | classical_rejected (recommended: powered null) |
-| `place.l1_h6` | 14934 | 1272 | 0.016 | -0.013–0.044 | 0.2820 | 0.800 | not_testable_yet (under-powered) |
-| `place.l1_h7` | 14934 | 1187 | -0.013 | -0.042–0.015 | 0.3635 | 0.827 | classical_rejected (recommended: powered null) |
-| `place.l1_h8` | 14934 | 1266 | 0.006 | -0.023–0.034 | 0.7074 | 0.798 | not_testable_yet (under-powered) |
-| `place.l1_h9` | 14934 | 1308 | 0.007 | -0.020–0.034 | 0.6169 | 0.868 | classical_rejected (recommended: powered null) |
-| `place.l2_h1` | 14934 | 1223 | 0.015 | -0.009–0.039 | 0.2311 | 0.931 | classical_rejected (recommended: powered null) |
-| `place.l2_h10` | 14934 | 1304 | 0.007 | -0.022–0.035 | 0.6381 | 0.811 | classical_rejected (recommended: powered null) |
-| `place.l2_h11` | 14934 | 1211 | -0.029 | -0.058–0.000 | 0.0530 | 0.779 | not_testable_yet (under-powered) |
-| `place.l2_h12` | 14934 | 1337 | -0.008 | -0.035–0.019 | 0.5639 | 0.876 | classical_rejected (recommended: powered null) |
-| `place.l2_h2` | 14934 | 1158 | 0.011 | -0.019–0.041 | 0.4665 | 0.758 | not_testable_yet (under-powered) |
-| `place.l2_h3` | 14934 | 1274 | -0.001 | -0.030–0.027 | 0.9287 | 0.801 | classical_rejected (recommended: powered null) |
-| `place.l2_h4` | 14934 | 1201 | 0.017 | -0.011–0.044 | 0.2404 | 0.831 | classical_rejected (recommended: powered null) |
-| `place.l2_h5` | 14934 | 1274 | -0.012 | -0.040–0.015 | 0.3850 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.l2_h6` | 14934 | 1251 | 0.006 | -0.018–0.031 | 0.6056 | 0.938 | classical_rejected (recommended: powered null) |
-| `place.l2_h7` | 14934 | 1254 | 0.009 | -0.018–0.036 | 0.5180 | 0.849 | classical_rejected (recommended: powered null) |
-| `place.l2_h8` | 14934 | 1239 | -0.004 | -0.029–0.021 | 0.7563 | 0.936 | classical_rejected (recommended: powered null) |
-| `place.l2_h9` | 14934 | 1208 | 0.000 | -0.028–0.028 | 0.9811 | 0.837 | classical_rejected (recommended: powered null) |
-| `place.l3_h1` | 14934 | 1300 | -0.003 | -0.028–0.021 | 0.7847 | 0.947 | classical_rejected (recommended: powered null) |
-| `place.l3_h10` | 14934 | 1230 | 0.031 | 0.002–0.060 | 0.0366 | 0.785 | not_testable_yet (under-powered) |
-| `place.l3_h11` | 14934 | 1324 | -0.014 | -0.042–0.014 | 0.3238 | 0.818 | classical_rejected (recommended: powered null) |
-| `place.l3_h12` | 14934 | 1219 | 0.014 | -0.013–0.042 | 0.3050 | 0.840 | classical_rejected (recommended: powered null) |
-| `place.l3_h2` | 14934 | 1220 | -0.014 | -0.043–0.015 | 0.3430 | 0.782 | not_testable_yet (under-powered) |
-| `place.l3_h3` | 14934 | 1271 | -0.004 | -0.033–0.024 | 0.7698 | 0.800 | classical_rejected (recommended: powered null) |
-| `place.l3_h4` | 14934 | 1260 | 0.018 | -0.009–0.045 | 0.1936 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.l3_h5` | 14934 | 1255 | -0.020 | -0.047–0.008 | 0.1639 | 0.855 | classical_rejected (recommended: powered null) |
-| `place.l3_h6` | 14934 | 1233 | -0.005 | -0.030–0.020 | 0.6822 | 0.935 | classical_rejected (recommended: powered null) |
-| `place.l3_h7` | 14934 | 1216 | 0.006 | -0.022–0.033 | 0.6927 | 0.837 | classical_rejected (recommended: powered null) |
-| `place.l3_h8` | 14934 | 1202 | -0.009 | -0.035–0.016 | 0.4739 | 0.929 | classical_rejected (recommended: powered null) |
-| `place.l3_h9` | 14934 | 1204 | -0.003 | -0.031–0.025 | 0.8498 | 0.836 | classical_rejected (recommended: powered null) |
-| `place.l4_h1` | 14934 | 1232 | 0.032 | 0.004–0.059 | 0.0228 | 0.842 | classical_rejected (recommended: powered null) |
-| `place.l4_h10` | 14934 | 1217 | -0.010 | -0.038–0.018 | 0.4878 | 0.838 | classical_rejected (recommended: powered null) |
-| `place.l4_h11` | 14934 | 1220 | -0.010 | -0.038–0.018 | 0.4897 | 0.839 | classical_rejected (recommended: powered null) |
-| `place.l4_h12` | 14934 | 1316 | 0.024 | -0.005–0.052 | 0.1002 | 0.815 | classical_rejected (recommended: powered null) |
-| `place.l4_h2` | 14934 | 1274 | -0.000 | -0.028–0.027 | 0.9813 | 0.855 | classical_rejected (recommended: powered null) |
-| `place.l4_h3` | 14934 | 1210 | 0.010 | -0.017–0.038 | 0.4663 | 0.834 | classical_rejected (recommended: powered null) |
-| `place.l4_h4` | 14934 | 1225 | -0.005 | -0.032–0.021 | 0.6913 | 0.849 | classical_rejected (recommended: powered null) |
-| `place.l4_h5` | 14934 | 1305 | -0.005 | -0.034–0.023 | 0.7151 | 0.812 | classical_rejected (recommended: powered null) |
-| `place.l4_h6` | 14934 | 1255 | -0.026 | -0.053–0.002 | 0.0710 | 0.852 | classical_rejected (recommended: powered null) |
-| `place.l4_h7` | 14934 | 1219 | 0.009 | -0.020–0.038 | 0.5543 | 0.781 | not_testable_yet (under-powered) |
-| `place.l4_h8` | 14934 | 1201 | -0.000 | -0.028–0.028 | 0.9979 | 0.833 | classical_rejected (recommended: powered null) |
-| `place.l4_h9` | 14934 | 1260 | 0.018 | -0.010–0.047 | 0.2112 | 0.796 | not_testable_yet (under-powered) |
-| `place.l5_h1` | 14934 | 1268 | 0.002 | -0.025–0.029 | 0.8885 | 0.857 | classical_rejected (recommended: powered null) |
-| `place.l5_h10` | 14934 | 1315 | -0.010 | -0.037–0.017 | 0.4591 | 0.872 | classical_rejected (recommended: powered null) |
-| `place.l5_h11` | 14934 | 1228 | 0.011 | -0.017–0.038 | 0.4388 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.l5_h12` | 14934 | 1174 | 0.021 | -0.009–0.051 | 0.1672 | 0.764 | not_testable_yet (under-powered) |
-| `place.l5_h2` | 14934 | 1273 | -0.011 | -0.038–0.017 | 0.4427 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.l5_h3` | 14934 | 1296 | 0.000 | -0.027–0.027 | 0.9838 | 0.866 | classical_rejected (recommended: powered null) |
-| `place.l5_h4` | 14934 | 1220 | 0.007 | -0.023–0.036 | 0.6513 | 0.782 | not_testable_yet (under-powered) |
-| `place.l5_h5` | 14934 | 1210 | -0.028 | -0.054–-0.001 | 0.0413 | 0.839 | classical_rejected (recommended: powered null) |
-| `place.l5_h6` | 14934 | 1183 | 0.002 | -0.026–0.030 | 0.8837 | 0.829 | classical_rejected (recommended: powered null) |
-| `place.l5_h7` | 14934 | 1240 | -0.004 | -0.033–0.025 | 0.8073 | 0.789 | not_testable_yet (under-powered) |
-| `place.l5_h8` | 14934 | 1310 | -0.013 | -0.040–0.014 | 0.3501 | 0.870 | classical_rejected (recommended: powered null) |
-| `place.l5_h9` | 14934 | 1217 | -0.003 | -0.032–0.026 | 0.8319 | 0.781 | not_testable_yet (under-powered) |
-| `place.l6_h1` | 14934 | 1250 | 0.014 | -0.014–0.043 | 0.3281 | 0.792 | not_testable_yet (under-powered) |
-| `place.l6_h10` | 14934 | 1240 | 0.011 | -0.013–0.036 | 0.3665 | 0.935 | classical_rejected (recommended: powered null) |
-| `place.l6_h11` | 14934 | 1290 | -0.005 | -0.029–0.020 | 0.7136 | 0.945 | classical_rejected (recommended: powered null) |
-| `place.l6_h12` | 14934 | 1292 | 0.012 | -0.014–0.039 | 0.3630 | 0.863 | classical_rejected (recommended: powered null) |
-| `place.l6_h2` | 14934 | 1274 | -0.017 | -0.042–0.008 | 0.1729 | 0.943 | classical_rejected (recommended: powered null) |
-| `place.l6_h3` | 14934 | 1192 | -0.002 | -0.028–0.023 | 0.8537 | 0.926 | classical_rejected (recommended: powered null) |
-| `place.l6_h4` | 14934 | 1210 | 0.009 | -0.019–0.037 | 0.5233 | 0.836 | classical_rejected (recommended: powered null) |
-| `place.l6_h5` | 14934 | 1225 | -0.000 | -0.028–0.027 | 0.9801 | 0.843 | classical_rejected (recommended: powered null) |
-| `place.l6_h6` | 14934 | 1212 | -0.022 | -0.051–0.008 | 0.1482 | 0.779 | not_testable_yet (under-powered) |
-| `place.l6_h7` | 14934 | 1238 | -0.014 | -0.042–0.014 | 0.3294 | 0.845 | classical_rejected (recommended: powered null) |
-| `place.l6_h8` | 14934 | 1219 | -0.010 | -0.039–0.020 | 0.5231 | 0.781 | not_testable_yet (under-powered) |
-| `place.l6_h9` | 14934 | 1292 | 0.021 | -0.006–0.048 | 0.1243 | 0.863 | classical_rejected (recommended: powered null) |
-| `place.l7_h1` | 14934 | 1246 | 0.012 | -0.015–0.040 | 0.3797 | 0.846 | classical_rejected (recommended: powered null) |
-| `place.l7_h10` | 14934 | 1266 | 0.022 | -0.005–0.049 | 0.1102 | 0.852 | classical_rejected (recommended: powered null) |
-| `place.l7_h11` | 14934 | 1238 | 0.005 | -0.022–0.033 | 0.7144 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.l7_h12` | 14934 | 1293 | -0.002 | -0.031–0.026 | 0.8875 | 0.807 | classical_rejected (recommended: powered null) |
-| `place.l7_h2` | 14934 | 1154 | 0.005 | -0.024–0.033 | 0.7524 | 0.815 | classical_rejected (recommended: powered null) |
-| `place.l7_h3` | 14934 | 1330 | -0.000 | -0.027–0.026 | 0.9789 | 0.872 | classical_rejected (recommended: powered null) |
-| `place.l7_h4` | 14934 | 1226 | 0.002 | -0.027–0.031 | 0.8885 | 0.783 | not_testable_yet (under-powered) |
-| `place.l7_h5` | 14934 | 1264 | 0.001 | -0.027–0.030 | 0.9252 | 0.798 | not_testable_yet (under-powered) |
-| `place.l7_h6` | 14934 | 1204 | -0.014 | -0.042–0.014 | 0.3307 | 0.833 | classical_rejected (recommended: powered null) |
-| `place.l7_h7` | 14934 | 1223 | -0.006 | -0.033–0.021 | 0.6568 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.l7_h8` | 14934 | 1253 | -0.011 | -0.039–0.017 | 0.4385 | 0.849 | classical_rejected (recommended: powered null) |
-| `place.l7_h9` | 14934 | 1237 | 0.018 | -0.011–0.047 | 0.2283 | 0.788 | not_testable_yet (under-powered) |
-| `place.l8_h1` | 14934 | 1281 | 0.011 | -0.018–0.040 | 0.4559 | 0.803 | classical_rejected (recommended: powered null) |
-| `place.l8_h10` | 14934 | 1181 | 0.013 | -0.012–0.038 | 0.3176 | 0.922 | classical_rejected (recommended: powered null) |
-| `place.l8_h11` | 14934 | 1325 | -0.003 | -0.027–0.021 | 0.7825 | 0.951 | classical_rejected (recommended: powered null) |
-| `place.l8_h12` | 14934 | 1191 | -0.018 | -0.046–0.010 | 0.2129 | 0.833 | classical_rejected (recommended: powered null) |
-| `place.l8_h2` | 14934 | 1207 | 0.018 | -0.006–0.042 | 0.1494 | 0.928 | classical_rejected (recommended: powered null) |
-| `place.l8_h3` | 14934 | 1237 | -0.011 | -0.036–0.015 | 0.4101 | 0.936 | classical_rejected (recommended: powered null) |
-| `place.l8_h4` | 14934 | 1286 | -0.001 | -0.028–0.026 | 0.9602 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.l8_h5` | 14934 | 1302 | 0.002 | -0.025–0.028 | 0.9097 | 0.867 | classical_rejected (recommended: powered null) |
-| `place.l8_h6` | 14934 | 1248 | -0.018 | -0.047–0.011 | 0.2265 | 0.792 | not_testable_yet (under-powered) |
-| `place.l8_h7` | 14934 | 1200 | -0.023 | -0.051–0.006 | 0.1195 | 0.832 | classical_rejected (recommended: powered null) |
-| `place.l8_h8` | 14934 | 1267 | 0.009 | -0.020–0.037 | 0.5616 | 0.798 | not_testable_yet (under-powered) |
-| `place.l8_h9` | 14934 | 1209 | 0.008 | -0.020–0.035 | 0.5937 | 0.837 | classical_rejected (recommended: powered null) |
-| `place.l9_h1` | 14934 | 1254 | 0.002 | -0.025–0.030 | 0.8644 | 0.852 | classical_rejected (recommended: powered null) |
-| `place.l9_h10` | 14934 | 1288 | 0.009 | -0.018–0.036 | 0.5090 | 0.862 | classical_rejected (recommended: powered null) |
-| `place.l9_h11` | 14934 | 1202 | 0.000 | -0.028–0.028 | 0.9835 | 0.835 | classical_rejected (recommended: powered null) |
-| `place.l9_h12` | 14934 | 1303 | 0.005 | -0.021–0.031 | 0.6955 | 0.870 | classical_rejected (recommended: powered null) |
-| `place.l9_h2` | 14934 | 1265 | 0.016 | -0.011–0.043 | 0.2384 | 0.855 | classical_rejected (recommended: powered null) |
-| `place.l9_h3` | 14934 | 1208 | 0.000 | -0.028–0.028 | 0.9811 | 0.837 | classical_rejected (recommended: powered null) |
-| `place.l9_h4` | 14934 | 1185 | -0.018 | -0.047–0.012 | 0.2439 | 0.769 | not_testable_yet (under-powered) |
-| `place.l9_h5` | 14934 | 1336 | -0.015 | -0.043–0.013 | 0.3018 | 0.822 | classical_rejected (recommended: powered null) |
-| `place.l9_h6` | 14934 | 1222 | -0.006 | -0.033–0.022 | 0.6983 | 0.842 | classical_rejected (recommended: powered null) |
-| `place.l9_h7` | 14934 | 1246 | -0.024 | -0.053–0.005 | 0.1054 | 0.791 | not_testable_yet (under-powered) |
-| `place.l9_h8` | 14934 | 1217 | 0.004 | -0.024–0.031 | 0.7945 | 0.840 | classical_rejected (recommended: powered null) |
-| `place.l9_h9` | 14934 | 1208 | -0.018 | -0.045–0.009 | 0.1872 | 0.841 | classical_rejected (recommended: powered null) |
-| `place.mars_h1` | 14934 | 1297 | 0.009 | -0.020–0.037 | 0.5376 | 0.808 | classical_rejected (recommended: powered null) |
-| `place.mars_h10` | 14934 | 1287 | 0.014 | -0.014–0.043 | 0.3262 | 0.805 | classical_rejected (recommended: powered null) |
-| `place.mars_h11` | 14934 | 1186 | 0.010 | -0.020–0.039 | 0.5229 | 0.769 | not_testable_yet (under-powered) |
-| `place.mars_h12` | 14934 | 1245 | -0.008 | -0.035–0.018 | 0.5533 | 0.852 | classical_rejected (recommended: powered null) |
-| `place.mars_h2` | 14934 | 1207 | 0.011 | -0.019–0.040 | 0.4786 | 0.777 | not_testable_yet (under-powered) |
-| `place.mars_h3` | 14934 | 1236 | 0.010 | -0.019–0.039 | 0.5156 | 0.788 | not_testable_yet (under-powered) |
-| `place.mars_h4` | 14934 | 1223 | -0.024 | -0.050–0.003 | 0.0784 | 0.848 | classical_rejected (recommended: powered null) |
-| `place.mars_h5` | 14934 | 1287 | 0.001 | -0.026–0.027 | 0.9571 | 0.864 | classical_rejected (recommended: powered null) |
-| `place.mars_h6` | 14934 | 1195 | 0.015 | -0.014–0.045 | 0.3180 | 0.772 | not_testable_yet (under-powered) |
-| `place.mars_h7` | 14934 | 1238 | 0.031 | 0.003–0.058 | 0.0273 | 0.857 | classical_rejected (recommended: powered null) |
-| `place.mars_h8` | 14934 | 1260 | -0.005 | -0.034–0.024 | 0.7434 | 0.796 | not_testable_yet (under-powered) |
-| `place.mars_h9` | 14934 | 1273 | -0.012 | -0.038–0.014 | 0.3797 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.mars_in_aquarius` | 14934 | 900 | 0.011 | -0.023–0.044 | 0.5341 | 0.632 | not_testable_yet (under-powered) |
-| `place.mars_in_aries` | 14934 | 1081 | 0.008 | -0.023–0.039 | 0.5987 | 0.724 | not_testable_yet (under-powered) |
-| `place.mars_in_cancer` | 14934 | 1484 | 0.023 | -0.004–0.050 | 0.0902 | 0.862 | classical_rejected (recommended: powered null) |
-| `place.mars_in_capricorn` | 14934 | 983 | -0.041 | -0.073–-0.009 | 0.0133 | 0.677 | not_testable_yet (under-powered) |
-| `place.mars_in_gemini` | 14934 | 1361 | 0.013 | -0.015–0.041 | 0.3650 | 0.829 | classical_rejected (recommended: powered null) |
-| `place.mars_in_leo` | 14934 | 1603 | -0.020 | -0.045–0.006 | 0.1382 | 0.888 | classical_rejected (recommended: powered null) |
-| `place.mars_in_libra` | 14934 | 1413 | 0.017 | -0.011–0.044 | 0.2334 | 0.843 | classical_rejected (recommended: powered null) |
-| `place.mars_in_pisces` | 14934 | 1078 | -0.016 | -0.047–0.015 | 0.3075 | 0.723 | not_testable_yet (under-powered) |
-| `place.mars_in_sagittarius` | 14934 | 1133 | -0.024 | -0.054–0.006 | 0.1177 | 0.748 | not_testable_yet (under-powered) |
-| `place.mars_in_scorpio` | 14934 | 1083 | 0.029 | -0.002–0.060 | 0.0637 | 0.725 | not_testable_yet (under-powered) |
-| `place.mars_in_taurus` | 14934 | 1328 | -0.006 | -0.034–0.022 | 0.6795 | 0.819 | classical_rejected (recommended: powered null) |
-| `place.mars_in_virgo` | 14934 | 1487 | -0.000 | -0.027–0.026 | 0.9729 | 0.863 | classical_rejected (recommended: powered null) |
-| `place.mercury_h1` | 14934 | 1225 | 0.026 | -0.003–0.055 | 0.0803 | 0.783 | not_testable_yet (under-powered) |
-| `place.mercury_h10` | 14934 | 1230 | 0.014 | -0.015–0.043 | 0.3400 | 0.785 | not_testable_yet (under-powered) |
-| `place.mercury_h11` | 14934 | 1243 | -0.001 | -0.030–0.028 | 0.9693 | 0.790 | not_testable_yet (under-powered) |
-| `place.mercury_h12` | 14934 | 1284 | -0.009 | -0.035–0.017 | 0.4819 | 0.864 | classical_rejected (recommended: powered null) |
-| `place.mercury_h2` | 14934 | 1170 | 0.013 | -0.017–0.043 | 0.4021 | 0.762 | not_testable_yet (under-powered) |
-| `place.mercury_h3` | 14934 | 1320 | 0.011 | -0.017–0.039 | 0.4562 | 0.816 | classical_rejected (recommended: powered null) |
-| `place.mercury_h4` | 14934 | 1244 | 0.005 | -0.021–0.032 | 0.6883 | 0.856 | classical_rejected (recommended: powered null) |
-| `place.mercury_h5` | 14934 | 1256 | -0.002 | -0.029–0.024 | 0.8636 | 0.855 | classical_rejected (recommended: powered null) |
-| `place.mercury_h6` | 14934 | 1230 | -0.040 | -0.069–-0.011 | 0.0069 | 0.785 | not_testable_yet (under-powered) |
-| `place.mercury_h7` | 14934 | 1189 | -0.021 | -0.047–0.006 | 0.1271 | 0.839 | classical_rejected (recommended: powered null) |
-| `place.mercury_h8` | 14934 | 1294 | -0.004 | -0.033–0.024 | 0.7769 | 0.807 | classical_rejected (recommended: powered null) |
-| `place.mercury_h9` | 14934 | 1249 | 0.007 | -0.020–0.033 | 0.6254 | 0.854 | classical_rejected (recommended: powered null) |
-| `place.mercury_in_aquarius` | 14934 | 1288 | -0.012 | -0.040–0.017 | 0.4246 | 0.806 | classical_rejected (recommended: powered null) |
-| `place.mercury_in_aries` | 14934 | 1102 | -0.003 | -0.034–0.027 | 0.8300 | 0.734 | not_testable_yet (under-powered) |
-| `place.mercury_in_cancer` | 14934 | 1191 | 0.020 | -0.009–0.050 | 0.1834 | 0.771 | not_testable_yet (under-powered) |
-| `place.mercury_in_capricorn` | 14934 | 1269 | 0.002 | -0.027–0.031 | 0.9049 | 0.799 | not_testable_yet (under-powered) |
-| `place.mercury_in_gemini` | 14934 | 1153 | 0.018 | -0.012–0.048 | 0.2323 | 0.755 | not_testable_yet (under-powered) |
-| `place.mercury_in_leo` | 14934 | 1253 | -0.002 | -0.031–0.027 | 0.8701 | 0.794 | not_testable_yet (under-powered) |
-| `place.mercury_in_libra` | 14934 | 1358 | -0.010 | -0.038–0.018 | 0.4750 | 0.828 | classical_rejected (recommended: powered null) |
-| `place.mercury_in_pisces` | 14934 | 1218 | -0.011 | -0.040–0.019 | 0.4788 | 0.781 | not_testable_yet (under-powered) |
-| `place.mercury_in_sagittarius` | 14934 | 1320 | -0.009 | -0.037–0.019 | 0.5227 | 0.816 | classical_rejected (recommended: powered null) |
-| `place.mercury_in_scorpio` | 14934 | 1374 | 0.003 | -0.025–0.030 | 0.8537 | 0.833 | classical_rejected (recommended: powered null) |
-| `place.mercury_in_taurus` | 14934 | 1108 | -0.004 | -0.035–0.026 | 0.7785 | 0.737 | not_testable_yet (under-powered) |
-| `place.mercury_in_virgo` | 14934 | 1300 | 0.011 | -0.017–0.040 | 0.4446 | 0.810 | classical_rejected (recommended: powered null) |
-| `place.moon_h1` | 14934 | 1236 | -0.017 | -0.046–0.012 | 0.2506 | 0.787 | not_testable_yet (under-powered) |
-| `place.moon_h10` | 14934 | 1287 | -0.004 | -0.033–0.024 | 0.7623 | 0.805 | classical_rejected (recommended: powered null) |
-| `place.moon_h11` | 14934 | 1233 | 0.007 | -0.022–0.037 | 0.6141 | 0.786 | not_testable_yet (under-powered) |
-| `place.moon_h12` | 14934 | 1213 | 0.005 | -0.022–0.032 | 0.7179 | 0.843 | classical_rejected (recommended: powered null) |
-| `place.moon_h2` | 14934 | 1304 | 0.004 | -0.024–0.033 | 0.7670 | 0.811 | classical_rejected (recommended: powered null) |
-| `place.moon_h3` | 14934 | 1216 | 0.000 | -0.029–0.029 | 0.9914 | 0.780 | not_testable_yet (under-powered) |
-| `place.moon_h4` | 14934 | 1263 | 0.019 | -0.008–0.045 | 0.1727 | 0.862 | classical_rejected (recommended: powered null) |
-| `place.moon_h5` | 14934 | 1271 | 0.003 | -0.023–0.030 | 0.8123 | 0.859 | classical_rejected (recommended: powered null) |
-| `place.moon_h6` | 14934 | 1264 | 0.005 | -0.024–0.033 | 0.7506 | 0.797 | not_testable_yet (under-powered) |
-| `place.moon_h7` | 14934 | 1189 | 0.005 | -0.022–0.032 | 0.7250 | 0.840 | classical_rejected (recommended: powered null) |
-| `place.moon_h8` | 14934 | 1201 | -0.013 | -0.043–0.016 | 0.3823 | 0.774 | not_testable_yet (under-powered) |
-| `place.moon_h9` | 14934 | 1257 | -0.007 | -0.033–0.020 | 0.6154 | 0.856 | classical_rejected (recommended: powered null) |
-| `place.rahu_h1` | 14934 | 1271 | 0.025 | -0.004–0.053 | 0.0901 | 0.800 | not_testable_yet (under-powered) |
-| `place.rahu_h10` | 14934 | 1225 | 0.010 | -0.019–0.039 | 0.4897 | 0.784 | not_testable_yet (under-powered) |
-| `place.rahu_h11` | 14934 | 1236 | -0.004 | -0.033–0.026 | 0.8093 | 0.788 | not_testable_yet (under-powered) |
-| `place.rahu_h12` | 14934 | 1262 | 0.006 | -0.021–0.032 | 0.6703 | 0.858 | classical_rejected (recommended: powered null) |
-| `place.rahu_h2` | 14934 | 1263 | 0.026 | -0.003–0.055 | 0.0759 | 0.797 | not_testable_yet (under-powered) |
-| `place.rahu_h3` | 14934 | 1206 | 0.016 | -0.014–0.045 | 0.2980 | 0.776 | not_testable_yet (under-powered) |
-| `place.rahu_h4` | 14934 | 1208 | -0.008 | -0.035–0.019 | 0.5537 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.rahu_h5` | 14934 | 1243 | -0.005 | -0.032–0.022 | 0.7125 | 0.851 | classical_rejected (recommended: powered null) |
-| `place.rahu_h6` | 14934 | 1278 | 0.006 | -0.022–0.035 | 0.6702 | 0.802 | classical_rejected (recommended: powered null) |
-| `place.rahu_h7` | 14934 | 1295 | -0.008 | -0.034–0.018 | 0.5564 | 0.871 | classical_rejected (recommended: powered null) |
-| `place.rahu_h8` | 14934 | 1225 | -0.011 | -0.041–0.018 | 0.4474 | 0.783 | not_testable_yet (under-powered) |
-| `place.rahu_h9` | 14934 | 1222 | -0.030 | -0.056–-0.003 | 0.0272 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_aquarius` | 14934 | 1152 | 0.002 | -0.026–0.031 | 0.8838 | 0.817 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_aries` | 14934 | 1160 | -0.036 | -0.064–-0.007 | 0.0161 | 0.822 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_cancer` | 14934 | 1499 | -0.000 | -0.026–0.025 | 0.9868 | 0.913 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_capricorn` | 14934 | 1079 | -0.019 | -0.048–0.011 | 0.2183 | 0.789 | not_testable_yet (under-powered) |
-| `place.rahu_in_gemini` | 14934 | 1280 | 0.013 | -0.014–0.040 | 0.3529 | 0.859 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_leo` | 14934 | 1571 | -0.013 | -0.038–0.012 | 0.3224 | 0.926 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_libra` | 14934 | 1116 | 0.002 | -0.027–0.031 | 0.8971 | 0.803 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_pisces` | 14934 | 1156 | 0.015 | -0.014–0.043 | 0.3086 | 0.818 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_sagittarius` | 14934 | 1208 | 0.019 | -0.008–0.047 | 0.1709 | 0.836 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_scorpio` | 14934 | 1124 | -0.019 | -0.048–0.011 | 0.2115 | 0.807 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_taurus` | 14934 | 1156 | 0.036 | 0.008–0.064 | 0.0106 | 0.816 | classical_rejected (recommended: powered null) |
-| `place.rahu_in_virgo` | 14934 | 1433 | -0.001 | -0.026–0.025 | 0.9618 | 0.899 | classical_rejected (recommended: powered null) |
-| `place.saturn_h1` | 14934 | 1278 | 0.012 | -0.016–0.041 | 0.4032 | 0.802 | classical_rejected (recommended: powered null) |
-| `place.saturn_h10` | 14934 | 1273 | 0.027 | -0.002–0.055 | 0.0687 | 0.800 | classical_rejected (recommended: powered null) |
-| `place.saturn_h11` | 14934 | 1237 | -0.008 | -0.037–0.022 | 0.6106 | 0.788 | not_testable_yet (under-powered) |
-| `place.saturn_h12` | 14934 | 1220 | 0.001 | -0.026–0.028 | 0.9255 | 0.845 | classical_rejected (recommended: powered null) |
-| `place.saturn_h2` | 14934 | 1288 | -0.040 | -0.068–-0.011 | 0.0064 | 0.806 | classical_rejected (recommended: powered null) |
-| `place.saturn_h3` | 14934 | 1220 | -0.019 | -0.048–0.011 | 0.2124 | 0.782 | not_testable_yet (under-powered) |
-| `place.saturn_h4` | 14934 | 1237 | 0.006 | -0.020–0.033 | 0.6364 | 0.854 | classical_rejected (recommended: powered null) |
-| `place.saturn_h5` | 14934 | 1276 | -0.009 | -0.035–0.017 | 0.4898 | 0.860 | classical_rejected (recommended: powered null) |
-| `place.saturn_h6` | 14934 | 1236 | 0.004 | -0.025–0.033 | 0.7818 | 0.787 | not_testable_yet (under-powered) |
-| `place.saturn_h7` | 14934 | 1265 | -0.011 | -0.037–0.016 | 0.4264 | 0.862 | classical_rejected (recommended: powered null) |
-| `place.saturn_h8` | 14934 | 1201 | -0.009 | -0.038–0.021 | 0.5668 | 0.774 | not_testable_yet (under-powered) |
-| `place.saturn_h9` | 14934 | 1203 | 0.001 | -0.026–0.029 | 0.9165 | 0.840 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_aquarius` | 14934 | 1222 | 0.003 | -0.022–0.028 | 0.8050 | 0.932 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_aries` | 14934 | 1508 | -0.001 | -0.024–0.021 | 0.9116 | 0.972 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_cancer` | 14934 | 1081 | -0.008 | -0.034–0.019 | 0.5611 | 0.897 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_capricorn` | 14934 | 1360 | -0.005 | -0.029–0.019 | 0.6994 | 0.956 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_gemini` | 14934 | 1087 | 0.025 | -0.000–0.051 | 0.0505 | 0.896 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_leo` | 14934 | 1150 | 0.013 | -0.013–0.038 | 0.3239 | 0.914 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_libra` | 14934 | 1281 | -0.009 | -0.034–0.016 | 0.4744 | 0.944 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_pisces` | 14934 | 1182 | -0.003 | -0.028–0.023 | 0.8327 | 0.924 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_sagittarius` | 14934 | 1281 | 0.016 | -0.008–0.040 | 0.1951 | 0.942 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_scorpio` | 14934 | 1326 | -0.002 | -0.026–0.022 | 0.8471 | 0.951 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_taurus` | 14934 | 1227 | -0.014 | -0.039–0.012 | 0.2909 | 0.934 | classical_rejected (recommended: powered null) |
-| `place.saturn_in_virgo` | 14934 | 1229 | -0.012 | -0.037–0.013 | 0.3394 | 0.935 | classical_rejected (recommended: powered null) |
-| `place.sun_h1` | 14934 | 1244 | 0.024 | -0.005–0.053 | 0.1017 | 0.790 | not_testable_yet (under-powered) |
-| `place.sun_h10` | 14934 | 1219 | -0.002 | -0.031–0.027 | 0.8880 | 0.781 | not_testable_yet (under-powered) |
-| `place.sun_h11` | 14934 | 1336 | 0.015 | -0.013–0.043 | 0.2825 | 0.821 | classical_rejected (recommended: powered null) |
-| `place.sun_h12` | 14934 | 1218 | -0.017 | -0.044–0.010 | 0.2115 | 0.844 | classical_rejected (recommended: powered null) |
-| `place.sun_h2` | 14934 | 1228 | 0.005 | -0.024–0.035 | 0.7191 | 0.785 | not_testable_yet (under-powered) |
-| `place.sun_h3` | 14934 | 1268 | 0.006 | -0.023–0.034 | 0.7005 | 0.799 | not_testable_yet (under-powered) |
-| `place.sun_h4` | 14934 | 1277 | -0.010 | -0.036–0.016 | 0.4529 | 0.864 | classical_rejected (recommended: powered null) |
-| `place.sun_h5` | 14934 | 1241 | 0.015 | -0.012–0.042 | 0.2819 | 0.851 | classical_rejected (recommended: powered null) |
-| `place.sun_h6` | 14934 | 1170 | -0.013 | -0.043–0.017 | 0.4029 | 0.762 | not_testable_yet (under-powered) |
-| `place.sun_h7` | 14934 | 1234 | -0.002 | -0.028–0.025 | 0.8941 | 0.854 | classical_rejected (recommended: powered null) |
-| `place.sun_h8` | 14934 | 1266 | -0.008 | -0.037–0.020 | 0.5722 | 0.798 | not_testable_yet (under-powered) |
-| `place.sun_h9` | 14934 | 1233 | 0.004 | -0.023–0.031 | 0.7721 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.sun_in_aquarius` | 14934 | 1223 | -0.011 | -0.040–0.018 | 0.4591 | 0.783 | not_testable_yet (under-powered) |
-| `place.sun_in_aries` | 14934 | 1232 | -0.004 | -0.034–0.025 | 0.7655 | 0.786 | not_testable_yet (under-powered) |
-| `place.sun_in_cancer` | 14934 | 1308 | 0.033 | 0.004–0.061 | 0.0233 | 0.812 | classical_rejected (recommended: powered null) |
-| `place.sun_in_capricorn` | 14934 | 1250 | -0.003 | -0.032–0.026 | 0.8484 | 0.793 | not_testable_yet (under-powered) |
-| `place.sun_in_gemini` | 14934 | 1233 | 0.026 | -0.003–0.055 | 0.0789 | 0.786 | not_testable_yet (under-powered) |
-| `place.sun_in_leo` | 14934 | 1311 | 0.004 | -0.025–0.032 | 0.7936 | 0.813 | classical_rejected (recommended: powered null) |
-| `place.sun_in_libra` | 14934 | 1177 | 0.014 | -0.016–0.044 | 0.3567 | 0.765 | not_testable_yet (under-powered) |
-| `place.sun_in_pisces` | 14934 | 1239 | -0.021 | -0.050–0.008 | 0.1614 | 0.789 | not_testable_yet (under-powered) |
-| `place.sun_in_sagittarius` | 14934 | 1154 | -0.009 | -0.039–0.022 | 0.5785 | 0.756 | not_testable_yet (under-powered) |
-| `place.sun_in_scorpio` | 14934 | 1222 | -0.003 | -0.033–0.026 | 0.8162 | 0.783 | not_testable_yet (under-powered) |
-| `place.sun_in_taurus` | 14934 | 1309 | -0.015 | -0.044–0.013 | 0.2855 | 0.813 | classical_rejected (recommended: powered null) |
-| `place.sun_in_virgo` | 14934 | 1276 | -0.011 | -0.039–0.018 | 0.4625 | 0.802 | classical_rejected (recommended: powered null) |
-| `place.venus_h1` | 14934 | 1270 | 0.011 | -0.017–0.040 | 0.4332 | 0.799 | not_testable_yet (under-powered) |
-| `place.venus_h10` | 14934 | 1181 | 0.012 | -0.018–0.042 | 0.4262 | 0.767 | not_testable_yet (under-powered) |
-| `place.venus_h11` | 14934 | 1268 | -0.021 | -0.050–0.008 | 0.1510 | 0.799 | not_testable_yet (under-powered) |
-| `place.venus_h12` | 14934 | 1290 | -0.017 | -0.043–0.009 | 0.2032 | 0.865 | classical_rejected (recommended: powered null) |
-| `place.venus_h2` | 14934 | 1241 | 0.009 | -0.020–0.038 | 0.5381 | 0.789 | not_testable_yet (under-powered) |
-| `place.venus_h3` | 14934 | 1227 | -0.011 | -0.040–0.018 | 0.4580 | 0.784 | not_testable_yet (under-powered) |
-| `place.venus_h4` | 14934 | 1240 | 0.000 | -0.026–0.027 | 0.9777 | 0.854 | classical_rejected (recommended: powered null) |
-| `place.venus_h5` | 14934 | 1214 | 0.007 | -0.020–0.034 | 0.5982 | 0.843 | classical_rejected (recommended: powered null) |
-| `place.venus_h6` | 14934 | 1265 | 0.007 | -0.022–0.036 | 0.6425 | 0.798 | not_testable_yet (under-powered) |
-| `place.venus_h7` | 14934 | 1250 | -0.009 | -0.036–0.017 | 0.4816 | 0.858 | classical_rejected (recommended: powered null) |
-| `place.venus_h8` | 14934 | 1261 | 0.003 | -0.026–0.031 | 0.8629 | 0.796 | not_testable_yet (under-powered) |
-| `place.venus_h9` | 14934 | 1227 | 0.029 | 0.001–0.056 | 0.0402 | 0.849 | classical_rejected (recommended: powered null) |
-| `place.venus_in_aquarius` | 14934 | 1047 | -0.001 | -0.030–0.027 | 0.9205 | 0.787 | not_testable_yet (under-powered) |
-| `place.venus_in_aries` | 14934 | 1179 | 0.000 | -0.027–0.027 | 0.9833 | 0.837 | classical_rejected (recommended: powered null) |
-| `place.venus_in_cancer` | 14934 | 1118 | -0.024 | -0.051–0.004 | 0.0882 | 0.814 | classical_rejected (recommended: powered null) |
-| `place.venus_in_capricorn` | 14934 | 1498 | 0.015 | -0.010–0.040 | 0.2286 | 0.916 | classical_rejected (recommended: powered null) |
-| `place.venus_in_gemini` | 14934 | 1428 | -0.010 | -0.035–0.015 | 0.4341 | 0.902 | classical_rejected (recommended: powered null) |
-| `place.venus_in_leo` | 14934 | 1500 | 0.008 | -0.017–0.033 | 0.5212 | 0.916 | classical_rejected (recommended: powered null) |
-| `place.venus_in_libra` | 14934 | 1370 | 0.006 | -0.019–0.032 | 0.6432 | 0.890 | classical_rejected (recommended: powered null) |
-| `place.venus_in_pisces` | 14934 | 1339 | 0.001 | -0.025–0.026 | 0.9638 | 0.882 | classical_rejected (recommended: powered null) |
-| `place.venus_in_sagittarius` | 14934 | 1088 | -0.015 | -0.043–0.012 | 0.2756 | 0.803 | classical_rejected (recommended: powered null) |
-| `place.venus_in_scorpio` | 14934 | 1080 | 0.003 | -0.026–0.031 | 0.8489 | 0.801 | classical_rejected (recommended: powered null) |
-| `place.venus_in_taurus` | 14934 | 1219 | 0.008 | -0.019–0.035 | 0.5408 | 0.850 | classical_rejected (recommended: powered null) |
-| `place.venus_in_virgo` | 14934 | 1068 | 0.002 | -0.026–0.031 | 0.8716 | 0.796 | not_testable_yet (under-powered) |
-| `yoga.bhadra` | 14934 | 1911 | 0.015 | -0.009–0.039 | 0.2162 | 0.935 | classical_rejected (recommended: powered null) |
-| `yoga.budhaditya` | 14934 | 7720 | -0.004 | -0.020–0.012 | 0.6445 | 1.000 | classical_rejected (recommended: powered null) |
-| `yoga.gaja_kesari` | 14934 | 5024 | 0.006 | -0.010–0.022 | 0.4531 | 1.000 | classical_rejected (recommended: powered null) |
-| `yoga.gaja_kesari_bphs` | 14934 | 1446 | 0.009 | -0.017–0.034 | 0.5162 | 0.899 | classical_rejected (recommended: powered null) |
-| `yoga.hamsa` | 14934 | 2532 | 0.016 | -0.005–0.038 | 0.1360 | 0.978 | classical_rejected (recommended: powered null) |
-| `yoga.kendra_trikona_raja` | 14934 | 7960 | 0.002 | -0.014–0.018 | 0.8441 | 1.000 | classical_rejected (recommended: powered null) |
-| `yoga.kendra_trikona_raja_weak` | 14934 | 9645 | 0.002 | -0.015–0.019 | 0.8118 | 0.999 | classical_rejected (recommended: powered null) |
-| `yoga.malavya` | 14934 | 2550 | -0.004 | -0.025–0.018 | 0.7334 | 0.979 | classical_rejected (recommended: powered null) |
-| `yoga.neecha_bhanga` | 14934 | 6654 | 0.003 | -0.013–0.020 | 0.6707 | 1.000 | classical_rejected (recommended: powered null) |
-| `yoga.parivartana` | 14934 | 5528 | 0.002 | -0.014–0.018 | 0.8061 | 1.000 | classical_rejected (recommended: powered null) |
-| `yoga.ruchaka` | 14934 | 2179 | 0.009 | -0.014–0.031 | 0.4595 | 0.960 | classical_rejected (recommended: powered null) |
-| `yoga.sasa` | 14934 | 2713 | 0.011 | -0.009–0.032 | 0.2799 | 0.984 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h1` | 15108 | 1245 | 0.004 | -0.025–0.033 | 0.7924 | 0.791 | not_testable_yet (under-powered) |
+| `place.jupiter_h10` | 15108 | 1287 | 0.022 | -0.006–0.051 | 0.1297 | 0.805 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h11` | 15108 | 1302 | -0.007 | -0.036–0.021 | 0.6159 | 0.810 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h12` | 15108 | 1264 | 0.024 | -0.003–0.051 | 0.0821 | 0.861 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h2` | 15108 | 1269 | -0.009 | -0.037–0.020 | 0.5611 | 0.799 | not_testable_yet (under-powered) |
+| `place.jupiter_h3` | 15108 | 1279 | 0.009 | -0.019–0.038 | 0.5193 | 0.803 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h4` | 15108 | 1242 | 0.028 | 0.001–0.055 | 0.0410 | 0.857 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h5` | 15108 | 1227 | -0.026 | -0.052–0.001 | 0.0558 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h6` | 15108 | 1263 | -0.010 | -0.039–0.019 | 0.4916 | 0.797 | not_testable_yet (under-powered) |
+| `place.jupiter_h7` | 15108 | 1262 | -0.010 | -0.036–0.016 | 0.4408 | 0.861 | classical_rejected (recommended: powered null) |
+| `place.jupiter_h8` | 15108 | 1214 | 0.006 | -0.024–0.035 | 0.7106 | 0.780 | not_testable_yet (under-powered) |
+| `place.jupiter_h9` | 15108 | 1254 | -0.016 | -0.042–0.010 | 0.2334 | 0.856 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_aquarius` | 15108 | 1170 | 0.010 | -0.018–0.039 | 0.4656 | 0.822 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_aries` | 15108 | 1329 | -0.004 | -0.031–0.023 | 0.7623 | 0.873 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_cancer` | 15108 | 1347 | -0.017 | -0.044–0.010 | 0.2149 | 0.878 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_capricorn` | 15108 | 1265 | -0.008 | -0.035–0.020 | 0.5786 | 0.855 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_gemini` | 15108 | 1178 | 0.020 | -0.008–0.048 | 0.1534 | 0.824 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_leo` | 15108 | 1323 | 0.008 | -0.018–0.035 | 0.5457 | 0.871 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_libra` | 15108 | 1381 | 0.005 | -0.022–0.031 | 0.7266 | 0.886 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_pisces` | 15108 | 1107 | -0.026 | -0.055–0.004 | 0.0876 | 0.799 | not_testable_yet (under-powered) |
+| `place.jupiter_in_sagittarius` | 15108 | 1235 | 0.021 | -0.006–0.048 | 0.1339 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_scorpio` | 15108 | 1254 | -0.023 | -0.051–0.004 | 0.1003 | 0.852 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_taurus` | 15108 | 1179 | 0.003 | -0.025–0.031 | 0.8274 | 0.825 | classical_rejected (recommended: powered null) |
+| `place.jupiter_in_virgo` | 15108 | 1340 | 0.010 | -0.017–0.036 | 0.4758 | 0.875 | classical_rejected (recommended: powered null) |
+| `place.ketu_h1` | 15108 | 1312 | -0.011 | -0.040–0.017 | 0.4321 | 0.814 | classical_rejected (recommended: powered null) |
+| `place.ketu_h10` | 15108 | 1186 | -0.022 | -0.051–0.008 | 0.1499 | 0.769 | not_testable_yet (under-powered) |
+| `place.ketu_h11` | 15108 | 1243 | 0.016 | -0.013–0.045 | 0.2785 | 0.790 | not_testable_yet (under-powered) |
+| `place.ketu_h12` | 15108 | 1263 | -0.012 | -0.038–0.014 | 0.3641 | 0.859 | classical_rejected (recommended: powered null) |
+| `place.ketu_h2` | 15108 | 1256 | -0.006 | -0.035–0.023 | 0.6665 | 0.795 | not_testable_yet (under-powered) |
+| `place.ketu_h3` | 15108 | 1241 | -0.010 | -0.039–0.019 | 0.4881 | 0.790 | not_testable_yet (under-powered) |
+| `place.ketu_h4` | 15108 | 1288 | -0.004 | -0.030–0.022 | 0.7733 | 0.868 | classical_rejected (recommended: powered null) |
+| `place.ketu_h5` | 15108 | 1274 | 0.006 | -0.021–0.032 | 0.6785 | 0.860 | classical_rejected (recommended: powered null) |
+| `place.ketu_h6` | 15108 | 1287 | 0.011 | -0.017–0.040 | 0.4446 | 0.805 | classical_rejected (recommended: powered null) |
+| `place.ketu_h7` | 15108 | 1267 | 0.008 | -0.018–0.035 | 0.5403 | 0.864 | classical_rejected (recommended: powered null) |
+| `place.ketu_h8` | 15108 | 1272 | -0.004 | -0.032–0.025 | 0.8023 | 0.800 | classical_rejected (recommended: powered null) |
+| `place.ketu_h9` | 15108 | 1219 | -0.019 | -0.045–0.008 | 0.1709 | 0.845 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_aquarius` | 15108 | 1604 | 0.003 | -0.021–0.026 | 0.8270 | 0.931 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_aries` | 15108 | 1162 | 0.002 | -0.025–0.030 | 0.8678 | 0.828 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_cancer` | 15108 | 1096 | -0.030 | -0.058–-0.003 | 0.0323 | 0.802 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_capricorn` | 15108 | 1522 | -0.011 | -0.035–0.013 | 0.3610 | 0.917 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_gemini` | 15108 | 1189 | 0.023 | -0.005–0.051 | 0.1012 | 0.838 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_leo` | 15108 | 1191 | 0.007 | -0.020–0.034 | 0.6131 | 0.838 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_libra` | 15108 | 1184 | -0.001 | -0.028–0.026 | 0.9397 | 0.835 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_pisces` | 15108 | 1454 | -0.013 | -0.037–0.012 | 0.3076 | 0.904 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_sagittarius` | 15108 | 1293 | -0.016 | -0.042–0.010 | 0.2200 | 0.867 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_scorpio` | 15108 | 1133 | 0.003 | -0.025–0.031 | 0.8258 | 0.818 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_taurus` | 15108 | 1127 | 0.009 | -0.019–0.037 | 0.5425 | 0.816 | classical_rejected (recommended: powered null) |
+| `place.ketu_in_virgo` | 15108 | 1153 | 0.029 | 0.001–0.058 | 0.0414 | 0.826 | classical_rejected (recommended: powered null) |
+| `place.l10_h1` | 15108 | 1340 | -0.011 | -0.035–0.013 | 0.3790 | 0.952 | classical_rejected (recommended: powered null) |
+| `place.l10_h10` | 15108 | 1276 | 0.014 | -0.014–0.043 | 0.3327 | 0.802 | classical_rejected (recommended: powered null) |
+| `place.l10_h11` | 15108 | 1247 | -0.012 | -0.041–0.017 | 0.4164 | 0.792 | not_testable_yet (under-powered) |
+| `place.l10_h12` | 15108 | 1231 | -0.006 | -0.033–0.022 | 0.6920 | 0.845 | classical_rejected (recommended: powered null) |
+| `place.l10_h2` | 15108 | 1272 | -0.011 | -0.039–0.018 | 0.4664 | 0.800 | classical_rejected (recommended: powered null) |
+| `place.l10_h3` | 15108 | 1222 | -0.013 | -0.043–0.016 | 0.3688 | 0.783 | not_testable_yet (under-powered) |
+| `place.l10_h4` | 15108 | 1318 | -0.006 | -0.033–0.021 | 0.6473 | 0.866 | classical_rejected (recommended: powered null) |
+| `place.l10_h5` | 15108 | 1245 | -0.001 | -0.028–0.027 | 0.9554 | 0.848 | classical_rejected (recommended: powered null) |
+| `place.l10_h6` | 15108 | 1216 | -0.004 | -0.029–0.022 | 0.7823 | 0.929 | classical_rejected (recommended: powered null) |
+| `place.l10_h7` | 15108 | 1268 | -0.007 | -0.035–0.020 | 0.6068 | 0.854 | classical_rejected (recommended: powered null) |
+| `place.l10_h8` | 15108 | 1271 | 0.009 | -0.015–0.033 | 0.4786 | 0.939 | classical_rejected (recommended: powered null) |
+| `place.l10_h9` | 15108 | 1202 | 0.008 | -0.020–0.036 | 0.5786 | 0.834 | classical_rejected (recommended: powered null) |
+| `place.l11_h1` | 15108 | 1256 | 0.015 | -0.009–0.039 | 0.2150 | 0.936 | classical_rejected (recommended: powered null) |
+| `place.l11_h10` | 15108 | 1221 | 0.032 | 0.002–0.061 | 0.0339 | 0.782 | not_testable_yet (under-powered) |
+| `place.l11_h11` | 15108 | 1250 | 0.007 | -0.022–0.036 | 0.6477 | 0.793 | not_testable_yet (under-powered) |
+| `place.l11_h12` | 15108 | 1273 | -0.013 | -0.040–0.015 | 0.3595 | 0.858 | classical_rejected (recommended: powered null) |
+| `place.l11_h2` | 15108 | 1265 | -0.007 | -0.036–0.022 | 0.6435 | 0.798 | not_testable_yet (under-powered) |
+| `place.l11_h3` | 15108 | 1255 | -0.008 | -0.037–0.021 | 0.6037 | 0.795 | not_testable_yet (under-powered) |
+| `place.l11_h4` | 15108 | 1294 | -0.028 | -0.055–-0.000 | 0.0473 | 0.860 | classical_rejected (recommended: powered null) |
+| `place.l11_h5` | 15108 | 1272 | 0.018 | -0.009–0.044 | 0.2037 | 0.855 | classical_rejected (recommended: powered null) |
+| `place.l11_h6` | 15108 | 1281 | -0.014 | -0.039–0.011 | 0.2692 | 0.943 | classical_rejected (recommended: powered null) |
+| `place.l11_h7` | 15108 | 1285 | 0.024 | -0.003–0.051 | 0.0762 | 0.857 | classical_rejected (recommended: powered null) |
+| `place.l11_h8` | 15108 | 1191 | -0.006 | -0.032–0.019 | 0.6259 | 0.924 | classical_rejected (recommended: powered null) |
+| `place.l11_h9` | 15108 | 1265 | 0.010 | -0.017–0.037 | 0.4815 | 0.855 | classical_rejected (recommended: powered null) |
+| `place.l12_h1` | 15108 | 1245 | 0.001 | -0.027–0.028 | 0.9692 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.l12_h10` | 15108 | 1289 | -0.002 | -0.029–0.025 | 0.8795 | 0.862 | classical_rejected (recommended: powered null) |
+| `place.l12_h11` | 15108 | 1217 | 0.003 | -0.025–0.030 | 0.8566 | 0.840 | classical_rejected (recommended: powered null) |
+| `place.l12_h12` | 15108 | 1223 | -0.010 | -0.036–0.017 | 0.4738 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.l12_h2` | 15108 | 1238 | 0.002 | -0.026–0.029 | 0.8976 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.l12_h3` | 15108 | 1360 | 0.010 | -0.017–0.036 | 0.4755 | 0.881 | classical_rejected (recommended: powered null) |
+| `place.l12_h4` | 15108 | 1306 | -0.010 | -0.038–0.019 | 0.5033 | 0.812 | classical_rejected (recommended: powered null) |
+| `place.l12_h5` | 15108 | 1236 | -0.001 | -0.030–0.028 | 0.9390 | 0.789 | not_testable_yet (under-powered) |
+| `place.l12_h6` | 15108 | 1252 | 0.004 | -0.023–0.032 | 0.7544 | 0.851 | classical_rejected (recommended: powered null) |
+| `place.l12_h7` | 15108 | 1230 | 0.006 | -0.023–0.035 | 0.6831 | 0.786 | not_testable_yet (under-powered) |
+| `place.l12_h8` | 15108 | 1289 | -0.022 | -0.050–0.005 | 0.1107 | 0.864 | classical_rejected (recommended: powered null) |
+| `place.l12_h9` | 15108 | 1223 | -0.008 | -0.035–0.019 | 0.5589 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.l1_h1` | 15108 | 1170 | 0.017 | -0.013–0.047 | 0.2582 | 0.763 | not_testable_yet (under-powered) |
+| `place.l1_h10` | 15108 | 1249 | -0.016 | -0.041–0.009 | 0.2194 | 0.937 | classical_rejected (recommended: powered null) |
+| `place.l1_h11` | 15108 | 1278 | 0.012 | -0.012–0.036 | 0.3345 | 0.940 | classical_rejected (recommended: powered null) |
+| `place.l1_h12` | 15108 | 1290 | -0.015 | -0.043–0.012 | 0.2746 | 0.863 | classical_rejected (recommended: powered null) |
+| `place.l1_h2` | 15108 | 1307 | -0.007 | -0.031–0.018 | 0.5821 | 0.947 | classical_rejected (recommended: powered null) |
+| `place.l1_h3` | 15108 | 1217 | 0.007 | -0.018–0.031 | 0.6071 | 0.929 | classical_rejected (recommended: powered null) |
+| `place.l1_h4` | 15108 | 1310 | 0.007 | -0.019–0.034 | 0.5855 | 0.866 | classical_rejected (recommended: powered null) |
+| `place.l1_h5` | 15108 | 1229 | -0.004 | -0.032–0.024 | 0.7679 | 0.846 | classical_rejected (recommended: powered null) |
+| `place.l1_h6` | 15108 | 1268 | 0.007 | -0.022–0.035 | 0.6487 | 0.799 | not_testable_yet (under-powered) |
+| `place.l1_h7` | 15108 | 1236 | -0.006 | -0.034–0.022 | 0.6754 | 0.843 | classical_rejected (recommended: powered null) |
+| `place.l1_h8` | 15108 | 1245 | -0.014 | -0.043–0.015 | 0.3574 | 0.791 | not_testable_yet (under-powered) |
+| `place.l1_h9` | 15108 | 1309 | 0.015 | -0.012–0.041 | 0.2806 | 0.867 | classical_rejected (recommended: powered null) |
+| `place.l2_h1` | 15108 | 1254 | 0.010 | -0.015–0.034 | 0.4360 | 0.936 | classical_rejected (recommended: powered null) |
+| `place.l2_h10` | 15108 | 1295 | 0.014 | -0.014–0.043 | 0.3256 | 0.808 | classical_rejected (recommended: powered null) |
+| `place.l2_h11` | 15108 | 1218 | -0.034 | -0.063–-0.005 | 0.0229 | 0.781 | not_testable_yet (under-powered) |
+| `place.l2_h12` | 15108 | 1320 | -0.002 | -0.029–0.024 | 0.8626 | 0.871 | classical_rejected (recommended: powered null) |
+| `place.l2_h2` | 15108 | 1234 | 0.011 | -0.018–0.040 | 0.4449 | 0.787 | not_testable_yet (under-powered) |
+| `place.l2_h3` | 15108 | 1274 | 0.010 | -0.019–0.039 | 0.4984 | 0.801 | classical_rejected (recommended: powered null) |
+| `place.l2_h4` | 15108 | 1232 | 0.005 | -0.023–0.032 | 0.7406 | 0.839 | classical_rejected (recommended: powered null) |
+| `place.l2_h5` | 15108 | 1281 | 0.007 | -0.020–0.034 | 0.6005 | 0.859 | classical_rejected (recommended: powered null) |
+| `place.l2_h6` | 15108 | 1225 | 0.000 | -0.025–0.025 | 0.9891 | 0.931 | classical_rejected (recommended: powered null) |
+| `place.l2_h7` | 15108 | 1274 | 0.005 | -0.022–0.032 | 0.7251 | 0.855 | classical_rejected (recommended: powered null) |
+| `place.l2_h8` | 15108 | 1257 | -0.006 | -0.031–0.019 | 0.6243 | 0.938 | classical_rejected (recommended: powered null) |
+| `place.l2_h9` | 15108 | 1244 | -0.005 | -0.033–0.022 | 0.7143 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.l3_h1` | 15108 | 1289 | -0.001 | -0.026–0.023 | 0.9193 | 0.943 | classical_rejected (recommended: powered null) |
+| `place.l3_h10` | 15108 | 1261 | 0.031 | 0.003–0.060 | 0.0330 | 0.796 | not_testable_yet (under-powered) |
+| `place.l3_h11` | 15108 | 1298 | -0.012 | -0.041–0.016 | 0.3958 | 0.809 | classical_rejected (recommended: powered null) |
+| `place.l3_h12` | 15108 | 1228 | 0.015 | -0.013–0.042 | 0.2924 | 0.843 | classical_rejected (recommended: powered null) |
+| `place.l3_h2` | 15108 | 1281 | -0.015 | -0.044–0.013 | 0.2931 | 0.804 | classical_rejected (recommended: powered null) |
+| `place.l3_h3` | 15108 | 1247 | 0.004 | -0.025–0.033 | 0.8013 | 0.792 | not_testable_yet (under-powered) |
+| `place.l3_h4` | 15108 | 1296 | 0.016 | -0.011–0.043 | 0.2503 | 0.859 | classical_rejected (recommended: powered null) |
+| `place.l3_h5` | 15108 | 1282 | -0.005 | -0.033–0.022 | 0.7051 | 0.860 | classical_rejected (recommended: powered null) |
+| `place.l3_h6` | 15108 | 1266 | -0.017 | -0.042–0.008 | 0.1773 | 0.940 | classical_rejected (recommended: powered null) |
+| `place.l3_h7` | 15108 | 1241 | 0.008 | -0.019–0.036 | 0.5625 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.l3_h8` | 15108 | 1191 | -0.016 | -0.042–0.009 | 0.2128 | 0.925 | classical_rejected (recommended: powered null) |
+| `place.l3_h9` | 15108 | 1228 | -0.003 | -0.031–0.025 | 0.8329 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.l4_h1` | 15108 | 1199 | 0.025 | -0.003–0.053 | 0.0755 | 0.831 | classical_rejected (recommended: powered null) |
+| `place.l4_h10` | 15108 | 1211 | 0.001 | -0.027–0.029 | 0.9526 | 0.833 | classical_rejected (recommended: powered null) |
+| `place.l4_h11` | 15108 | 1254 | -0.003 | -0.030–0.025 | 0.8530 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.l4_h12` | 15108 | 1331 | 0.020 | -0.008–0.048 | 0.1565 | 0.820 | classical_rejected (recommended: powered null) |
+| `place.l4_h2` | 15108 | 1288 | 0.001 | -0.026–0.028 | 0.9560 | 0.857 | classical_rejected (recommended: powered null) |
+| `place.l4_h3` | 15108 | 1230 | 0.015 | -0.013–0.042 | 0.2964 | 0.838 | classical_rejected (recommended: powered null) |
+| `place.l4_h4` | 15108 | 1212 | 0.007 | -0.020–0.034 | 0.5924 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.l4_h5` | 15108 | 1315 | -0.005 | -0.033–0.024 | 0.7499 | 0.816 | classical_rejected (recommended: powered null) |
+| `place.l4_h6` | 15108 | 1251 | -0.036 | -0.064–-0.008 | 0.0115 | 0.851 | classical_rejected (recommended: powered null) |
+| `place.l4_h7` | 15108 | 1289 | 0.001 | -0.027–0.030 | 0.9352 | 0.806 | classical_rejected (recommended: powered null) |
+| `place.l4_h8` | 15108 | 1247 | -0.003 | -0.031–0.024 | 0.8132 | 0.848 | classical_rejected (recommended: powered null) |
+| `place.l4_h9` | 15108 | 1281 | 0.008 | -0.021–0.036 | 0.5892 | 0.804 | classical_rejected (recommended: powered null) |
+| `place.l5_h1` | 15108 | 1301 | -0.003 | -0.030–0.024 | 0.8447 | 0.867 | classical_rejected (recommended: powered null) |
+| `place.l5_h10` | 15108 | 1314 | -0.002 | -0.029–0.025 | 0.8951 | 0.869 | classical_rejected (recommended: powered null) |
+| `place.l5_h11` | 15108 | 1233 | 0.006 | -0.021–0.034 | 0.6613 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.l5_h12` | 15108 | 1205 | 0.011 | -0.019–0.040 | 0.4809 | 0.777 | not_testable_yet (under-powered) |
+| `place.l5_h2` | 15108 | 1292 | 0.004 | -0.023–0.031 | 0.7465 | 0.862 | classical_rejected (recommended: powered null) |
+| `place.l5_h3` | 15108 | 1264 | -0.000 | -0.028–0.027 | 0.9820 | 0.854 | classical_rejected (recommended: powered null) |
+| `place.l5_h4` | 15108 | 1247 | 0.015 | -0.014–0.043 | 0.3250 | 0.792 | not_testable_yet (under-powered) |
+| `place.l5_h5` | 15108 | 1212 | -0.012 | -0.039–0.015 | 0.3801 | 0.840 | classical_rejected (recommended: powered null) |
+| `place.l5_h6` | 15108 | 1228 | 0.005 | -0.022–0.033 | 0.7077 | 0.845 | classical_rejected (recommended: powered null) |
+| `place.l5_h7` | 15108 | 1249 | -0.006 | -0.035–0.023 | 0.6816 | 0.793 | not_testable_yet (under-powered) |
+| `place.l5_h8` | 15108 | 1320 | -0.004 | -0.031–0.023 | 0.7737 | 0.873 | classical_rejected (recommended: powered null) |
+| `place.l5_h9` | 15108 | 1243 | -0.001 | -0.030–0.028 | 0.9573 | 0.791 | not_testable_yet (under-powered) |
+| `place.l6_h1` | 15108 | 1241 | 0.029 | -0.000–0.057 | 0.0538 | 0.789 | not_testable_yet (under-powered) |
+| `place.l6_h10` | 15108 | 1274 | 0.005 | -0.019–0.029 | 0.6826 | 0.940 | classical_rejected (recommended: powered null) |
+| `place.l6_h11` | 15108 | 1308 | -0.010 | -0.034–0.014 | 0.4236 | 0.947 | classical_rejected (recommended: powered null) |
+| `place.l6_h12` | 15108 | 1290 | 0.007 | -0.020–0.034 | 0.6205 | 0.862 | classical_rejected (recommended: powered null) |
+| `place.l6_h2` | 15108 | 1270 | -0.016 | -0.040–0.009 | 0.2234 | 0.941 | classical_rejected (recommended: powered null) |
+| `place.l6_h3` | 15108 | 1177 | 0.004 | -0.021–0.030 | 0.7364 | 0.920 | classical_rejected (recommended: powered null) |
+| `place.l6_h4` | 15108 | 1230 | 0.018 | -0.009–0.045 | 0.1983 | 0.841 | classical_rejected (recommended: powered null) |
+| `place.l6_h5` | 15108 | 1251 | 0.015 | -0.012–0.043 | 0.2634 | 0.851 | classical_rejected (recommended: powered null) |
+| `place.l6_h6` | 15108 | 1256 | -0.011 | -0.040–0.017 | 0.4386 | 0.795 | not_testable_yet (under-powered) |
+| `place.l6_h7` | 15108 | 1293 | -0.011 | -0.038–0.016 | 0.4319 | 0.861 | classical_rejected (recommended: powered null) |
+| `place.l6_h8` | 15108 | 1204 | -0.016 | -0.045–0.013 | 0.2869 | 0.776 | not_testable_yet (under-powered) |
+| `place.l6_h9` | 15108 | 1314 | 0.014 | -0.013–0.040 | 0.3185 | 0.869 | classical_rejected (recommended: powered null) |
+| `place.l7_h1` | 15108 | 1270 | 0.020 | -0.007–0.047 | 0.1505 | 0.852 | classical_rejected (recommended: powered null) |
+| `place.l7_h10` | 15108 | 1281 | 0.020 | -0.007–0.047 | 0.1509 | 0.856 | classical_rejected (recommended: powered null) |
+| `place.l7_h11` | 15108 | 1301 | -0.013 | -0.041–0.014 | 0.3349 | 0.864 | classical_rejected (recommended: powered null) |
+| `place.l7_h12` | 15108 | 1284 | -0.002 | -0.031–0.026 | 0.8698 | 0.805 | classical_rejected (recommended: powered null) |
+| `place.l7_h2` | 15108 | 1195 | 0.007 | -0.021–0.035 | 0.6420 | 0.829 | classical_rejected (recommended: powered null) |
+| `place.l7_h3` | 15108 | 1329 | -0.005 | -0.032–0.022 | 0.7077 | 0.871 | classical_rejected (recommended: powered null) |
+| `place.l7_h4` | 15108 | 1253 | -0.001 | -0.030–0.028 | 0.9352 | 0.794 | not_testable_yet (under-powered) |
+| `place.l7_h5` | 15108 | 1259 | 0.011 | -0.018–0.040 | 0.4465 | 0.796 | not_testable_yet (under-powered) |
+| `place.l7_h6` | 15108 | 1209 | -0.012 | -0.040–0.016 | 0.4118 | 0.834 | classical_rejected (recommended: powered null) |
+| `place.l7_h7` | 15108 | 1219 | 0.004 | -0.022–0.031 | 0.7477 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.l7_h8` | 15108 | 1256 | 0.000 | -0.027–0.028 | 0.9897 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.l7_h9` | 15108 | 1252 | 0.007 | -0.021–0.036 | 0.6121 | 0.794 | not_testable_yet (under-powered) |
+| `place.l8_h1` | 15108 | 1326 | 0.009 | -0.020–0.037 | 0.5538 | 0.818 | classical_rejected (recommended: powered null) |
+| `place.l8_h10` | 15108 | 1205 | 0.007 | -0.018–0.032 | 0.5991 | 0.926 | classical_rejected (recommended: powered null) |
+| `place.l8_h11` | 15108 | 1366 | -0.004 | -0.028–0.020 | 0.7379 | 0.955 | classical_rejected (recommended: powered null) |
+| `place.l8_h12` | 15108 | 1199 | -0.016 | -0.044–0.013 | 0.2811 | 0.834 | classical_rejected (recommended: powered null) |
+| `place.l8_h2` | 15108 | 1230 | 0.024 | 0.000–0.048 | 0.0488 | 0.930 | classical_rejected (recommended: powered null) |
+| `place.l8_h3` | 15108 | 1241 | -0.024 | -0.049–0.002 | 0.0681 | 0.936 | classical_rejected (recommended: powered null) |
+| `place.l8_h4` | 15108 | 1308 | 0.016 | -0.011–0.043 | 0.2371 | 0.865 | classical_rejected (recommended: powered null) |
+| `place.l8_h5` | 15108 | 1345 | 0.016 | -0.010–0.042 | 0.2286 | 0.878 | classical_rejected (recommended: powered null) |
+| `place.l8_h6` | 15108 | 1248 | -0.017 | -0.046–0.012 | 0.2594 | 0.792 | not_testable_yet (under-powered) |
+| `place.l8_h7` | 15108 | 1194 | -0.016 | -0.044–0.013 | 0.2766 | 0.829 | classical_rejected (recommended: powered null) |
+| `place.l8_h8` | 15108 | 1234 | 0.004 | -0.025–0.034 | 0.7648 | 0.787 | not_testable_yet (under-powered) |
+| `place.l8_h9` | 15108 | 1212 | 0.000 | -0.028–0.028 | 0.9843 | 0.838 | classical_rejected (recommended: powered null) |
+| `place.l9_h1` | 15108 | 1244 | -0.002 | -0.029–0.026 | 0.9145 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.l9_h10` | 15108 | 1293 | 0.006 | -0.021–0.033 | 0.6715 | 0.863 | classical_rejected (recommended: powered null) |
+| `place.l9_h11` | 15108 | 1234 | -0.013 | -0.040–0.015 | 0.3736 | 0.846 | classical_rejected (recommended: powered null) |
+| `place.l9_h12` | 15108 | 1310 | 0.006 | -0.020–0.033 | 0.6278 | 0.873 | classical_rejected (recommended: powered null) |
+| `place.l9_h2` | 15108 | 1245 | 0.007 | -0.021–0.034 | 0.6408 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.l9_h3` | 15108 | 1230 | 0.003 | -0.025–0.031 | 0.8350 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.l9_h4` | 15108 | 1204 | -0.015 | -0.044–0.015 | 0.3261 | 0.776 | not_testable_yet (under-powered) |
+| `place.l9_h5` | 15108 | 1357 | 0.001 | -0.027–0.029 | 0.9444 | 0.829 | classical_rejected (recommended: powered null) |
+| `place.l9_h6` | 15108 | 1254 | -0.003 | -0.030–0.025 | 0.8380 | 0.852 | classical_rejected (recommended: powered null) |
+| `place.l9_h7` | 15108 | 1273 | -0.029 | -0.058–-0.001 | 0.0452 | 0.801 | classical_rejected (recommended: powered null) |
+| `place.l9_h8` | 15108 | 1267 | -0.008 | -0.035–0.020 | 0.5861 | 0.856 | classical_rejected (recommended: powered null) |
+| `place.l9_h9` | 15108 | 1197 | -0.025 | -0.052–0.001 | 0.0599 | 0.838 | classical_rejected (recommended: powered null) |
+| `place.mars_h1` | 15108 | 1299 | 0.007 | -0.022–0.035 | 0.6418 | 0.809 | classical_rejected (recommended: powered null) |
+| `place.mars_h10` | 15108 | 1296 | 0.026 | -0.002–0.055 | 0.0676 | 0.808 | classical_rejected (recommended: powered null) |
+| `place.mars_h11` | 15108 | 1211 | 0.019 | -0.010–0.049 | 0.1966 | 0.778 | not_testable_yet (under-powered) |
+| `place.mars_h12` | 15108 | 1221 | -0.009 | -0.036–0.017 | 0.4985 | 0.846 | classical_rejected (recommended: powered null) |
+| `place.mars_h2` | 15108 | 1195 | 0.010 | -0.020–0.039 | 0.5210 | 0.772 | not_testable_yet (under-powered) |
+| `place.mars_h3` | 15108 | 1231 | 0.023 | -0.006–0.052 | 0.1162 | 0.786 | not_testable_yet (under-powered) |
+| `place.mars_h4` | 15108 | 1315 | -0.019 | -0.044–0.007 | 0.1480 | 0.875 | classical_rejected (recommended: powered null) |
+| `place.mars_h5` | 15108 | 1282 | 0.001 | -0.025–0.027 | 0.9446 | 0.862 | classical_rejected (recommended: powered null) |
+| `place.mars_h6` | 15108 | 1189 | -0.009 | -0.039–0.020 | 0.5416 | 0.770 | not_testable_yet (under-powered) |
+| `place.mars_h7` | 15108 | 1307 | 0.014 | -0.012–0.040 | 0.2971 | 0.875 | classical_rejected (recommended: powered null) |
+| `place.mars_h8` | 15108 | 1295 | -0.012 | -0.040–0.017 | 0.4172 | 0.808 | classical_rejected (recommended: powered null) |
+| `place.mars_h9` | 15108 | 1267 | -0.013 | -0.039–0.013 | 0.3246 | 0.860 | classical_rejected (recommended: powered null) |
+| `place.mars_in_aquarius` | 15108 | 913 | 0.014 | -0.020–0.047 | 0.4227 | 0.639 | not_testable_yet (under-powered) |
+| `place.mars_in_aries` | 15108 | 1056 | -0.002 | -0.033–0.029 | 0.9071 | 0.713 | not_testable_yet (under-powered) |
+| `place.mars_in_cancer` | 15108 | 1492 | 0.017 | -0.010–0.044 | 0.2105 | 0.864 | classical_rejected (recommended: powered null) |
+| `place.mars_in_capricorn` | 15108 | 984 | -0.014 | -0.047–0.018 | 0.3806 | 0.678 | not_testable_yet (under-powered) |
+| `place.mars_in_gemini` | 15108 | 1413 | 0.002 | -0.025–0.030 | 0.8657 | 0.844 | classical_rejected (recommended: powered null) |
+| `place.mars_in_leo` | 15108 | 1593 | -0.019 | -0.045–0.007 | 0.1479 | 0.886 | classical_rejected (recommended: powered null) |
+| `place.mars_in_libra` | 15108 | 1431 | 0.008 | -0.019–0.036 | 0.5449 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.mars_in_pisces` | 15108 | 1099 | -0.009 | -0.040–0.021 | 0.5456 | 0.733 | not_testable_yet (under-powered) |
+| `place.mars_in_sagittarius` | 15108 | 1142 | -0.030 | -0.060–0.000 | 0.0526 | 0.751 | not_testable_yet (under-powered) |
+| `place.mars_in_scorpio` | 15108 | 1100 | 0.044 | 0.013–0.075 | 0.0048 | 0.733 | not_testable_yet (under-powered) |
+| `place.mars_in_taurus` | 15108 | 1378 | -0.017 | -0.045–0.011 | 0.2305 | 0.834 | classical_rejected (recommended: powered null) |
+| `place.mars_in_virgo` | 15108 | 1507 | 0.008 | -0.018–0.035 | 0.5383 | 0.867 | classical_rejected (recommended: powered null) |
+| `place.mercury_h1` | 15108 | 1236 | 0.024 | -0.005–0.053 | 0.1081 | 0.788 | not_testable_yet (under-powered) |
+| `place.mercury_h10` | 15108 | 1253 | 0.016 | -0.013–0.045 | 0.2822 | 0.794 | not_testable_yet (under-powered) |
+| `place.mercury_h11` | 15108 | 1251 | -0.034 | -0.063–-0.005 | 0.0219 | 0.793 | not_testable_yet (under-powered) |
+| `place.mercury_h12` | 15108 | 1287 | 0.001 | -0.026–0.027 | 0.9647 | 0.866 | classical_rejected (recommended: powered null) |
+| `place.mercury_h2` | 15108 | 1218 | 0.005 | -0.024–0.035 | 0.7211 | 0.781 | not_testable_yet (under-powered) |
+| `place.mercury_h3` | 15108 | 1302 | 0.005 | -0.023–0.034 | 0.7127 | 0.810 | classical_rejected (recommended: powered null) |
+| `place.mercury_h4` | 15108 | 1287 | 0.009 | -0.017–0.036 | 0.4955 | 0.869 | classical_rejected (recommended: powered null) |
+| `place.mercury_h5` | 15108 | 1288 | 0.027 | 0.001–0.054 | 0.0456 | 0.865 | classical_rejected (recommended: powered null) |
+| `place.mercury_h6` | 15108 | 1262 | -0.050 | -0.079–-0.022 | 0.0006 | 0.797 | not_testable_yet (under-powered) |
+| `place.mercury_h7` | 15108 | 1229 | -0.006 | -0.033–0.020 | 0.6454 | 0.852 | classical_rejected (recommended: powered null) |
+| `place.mercury_h8` | 15108 | 1274 | -0.006 | -0.035–0.022 | 0.6696 | 0.801 | classical_rejected (recommended: powered null) |
+| `place.mercury_h9` | 15108 | 1221 | -0.002 | -0.029–0.025 | 0.8790 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_aquarius` | 15108 | 1299 | -0.004 | -0.033–0.024 | 0.7659 | 0.809 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_aries` | 15108 | 1096 | -0.018 | -0.049–0.013 | 0.2555 | 0.731 | not_testable_yet (under-powered) |
+| `place.mercury_in_cancer` | 15108 | 1166 | 0.015 | -0.015–0.045 | 0.3182 | 0.761 | not_testable_yet (under-powered) |
+| `place.mercury_in_capricorn` | 15108 | 1314 | 0.000 | -0.028–0.029 | 0.9881 | 0.814 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_gemini` | 15108 | 1142 | -0.007 | -0.037–0.023 | 0.6458 | 0.751 | not_testable_yet (under-powered) |
+| `place.mercury_in_leo` | 15108 | 1281 | 0.009 | -0.019–0.038 | 0.5202 | 0.803 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_libra` | 15108 | 1397 | -0.005 | -0.032–0.023 | 0.7422 | 0.839 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_pisces` | 15108 | 1249 | -0.011 | -0.040–0.018 | 0.4509 | 0.792 | not_testable_yet (under-powered) |
+| `place.mercury_in_sagittarius` | 15108 | 1363 | -0.005 | -0.032–0.023 | 0.7503 | 0.829 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_scorpio` | 15108 | 1363 | 0.008 | -0.020–0.035 | 0.5935 | 0.829 | classical_rejected (recommended: powered null) |
+| `place.mercury_in_taurus` | 15108 | 1140 | 0.008 | -0.022–0.038 | 0.5983 | 0.750 | not_testable_yet (under-powered) |
+| `place.mercury_in_virgo` | 15108 | 1298 | 0.008 | -0.021–0.036 | 0.5860 | 0.809 | classical_rejected (recommended: powered null) |
+| `place.moon_h1` | 15108 | 1263 | 0.005 | -0.024–0.033 | 0.7553 | 0.797 | not_testable_yet (under-powered) |
+| `place.moon_h10` | 15108 | 1258 | -0.012 | -0.041–0.016 | 0.3988 | 0.796 | not_testable_yet (under-powered) |
+| `place.moon_h11` | 15108 | 1274 | 0.016 | -0.013–0.045 | 0.2768 | 0.801 | classical_rejected (recommended: powered null) |
+| `place.moon_h12` | 15108 | 1233 | 0.007 | -0.020–0.034 | 0.6053 | 0.851 | classical_rejected (recommended: powered null) |
+| `place.moon_h2` | 15108 | 1334 | -0.012 | -0.040–0.016 | 0.3931 | 0.821 | classical_rejected (recommended: powered null) |
+| `place.moon_h3` | 15108 | 1243 | -0.011 | -0.040–0.018 | 0.4515 | 0.790 | not_testable_yet (under-powered) |
+| `place.moon_h4` | 15108 | 1246 | 0.020 | -0.007–0.047 | 0.1424 | 0.858 | classical_rejected (recommended: powered null) |
+| `place.moon_h5` | 15108 | 1265 | -0.001 | -0.027–0.026 | 0.9656 | 0.857 | classical_rejected (recommended: powered null) |
+| `place.moon_h6` | 15108 | 1246 | -0.002 | -0.031–0.027 | 0.9029 | 0.791 | not_testable_yet (under-powered) |
+| `place.moon_h7` | 15108 | 1211 | 0.007 | -0.020–0.035 | 0.5875 | 0.847 | classical_rejected (recommended: powered null) |
+| `place.moon_h8` | 15108 | 1231 | -0.023 | -0.053–0.006 | 0.1157 | 0.786 | not_testable_yet (under-powered) |
+| `place.moon_h9` | 15108 | 1304 | 0.001 | -0.025–0.027 | 0.9220 | 0.871 | classical_rejected (recommended: powered null) |
+| `place.rahu_h1` | 15108 | 1267 | 0.040 | 0.011–0.069 | 0.0064 | 0.798 | not_testable_yet (under-powered) |
+| `place.rahu_h10` | 15108 | 1288 | 0.005 | -0.023–0.034 | 0.7069 | 0.806 | classical_rejected (recommended: powered null) |
+| `place.rahu_h11` | 15108 | 1274 | -0.017 | -0.045–0.012 | 0.2548 | 0.801 | classical_rejected (recommended: powered null) |
+| `place.rahu_h12` | 15108 | 1287 | 0.001 | -0.026–0.027 | 0.9647 | 0.866 | classical_rejected (recommended: powered null) |
+| `place.rahu_h2` | 15108 | 1272 | 0.031 | 0.002–0.059 | 0.0367 | 0.800 | classical_rejected (recommended: powered null) |
+| `place.rahu_h3` | 15108 | 1219 | 0.008 | -0.022–0.037 | 0.6130 | 0.781 | not_testable_yet (under-powered) |
+| `place.rahu_h4` | 15108 | 1186 | -0.014 | -0.041–0.013 | 0.3167 | 0.837 | classical_rejected (recommended: powered null) |
+| `place.rahu_h5` | 15108 | 1243 | -0.006 | -0.033–0.021 | 0.6556 | 0.850 | classical_rejected (recommended: powered null) |
+| `place.rahu_h6` | 15108 | 1263 | 0.015 | -0.014–0.044 | 0.3087 | 0.797 | not_testable_yet (under-powered) |
+| `place.rahu_h7` | 15108 | 1312 | -0.015 | -0.040–0.011 | 0.2545 | 0.874 | classical_rejected (recommended: powered null) |
+| `place.rahu_h8` | 15108 | 1256 | -0.020 | -0.049–0.009 | 0.1725 | 0.795 | not_testable_yet (under-powered) |
+| `place.rahu_h9` | 15108 | 1241 | -0.014 | -0.041–0.012 | 0.2848 | 0.852 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_aquarius` | 15108 | 1191 | -0.012 | -0.040–0.016 | 0.4098 | 0.832 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_aries` | 15108 | 1184 | -0.030 | -0.058–-0.001 | 0.0416 | 0.830 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_cancer` | 15108 | 1522 | -0.000 | -0.026–0.025 | 0.9699 | 0.917 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_capricorn` | 15108 | 1096 | -0.008 | -0.038–0.021 | 0.5724 | 0.795 | not_testable_yet (under-powered) |
+| `place.rahu_in_gemini` | 15108 | 1293 | -0.005 | -0.032–0.022 | 0.7092 | 0.864 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_leo` | 15108 | 1604 | -0.007 | -0.032–0.017 | 0.5577 | 0.931 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_libra` | 15108 | 1162 | 0.004 | -0.025–0.032 | 0.7952 | 0.820 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_pisces` | 15108 | 1153 | 0.027 | -0.001–0.055 | 0.0572 | 0.815 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_sagittarius` | 15108 | 1189 | 0.008 | -0.019–0.036 | 0.5529 | 0.830 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_scorpio` | 15108 | 1127 | 0.002 | -0.027–0.031 | 0.8942 | 0.807 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_taurus` | 15108 | 1133 | 0.019 | -0.009–0.048 | 0.1856 | 0.808 | classical_rejected (recommended: powered null) |
+| `place.rahu_in_virgo` | 15108 | 1454 | 0.005 | -0.020–0.031 | 0.6813 | 0.903 | classical_rejected (recommended: powered null) |
+| `place.saturn_h1` | 15108 | 1290 | 0.014 | -0.014–0.043 | 0.3339 | 0.806 | classical_rejected (recommended: powered null) |
+| `place.saturn_h10` | 15108 | 1269 | 0.030 | 0.002–0.059 | 0.0391 | 0.799 | not_testable_yet (under-powered) |
+| `place.saturn_h11` | 15108 | 1264 | -0.010 | -0.039–0.019 | 0.5040 | 0.798 | not_testable_yet (under-powered) |
+| `place.saturn_h12` | 15108 | 1278 | 0.001 | -0.025–0.028 | 0.9281 | 0.864 | classical_rejected (recommended: powered null) |
+| `place.saturn_h2` | 15108 | 1302 | -0.010 | -0.038–0.019 | 0.4993 | 0.811 | classical_rejected (recommended: powered null) |
+| `place.saturn_h3` | 15108 | 1214 | -0.019 | -0.048–0.011 | 0.2087 | 0.780 | not_testable_yet (under-powered) |
+| `place.saturn_h4` | 15108 | 1219 | 0.001 | -0.026–0.028 | 0.9408 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.saturn_h5` | 15108 | 1309 | 0.002 | -0.025–0.028 | 0.9101 | 0.869 | classical_rejected (recommended: powered null) |
+| `place.saturn_h6` | 15108 | 1241 | 0.015 | -0.014–0.044 | 0.2999 | 0.789 | not_testable_yet (under-powered) |
+| `place.saturn_h7` | 15108 | 1250 | -0.009 | -0.035–0.017 | 0.5026 | 0.858 | classical_rejected (recommended: powered null) |
+| `place.saturn_h8` | 15108 | 1246 | -0.008 | -0.037–0.021 | 0.5919 | 0.791 | not_testable_yet (under-powered) |
+| `place.saturn_h9` | 15108 | 1226 | 0.008 | -0.019–0.035 | 0.5554 | 0.849 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_aquarius` | 15108 | 1239 | 0.003 | -0.022–0.028 | 0.8046 | 0.933 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_aries` | 15108 | 1569 | 0.003 | -0.020–0.025 | 0.8249 | 0.976 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_cancer` | 15108 | 1091 | -0.017 | -0.043–0.010 | 0.2227 | 0.898 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_capricorn` | 15108 | 1360 | -0.006 | -0.030–0.018 | 0.6201 | 0.955 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_gemini` | 15108 | 1103 | 0.022 | -0.003–0.048 | 0.0826 | 0.898 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_leo` | 15108 | 1147 | -0.002 | -0.028–0.023 | 0.8591 | 0.913 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_libra` | 15108 | 1228 | -0.000 | -0.025–0.025 | 0.9952 | 0.931 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_pisces` | 15108 | 1191 | -0.003 | -0.028–0.023 | 0.8356 | 0.923 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_sagittarius` | 15108 | 1300 | 0.022 | -0.002–0.046 | 0.0676 | 0.944 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_scorpio` | 15108 | 1338 | -0.009 | -0.033–0.015 | 0.4748 | 0.952 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_taurus` | 15108 | 1266 | -0.013 | -0.038–0.012 | 0.3094 | 0.940 | classical_rejected (recommended: powered null) |
+| `place.saturn_in_virgo` | 15108 | 1276 | -0.001 | -0.025–0.024 | 0.9673 | 0.941 | classical_rejected (recommended: powered null) |
+| `place.sun_h1` | 15108 | 1230 | 0.024 | -0.005–0.053 | 0.1067 | 0.785 | not_testable_yet (under-powered) |
+| `place.sun_h10` | 15108 | 1245 | -0.002 | -0.031–0.027 | 0.8717 | 0.791 | not_testable_yet (under-powered) |
+| `place.sun_h11` | 15108 | 1338 | -0.007 | -0.035–0.021 | 0.6095 | 0.822 | classical_rejected (recommended: powered null) |
+| `place.sun_h12` | 15108 | 1241 | -0.013 | -0.039–0.014 | 0.3484 | 0.852 | classical_rejected (recommended: powered null) |
+| `place.sun_h2` | 15108 | 1263 | 0.000 | -0.029–0.029 | 0.9936 | 0.797 | not_testable_yet (under-powered) |
+| `place.sun_h3` | 15108 | 1293 | 0.010 | -0.018–0.039 | 0.4881 | 0.807 | classical_rejected (recommended: powered null) |
+| `place.sun_h4` | 15108 | 1300 | -0.021 | -0.047–0.004 | 0.1054 | 0.871 | classical_rejected (recommended: powered null) |
+| `place.sun_h5` | 15108 | 1263 | 0.028 | 0.001–0.056 | 0.0396 | 0.858 | classical_rejected (recommended: powered null) |
+| `place.sun_h6` | 15108 | 1230 | -0.008 | -0.037–0.021 | 0.5951 | 0.786 | not_testable_yet (under-powered) |
+| `place.sun_h7` | 15108 | 1242 | 0.004 | -0.023–0.030 | 0.7925 | 0.856 | classical_rejected (recommended: powered null) |
+| `place.sun_h8` | 15108 | 1249 | -0.011 | -0.040–0.018 | 0.4571 | 0.793 | not_testable_yet (under-powered) |
+| `place.sun_h9` | 15108 | 1214 | 0.007 | -0.020–0.034 | 0.6142 | 0.845 | classical_rejected (recommended: powered null) |
+| `place.sun_in_aquarius` | 15108 | 1237 | -0.006 | -0.035–0.023 | 0.6922 | 0.788 | not_testable_yet (under-powered) |
+| `place.sun_in_aries` | 15108 | 1247 | 0.001 | -0.028–0.030 | 0.9408 | 0.792 | not_testable_yet (under-powered) |
+| `place.sun_in_cancer` | 15108 | 1303 | 0.018 | -0.010–0.047 | 0.2051 | 0.811 | classical_rejected (recommended: powered null) |
+| `place.sun_in_capricorn` | 15108 | 1286 | -0.006 | -0.035–0.022 | 0.6605 | 0.805 | classical_rejected (recommended: powered null) |
+| `place.sun_in_gemini` | 15108 | 1189 | 0.020 | -0.010–0.049 | 0.1895 | 0.770 | not_testable_yet (under-powered) |
+| `place.sun_in_leo` | 15108 | 1307 | 0.002 | -0.026–0.031 | 0.8707 | 0.812 | classical_rejected (recommended: powered null) |
+| `place.sun_in_libra` | 15108 | 1204 | 0.007 | -0.022–0.037 | 0.6275 | 0.776 | not_testable_yet (under-powered) |
+| `place.sun_in_pisces` | 15108 | 1264 | -0.031 | -0.059–-0.002 | 0.0375 | 0.798 | not_testable_yet (under-powered) |
+| `place.sun_in_sagittarius` | 15108 | 1187 | 0.012 | -0.018–0.041 | 0.4422 | 0.769 | not_testable_yet (under-powered) |
+| `place.sun_in_scorpio` | 15108 | 1228 | -0.012 | -0.041–0.018 | 0.4352 | 0.785 | not_testable_yet (under-powered) |
+| `place.sun_in_taurus` | 15108 | 1343 | -0.014 | -0.042–0.014 | 0.3182 | 0.824 | classical_rejected (recommended: powered null) |
+| `place.sun_in_virgo` | 15108 | 1313 | 0.010 | -0.018–0.038 | 0.4965 | 0.814 | classical_rejected (recommended: powered null) |
+| `place.venus_h1` | 15108 | 1251 | 0.007 | -0.022–0.036 | 0.6199 | 0.793 | not_testable_yet (under-powered) |
+| `place.venus_h10` | 15108 | 1228 | 0.004 | -0.025–0.034 | 0.7706 | 0.785 | not_testable_yet (under-powered) |
+| `place.venus_h11` | 15108 | 1268 | -0.038 | -0.067–-0.010 | 0.0091 | 0.799 | not_testable_yet (under-powered) |
+| `place.venus_h12` | 15108 | 1305 | -0.017 | -0.042–0.009 | 0.2069 | 0.870 | classical_rejected (recommended: powered null) |
+| `place.venus_h2` | 15108 | 1276 | 0.002 | -0.026–0.031 | 0.8818 | 0.802 | classical_rejected (recommended: powered null) |
+| `place.venus_h3` | 15108 | 1229 | -0.017 | -0.047–0.012 | 0.2430 | 0.785 | not_testable_yet (under-powered) |
+| `place.venus_h4` | 15108 | 1269 | -0.005 | -0.031–0.021 | 0.7079 | 0.863 | classical_rejected (recommended: powered null) |
+| `place.venus_h5` | 15108 | 1272 | 0.009 | -0.018–0.035 | 0.5209 | 0.859 | classical_rejected (recommended: powered null) |
+| `place.venus_h6` | 15108 | 1284 | -0.004 | -0.032–0.025 | 0.7988 | 0.805 | classical_rejected (recommended: powered null) |
+| `place.venus_h7` | 15108 | 1251 | -0.005 | -0.031–0.021 | 0.7163 | 0.858 | classical_rejected (recommended: powered null) |
+| `place.venus_h8` | 15108 | 1217 | 0.001 | -0.029–0.030 | 0.9679 | 0.781 | not_testable_yet (under-powered) |
+| `place.venus_h9` | 15108 | 1258 | 0.009 | -0.018–0.036 | 0.5051 | 0.859 | classical_rejected (recommended: powered null) |
+| `place.venus_in_aquarius` | 15108 | 1086 | -0.014 | -0.042–0.014 | 0.3180 | 0.802 | classical_rejected (recommended: powered null) |
+| `place.venus_in_aries` | 15108 | 1202 | -0.010 | -0.037–0.017 | 0.4672 | 0.843 | classical_rejected (recommended: powered null) |
+| `place.venus_in_cancer` | 15108 | 1115 | -0.010 | -0.037–0.018 | 0.4933 | 0.813 | classical_rejected (recommended: powered null) |
+| `place.venus_in_capricorn` | 15108 | 1531 | -0.004 | -0.028–0.020 | 0.7572 | 0.921 | classical_rejected (recommended: powered null) |
+| `place.venus_in_gemini` | 15108 | 1434 | 0.001 | -0.024–0.025 | 0.9644 | 0.903 | classical_rejected (recommended: powered null) |
+| `place.venus_in_leo` | 15108 | 1505 | 0.006 | -0.019–0.030 | 0.6562 | 0.917 | classical_rejected (recommended: powered null) |
+| `place.venus_in_libra` | 15108 | 1398 | 0.010 | -0.016–0.035 | 0.4470 | 0.896 | classical_rejected (recommended: powered null) |
+| `place.venus_in_pisces` | 15108 | 1363 | 0.025 | -0.001–0.051 | 0.0594 | 0.889 | classical_rejected (recommended: powered null) |
+| `place.venus_in_sagittarius` | 15108 | 1083 | -0.001 | -0.030–0.027 | 0.9210 | 0.801 | classical_rejected (recommended: powered null) |
+| `place.venus_in_scorpio` | 15108 | 1113 | 0.004 | -0.024–0.033 | 0.7550 | 0.813 | classical_rejected (recommended: powered null) |
+| `place.venus_in_taurus` | 15108 | 1198 | -0.010 | -0.037–0.017 | 0.4745 | 0.842 | classical_rejected (recommended: powered null) |
+| `place.venus_in_virgo` | 15108 | 1080 | -0.004 | -0.032–0.025 | 0.8064 | 0.800 | classical_rejected (recommended: powered null) |
+| `yoga.bhadra` | 15108 | 1883 | 0.004 | -0.020–0.028 | 0.7472 | 0.932 | classical_rejected (recommended: powered null) |
+| `yoga.budhaditya` | 15108 | 7775 | 0.006 | -0.010–0.021 | 0.4970 | 1.000 | classical_rejected (recommended: powered null) |
+| `yoga.gaja_kesari` | 15108 | 5086 | 0.002 | -0.014–0.018 | 0.8143 | 1.000 | classical_rejected (recommended: powered null) |
+| `yoga.gaja_kesari_bphs` | 15108 | 1436 | 0.012 | -0.014–0.038 | 0.3575 | 0.895 | classical_rejected (recommended: powered null) |
+| `yoga.hamsa` | 15108 | 2584 | -0.009 | -0.031–0.012 | 0.3837 | 0.981 | classical_rejected (recommended: powered null) |
+| `yoga.kendra_trikona_raja` | 15108 | 8024 | 0.003 | -0.013–0.019 | 0.6832 | 1.000 | classical_rejected (recommended: powered null) |
+| `yoga.kendra_trikona_raja_weak` | 15108 | 9846 | 0.005 | -0.011–0.022 | 0.5385 | 1.000 | classical_rejected (recommended: powered null) |
+| `yoga.malavya` | 15108 | 2622 | -0.001 | -0.022–0.020 | 0.9149 | 0.982 | classical_rejected (recommended: powered null) |
+| `yoga.neecha_bhanga` | 15108 | 6746 | 0.009 | -0.007–0.025 | 0.2658 | 1.000 | classical_rejected (recommended: powered null) |
+| `yoga.parivartana` | 15108 | 5642 | -0.000 | -0.016–0.015 | 0.9760 | 1.000 | classical_rejected (recommended: powered null) |
+| `yoga.ruchaka` | 15108 | 2203 | 0.017 | -0.005–0.040 | 0.1377 | 0.962 | classical_rejected (recommended: powered null) |
+| `yoga.sasa` | 15108 | 2698 | 0.017 | -0.004–0.037 | 0.1157 | 0.984 | classical_rejected (recommended: powered null) |
 
 ## Synthetic — Not tested
 

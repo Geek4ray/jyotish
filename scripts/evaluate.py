@@ -15,9 +15,17 @@ It runs, in order:
   6. the synthetic validation runs (scripts/synthetic_cohort.py, scripts/validate.py): a planted and a
      null cohort at N = 2,000 and 20,000 (--quick: 2,000 only), each written to
      docs/validation_synthetic_<mode>_<n>.md, with what was recovered against what was planted.
-Every number carries its direction (higher or lower is better, or informational). --compare reads
-a committed scorecard JSON and exits 1 when any number is worse than there; a number skipped now
-(PyJHora absent, say) is reported and not counted as worse."""
+Every number carries its direction (higher or lower is better, or informational) and whether it
+gates CI. Gated are the verdicts: tests passed and failed, the cross-check's maxima, the validator's
+wording catch and false rejects, the placement check, and two pass/fail checks on the 20,000-subject
+synthetic runs. Sampled statistics (the synthetic shares and counts, the sampler's seed agreement,
+the validator's precision and recall on the benchmark, whose rows define them) are reported with
+their direction and not gated: they move with every change to scoring or to the benchmark, so a
+gate on them would fail on noise and could be passed by regenerating (review 2026-10-23, F5). The
+live checker run is not re-run here (it costs API calls); its last numbers are read from
+docs/checker_scorecard.md. --compare reads a committed scorecard JSON and exits 1 when any gated
+number is worse than there; a number skipped now (PyJHora absent, say) is reported and not counted
+as worse."""
 
 from __future__ import annotations
 
@@ -69,8 +77,10 @@ class Card:
         self.skips: list[str] = []
         self.sections: list[tuple[str, list[str]]] = []
 
-    def num(self, key: str, value, better: str | None, unit: str = ""):
-        self.numbers[key] = {"value": value, "better": better, "unit": unit}
+    def num(self, key: str, value, better: str | None, unit: str = "", gate: bool | None = None):
+        """`gate` defaults to whether the number has a direction; a sampled statistic passes False."""
+        self.numbers[key] = {"value": value, "better": better, "unit": unit,
+                             "gate": bool(gate if gate is not None else better is not None)}
 
     def skip(self, what: str, why: str):
         self.skips.append(f"{what}: {why}")
@@ -133,7 +143,7 @@ def metamorphic(card: Card):
         x, y = _classes(c), _classes(assess(utc, b["lat"], b["lon"], true_node=False, seed=1))
         common = set(x) & set(y)
         agree = sum(x[k] == y[k] for k in common) / len(common)
-        card.num(f"metamorphic.seed_agreement.{b['name']}", round(agree, 4), "higher")
+        card.num(f"metamorphic.seed_agreement.{b['name']}", round(agree, 4), "higher", gate=False)
         card.num(f"metamorphic.changed_at_one_minute.{b['name']}", moved, None)
     card.sections.append(("Metamorphic tests", lines))
 
@@ -144,7 +154,7 @@ def checker(card: Card):
     pred = cb.run_validator(rows)
     s = cb.scores(rows, pred)
     for k in ("precision", "recall", "f1"):
-        card.num(f"checker.validator.{k}", round(s["overall"][k], 4), "higher")
+        card.num(f"checker.validator.{k}", round(s["overall"][k], 4), "higher", gate=False)   # the rows define them
     wording = [r for r in rows if r["category"] in cb.WORDING]
     caught = sum(pred[r["id"]][0] for r in wording)
     card.num("checker.validator.wording_caught_share", round(caught / len(wording), 4), "higher")
@@ -153,13 +163,35 @@ def checker(card: Card):
     t = pytest("tests/test_checker_bench.py")
     card.num("checker.tests_failed", t["failed"] + t["errors"], "lower")
     card.skips += [f"checker benchmark: {x}" for x in t["skips"]]
-    card.skip("checker benchmark, validator + live checker", "no Anthropic credentials here; the live run "
-              "(JYOTISH_LIVE_NARRATION=1, marked live) writes its numbers to docs/checker_scorecard.md")
-    card.sections.append(("Checker benchmark (offline)", [
+    live = live_checker(card)
+    card.sections.append(("Checker benchmark", [
         f"{len(rows)} rows; the validator alone: precision {s['overall']['precision']:.3f}, recall "
         f"{s['overall']['recall']:.3f}, F1 {s['overall']['f1']:.3f}; {caught} of {len(wording)} tag and wording "
         f"errors caught; {s['accepted']['fp']} accepted sentences rejected. The semantic categories are the "
-        "checker's, and the checker needs the API."]))
+        "checker's. " + live]))
+
+
+def live_checker(card: Card) -> str:
+    """The live checker run is not part of the harness (it costs API calls): its last numbers on
+    record in docs/checker_scorecard.md are reported, not gated, with the commit they were measured
+    at; without a run on record the skip says so."""
+    doc = DOCS / "checker_scorecard.md"
+    text = doc.read_text() if doc.exists() else ""
+    head = re.search(r"Run (\d{4}-\d{2}-\d{2}) at commit `([0-9a-f]+)`", text)
+    parts = text.split("## Validator + semantic checker (live)", 1)
+    row = re.search(r"\| overall \| \d+ \| (\d+) of (\d+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \|", parts[1]) \
+        if len(parts) == 2 else None
+    model = re.search(r"Model ([\w.-]+), checker effort (\w+)", parts[1]) if len(parts) == 2 else None
+    if row is None or head is None:
+        card.skip("checker benchmark, validator + live checker", "no live run on record in docs/checker_scorecard.md; "
+                  "run scripts/checker_bench.py with ANTHROPIC_API_KEY set to add one")
+        return "No live checker run is on record."
+    for k, v in zip(("precision", "recall", "f1"), row.groups()[2:]):
+        card.num(f"checker.live.{k}", float(v), None)
+    return (f"The live run on record (docs/checker_scorecard.md, {head.group(1)} at `{head.group(2)}`"
+            + (f", model {model.group(1)}, checker effort {model.group(2)}" if model else "") + f"): {row.group(1)} of "
+            f"{row.group(2)} bad sentences caught, precision {row.group(3)}, recall {row.group(4)}, F1 {row.group(5)}. "
+            "The harness does not re-run it (API calls), so it is reported, not gated.")
 
 
 def placements_check(card: Card):
@@ -173,9 +205,10 @@ def placements_check(card: Card):
 
 
 SYNTHETIC_SIZES = (2000, 20000)
+GATE_SIZE = 20000          # the size at which the pipeline's pass/fail checks are near-certain, so they gate
 
 
-def synthetic(card: Card, sizes=SYNTHETIC_SIZES):
+def synthetic(card: Card, sizes=SYNTHETIC_SIZES, out_dir: Path = DOCS):
     import tempfile
     try:
         V, SC = _load("validate"), _load("synthetic_cohort")
@@ -193,37 +226,53 @@ def synthetic(card: Card, sizes=SYNTHETIC_SIZES):
                 res = V.run(V.load_cohort(url, features=feats, synthetic=True), Path(d) / "sequestered.txt",
                             score_sequestered=True, salt=f"synthetic-{n}-{mode}")
             c = SC.compare(truth, res)
-            (DOCS / f"validation_synthetic_{mode}_{n}.md").write_text(
+            (out_dir / f"validation_synthetic_{mode}_{n}.md").write_text(
                 V.report(res, label=f"{mode}, N = {n:,}, odds ratio {truth['odds_ratio_per_sd']} per SD"))
             k = f"synthetic.{mode}.{n}"
+            gated = n >= GATE_SIZE
             if mode == "planted":
                 card.num(f"{k}.predicted_power", round(c["predicted_power_mean"], 4), None)
-                card.num(f"{k}.recovered_share", round(c["recovered_share"], 4), "higher")
-                card.num(f"{k}.survived_bh_share", round(c["survived_bh_share"], 4), "higher")
+                card.num(f"{k}.recovered_share", round(c["recovered_share"], 4), "higher", gate=False)
+                card.num(f"{k}.survived_bh_share", round(c["survived_bh_share"], 4), "higher", gate=False)
                 card.num(f"{k}.recovery_gap", round(abs(c["recovered_share"] - c["predicted_power_mean"]), 4), None)
-                card.num(f"{k}.timing_recovered_share", round(c["timing_recovered_share"], 4), "higher")
+                card.num(f"{k}.timing_recovered_share", round(c["timing_recovered_share"], 4), "higher", gate=False)
+                ok = min(c["recovered_share"], c["survived_bh_share"], c["timing_recovered_share"]) >= 0.75
+                if gated:
+                    card.num(f"{k}.pipeline_recovers", int(ok), "higher")
                 lines.append(f"Planted, N = {n:,} (odds ratio {truth['odds_ratio_per_sd']} per SD of the area score, "
                              f"timing weight {truth['timing_weight']}): {len(c['planted_areas'])} planted areas; predicted "
                              f"power {c['predicted_power_mean']:.2f}, recovered {c['recovered_share']:.2f} (p < 0.05), "
                              f"{c['survived_bh_share']:.2f} surviving BH; the timing effect recovered in "
-                             f"{c['timing_recovered_share']:.2f}; {time.time() - t:.0f} s.")
+                             f"{c['timing_recovered_share']:.2f}; {time.time() - t:.0f} s."
+                             + (f" Gated check: at least three quarters of the planted areas recovered, surviving BH and "
+                                f"timing-recovered: {'passes' if ok else 'FAILS'}." if gated else ""))
             else:
-                card.num(f"{k}.areas_surviving_bh", c["areas_surviving_bh"], "lower")
-                card.num(f"{k}.rules_with_effect", c["rules_with_effect"], "lower")
+                card.num(f"{k}.areas_surviving_bh", c["areas_surviving_bh"], "lower", gate=False)
+                card.num(f"{k}.rules_with_effect", c["rules_with_effect"], "lower", gate=False)
+                ok = c["areas_surviving_bh"] <= 1 and c["rules_with_effect"] <= 3
+                if gated:
+                    card.num(f"{k}.pipeline_quiet", int(ok), "higher")
                 lines.append(f"Null, N = {n:,}: {c['areas_surviving_bh']} of {c['areas_tested']} areas survive BH; "
                              f"{c['rules_with_effect']} of {c['rules_tested']} rules show an effect after BH; "
-                             f"{time.time() - t:.0f} s.")
-    card.sections.append(("Synthetic validation (the pipeline, not the engine)", lines +
-                          ["Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic)."]))
+                             f"{time.time() - t:.0f} s."
+                             + (f" Gated check: at most one area and three rules survive: {'passes' if ok else 'FAILS'}."
+                                if gated else ""))
+    card.sections.append(("Synthetic validation (the pipeline, not the engine)", lines + [
+        "The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from "
+        "the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, "
+        "where the planted effect is near-certain, gate.",
+        f"Each run's full report: {out_dir.name}/validation_synthetic_<mode>_<n>.md (every heading says synthetic)."]))
 
 
 def markdown(card: Card) -> str:
     L = ["# Scorecard", "", f"Run {date.today().isoformat()} at commit `{_commit()}` by `scripts/evaluate.py`. "
-         "CI fails when any number with a direction is worse than in the committed `docs/scorecard.json`.", ""]
+         "CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic "
+         "is reported with its direction and not gated.", ""]
     for title, lines in card.sections:
         L += [f"## {title}", "", *lines, ""]
-    L += ["## Every number", "", "| number | value | unit | better |", "| --- | --- | --- | --- |"]
-    L += [f"| `{k}` | {v['value']} | {v['unit']} | {v['better'] or 'informational'} |" for k, v in card.numbers.items()]
+    L += ["## Every number", "", "| number | value | unit | better | gates CI |", "| --- | --- | --- | --- | --- |"]
+    L += [f"| `{k}` | {v['value']} | {v['unit']} | {v['better'] or 'informational'} | {'yes' if v['gate'] else 'no'} |"
+          for k, v in card.numbers.items()]
     L += ["", "## Skips and what is blocked", ""] + ([f"- {s}" for s in card.skips] or ["None."]) + [""]
     return "\n".join(L) + "\n"
 
@@ -232,11 +281,12 @@ TOLERANCE = 1e-6
 
 
 def compare(new: dict, old: dict) -> list[str]:
-    """Every number with a direction that is worse than in `old`; one not measured now is not worse."""
+    """Every gated number that is worse than in `old`; one not measured now is not worse, and one
+    the committed scorecard marks `gate: false` is never worse."""
     worse = []
     for k, o in old["numbers"].items():
         n = new["numbers"].get(k)
-        if n is None or o.get("better") is None or n["value"] is None or o["value"] is None:
+        if n is None or o.get("better") is None or n["value"] is None or o["value"] is None or o.get("gate") is False:
             continue
         tol = TOLERANCE + TOLERANCE * abs(o["value"])        # float noise across platforms, not a change
         if (o["better"] == "higher" and n["value"] < o["value"] - tol) or \
@@ -254,9 +304,10 @@ def main(argv=None) -> int:
     card = Card()
     for step in (reference, crosscheck, metamorphic, checker, placements_check):
         step(card)
-    synthetic(card, SYNTHETIC_SIZES[:1] if a.quick else SYNTHETIC_SIZES)
-    data = {"date": date.today().isoformat(), "commit": _commit(), "numbers": card.numbers, "skips": card.skips}
     out = Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    synthetic(card, SYNTHETIC_SIZES[:1] if a.quick else SYNTHETIC_SIZES, out_dir=out.parent)
+    data = {"date": date.today().isoformat(), "commit": _commit(), "numbers": card.numbers, "skips": card.skips}
     out.with_suffix(".md").write_text(markdown(card))
     out.with_suffix(".json").write_text(json.dumps(data, indent=2) + "\n")
     print(f"{len(card.numbers)} numbers, {len(card.skips)} skips -> {out.with_suffix('.md')}")
