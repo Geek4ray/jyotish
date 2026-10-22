@@ -1,6 +1,6 @@
 # Checker benchmark
 
-Run 2026-10-22 at commit `95f5e16` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (119 rows: 45 accept, 74 reject). The positive class is reject.
+Run 2026-10-22 at commit `b0eb697` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (119 rows: 45 accept, 74 reject). The positive class is reject.
 
 ## The code validator alone
 
@@ -146,5 +146,31 @@ Misses and false rejects (validator alone):
 
 ## Validator + semantic checker (live)
 
-Not run: no Anthropic credentials in this environment (ANTHROPIC_API_KEY unset). Run `scripts/checker_bench.py` where they are; it fills this section with the checker's precision, recall and F1, every miss with the checker's reason, the model (claude-opus-5-5), the checker effort (high) and the cost.
+Model claude-opus-5-5, checker effort high; 103 checker calls, 340790 input and 63545 output tokens, 54 s. Cost: the token counts at the account's current price (not computed here).
+
+| category | n | caught / false rejects | precision | recall | F1 |
+| --- | --- | --- | --- | --- | --- |
+| overall | 119 | 72 of 74 | 1.000 | 0.973 | 0.986 |
+| accepted | 45 | 0 false rejects | 1.000 | 1.000 | 1.000 |
+| dasha_lord_changed | 6 | 6 of 6 | 1.000 | 1.000 | 1.000 |
+| dignity_changed | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| family_not_cited | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
+| forbidden_word | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
+| house_changed | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| negated | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| planet_swapped | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| refers_to_another_claim | 2 | 0 of 2 | 1.000 | 0.000 | 0.000 |
+| sign_changed | 5 | 5 of 5 | 1.000 | 1.000 | 1.000 |
+| tag_not_offered | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
+| tier_word | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| unsupported_clause | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| untagged | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
+| wrong_dignity | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
+
+Misses and false rejects, with the checker's reason:
+
+- `known_bad-1` (refers_to_another_claim, missed): The same conjunction joins the Sun as 4th lord with Mercury as 2nd and 5th lord in the 10th, forming a kendra-trikona raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12].  
+  reason: supported
+- `known_bad-2` (refers_to_another_claim, missed): Counted from the Sun, Mars falls in the 10th and again forms Ruchaka yoga, with the same weakening from Saturn's aspect, the tara and the marana karaka placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1].  
+  reason: supported
 
