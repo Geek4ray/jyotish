@@ -196,3 +196,158 @@ def test_a_verdict_is_checked(setup, body, status):
     _, c, rid, _ = setup
     assert c.post(f"/readings/{rid}/review/verdict", headers=AUTH, json=body).status_code == status
     assert c.post(f"/readings/{rid}/review/verdict", json={"area": "career", "verdict": "agree"}).status_code == 401
+
+
+# --- the guided review: answers logged step by step; blind mode (the judge page) ------------
+
+CURIOUS = str(FIXTURES / "narration_curious.json")
+CURIOUS_BODY = dict(BODY, question="How will my career go, and when is the best time for a job change?",
+                    depth="curious", lat=28.1989, lon=76.617)
+ENGINE_WORDS = __import__("re").compile(r"\b(votes?|tests?|famil(?:y|ies)|checker)\b", __import__("re").I)
+
+
+def _reading(c, body=CURIOUS_BODY):
+    rid = c.post("/readings", json=body).json()["id"]
+    for _ in range(600):
+        s = c.get(f"/readings/{rid}").json()
+        if s["status"] in ("done", "failed"):
+            break
+        time.sleep(0.05)
+    assert s["status"] == "done"
+    return rid
+
+
+@pytest.fixture()
+def guided(tmp_path):
+    app = create_app(f"sqlite:///{tmp_path / 'g.db'}", model_fixture=CURIOUS,
+                     reviewers={"tok-1": "judge-1", "tok-2": "judge-2"}, review_checker=Checker())
+    with TestClient(app) as c:
+        yield app, c, _reading(c)
+
+
+J1, J2 = {"Authorization": "Bearer tok-1"}, {"Authorization": "Bearer tok-2"}
+
+
+def test_each_answer_is_logged_with_step_area_answer_reviewer_and_time(guided):
+    app, c, rid = guided
+    v = c.get(f"/readings/{rid}/review", headers=J1).json()
+    assert v["reviewer"] == "judge-1" and v["mode"] == "review" and not v["intro_done"] and v["answers"] == []
+    for step, area, answer in [("intro", None, "done"), ("match", "career", "partly"),
+                               ("off", "career", {"reasons": ["timing", "wording"], "line": "the 10th is underplayed"}),
+                               ("sentences", "career", {"decisions": {"paragraph:career:0": "keep"}}),
+                               ("note", "career", {"text": ""}),
+                               ("period", "career", {"choice": "later", "from": "2030-01", "to": "2031-06"})]:
+        r = c.post(f"/readings/{rid}/review/answer", headers=J1, json={"step": step, "area": area, "answer": answer})
+        assert r.status_code == 200, r.text
+    v = r.json()
+    assert v["intro_done"] and [(a["step"], a["area"]) for a in v["answers"]][:2] == [("intro", None), ("match", "career")]
+    with app.state.Session() as s:
+        rows = s.query(ReviewRow).filter_by(reading_id=rid, action="answer").order_by(ReviewRow.id).all()
+        assert [(r.step, r.area, r.reviewer_id, r.mode) for r in rows][-1] == ("period", "career", "judge-1", "review")
+        assert rows[2].answer == {"reasons": ["timing", "wording"], "line": "the 10th is underplayed"}
+        assert all(r.created_at is not None and r.chart_id == v["chart_id"] for r in rows)
+        assert rows[1].verdict == "partly"                                   # step 1 is also the area's verdict
+    assert c.get(f"/readings/{rid}/review", headers=J1).json()["verdicts"]["career"]["verdict"] == "partly"
+    # Answers are judgement data: the client's reading and page are untouched by them.
+    client = c.get(f"/readings/{rid}").json()
+    assert "underplayed" not in client["page"] and "underplayed" not in json.dumps(client["reading"])
+    # The introduction is once per reviewer: a second reading opens without it.
+    rid2 = _reading(c)
+    assert c.get(f"/readings/{rid2}/review", headers=J1).json()["intro_done"]
+    assert not c.get(f"/readings/{rid2}/review", headers=J2).json()["intro_done"]
+
+
+@pytest.mark.parametrize("body", [
+    {"step": "guess", "area": "career", "answer": "agree"},
+    {"step": "match", "area": "career", "answer": "maybe"},
+    {"step": "match", "area": "nowhere", "answer": "agree"},
+    {"step": "intro", "area": "career", "answer": "done"},
+    {"step": "off", "area": "career", "answer": {"reasons": []}},
+    {"step": "off", "area": "career", "answer": {"reasons": ["bad_vibes"]}},
+    {"step": "period", "area": "career", "answer": {"choice": "earlier"}},                       # no range
+    {"step": "period", "area": "career", "answer": {"choice": "earlier", "from": "2031-01", "to": "2030-01"}},
+    {"step": "blind_reading", "area": "career", "answer": "promising"},                           # blind mode only
+    {"step": "note", "area": "career", "answer": {"text": "x"}, "mode": "judge"},
+])
+def test_an_answer_is_checked(guided, body):
+    _, c, rid = guided
+    assert c.post(f"/readings/{rid}/review/answer", headers=J1, json=body).status_code == 422
+    assert c.post(f"/readings/{rid}/review/answer", json={"step": "intro", "answer": "done"}).status_code == 401
+
+
+def test_blind_mode_withholds_each_area_until_answered_from_the_chart_alone(guided):
+    app, c, rid = guided
+    full = c.get(f"/readings/{rid}").json()["reading"]
+    paragraph = {a["name"]: a["paragraph"] for a in full["areas"]}
+    v = c.get(f"/readings/{rid}/review?mode=blind", headers=J2).json()
+    text = json.dumps(v)
+    assert v["mode"] == "blind" and v["shown"] == [] and v["units"] == [] and "page" not in v
+    assert all(p[:60] not in text for p in paragraph.values())                     # not sent at all
+    assert v["reading"]["areas"] == [{"name": "career", "has_windows": True, "hidden": True},
+                                     {"name": "marriage", "has_windows": False, "hidden": True},
+                                     {"name": "longevity", "has_windows": False, "hidden": True}]
+    assert "summary" not in v["reading"] and "2029-10-23" not in text                   # no windows either
+    with app.state.Session() as s:                                                      # opening blind is not seeing
+        assert s.get(ExclusionRow, v["chart_id"]) is None
+    post = lambda body, mode="blind": c.post(f"/readings/{rid}/review/answer", headers=J2, json=dict(body, mode=mode))
+    assert post({"step": "match", "area": "career", "answer": "agree"}).status_code == 409
+    assert c.post(f"/readings/{rid}/review/edit?mode=blind", headers=J2,
+                  json={"target": "paragraph:career:0", "text": "x", "keep_tags": True}).status_code == 409
+    assert c.post(f"/readings/{rid}/review/approve?mode=blind", headers=J2).status_code == 409
+    assert post({"step": "blind_reading", "area": "career", "answer": "promising"}).json()["shown"] == []   # windows too
+    v = post({"step": "blind_period", "area": "career", "answer": {"from": "2027-06", "to": "2028-12"}}).json()
+    assert v["shown"] == ["career"]
+    career = next(a for a in v["reading"]["areas"] if a["name"] == "career")
+    assert career["paragraph"] == paragraph["career"] and career["windows"]
+    assert {u["area"] for u in v["units"]} == {"career"}
+    assert all("hidden" in a for a in v["reading"]["areas"] if a["name"] != "career")
+    with app.state.Session() as s:                                                      # now the reading is seen
+        assert s.get(ExclusionRow, v["chart_id"]) is not None
+    # The answers from the chart alone stand: once shown, they cannot be changed.
+    assert post({"step": "blind_reading", "area": "career", "answer": "difficult"}).status_code == 409
+    assert post({"step": "match", "area": "career", "answer": "agree"}).status_code == 200
+    # An area without windows needs only the reading from the chart alone.
+    assert post({"step": "blind_reading", "area": "marriage", "answer": "mixed"}).json()["shown"] == ["career", "marriage"]
+    # The review mode of the same reviewer sees everything, as before.
+    assert len(c.get(f"/readings/{rid}/review", headers=J2).json()["shown"]) == 3
+
+
+def test_a_rewrite_keeps_its_tags_and_a_refusal_comes_in_plain_words(guided):
+    _, c, rid = guided
+    v = c.get(f"/readings/{rid}/review", headers=J1).json()
+    u = next(x for x in v["units"] if x["target"] == "paragraph:career:0")
+    assert "[" not in u["plain"] and u["facts"] and any("Budhaditya" in f for f in u["facts"])
+    assert not any(ENGINE_WORDS.search(f) for x in v["units"] for f in x["facts"])
+    edit = lambda text: c.post(f"/readings/{rid}/review/edit", headers=J1,
+                               json={"target": u["target"], "text": text, "keep_tags": True}).json()
+    r = edit("The Sun and Mercury join in the 10th, a strong pairing forming Budhaditya yoga and a raja yoga.")
+    assert not r["accepted"] and {"code": "tier", "detail": "strong"} in r["reasons"]
+    r = edit("The Sun and Mercury join in the 10th.")
+    assert not r["accepted"] and {x["code"] for x in r["reasons"]} == {"name"}
+    r = edit("REJECTED: the Sun and Mercury form Budhaditya yoga and a raja yoga in the 10th.")
+    assert not r["accepted"] and r["reasons"] == [{"code": "unsupported", "detail": "REJECTED"}]
+    r = edit("The Sun and Mercury join in the 10th, forming Budhaditya yoga and a raja yoga.")
+    assert r["accepted"] and r["reasons"] == []
+    para = next(a for a in r["review"]["reading"]["areas"] if a["name"] == "career")["paragraph"]
+    assert para.startswith("The Sun and Mercury join in the 10th, forming Budhaditya yoga and a raja yoga "
+                           "[rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja].")
+    assert r["review"]["history"][-1]["area"] == "career"
+
+
+def test_plain_reasons_and_tags():
+    from jyotish.review import plain, plain_reasons, with_tags
+    assert plain_reasons(["timing language ('years') in 'x'", "untagged claim: 'x'", "untagged claim: 'y'"]) == \
+        [{"code": "timing", "detail": "years"}, {"code": "other", "detail": ""}]
+    assert with_tags("A sits there [rule:a.b] [vote:c.d].", "A sits here!") == "A sits here [rule:a.b] [vote:c.d]!"
+    assert with_tags("A sits there [rule:a.b].", "A [rule:x.y].") == "A [rule:x.y]."
+    assert with_tags("No tags.", "Mine") == "Mine"
+    assert plain("A sits there [rule:a.b] [vote:c.d].") == "A sits there."
+
+
+def test_the_chart_drawing_takes_a_choice_of_vargas(guided):
+    _, c, rid = guided
+    cid = c.get(f"/readings/{rid}").json()["chart_id"]
+    svg = c.get(f"/charts/{cid}/chart.svg?vargas=D1,D9").text
+    assert 'data-varga="D1"' in svg and 'data-varga="D9"' in svg and 'data-varga="D10"' not in svg
+    assert c.get(f"/charts/{cid}/chart.svg?vargas=D60").status_code == 422
+    assert 'data-varga="D10"' in c.get(f"/charts/{cid}/chart.svg").text

@@ -11,16 +11,23 @@ table and puts the chart into the exclusions table, which the Layer 6b learning 
 a chart whose reading the judge has seen is never blind again.
 
 Targets name what is edited: "summary:<i>" (the i-th sentence of the summary),
-"claim:<area>:<finding id>", "paragraph:<area>:<i>" (the i-th sentence of a curious paragraph)."""
+"claim:<area>:<finding id>", "paragraph:<area>:<i>" (the i-th sentence of a curious paragraph).
+
+The guided review (web/review.html) asks its questions one step at a time and logs every answer
+(`check_answer` says which answers each step takes). Its words are an astrologer's: the chart
+facts beside a sentence (`facts`) and the reasons an edit is refused (`plain_reasons`) are
+written without the engine's own vocabulary. In blind mode (the judge page) an area's paragraph
+and windows are withheld (`redact`) until the reviewer has answered from the chart alone."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import re
+from datetime import date, datetime, timezone
 from typing import Any, Callable
 
 from .models import Chart
-from .narrate import (TAG, CheckResult, Reading, _check_payload, _summary_checks, findings, offered_votes,
-                      sentences, validate, validate_summary)
+from .narrate import (_ORD, TAG, CheckResult, Reading, _check_payload, _summary_checks, findings, offered_votes,
+                      rule_names, sentences, validate, validate_summary)
 
 
 def now() -> str:
@@ -79,12 +86,209 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
         scope_data = {fid: f for fid, f in data_by_id.items() if any(fid == x["finding_id"] for n in scope for x in offered[n])}
         to_check = _summary_checks(text, scope_data)
     checks = []
+    reasons = plain_reasons(errors)
     if not errors:
         for sentence, ids, data in to_check:
             result = checker(sentence, data)
             checks.append({"sentence": sentence, "findings": ids, "result": result.model_dump()})
             errors += [f"unsupported: {p.text!r} ({p.evidence})" for p in result.propositions if not p.supported]
-    return {"accepted": not errors, "errors": errors, "checks": checks}
+            reasons += [{"code": "unsupported", "detail": p.text} for p in result.propositions if not p.supported]
+    return {"accepted": not errors, "errors": errors, "reasons": reasons, "checks": checks}
+
+
+def with_tags(before: str, text: str) -> str:
+    """A rewrite in plain words carrying the tags of the sentence it replaces, so it is checked
+    against the same findings (a rewrite that writes its own tags keeps them)."""
+    text = text.strip()
+    tags = [m.group(0) for m in TAG.finditer(before)]
+    if not tags or TAG.search(text):
+        return text
+    end = text[-1] if text and text[-1] in ".!?" else "."
+    return f"{text.rstrip('.!? ')} {' '.join(tags)}{end}"
+
+
+# --- refusals in plain words ------------------------------------------------------------------
+
+def plain_reasons(errors: list[str]) -> list[dict[str, str]]:
+    """The validator's errors as codes the review page words for an astrologer (web/js/strings.js):
+    timing, probability, confidence, death, medical, trade, third_party (a forbidden word, with the
+    word), tier (a strength word), name (the combination the sentence must name), other."""
+    out = []
+    for e in errors:
+        m = re.match(r"(\w+) language \((['\"])(.*?)\2\)", e)
+        if m and m.group(1) == "tier":
+            out.append({"code": "tier", "detail": m.group(3)})
+        elif m:
+            out.append({"code": m.group(1), "detail": m.group(3)})
+        elif (m := re.match(r"\[rule:([^\]]+)\] on a sentence that names none of", e)):
+            out.append({"code": "name", "detail": rule_names(m.group(1))[0]})
+        else:
+            out.append({"code": "other", "detail": ""})
+    seen, uniq = set(), []
+    for r in out:
+        if (r["code"], r["detail"]) not in seen:
+            seen.add((r["code"], r["detail"]))
+            uniq.append(r)
+    return uniq
+
+
+# --- the chart facts a sentence rests on ------------------------------------------------------
+
+def _o(n: int) -> str:
+    return _ORD.get(n, str(n))
+
+
+def _joined(xs: list[str]) -> str:
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
+def _rule_facts(f: dict) -> list[str]:
+    pl = f.get("placement")
+    if pl:
+        lord = f", lord of the {_joined([_o(h) for h in pl['lord_of']])}," if pl.get("lord_of") else ""
+        return [f"{pl['planet']}{lord} in the {_o(pl['house'])}"]
+    from .narrate import glossary
+    name = next((e["term"] for e in glossary() if f["rule_id"] in e["aliases"]), None) or rule_names(f["rule_id"])[0]
+    name = name if "yoga" in name.lower() else f"{name} yoga"
+    planets = list(dict.fromkeys(n for fire in f["fires"] for n in fire["nodes"] if not n.startswith("H")))
+    line = f"{name[0].upper()}{name[1:]}, formed by {_joined(planets)}" if planets else name
+    houses = [x["words"] for x in f.get("area_houses", [])]
+    return [line + (f": {'; '.join(houses)}" if houses else "")]
+
+
+def _vote_facts(f: dict) -> list[str]:
+    fam, d = f["family"], f.get("derivation")
+    rows = d if isinstance(d, list) else []
+    lagna = [r for r in rows if r.get("basis", "lagna") == "lagna"]
+    out: list[str] = []
+    if fam == "house":
+        out = [f"The {_o(r['house'])} house ({r['sign']}): house strength {r['bhava_bala_rupas']:g} rupas"
+               for r in lagna if "bhava_bala_rupas" in r]
+    elif fam == "lord":
+        out = [f"{r['lord']}, lord of the {_o(r['house'])} ({r['sign']}), in {r['lord_sign']} in the "
+               f"{_o(r['lord_house_from_lagna'])}, {r['dignity']}" for r in lagna if "lord" in r]
+    elif fam == "karaka":
+        out = [f"{r['planet']}, a significator, in the {_o(r['house'])} ({r['sign']}), {r['dignity']}"
+               for r in lagna if "planet" in r]
+    elif fam == "varga":
+        out = [f"{r['planet']} in {r['varga']} {r['varga_sign']}" + (" (vargottama)" if r.get("vargottama_d9") else "")
+               for r in rows if "varga_sign" in r]
+    elif fam == "arudha":
+        pads = (d or {}).get("padas", []) if isinstance(d, dict) else rows
+        out = [f"{x['pada']} in the {_o(x['house'])} ({x['sign']})" +
+               (f", with {_joined(x['occupants'])}" if x.get("occupants") else "") for x in pads if "pada" in x]
+        mks = (d or {}).get("marana_karaka_sthana", []) if isinstance(d, dict) else []
+        out += [f"{x['planet']} in the {_o(x['house'])}, a marana karaka sthana" for x in mks if x.get("basis") == "lagna"]
+    elif fam == "kp":
+        cusps = dict.fromkeys(f"The {_o(r['cusp'])} cusp: star lord {r['cusp_star']}, sub-lord {r['sub']}"
+                              for r in rows if "cusp" in r)
+        out = list(cusps) + [f"{r['planet']} ({r['level']}) signifies the {_joined([_o(h) for h in r['significations']])}"
+                             for r in rows if r.get("decides")]
+    elif fam == "panchanga":
+        out = [f"{r['planet']} rules the {_joined(r['role'])}" + (
+               f" and the {_joined([_o(x['house']) for x in r['rules'] if x['basis'] == 'lagna'])}"
+               if any(x["basis"] == "lagna" for x in r.get("rules", [])) else "") for r in rows if "planet" in r]
+    lean = {"for": "Leans in favour", "against": "Leans against"}.get(f.get("direction"))
+    return out + ([lean] if lean else [])
+
+
+def finding_facts(f: dict) -> list[str]:
+    """A finding's chart facts in an astrologer's words (planets, houses, signs, dignities)."""
+    return _rule_facts(f) if f["kind"] == "rule" else _vote_facts(f)
+
+
+def facts(chart: Chart, areas: list[str]) -> dict[str, list[tuple[set[str], list[str]]]]:
+    """area -> [(the finding's citation tags, its facts)] for every finding offered."""
+    return {a: [({t for t in f["allowed_tags"] if not t.startswith("text:")}, finding_facts(f))
+                for f in findings(chart, a)[0]] for a in areas}
+
+
+def sentence_facts(text: str, area_facts: list[tuple[set[str], list[str]]]) -> list[str]:
+    """The chart facts a sentence rests on: those of every finding whose tags it cites."""
+    tags = {f"{k}:{v}" for k, v in TAG.findall(text)}
+    out: list[str] = []
+    for ftags, lines in area_facts:
+        if ftags & tags:
+            out += [x for x in lines if x not in out]
+    return out
+
+
+def plain(text: str) -> str:
+    """A sentence as the reviewer reads it: without its citation tags."""
+    return re.sub(r"\s+([.!?])", r"\1", TAG.sub("", text)).strip()
+
+
+# --- the guided review's answers --------------------------------------------------------------
+
+MODES = ("review", "blind")
+OFF = ("missing_combination", "weight", "timing", "wording", "other")
+PERIOD = ("yes", "earlier", "later", "different")
+OWN_READING = ("promising", "mixed", "difficult")
+AREA_STEPS = ("blind_reading", "blind_period", "match", "off", "sentences", "note", "period")
+STEPS = ("intro",) + AREA_STEPS
+
+
+def _month(x: Any) -> str:
+    if not isinstance(x, str) or not re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", x):
+        raise ValueError("a date is YYYY-MM or YYYY-MM-DD")
+    date.fromisoformat(x if len(x) == 10 else x + "-01")
+    return x
+
+
+def _range(answer: dict) -> None:
+    a, b = _month(answer.get("from")), _month(answer.get("to"))
+    if b < a:
+        raise ValueError("the range ends before it starts")
+
+
+def check_answer(step: str, answer: Any) -> None:
+    """Raises ValueError unless `answer` is one the step takes."""
+    if step not in STEPS:
+        raise ValueError(f"unknown step {step!r}")
+    if step == "intro":
+        ok = answer == "done"
+    elif step == "blind_reading":
+        ok = answer in OWN_READING
+    elif step == "match":
+        ok = answer in ("agree", "partly", "disagree")
+    elif step == "blind_period":
+        if not isinstance(answer, dict):
+            raise ValueError("a period is {from, to}")
+        _range(answer)
+        ok = True
+    elif step == "off":
+        ok = (isinstance(answer, dict) and isinstance(answer.get("reasons"), list) and answer["reasons"]
+              and set(answer["reasons"]) <= set(OFF) and isinstance(answer.get("line", ""), str))
+    elif step == "sentences":
+        ok = isinstance(answer, dict) and all(v in ("keep", "rewritten") for v in answer.get("decisions", {}).values())
+    elif step == "note":
+        ok = isinstance(answer, dict) and isinstance(answer.get("text"), str)
+    else:                                                                   # period
+        ok = isinstance(answer, dict) and answer.get("choice") in PERIOD
+        if ok and answer["choice"] != "yes":
+            _range(answer)
+    if not ok:
+        raise ValueError(f"not an answer the {step} step takes")
+
+
+def revealed(areas: list[dict], answers: list[dict]) -> set[str]:
+    """In blind mode, the areas whose reading may be shown: the reviewer has answered from the
+    chart alone (their own reading, and their own best period where the area has windows)."""
+    have = {(a["area"], a["step"]) for a in answers if a["mode"] == "blind"}
+    return {a["name"] for a in areas if (a["name"], "blind_reading") in have and
+            (not a.get("windows") or (a["name"], "blind_period") in have)}
+
+
+def redact(reading: dict, shown: set[str]) -> dict:
+    """The reading as the blind page may see it: an area not yet shown keeps only its name and
+    whether it has windows; the summary, which speaks across areas, waits for all of them."""
+    areas = [a if a["name"] in shown else {"name": a["name"], "has_windows": bool(a.get("windows")), "hidden": True}
+             for a in reading["areas"]]
+    keep = {"question", "as_of", "depth", "chart", "review"}
+    out = {k: v for k, v in reading.items() if k in keep}
+    if len(shown) == len(reading["areas"]):
+        out["summary"] = reading["summary"]
+    return dict(out, areas=areas)
 
 
 def apply_edit(reading: Reading, target: str, text: str, reviewer: str) -> Reading:

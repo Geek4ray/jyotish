@@ -22,9 +22,12 @@ examples/ (the reference reading) at /examples, after the API routes.
 The review step (SPEC Layer 6b): GET /review/{id} is the reviewer's page; the reviewer API under
 /readings/{id}/review needs a reviewer token (`Authorization: Bearer <token>`), mapped to a
 reviewer id by JYOTISH_REVIEWERS="judge-1:<token>,judge-2:<token>" in the server's environment.
-Every open, edit, note and approval is logged in `reviews` with chart id, reviewer id and time;
-the chart goes into `exclusions`, which the Layer 6b learning set respects. A reading's review
-status is draft until approved; the client-facing page says "reviewed by" only after.
+Every open, edit, note, approval and guided-review answer (POST /readings/{id}/review/answer:
+step, area, answer, mode) is logged in `reviews` with chart id, reviewer id and time; the chart
+goes into `exclusions`, which the Layer 6b learning set respects. A reading's review status is
+draft until approved; the client-facing page says "reviewed by" only after. `?mode=blind` (the
+judge page) withholds an area's reading until the reviewer has answered from the chart alone:
+the server sends it only then, and only then is the chart excluded.
 
 Run:  .venv/bin/uvicorn jyotish.api:app      then open http://127.0.0.1:8000/"""
 
@@ -95,7 +98,7 @@ class ReviewRow(Base):
     reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"))
     chart_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     reviewer_id: Mapped[str] = mapped_column(String(64))
-    action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve
+    action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve | verdict | answer
     target: Mapped[str | None] = mapped_column(String(200), nullable=True)
     before: Mapped[str | None] = mapped_column(Text, nullable=True)
     after: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -104,6 +107,9 @@ class ReviewRow(Base):
     area: Mapped[str | None] = mapped_column(String(32), nullable=True)
     verdict: Mapped[str | None] = mapped_column(String(16), nullable=True)      # agree | partly | disagree
     reason: Mapped[str | None] = mapped_column(String(32), nullable=True)       # why, when not agree
+    step: Mapped[str | None] = mapped_column(String(32), nullable=True)         # a guided-review step
+    answer: Mapped[Any | None] = mapped_column(DOCUMENT, nullable=True)         # its answer
+    mode: Mapped[str | None] = mapped_column(String(16), nullable=True)         # review | blind
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
@@ -149,6 +155,16 @@ class EditRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     target: str
     text: str
+    keep_tags: bool = False             # a rewrite in plain words carries the old sentence's tags
+
+
+class AnswerRequest(BaseModel):
+    """One answer of the guided review (review.check_answer says which answers a step takes)."""
+    model_config = ConfigDict(extra="forbid")
+    step: str
+    area: str | None = None
+    answer: Any
+    mode: Literal["review", "blind"] = "review"
 
 
 VERDICTS = ("agree", "partly", "disagree")
@@ -311,10 +327,15 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             return Chart.model_validate(row.document)
 
     @app.get("/charts/{chart_id}/chart.svg")
-    def chart_svg(chart_id: str) -> Response:
-        """D1, D9 and D10 in the North-Indian style, drawn by the engine from the stored chart."""
+    def chart_svg(chart_id: str, vargas: str = "D1,D9,D10") -> Response:
+        """D1, D9 and D10 (or those named in `vargas`) in the North-Indian style, drawn by the
+        engine from the stored chart."""
         from .display import svg
-        return Response(svg(chart_of(chart_id)), media_type="image/svg+xml")
+        try:
+            drawing = svg(chart_of(chart_id), tuple(v.strip() for v in vargas.split(",") if v.strip()))
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        return Response(drawing, media_type="image/svg+xml")
 
     @app.get("/charts/{chart_id}/tables.json")
     def chart_tables(chart_id: str, as_of: str | None = None) -> dict:
@@ -347,9 +368,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             raise HTTPException(status_code=409, detail=f"the reading is {row.status}, not done")
         return row, Reading(**row.document)
 
-    def log(s, row, who: str, action: str, **fields) -> None:
+    def log(s, row, who: str, action: str, seen: bool = True, **fields) -> None:
         s.add(ReviewRow(reading_id=row.id, chart_id=row.chart_id, reviewer_id=who, action=action, **fields))
-        if row.chart_id and s.get(ExclusionRow, row.chart_id) is None:
+        if seen and row.chart_id and s.get(ExclusionRow, row.chart_id) is None:
             s.add(ExclusionRow(chart_id=row.chart_id, reason="reading seen in review", reviewer_id=who,
                                reading_id=row.id))
 
@@ -358,17 +379,50 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         row.document = reading.model_dump(mode="json")
         row.page = render(reading, chart_of(row.chart_id))
 
-    def review_view(s, row, reading) -> dict:
-        from .review import units
+    fact_cache: dict = {}
+
+    def answers_of(s, row, who: str) -> list[dict]:
+        return [{"step": r.step, "area": r.area, "answer": r.answer, "mode": r.mode, "at": r.created_at.isoformat()}
+                for r in s.query(ReviewRow).filter_by(reading_id=row.id, reviewer_id=who, action="answer")
+                .order_by(ReviewRow.id)]
+
+    def shown_areas(s, row, reading, who: str, mode: str) -> set[str]:
+        from .review import revealed
+        names = {a.name for a in reading.areas}
+        return names if mode == "review" else revealed(row.document["areas"], answers_of(s, row, who))
+
+    def review_view(s, row, reading, who: str, mode: str = "review") -> dict:
+        """The reviewer's view. Each sentence carries its plain words and the chart facts it rests
+        on; in blind mode an area not yet answered from the chart alone is withheld, with its
+        sentences, and so are the page, the summary and the log."""
+        from .review import facts, plain, redact, sentence_facts, units
+        names = [a.name for a in reading.areas]
+        key = (row.chart_id, tuple(names))
+        if key not in fact_cache:
+            fact_cache[key] = facts(chart_of(row.chart_id), names)
+        area_facts = fact_cache[key]
+        shown = shown_areas(s, row, reading, who, mode)
+        us = [dict(u, plain=plain(u["text"]), facts=sentence_facts(u["text"], area_facts.get(u["area"], [])))
+              for u in units(reading) if (u["area"] in shown if u["area"] else len(shown) == len(names))]
+        intro_done = s.query(ReviewRow).filter_by(reviewer_id=who, action="answer", step="intro").first() is not None
+        guided = {"reviewer": who, "mode": mode, "intro_done": intro_done, "answers": answers_of(s, row, who),
+                  "shown": sorted(shown), "units": us}
+        if mode == "blind":
+            return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status,
+                    "reading": redact(row.document, shown), **guided}
         rows = list(s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id))
         history = [{"action": r.action, "target": r.target, "reviewer": r.reviewer_id, "accepted": r.accepted,
                     "before": r.before, "after": r.after, "errors": r.errors, "area": r.area, "verdict": r.verdict,
-                    "reason": r.reason, "at": r.created_at.isoformat()} for r in rows]
+                    "reason": r.reason, "step": r.step, "answer": r.answer, "mode": r.mode,
+                    "at": r.created_at.isoformat()} for r in rows]
         verdicts = {r.area: {"verdict": r.verdict, "reason": r.reason, "by": r.reviewer_id, "at": r.created_at.isoformat()}
-                    for r in rows if r.action == "verdict"}           # the latest per area
+                    for r in rows if r.action == "verdict" or (r.action == "answer" and r.step == "match")}  # the latest per area
         return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status, "verdicts": verdicts,
-                "reading": row.document,
-                "page": row.page, "units": units(reading), "history": history}
+                "reading": row.document, "page": row.page, "history": history, **guided}
+
+    def blind_gate(s, row, reading, who: str, mode: str, area: str | None) -> None:
+        if mode == "blind" and area is not None and area not in shown_areas(s, row, reading, who, mode):
+            raise HTTPException(status_code=409, detail=f"answer {area} from the chart alone first")
 
     @app.get("/review/{reading_id}", include_in_schema=False)
     def review_page(reading_id: str):
@@ -378,54 +432,97 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         return FileResponse(Path(web_dir) / "review.html")
 
     @app.get("/readings/{reading_id}/review")
-    def get_review(reading_id: str, request: Request) -> dict:
+    def get_review(reading_id: str, request: Request, mode: Literal["review", "blind"] = "review") -> dict:
         """The reading as the reviewer sees it, every sentence with its target; opening it logs
-        the reviewer and excludes the chart from the blind learning set."""
+        the reviewer and (outside blind mode) excludes the chart from the blind learning set."""
         who = reviewer(request)
         with Session.begin() as s:
             row, reading = done_reading(s, reading_id)
-            log(s, row, who, "open")
+            log(s, row, who, "open", seen=mode == "review", mode=mode)
             s.flush()
-            return review_view(s, row, reading)
+            return review_view(s, row, reading, who, mode)
+
+    @app.post("/readings/{reading_id}/review/answer")
+    def post_answer(reading_id: str, req: AnswerRequest, request: Request) -> dict:
+        """One answer of the guided review, logged with its step, area, answer, mode, reviewer and
+        time. In blind mode the reviewer's own reading and period come before the engine's is
+        shown, and cannot be changed after."""
+        from .review import AREA_STEPS, check_answer
+        who = reviewer(request)
+        with Session.begin() as s:
+            row, reading = done_reading(s, reading_id)
+            names = [a.name for a in reading.areas]
+            try:
+                check_answer(req.step, req.answer)
+            except ValueError as e:
+                raise HTTPException(status_code=422, detail=str(e))
+            if req.step in AREA_STEPS and req.area not in names:
+                raise HTTPException(status_code=422, detail=f"no area {req.area!r} in this reading")
+            if req.step == "intro" and req.area is not None:
+                raise HTTPException(status_code=422, detail="the introduction belongs to no area")
+            blind_step = req.step.startswith("blind_")
+            if blind_step and req.mode != "blind":
+                raise HTTPException(status_code=422, detail=f"{req.step} is asked in blind mode only")
+            if blind_step and req.area in shown_areas(s, row, reading, who, req.mode):
+                raise HTTPException(status_code=409, detail=f"{req.area} is already shown: answered from the chart alone")
+            if req.step in AREA_STEPS and not blind_step:
+                blind_gate(s, row, reading, who, req.mode, req.area)
+            log(s, row, who, "answer", seen=req.mode == "review", step=req.step, area=req.area, answer=req.answer,
+                mode=req.mode, target=f"{req.step}:{req.area}" if req.area else req.step,
+                verdict=req.answer if req.step == "match" else None)
+            s.flush()
+            if req.mode == "blind" and req.area in shown_areas(s, row, reading, who, req.mode) \
+                    and s.get(ExclusionRow, row.chart_id) is None:     # the reading is now seen
+                s.add(ExclusionRow(chart_id=row.chart_id, reason="reading seen in review", reviewer_id=who,
+                                   reading_id=row.id))
+                s.flush()
+            return review_view(s, row, reading, who, req.mode)
 
     @app.post("/readings/{reading_id}/review/edit")
-    def post_edit(reading_id: str, req: EditRequest, request: Request) -> dict:
-        """An edited sentence: accepted only if it passes the validator and the checker."""
-        from .review import apply_edit, check_edit, units
+    def post_edit(reading_id: str, req: EditRequest, request: Request,
+                  mode: Literal["review", "blind"] = "review") -> dict:
+        """An edited sentence: accepted only if it passes the validator and the checker. The
+        result carries the refusal's reasons as codes the review page words plainly."""
+        from .review import _parse, apply_edit, check_edit, units, with_tags
         who = reviewer(request)
         with Session.begin() as s:
             row, reading = done_reading(s, reading_id)
             before = next((u["text"] for u in units(reading) if u["target"] == req.target), None)
             if before is None:
                 raise HTTPException(status_code=404, detail=f"no sentence {req.target!r} in this reading")
+            blind_gate(s, row, reading, who, mode, _parse(req.target)[1])
+            text_ = with_tags(before, req.text) if req.keep_tags else req.text
             checker = review_checker or app.state.__dict__.setdefault("live_checker", _live_checker())
             try:
-                result = check_edit(reading, chart_of(row.chart_id), req.target, req.text, checker)
+                result = check_edit(reading, chart_of(row.chart_id), req.target, text_, checker)
             except ValueError as e:
                 raise HTTPException(status_code=422, detail=str(e))
-            log(s, row, who, "edit", target=req.target, before=before, after=req.text.strip(),
-                accepted=result["accepted"], errors=result["errors"])
+            log(s, row, who, "edit", target=req.target, before=before, after=text_.strip(),
+                accepted=result["accepted"], errors=result["errors"], mode=mode, area=_parse(req.target)[1])
             if result["accepted"]:
-                reading = apply_edit(reading, req.target, req.text, who)
+                reading = apply_edit(reading, req.target, text_, who)
                 save(s, row, reading)
             s.flush()
-            return dict(result, review=review_view(s, row, reading))
+            return dict(result, review=review_view(s, row, reading, who, mode))
 
     @app.post("/readings/{reading_id}/review/note")
-    def post_note(reading_id: str, req: NoteRequest, request: Request) -> dict:
+    def post_note(reading_id: str, req: NoteRequest, request: Request,
+                  mode: Literal["review", "blind"] = "review") -> dict:
         """The astrologer's note on an area: the reviewer's words, stored and shown apart, never checked."""
         from .review import add_note
         who = reviewer(request)
         with Session.begin() as s:
             row, reading = done_reading(s, reading_id)
+            if req.area in [a.name for a in reading.areas]:
+                blind_gate(s, row, reading, who, mode, req.area)
             try:
                 reading = add_note(reading, req.area, req.text, who)
             except ValueError as e:
                 raise HTTPException(status_code=422, detail=str(e))
-            log(s, row, who, "note", target=f"note:{req.area}", after=req.text.strip())
+            log(s, row, who, "note", target=f"note:{req.area}", after=req.text.strip(), mode=mode)
             save(s, row, reading)
             s.flush()
-            return review_view(s, row, reading)
+            return review_view(s, row, reading, who, mode)
 
     @app.post("/readings/{reading_id}/review/verdict")
     def post_verdict(reading_id: str, req: VerdictRequest, request: Request) -> dict:
@@ -440,21 +537,23 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             log(s, row, who, "verdict", target=f"verdict:{req.area}", area=req.area, verdict=req.verdict,
                 reason=req.reason)
             s.flush()
-            return review_view(s, row, reading)
+            return review_view(s, row, reading, who)
 
     @app.post("/readings/{reading_id}/review/approve")
-    def post_approve(reading_id: str, request: Request) -> dict:
+    def post_approve(reading_id: str, request: Request, mode: Literal["review", "blind"] = "review") -> dict:
         """Mark the reading reviewed: the client-facing page then says by whom."""
         from .review import approve
         who = reviewer(request)
         with Session.begin() as s:
             row, reading = done_reading(s, reading_id)
+            if len(shown_areas(s, row, reading, who, mode)) < len(reading.areas):
+                raise HTTPException(status_code=409, detail="every area must be answered before approval")
             reading = approve(reading, who)
             row.review_status = "reviewed"
-            log(s, row, who, "approve")
+            log(s, row, who, "approve", mode=mode)
             save(s, row, reading)
             s.flush()
-            return review_view(s, row, reading)
+            return review_view(s, row, reading, who, mode)
 
     @app.get("/places")
     def get_places(q: str, limit: int = 10) -> list[dict]:

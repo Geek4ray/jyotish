@@ -118,21 +118,28 @@ def _one_chart(chart: Chart, varga: str, x0: float) -> str:
     return "\n".join(out)
 
 
-def svg(chart: Chart) -> str:
-    """D1, D9 and D10 side by side, North-Indian style; each planet carries data-varga,
-    data-planet, data-sign (0 Aries ... 11 Pisces) and data-house, so the drawing can be
-    checked against the chart object."""
+def svg(chart: Chart, vargas: tuple[str, ...] = DISPLAY_VARGAS) -> str:
+    """D1, D9 and D10 (or the `vargas` named, of those) side by side, North-Indian style; each
+    planet carries data-varga, data-planet, data-sign (0 Aries ... 11 Pisces) and data-house, so
+    the drawing can be checked against the chart object."""
+    if not vargas or set(vargas) - set(DISPLAY_VARGAS):
+        raise ValueError(f"vargas are drawn from {', '.join(DISPLAY_VARGAS)}")
     gap = 28
-    width = int(3 * _S + 2 * gap + 2)
-    height = int(_S + 56)
+    width = int(len(vargas) * _S + (len(vargas) - 1) * gap + 2)
+    lines = ["Signs numbered 1 Aries to 12 Pisces · houses fixed, the lagna at the top · D1: degree in sign, "
+             "R retrograde, c combust; exalted, own sign and debilitated in colour"]
+    if len(vargas) < 3:                       # a narrower drawing: the legend on two lines
+        lines = ["Signs numbered 1 Aries to 12 Pisces · houses fixed, the lagna at the top",
+                 "D1: degree in sign, R retrograde, c combust; exalted, own sign and debilitated in colour"]
+    height = int(_S + 42 + 14 * len(lines))
     lagna = SIGNS[chart.lagnas.asc_sign]
-    charts = "\n".join(_one_chart(chart, v, 1 + i * (_S + gap)) for i, v in enumerate(DISPLAY_VARGAS))
-    legend = (f'<text x="1" y="{height - 6}" font-size="11" fill="{COLOURS["muted"]}">Signs numbered 1 Aries to 12 '
-              f'Pisces · houses fixed, the lagna at the top · D1: degree in sign, R retrograde, c combust; '
-              f'exalted, own sign and debilitated in colour</text>')
+    charts = "\n".join(_one_chart(chart, v, 1 + i * (_S + gap)) for i, v in enumerate(vargas))
+    legend = "\n".join(f'<text x="1" y="{height - 6 - 14 * (len(lines) - 1 - i)}" font-size="11" '
+                       f'fill="{COLOURS["muted"]}">{escape(t)}</text>' for i, t in enumerate(lines))
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="{width}" height="{height}" '
             f'role="img" aria-labelledby="chart-title" font-family="Inter, system-ui, sans-serif">\n'
-            f'<title id="chart-title">North-Indian charts D1, D9 and D10, {escape(lagna)} lagna</title>\n'
+            f'<title id="chart-title">North-Indian charts {escape(", ".join(vargas[:-1]) + " and " + vargas[-1] if len(vargas) > 1 else vargas[0])}, '
+            f'{escape(lagna)} lagna</title>\n'
             f'<rect width="100%" height="100%" fill="{COLOURS["bg"]}"/>\n{charts}\n{legend}\n</svg>\n')
 
 

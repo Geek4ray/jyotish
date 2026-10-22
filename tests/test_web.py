@@ -341,66 +341,6 @@ def test_chart_page_and_the_link_from_the_reading(page, base_url):
 
 
 
-@pytest.fixture(scope="module")
-def review_url(tmp_path_factory):
-    from jyotish.narrate import CheckResult, Proposition
-
-    def checker(sentence, data):
-        ok = "REJECTED" not in sentence
-        return CheckResult(propositions=[Proposition(text=sentence, supported=ok, evidence="stub")])
-    server, thread, url = _serve(tmp_path_factory.mktemp("review") / "r.db", EDITED,
-                                 reviewers={"web-token": "judge-1"}, review_checker=checker)
-    yield url
-    server.should_exit = True
-    thread.join(5)
-
-
-def test_review_page_edit_note_and_approve(browser, review_url):
-    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
-    client = ctx.new_page()
-    submit_reference(client, review_url)
-    client.wait_for_selector("#reading[data-state=done]", timeout=60_000)
-    rid = client.url.split("id=")[1]
-    assert client.locator(".reviewed-by").count() == 0 and client.locator(".astrologer-note").count() == 0
-    rev = ctx.new_page()
-    rev.goto(f"{review_url}/review/{rid}")
-    rev.wait_for_selector("#token-form:not([hidden])")
-    rev.fill("#token", "wrong")
-    rev.click("#token-form button[type=submit]")
-    rev.wait_for_selector("#token-error:has-text('not accepted')")
-    rev.fill("#token", "web-token")
-    rev.click("#token-form button[type=submit]")
-    rev.wait_for_selector("#review[data-state=draft]")
-    unit = rev.locator('.review-unit[data-target="claim:career:vote:career.house"]')
-    # A refused edit says why and changes nothing.
-    unit.locator("textarea").fill("The house vote is for career.")
-    unit.locator(".save").click()
-    rev.wait_for_selector('.review-unit[data-target="claim:career:vote:career.house"] .result.bad')
-    assert "claim without a tag" in unit.locator(".result").inner_text()
-    # An accepted one replaces the sentence.
-    new = "The house vote is for career, though the 10th house is the lowest in strength [vote:career.house]."
-    unit.locator("textarea").fill(new)
-    unit.locator(".save").click()
-    rev.wait_for_selector('.review-unit[data-target="claim:career:vote:career.house"] .result.ok')
-    note = rev.locator('.note[data-area="career"]')
-    note.locator("textarea").fill("Seen often in my practice: recognition comes late.")
-    note.locator(".save-note").click()
-    rev.wait_for_function("document.querySelector('#history').textContent.includes('note')")
-    rev.click("#approve")
-    rev.wait_for_selector("#review[data-state=reviewed]")
-    assert "approve" in rev.inner_text("#history") and "accepted" in rev.inner_text("#history")
-    client.reload()
-    client.wait_for_selector("#reading[data-state=done]")
-    assert "Reviewed by judge-1" in client.inner_text(".reviewed-by")
-    aside = client.locator('section.area[data-area="career"] .astrologer-note')
-    assert "Seen often in my practice" in aside.inner_text() and "not checked by the engine" in aside.inner_text()
-    claim = client.locator('section.area[data-area="career"] li.claim[data-finding="vote:career.house"] .claim-text')
-    assert claim.inner_text().startswith("The house vote is for career, though the 10th house is the lowest in strength")
-    # The note is set apart from the checked text: not inside the claims list.
-    assert client.locator('section.area[data-area="career"] ol.claims .astrologer-note').count() == 0
-    ctx.close()
-
-
 def test_other_placements_sit_with_the_astrologers_reading(page, curious_url):
     submit_reference(page, curious_url, depth="curious")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
@@ -411,39 +351,6 @@ def test_other_placements_sit_with_the_astrologers_reading(page, curious_url):
     other.locator("summary").click()
     li = other.locator('li[data-rule="place.mercury_h10"]')
     assert li.is_visible() and "(draft effect, verse not yet read)" in li.inner_text()
-
-
-def test_review_verdict_buttons_and_reason(browser, review_url):
-    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
-    client = ctx.new_page()
-    submit_reference(client, review_url)
-    client.wait_for_selector("#reading[data-state=done]", timeout=60_000)
-    rid = client.url.split("id=")[1]
-    shown = client.inner_text("#reading")
-    rev = ctx.new_page()
-    rev.goto(f"{review_url}/review/{rid}")
-    rev.fill("#token", "web-token")
-    rev.click("#token-form button[type=submit]")
-    rev.wait_for_selector("#review[data-state=draft]")
-    box = rev.locator('.verdict[data-area="career"]')
-    # The verdict sits at the top of the area, before the sentences and the note.
-    first = rev.locator('section.card[data-area="career"] > *:nth-child(2)')
-    assert "verdict" in (first.get_attribute("class") or "")
-    assert not box.locator(".verdict-reason").is_visible()
-    box.locator('[data-verdict="disagree"]').click()
-    assert box.locator(".verdict-reason").is_visible()                            # not agree: a reason first
-    box.locator(".save-verdict").click()
-    assert "Choose a reason first" in box.locator(".verdict-status").inner_text()
-    box.locator(".reason").select_option("missing_rule")
-    box.locator(".save-verdict").click()
-    rev.wait_for_selector('.verdict[data-area="career"] .verdict-status:has-text("Recorded: disagree (missing rule)")')
-    assert "verdict · verdict:career · disagree (missing_rule)" in rev.inner_text("#history")
-    rev.locator('.verdict[data-area="marriage"] [data-verdict="agree"]').click()
-    rev.wait_for_selector('.verdict[data-area="marriage"] .verdict-status:has-text("Recorded: agree")')
-    client.reload()
-    client.wait_for_selector("#reading[data-state=done]")
-    assert client.inner_text("#reading") == shown                                  # the client sees nothing of it
-    ctx.close()
 
 
 def test_curious_paragraph_gap_opens_the_claims_on_the_site(page, curious_url):
@@ -481,3 +388,307 @@ def test_fired_chip_counts_rules_and_drafts_apart(page, base_url):
     page.goto(f"{base_url}/reading.html?src=/examples/reference_reading.json")
     page.wait_for_selector("#reading[data-state=done]")
     assert "Fired rules stable / unstable: 5 / 0" in page.inner_text(".summary .chips")
+
+
+# --- the guided review (review mode) and the judge page (blind mode) --------------------------
+
+ENGINE_WORDS = __import__("re").compile(r"\b(votes?|tests?|famil(?:y|ies)|checker)\b", __import__("re").I)
+CURIOUS_BODY = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": 28.1989, "lon": 76.617,
+                "node": "mean", "place": "Rewari, Haryana", "depth": "curious", "as_of": "2026-10-21",
+                "question": "How will my career go, and when is the best time for a job change?"}
+
+
+@pytest.fixture(scope="module")
+def guided_url(tmp_path_factory):
+    from jyotish.narrate import CheckResult, Proposition
+
+    def checker(sentence, data):
+        ok = "REJECTED" not in sentence
+        return CheckResult(propositions=[Proposition(text=sentence if ok else "REJECTED", supported=ok, evidence="stub")])
+    server, thread, url = _serve(tmp_path_factory.mktemp("guided") / "g.db", str(ROOT / "tests" / "fixtures" / "narration_curious.json"),
+                                 reviewers={"tok-1": "judge-1", "tok-2": "judge-2", "tok-3": "judge-3"}, review_checker=checker)
+    yield url
+    server.should_exit = True
+    thread.join(5)
+
+
+def new_reading(url):
+    import httpx
+    rid = httpx.post(f"{url}/readings", json=CURIOUS_BODY).json()["id"]
+    for _ in range(600):
+        s = httpx.get(f"{url}/readings/{rid}").json()
+        if s["status"] in ("done", "failed"):
+            break
+        time.sleep(0.1)
+    assert s["status"] == "done"
+    return rid, s["reading"]
+
+
+def sign_in(pg, url, rid, token, blind=False):
+    pg.goto(f"{url}/review/{rid}" + ("?mode=blind" if blind else ""))
+    pg.wait_for_selector("#token-form:not([hidden])")
+    pg.fill("#token", token)
+    pg.click("#token-open")
+
+
+def at(pg, key):
+    pg.wait_for_selector(f'#review[data-step="{key}"]')
+
+
+def plain_words(pg):
+    # The page's own words, the chart's and the questions', never the engine's vocabulary. The
+    # reading under review (.quoted) is the client's text and is left out.
+    text = pg.evaluate("""() => { const m = document.querySelector('#guided').cloneNode(true);
+        m.querySelectorAll('.quoted').forEach(e => e.remove()); return m.innerText; }""")
+    assert not ENGINE_WORDS.search(text), ENGINE_WORDS.search(text).group(0)
+
+
+def key(pg, k):
+    # A choice saves at once: wait for the answer to reach the server.
+    with pg.expect_response(lambda r: "/review/answer" in r.url and r.status == 200):
+        pg.keyboard.press(k)
+
+
+def progress(pg):
+    bar = pg.locator("#guided-progress .bar")
+    return int(bar.get_attribute("aria-valuenow")), int(bar.get_attribute("aria-valuemax"))
+
+
+def test_guided_review_whole_flow(browser, guided_url):
+    rid, reading = new_reading(guided_url)
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+    client = ctx.new_page()
+    client.goto(f"{guided_url}/reading.html?id={rid}")
+    client.wait_for_selector("#reading[data-state=done]")
+    assert client.locator(".reviewed-by").count() == 0
+    rev = ctx.new_page()
+    sign_in(rev, guided_url, rid, "wrong")
+    rev.wait_for_selector("#token-error:has-text('not accepted')")
+    rev.fill("#token", "tok-1")
+    rev.click("#token-open")
+    at(rev, "intro:1")
+    # The chart, fixed on the left: D1 and D9, the dasha tables with the current period.
+    rev.wait_for_selector('#guided-chart svg [data-varga="D9"]')
+    assert rev.locator('#guided-chart [data-varga="D1"]').count() == 1 and rev.locator('#guided-chart [data-varga="D10"]').count() == 0
+    assert rev.inner_text("#guided-chart .current-period") == "Current period on 2026-10-21: Jupiter – Mercury – Mercury"
+    assert rev.locator("#guided-chart tr.current").count() == 2                     # the maha and the antar
+    assert rev.evaluate("getComputedStyle(document.querySelector('#guided-chart')).position") == "sticky"
+    # Step 0: three screens, once per reviewer; the third says the note goes out in their name.
+    for i in (1, 2, 3):
+        at(rev, f"intro:{i}")
+        plain_words(rev)
+        assert progress(rev)[0] == i
+        if i == 3:
+            assert "under your name (judge-1)" in rev.inner_text("#guided-panel")
+        rev.keyboard.press("Enter")
+    # (1) The paragraph in full, then the question; 2 is Partly, and it saves at once.
+    at(rev, "match:career")
+    quote = rev.inner_text("#guided-panel blockquote.quoted")
+    assert quote.startswith("In your chart the Sun and Mercury sit together") and "[" not in quote
+    assert "Does this match your reading of the chart for career?" in rev.inner_text("#guided-panel")
+    plain_words(rev)
+    n0, total0 = progress(rev)
+    key(rev, "2")
+    rev.wait_for_selector('.choice[data-value="partly"][aria-pressed="true"]')
+    assert progress(rev)[1] == total0 + 1                                            # "What is off?" joins
+    rev.keyboard.press("Enter")
+    # (2) What is off: several, and a line; Enter in the line goes on.
+    at(rev, "off:career")
+    assert progress(rev)[0] == n0 + 1
+    plain_words(rev)
+    key(rev, "1")
+    key(rev, "3")
+    rev.fill("#off-line", "The 10th lord's weakness is underplayed")
+    rev.press("#off-line", "Enter")
+    # (3) Each sentence a card: a rewrite shows the facts beside it and is read back.
+    at(rev, "sentences:career")
+    cards = rev.locator(".sentence-card")
+    assert cards.count() == len(__import__("jyotish.narrate", fromlist=["sentences"]).sentences(reading["areas"][0]["paragraph"]))
+    cards.first.locator(".open-rewrite").click()
+    assert any("Budhaditya yoga, formed by Sun and Mercury" in f for f in rev.locator(".rewrite .facts li").all_inner_texts())
+    rev.fill("#rw-text", "The Sun and Mercury join in the 10th, a strong pairing forming Budhaditya yoga and a raja yoga.")
+    rev.click(".check-rewrite")
+    rev.wait_for_selector('.reasons li[data-code="tier"]')
+    assert rev.inner_text('.reasons li[data-code="tier"]') == "Leave out “strong”: how strong the area is, is stated separately."
+    plain_words(rev)
+    rev.fill("#rw-text", "REJECTED: the Sun and Mercury form Budhaditya yoga and a raja yoga in the 10th.")
+    rev.click(".check-rewrite")
+    rev.wait_for_selector('.reasons li[data-code="unsupported"]')
+    assert rev.inner_text('.reasons li[data-code="unsupported"]').startswith("The chart facts beside it do not show this")
+    rewrite = "The Sun and Mercury join in the 10th, forming Budhaditya yoga and a raja yoga."
+    rev.fill("#rw-text", rewrite)
+    rev.click(".check-rewrite")
+    rev.wait_for_selector(".sentence-card.rewritten .accepted")
+    rev.keyboard.press("Enter")
+    # (4) The note; the tab closes with it half written, and nothing is lost.
+    at(rev, "note:career")
+    assert "the client sees this as the astrologer's own words" in rev.inner_text("#guided-panel").lower()
+    note = "Seen often in my practice: recognition comes late."
+    rev.fill("#note-text", note)
+    rev.close()
+    rev = ctx.new_page()
+    sign_in(rev, guided_url, rid, "tok-1")
+    at(rev, "note:career")                                                           # reopens where it was left
+    assert rev.input_value("#note-text") == note
+    rev.press("#note-text", "Control+Enter")
+    # (5) The best period: 2 is Earlier, with a range.
+    at(rev, "period:career")
+    assert rev.inner_text(".engine-period") == "Oct 2029 to Jun 2032"
+    plain_words(rev)
+    assert not rev.locator(".your-period").is_visible()
+    rev.keyboard.press("2")                                  # Earlier: saved once the range is given
+    assert rev.locator(".your-period").is_visible()
+    rev.fill("#yours-from", "2027-10")
+    rev.fill("#yours-to", "2028-12")
+    rev.press("#yours-to", "Enter")
+    # The other areas: Agree needs no "what is off", and neither has a period.
+    for area in ("marriage", "longevity"):
+        at(rev, f"match:{area}")
+        key(rev, "1")
+        rev.keyboard.press("Enter")
+        at(rev, f"sentences:{area}")
+        rev.keyboard.press("Enter")
+        at(rev, f"note:{area}")
+        rev.keyboard.press("Enter")
+    at(rev, "summary")
+    plain_words(rev)
+    career = rev.inner_text('.summary-area[data-area="career"]')
+    for bit in ("Partly", "A combination is missing; The timing; The 10th lord's weakness is underplayed",
+                "Sentences rewritten\n1", note, "Earlier: Oct 2027 to Dec 2028"):
+        assert bit in career, bit
+    assert rev.inner_text(".approve-line") == "The client will see: reviewed by judge-1"
+    rev.click(".approve")
+    at(rev, "done")
+    assert "reviewed by judge-1" in rev.inner_text("#guided-panel")
+    # The client's page: reviewed, the note in the reviewer's name, the rewritten sentence.
+    client.reload()
+    client.wait_for_selector("#reading[data-state=done]")
+    assert "Reviewed by judge-1" in client.inner_text(".reviewed-by")
+    c_career = client.locator('section.area[data-area="career"]')
+    assert note in c_career.locator(".astrologer-note").inner_text()
+    assert c_career.locator("p.paragraph").inner_text().startswith(rewrite[:-1])
+    assert "underplayed" not in client.inner_text("#reading") and "Partly" not in client.inner_text("#reading")
+    # Every answer is in the log, with its step, area, answer, reviewer and time.
+    log = rev.evaluate(f"""fetch('/readings/{rid}/review', {{headers: {{Authorization: 'Bearer tok-1'}}}}).then(r => r.json())""")["history"]
+    answers = [(h["step"], h["area"]) for h in log if h["action"] == "answer"]
+    for step in [("intro", None), ("match", "career"), ("off", "career"), ("sentences", "career"), ("note", "career"),
+                 ("period", "career"), ("match", "marriage"), ("note", "longevity")]:
+        assert step in answers, step
+    period = next(h for h in log if h["step"] == "period")
+    assert period["answer"] == {"choice": "earlier", "from": "2027-10", "to": "2028-12"}
+    assert period["reviewer"] == "judge-1" and period["at"] and period["mode"] == "review"
+    ctx.close()
+
+
+def test_judge_page_hides_the_reading_until_answered_from_the_chart(browser, guided_url):
+    rid, reading = new_reading(guided_url)
+    para = {a["name"]: a["paragraph"] for a in reading["areas"]}
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+    rev = ctx.new_page()
+    sign_in(rev, guided_url, rid, "tok-2", blind=True)
+    at(rev, "intro:1")
+    assert rev.title().startswith("Judge") and rev.locator(".blind-note").is_visible()
+    for i in (1, 2, 3):
+        rev.keyboard.press("Enter")
+    at(rev, "blind_reading:career")
+    plain_words(rev)
+    # Not hidden but absent: the server has not sent the paragraph or the windows.
+    content = rev.content()
+    assert para["career"][:50] not in content and "Oct 2029" not in content and rev.locator(".quoted").count() == 0
+    view = rev.evaluate(f"""fetch('/readings/{rid}/review?mode=blind', {{headers: {{Authorization: 'Bearer tok-2'}}}}).then(r => r.json())""")
+    assert all(a.get("hidden") for a in view["reading"]["areas"]) and view["units"] == []
+    key(rev, "1")
+    rev.keyboard.press("Enter")
+    at(rev, "blind_period:career")
+    rev.fill("#own-from", "2027-06")
+    rev.fill("#own-to", "2028-12")
+    rev.press("#own-to", "Enter")
+    # Now shown: the same flow as the review, with their own answers beside the engine's.
+    at(rev, "match:career")
+    assert rev.inner_text("blockquote.quoted").startswith("In your chart the Sun and Mercury")
+    assert rev.inner_text(".own") == "Your reading from the chart alone: Promising"
+    key(rev, "1")
+    rev.keyboard.press("Enter")
+    at(rev, "sentences:career")
+    rev.keyboard.press("Enter")
+    at(rev, "note:career")
+    rev.keyboard.press("Enter")
+    at(rev, "period:career")
+    assert rev.inner_text(".engine-period") == "Oct 2029 to Jun 2032"
+    assert rev.inner_text(".own") == "Your period from the chart alone: Jun 2027 to Dec 2028"
+    key(rev, "1")
+    rev.keyboard.press("Enter")
+    # The next area is withheld again until answered; without windows it asks no period.
+    at(rev, "blind_reading:marriage")
+    assert para["marriage"][:50] not in rev.content()
+    key(rev, "3")
+    rev.keyboard.press("Enter")
+    at(rev, "match:marriage")
+    assert rev.inner_text("blockquote.quoted")[:40] == __import__("jyotish.review", fromlist=["plain"]).plain(para["marriage"])[:40]
+    key(rev, "2")
+    rev.keyboard.press("Enter")
+    at(rev, "off:marriage")
+    key(rev, "5")
+    rev.keyboard.press("Enter")
+    for step in ("sentences:marriage", "note:marriage"):
+        at(rev, step)
+        rev.keyboard.press("Enter")
+    at(rev, "blind_reading:longevity")
+    key(rev, "2")
+    rev.keyboard.press("Enter")
+    at(rev, "match:longevity")
+    key(rev, "1")
+    for step in ("match:longevity", "sentences:longevity", "note:longevity"):
+        at(rev, step)
+        rev.keyboard.press("Enter")
+    at(rev, "summary")
+    plain_words(rev)
+    career = rev.inner_text('.summary-area[data-area="career"]')
+    assert "From the chart alone\nPromising" in career and "Your period from the chart alone\nJun 2027 to Dec 2028" in career
+    assert "From the chart alone\nDifficult" in rev.inner_text('.summary-area[data-area="marriage"]')
+    rev.click(".approve")
+    at(rev, "done")
+    log = rev.evaluate(f"""fetch('/readings/{rid}/review?mode=blind', {{headers: {{Authorization: 'Bearer tok-2'}}}}).then(r => r.json())""")
+    blind = [(a["step"], a["area"]) for a in log["answers"] if a["mode"] == "blind"]
+    assert blind.index(("blind_reading", "career")) < blind.index(("blind_period", "career")) < blind.index(("match", "career"))
+    assert ("blind_period", "marriage") not in blind
+    ctx.close()
+
+
+def test_guided_review_on_a_phone(browser, guided_url):
+    rid, _ = new_reading(guided_url)
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    rev = ctx.new_page()
+    sign_in(rev, guided_url, rid, "tok-3")
+    at(rev, "intro:1")
+    rev.wait_for_selector('#guided-chart svg [data-varga="D1"]')
+    chart, panel = rev.locator("#guided-chart").bounding_box(), rev.locator("#guided-panel").bounding_box()
+    assert chart["y"] + chart["height"] <= panel["y"]                                    # the chart above the questions
+    assert rev.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    rev.locator(".next").tap()
+    at(rev, "intro:2")
+    ctx.close()
+
+
+def test_every_label_comes_from_the_strings_file():
+    import re
+    strings = (ROOT / "web" / "js" / "strings.js").read_text()
+    en = set(re.findall(r'^\s+"([\w.]+)":', strings, re.M))
+    page = (ROOT / "web" / "js" / "review-page.js").read_text()
+    used = set(re.findall(r'\bt\("([\w.]+)"', page))
+    assert used and used <= en, used - en
+    dynamic = {"intro.{}.heading": ("1", "2", "3"), "intro.{}.body": ("1", "2", "3"),
+               "blind_reading.{}": ("promising", "mixed", "difficult"), "match.{}": ("agree", "partly", "disagree"),
+               "off.{}": ("missing_combination", "weight", "timing", "wording", "other"),
+               "period.{}": ("yes", "earlier", "later", "different"),
+               "reason.{}": ("unsupported", "timing", "probability", "confidence", "death", "medical", "trade",
+                             "third_party", "tier", "name", "other")}
+    for pattern, values in dynamic.items():
+        assert {pattern.format(v) for v in values} <= en, pattern
+    from jyotish.review import OFF, OWN_READING, PERIOD
+    assert set(OFF) == set(dynamic["off.{}"]) and set(PERIOD) == set(dynamic["period.{}"]) and set(OWN_READING) == set(dynamic["blind_reading.{}"])
+    from jyotish.scoring import AREAS
+    assert {f"areaname.{a}" for a in AREAS} <= en
+    # The labels speak as an astrologer would.
+    values = re.findall(r'^\s+"[\w.]+": "(.*)",$', strings, re.M)
+    assert values and not any(ENGINE_WORDS.search(v) for v in values)

@@ -11,14 +11,21 @@
 </head>
 <body data-screen="review">
 <header class="site-header" id="site-header"></header>
-<main class="wrap" id="review" data-state="loading" aria-live="polite">
+<main class="wrap guided" id="review" data-state="loading" aria-live="polite">
   <form class="card" id="token-form" hidden>
-    <h2>Reviewer sign-in</h2>
-    <div class="field"><label for="token">Reviewer token</label><input id="token" type="password" autocomplete="off" required></div>
-    <button class="button" type="submit">Open the reading</button>
+    <h2 id="signin-heading"></h2>
+    <div class="field"><label for="token" id="token-label"></label><input id="token" type="password" autocomplete="off" required></div>
+    <button class="button" type="submit" id="token-open"></button>
     <p class="error small" id="token-error" role="alert"></p>
   </form>
-  <div id="review-body"></div>
+  <div class="guided-layout" id="guided" hidden>
+    <aside class="guided-chart card" id="guided-chart" aria-labelledby="chart-heading"></aside>
+    <section class="guided-steps" id="guided-steps">
+      <div class="guided-progress" id="guided-progress"></div>
+      <div class="card guided-panel" id="guided-panel" tabindex="-1"></div>
+      <p class="tiny muted guided-keys" id="guided-keys"></p>
+    </section>
+  </div>
 </main>
 <footer class="site-footer" id="site-footer"></footer>
 </body>
