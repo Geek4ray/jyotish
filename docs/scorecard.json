@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-22",
-  "commit": "854e816",
+  "date": "2026-10-23",
+  "commit": "4699460",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.2162,
+      "value": 0.2432,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.3556,
+      "value": 0.3913,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -388,8 +388,8 @@
     }
   },
   "skips": [
-    "metamorphic: tests/test_metamorphic.py:165: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
-    "metamorphic: tests/test_metamorphic.py:182: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
-    "checker benchmark: tests/test_checker_bench.py:93: set JYOTISH_LIVE_NARRATION=1 to call the API"
+    "metamorphic: tests/test_metamorphic.py:172: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
+    "metamorphic: tests/test_metamorphic.py:189: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
+    "checker benchmark: tests/test_checker_bench.py:109: set JYOTISH_LIVE_NARRATION=1 to call the API"
   ]
 }
