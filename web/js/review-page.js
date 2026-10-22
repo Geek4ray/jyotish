@@ -63,6 +63,12 @@ function words() {
 }
 
 async function answer(step, area, value) {
+  const run = saveAnswer(step, area, value);
+  state.pending = run;                     // Next waits for a save in flight (a fast Enter after a choice)
+  try { return await run; } finally { if (state.pending === run) state.pending = null; }
+}
+
+async function saveAnswer(step, area, value) {
   saved(t("saving"));
   const comment = words();
   try {
@@ -420,6 +426,7 @@ async function chosen(s) {
 }
 
 async function next() {
+  if (state.pending) await state.pending;
   const { s } = here();
   await NEXT[s.k](s);
 }

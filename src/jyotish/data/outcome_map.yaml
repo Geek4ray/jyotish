@@ -1,0 +1,42 @@
+# What each life area and each rule `outcomes` field is tested against (SPEC Layer 6, outcome
+# dataset). Events are from the fixed vocabulary in outcomes.EVENT_TYPES. An area's `events` are
+# the outcomes its tier is scored against (a subject is a case when any of them occurred by the
+# censor age); `adverse` lists events that count against the area, kept for later tests and not
+# scored in v1. An area or rule outcome with no events maps to nothing measured, so it is
+# not_testable_yet: an absence of data, not an "unconfirmed" verdict.
+#
+# Occupation is binarised for the area tests as ISEI at 35 of at least `occupation_isei_threshold`
+# (a setting; the ISEI scale runs about 10 to 89).
+
+occupation_isei_threshold: 60
+
+areas:
+  personality: {events: []}
+  wealth: {events: [property_purchase]}
+  siblings: {events: []}
+  mother_home: {events: [property_purchase, parental_loss]}
+  children: {events: [first_child]}
+  intellect: {events: [occupation]}
+  health: {events: [major_surgery, chronic_diagnosis]}
+  debts_enemies: {events: []}
+  marriage: {events: [first_marriage], adverse: [divorce]}
+  longevity: {events: []}
+  father: {events: [parental_loss]}
+  fortune: {events: []}
+  career: {events: [occupation, tenure_change]}
+  gains: {events: [property_purchase]}
+  foreign: {events: [first_relocation_abroad]}
+  spirituality: {events: []}
+  mind: {events: []}
+  reputation: {events: [occupation]}
+
+# The `outcomes` names used in rules/*.yaml.
+rule_outcomes:
+  career_status: [occupation, tenure_change]
+  chronic_diagnosis: [chronic_diagnosis, major_surgery]
+  relocation_abroad: [first_relocation_abroad]
+  marriage: [first_marriage]
+  first_child: [first_child]
+  property_purchase: [property_purchase]
+  litigation: []              # not in the SPEC outcome list: not measured
+  temperament_profile: []     # not measured

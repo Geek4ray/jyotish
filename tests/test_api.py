@@ -141,7 +141,8 @@ def test_document_columns_are_jsonb_under_postgres():
     assert pg.count("JSONB") == 4                                 # request, progress, document, error
     assert "JSONB" in str(CreateTable(ChartRow.__table__).compile(dialect=postgresql.dialect()))
     assert "JSON" in str(CreateTable(ChartRow.__table__).compile(dialect=sqlite.dialect()))
-    assert set(Base.metadata.tables) == {"charts", "readings", "reviews", "exclusions"}
+    assert set(Base.metadata.tables) == {"charts", "readings", "reviews", "exclusions", "consents", "subjects", "events",
+                                         "erasures"}
 
 
 def test_places_endpoint(client):

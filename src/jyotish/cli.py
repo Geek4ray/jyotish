@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 from datetime import datetime
+from pathlib import Path
 
 from .chart import analyse, compute
 from .constants import SIGNS
@@ -415,6 +416,39 @@ def cmd_read(args) -> int:
     return 0
 
 
+def cmd_outcomes(args) -> int:
+    import os
+    from . import outcomes as oc
+    if args.cmd == "outcomes" and args.ocmd == "status":
+        t = oc.rule_testability()
+        n = sum(1 for v in t.values() if v["status"] == "testable")
+        print(f"{n} of {len(t)} rules testable against measured outcomes; {len(t) - n} not_testable_yet")
+        for rid, v in sorted(t.items()):
+            if v["status"] == "not_testable_yet":
+                print(f"  not_testable_yet  {rid}  (outcomes map to nothing measured)")
+        return 0
+    url = args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
+    Session = oc.sessionmaker_for(url)
+    with Session.begin() as s:
+        if args.cmd == "subject":
+            counts = oc.erase(s, args.subject_id, args.by)
+            print(f"erased subject {args.subject_id}: " + ", ".join(f"{v} {k}" for k, v in counts.items()) + " (logged)")
+            return 0
+        if args.ocmd == "consent":
+            oc.add_consent(s, args.consent_id, args.subject, args.form, args.track, args.by)
+            print(f"consent {args.consent_id} recorded for {args.subject}")
+            return 0
+        if args.ocmd == "withdraw":
+            oc.withdraw_consent(s, args.consent_id)
+            print(f"consent {args.consent_id} withdrawn")
+            return 0
+        res = oc.import_rows(s, oc.read_sheet(Path(args.csv)), entered_by=args.entered_by)
+    print(f"{res.accepted} event rows stored ({res.subjects_created} new subjects); {len(res.refused)} refused")
+    for x in res.refused:
+        print(f"  row {x['row']} ({x['subject_id']}): {'; '.join(x['reasons'])}")
+    return 1 if res.refused else 0
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="jyotish")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -447,6 +481,28 @@ def main(argv: list[str] | None = None) -> None:
     ex.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
     ex.add_argument("--out", default="data/preferences")
     ex.add_argument("--with-birth-data", action="store_true", help="include each chart's birth data (left out by default)")
+    oc = sub.add_parser("outcomes", help="outcome capture: consents, the clerk's intake sheet, testability")
+    osub = oc.add_subparsers(dest="ocmd", required=True)
+    oi = osub.add_parser("import", help="the clerk's sheet (docs/intake_template.csv): one row per event")
+    oi.add_argument("csv")
+    oi.add_argument("--entered-by", required=True, help="the clerk's name or id")
+    oca = osub.add_parser("consent", help="record a consent")
+    oca.add_argument("consent_id")
+    oca.add_argument("--subject", required=True)
+    oca.add_argument("--form", required=True, help="consent form version")
+    oca.add_argument("--track", required=True, choices=["backlog", "new"])
+    oca.add_argument("--by", required=True, help="who recorded it")
+    ow = osub.add_parser("withdraw", help="withdraw a consent")
+    ow.add_argument("consent_id")
+    osub.add_parser("status", help="which rules are testable against measured outcomes")
+    for x in (oi, oca, ow):
+        x.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
+    sj = sub.add_parser("subject", help="a subject's data")
+    ssub = sj.add_subparsers(dest="scmd", required=True)
+    se = ssub.add_parser("erase", help="erase a subject's chart, readings, reviews and events (DPDP right of erasure)")
+    se.add_argument("subject_id")
+    se.add_argument("--by", required=True, help="who carried out the request")
+    se.add_argument("--database")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
@@ -459,6 +515,8 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.cmd == "read":
         raise SystemExit(cmd_read(args))
+    if args.cmd in ("outcomes", "subject"):
+        raise SystemExit(cmd_outcomes(args))
     if args.cmd == "export-reviews":
         import os
         from .export import export_reviews

@@ -1,0 +1,5 @@
+consent_id,subject_id,date,time,tz,lat,lon,place,node,accuracy,sex,region,source,rectified,seen_by_astrologer,household_key,birthplace_cluster,event_type,age_at_event,censor_age,isco08,isei,self_report,entered_at,reading_shown_at
+C-0001,S-0001,1984-06-02,07:45,Asia/Kolkata,28.6139,77.209,"New Delhi, India",mean,exact,female,north_india,file,no,no,H-0001,BP-delhi,first_marriage,27.5,41,,,no,2026-10-22T10:00:00+05:30,
+C-0001,S-0001,1984-06-02,07:45,Asia/Kolkata,28.6139,77.209,"New Delhi, India",mean,exact,female,north_india,file,no,no,H-0001,BP-delhi,first_child,30,41,,,no,2026-10-22T10:00:00+05:30,
+C-0001,S-0001,1984-06-02,07:45,Asia/Kolkata,28.6139,77.209,"New Delhi, India",mean,exact,female,north_india,file,no,no,H-0001,BP-delhi,occupation,35,41,2211,78,no,2026-10-22T10:00:00+05:30,
+C-0001,S-0001,1984-06-02,07:45,Asia/Kolkata,28.6139,77.209,"New Delhi, India",mean,exact,female,north_india,file,no,no,H-0001,BP-delhi,first_relocation_abroad,,41,,,no,2026-10-22T10:00:00+05:30,

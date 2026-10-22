@@ -46,7 +46,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, inspect, text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -124,6 +124,67 @@ class ExclusionRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+# --- outcome capture (SPEC Layer 6, outcome dataset; outcomes.py) ---------------------------------
+
+class ConsentRow(Base):
+    """A subject's consent: purpose-limited to validation, withdrawable (DPDP Act 2023)."""
+    __tablename__ = "consents"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    subject_id: Mapped[str] = mapped_column(String(64))
+    form_version: Mapped[str] = mapped_column(String(32))
+    track: Mapped[str] = mapped_column(String(16))                      # backlog | new
+    given_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    recorded_by: Mapped[str] = mapped_column(String(64))
+
+
+class SubjectRow(Base):
+    """A person whose dated events are recorded. `chart_id` is the engine's chart key for the birth
+    data. Rectified charts are refused at import (SPEC Layer 6: excluded from every test)."""
+    __tablename__ = "subjects"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    chart_id: Mapped[str] = mapped_column(String(64))
+    birth: Mapped[dict] = mapped_column(DOCUMENT)                       # date, time, tz, lat, lon, place, node
+    accuracy: Mapped[str] = mapped_column(String(16))
+    sex: Mapped[str] = mapped_column(String(16))
+    region: Mapped[str] = mapped_column(String(64))
+    source: Mapped[str] = mapped_column(String(16))                     # file | interview | follow_up | public
+    rectified: Mapped[bool] = mapped_column(Boolean, default=False)
+    seen_by_astrologer: Mapped[bool] = mapped_column(Boolean, default=False)
+    household_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    birthplace_cluster: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class EventRow(Base):
+    """An outcome triple (event type, age at event, censor age); no age at event means the event
+    had not happened by the censor age. `after` is true when it was entered once a reading had
+    been shown, and such events are excluded from every test."""
+    __tablename__ = "events"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    subject_id: Mapped[str] = mapped_column(ForeignKey("subjects.id"))
+    event_type: Mapped[str] = mapped_column(String(32))
+    age_at_event: Mapped[float | None] = mapped_column(Float, nullable=True)
+    censor_age: Mapped[float] = mapped_column(Float)
+    value: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)  # occupation: isco08, isei
+    self_report: Mapped[bool] = mapped_column(Boolean, default=False)
+    entered_by: Mapped[str] = mapped_column(String(64))
+    entered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    before_reading: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    after: Mapped[bool] = mapped_column(Boolean, default=False)
+    consent_id: Mapped[str] = mapped_column(String(64))
+
+
+class ErasureRow(Base):
+    """A right-of-erasure request carried out: who, when, and how many rows went. No birth data."""
+    __tablename__ = "erasures"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    subject_id: Mapped[str] = mapped_column(String(64))
+    erased_by: Mapped[str] = mapped_column(String(64))
+    counts: Mapped[dict] = mapped_column(DOCUMENT)
+    erased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 def excluded_charts(session) -> set[str]:
     """The chart ids the Layer 6b learning set must leave out (their readings were seen)."""
     return {r.chart_id for r in session.query(ExclusionRow).all()}
@@ -189,16 +250,22 @@ class VerdictRequest(BaseModel):
         return self
 
 
+class OutcomeRows(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    rows: list[dict[str, Any]] = Field(max_length=5000)
+
+
 class NoteRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     area: str
     text: str
 
 
-def reviewers_from_env() -> dict[str, str]:
-    """token -> reviewer id, from JYOTISH_REVIEWERS="judge-1:<token>,judge-2:<token>"."""
+def reviewers_from_env(var: str = "JYOTISH_REVIEWERS") -> dict[str, str]:
+    """token -> reviewer id, from JYOTISH_REVIEWERS="judge-1:<token>,judge-2:<token>" (or the clerks'
+    JYOTISH_CLERKS, the same shape)."""
     out = {}
-    for pair in os.environ.get("JYOTISH_REVIEWERS", "").split(","):
+    for pair in os.environ.get(var, "").split(","):
         if ":" in pair:
             rid, tok = pair.split(":", 1)
             if rid.strip() and tok.strip():
@@ -231,7 +298,8 @@ REPO = Path(__file__).resolve().parents[2]
 
 def create_app(database_url: str | None = None, *, model_fixture: str | None = None, workers: int = 2,
                web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
-               reviewers: dict[str, str] | None = None, review_checker=None) -> FastAPI:
+               reviewers: dict[str, str] | None = None, review_checker=None,
+               clerks: dict[str, str] | None = None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
     mounted when their directories exist (a source checkout). `reviewers` (token -> reviewer
@@ -243,6 +311,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     _add_missing_columns(engine)
     Session = sessionmaker(engine, expire_on_commit=False)
     tokens = reviewers if reviewers is not None else reviewers_from_env()
+    clerk_tokens = clerks if clerks is not None else reviewers_from_env("JYOTISH_CLERKS")
     pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="reading")
 
     @asynccontextmanager
@@ -561,6 +630,21 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             save(s, row, reading)
             s.flush()
             return review_view(s, row, reading, who, mode)
+
+    # --- outcome capture (outcomes.py): the clerk's sheet over HTTP, the same checks as the CLI ---
+
+    @app.post("/outcomes")
+    def post_outcomes(req: OutcomeRows, request: Request) -> dict:
+        """Sheet rows as JSON. Refused rows come back with their reasons and are not stored; the
+        rest are. A clerk's token (JYOTISH_CLERKS) is required; rows are entered under its id."""
+        from .outcomes import import_rows
+        auth = request.headers.get("authorization", "")
+        tok = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+        if not tok or tok not in clerk_tokens:
+            raise HTTPException(status_code=401, detail="a clerk token is required", headers={"WWW-Authenticate": "Bearer"})
+        with Session.begin() as s:
+            res = import_rows(s, req.rows, entered_by=clerk_tokens[tok])
+            return {"accepted": res.accepted, "subjects_created": res.subjects_created, "refused": res.refused}
 
     @app.get("/places")
     def get_places(q: str, limit: int = 10) -> list[dict]:
