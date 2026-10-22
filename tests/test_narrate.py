@@ -735,8 +735,11 @@ def test_tier_words_are_rejected_in_the_summary():
 
 # --- the curious depth (SPEC Layer 7 prompt contract, item 1) --------------------------------
 
-# The live curious reading of the reference chart (claude-opus-5-5, writer medium, checker
-# high; three attempts, 77 calls, accepted on the third).
+# The live curious reading of the reference chart under the SPEC's paragraph shape
+# (claude-opus-5-5, writer medium, checker high; three drafts, 75 calls). It ends with one
+# gap: the longevity paragraph, whose gloss of marana karaka sthana the checker rejected on
+# attempts 2 and 3 (a gloss is a definition; the derivation held none, which is why the
+# glossary exists).
 CURIOUS = json.loads((FIXTURES / "narration_curious.json").read_text())
 ACCEPTED = CURIOUS["drafts"][-1]
 
@@ -747,28 +750,52 @@ def _curious(chart, drafts=None, checker=None, rec=None):
                    checker=checker or StubChecker(), as_of=AS_OF, areas=THREE_AREAS, recording=rec, depth="curious")
 
 
-def test_live_curious_recording_replays_to_its_accepted_reading(chart):
-    """Writer drafts and checker verdicts replayed from the live run: attempt 1 is refused by
-    the validator (tier words in the paragraphs), attempt 2 by the checker (two claims, the
-    summary, and four paragraph sentences), attempt 3 is accepted with every sentence checked."""
+def _replay_curious(chart, rec):
     from jyotish.narrate import FixtureChecker, FixtureDrafter
-    rec = []
     checker = FixtureChecker(CURIOUS)
     r = narrate(chart, CURIOUS["question"], drafter=FixtureDrafter(CURIOUS), checker=checker, as_of=AS_OF,
                 areas=THREE_AREAS, recording=rec, depth="curious")
-    assert r.depth == "curious" and r.attempts == 3 and r.narration_complete and not checker.unchecked
+    return r, checker
+
+
+def test_live_curious_recording_replays_to_its_reading(chart):
+    """Writer drafts and checker verdicts replayed from the live run. Attempt 1: the
+    validator (rule names missing, "the engine's seven tests", tier words); attempt 2: the
+    checker (two summary sentences, one claim, three paragraph sentences); attempt 3: all
+    accepted but the longevity paragraph's gloss, which stays a gap."""
+    rec = []
+    r, checker = _replay_curious(chart, rec)
+    assert r.depth == "curious" and r.attempts == 3 and not checker.unchecked
+    assert r.narration_complete is False and r.summary.source == "model"
     v1 = next(e["validator_errors"] for e in rec if e["kind"] == "writer" and e["attempt"] == 1)
-    assert len(v1) == 4 and all(e.startswith("tier language ('strong')") for e in v1)
-    rejected = {(e["finding_id"], p["text"]) for e in rec if e["kind"] == "checker" and e["attempt"] == 2
-                for p in e["result"]["propositions"] if not p["supported"]}
-    assert {f for f, _ in rejected} == {"summary", "vote:marriage.varga", "vote:longevity.arudha",
-                                        "paragraph:career", "paragraph:marriage"}
-    assert ("paragraph:career", "Ruchaka yoga is a combination for drive.") in rejected
-    assert sum(1 for f, _ in rejected if f.startswith("paragraph:")) == 4
-    for a in r.areas:
-        para = next(d["paragraph"] for d in ACCEPTED["areas"] if d["name"] == a.name)
-        assert a.paragraph == para and a.paragraph_cites == [f"{k}:{v}" for k, v in TAG.findall(para)]
-        assert a.claims                                                     # the astrologer's reading stays
+    assert len(v1) == 11
+    assert sum(e.startswith("[rule:") for e in v1) == 5 and sum(e.startswith("timing language ('engine')") for e in v1) == 2
+    assert sum(e.startswith("tier language ('strong')") for e in v1) == 4
+    rejected2 = {e["finding_id"] for e in rec if e["kind"] == "checker" and e["attempt"] == 2
+                 and not all(p["supported"] for p in e["result"]["propositions"])}
+    assert rejected2 == {"summary", "vote:longevity.arudha", "paragraph:career", "paragraph:marriage",
+                         "paragraph:longevity"}
+    by = {a.name: a for a in r.areas}
+    for name in ("career", "marriage"):
+        assert by[name].paragraph == next(d["paragraph"] for d in ACCEPTED["areas"] if d["name"] == name)
+        assert not by[name].narration_gaps
+    assert by["longevity"].paragraph is None
+    [gap] = by["longevity"].narration_gaps
+    assert gap["finding_id"] == "paragraph" and gap["attempt"] == 3
+    assert "Marana karaka sthana is a category of planetary placement" in gap["last_error"]
+    assert all(a.claims for a in r.areas)                                   # the astrologer's reading stays
+
+
+def test_every_sentence_shown_was_accepted_by_the_checker(chart):
+    # The live test's own assertion, on the replay: a gap is reported, not failed, and nothing
+    # the reading shows skipped the checker.
+    rec = []
+    r, _ = _replay_curious(chart, rec)
+    accepted = {e["sentence"] for e in rec if e["kind"] == "checker" and all(p["supported"] for p in e["result"]["propositions"])}
+    shown = [c.text for a in r.areas for c in a.claims]
+    shown += [x for a in r.areas if a.paragraph for x in sentences(a.paragraph) if TAG.search(x)]
+    shown += [x for x in sentences(r.summary.text) if TAG.search(x)]
+    assert shown and all(x in accepted for x in shown)
 
 
 def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fields(chart):
@@ -780,7 +807,7 @@ def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fi
     n = sum(len([s_ for s_ in sentences(d["paragraph"]) if TAG.search(s_)]) for d in ACCEPTED["areas"])
     assert len(para_checks) == n == 13                                   # career 5, marriage 4, longevity 4
     career = [e["findings"] for e in para_checks if e["finding_id"] == "paragraph:career"]
-    assert career[0] == ["yoga.budhaditya@lagna"]
+    assert career[0] == ["yoga.budhaditya@lagna", "yoga.kendra_trikona_raja@lagna"]
     assert ["vote:career.house", "vote:career.lord", "vote:career.karaka"] in career
     # The engine's lines do not change with the depth.
     astro = narrate(chart, CURIOUS["question"], drafter=Replay([ACCEPTED]), checker=StubChecker(), as_of=AS_OF,
@@ -795,7 +822,8 @@ def test_curious_prompt_and_payload(chart):
     p = " ".join(system_prompt("curious").split())
     assert FAMILY_RULE_TEXT in SYSTEM_PROMPT and FAMILY_RULE_TEXT not in p     # the family rule is off here
     assert "the engine. A sentence citing a rule names the yoga." in p
-    assert "Ruchaka yoga, a Mars combination for drive and courage" in p
+    assert "Ruchaka yoga, the great-person combination of Mars" in p and "drive" not in p
+    assert "from the finding's glossary entry for it" in p
     # The SPEC's paragraph shape, in order: chart, tradition, weakest point, one-clause agreement.
     order = ["First, what the chart shows", "Then what the tradition associates it with",
              "Then the weakest point or the disagreement", "Last, in one clause, how many of the engine's seven tests agree"]
@@ -838,7 +866,7 @@ def test_paragraph_is_validated_like_the_summary(chart):
 
 
 def test_rejected_paragraph_sentence_keeps_the_claims(chart):
-    checker = StubChecker(reject={"how the relationship appears outwardly": "outward appearance is not in the data"})
+    checker = StubChecker(reject={"a Jaimini method using image points": "outward appearance is not in the data"})
     r = _curious(chart, checker=checker)
     marriage = next(a for a in r.areas if a.name == "marriage")
     assert marriage.paragraph is None and len(marriage.claims) == 7
@@ -902,3 +930,58 @@ def test_vote_data_carries_the_seven_tests_for_the_checker(chart):
     house = next(f for f in ok if f["finding_id"] == "vote:career.house")
     from jyotish.narrate import _check_data
     assert _check_data(house)["area_votes"]["for"] == 5 and _check_data(house)["area_votes"]["tests"] == 7
+
+
+
+# --- the glossary (a gloss is a definition: the checker reads it against data/glossary.yaml) ---
+
+def test_glossary_entries_are_complete_and_quotable():
+    from jyotish.narrate import FORBIDDEN, glossary
+    from jyotish.rules import load_rules
+    entries = glossary()
+    assert len(entries) >= 60 and len({e["term"] for e in entries}) == len(entries)
+    checked = {(s_["text"], s_["edition"], s_["chapter"], str(s_["verse"])) for r in load_rules()
+               for s_ in r.data.get("source", []) if s_.get("checked")}
+    for e in entries:
+        assert e["aliases"] and e["definition"].endswith(".") and "\n" not in e["definition"], e["term"]
+        src = e["source"]
+        assert src["text"] and isinstance(src["checked"], bool), e["term"]
+        if src["checked"]:                      # checked only where a rule's verse was read in that edition
+            assert (src["text"], src["edition"], src.get("chapter"), str(src.get("verse"))) in checked, e["term"]
+        # The writer may quote a definition: none may trip the validator's refusals (the timing
+        # terms are never offered to the writer, writer: false).
+        if e.get("writer", True) is False:
+            assert FORBIDDEN["timing"].search(e["definition"] + " " + " ".join(e["aliases"])) or \
+                e["term"] in ("Yogini", "Chara dasha"), e["term"]
+            continue
+        for kind in ("death", "medical", "probability", "confidence", "timing"):
+            assert not FORBIDDEN[kind].search(e["definition"]), (e["term"], kind)
+
+
+def test_each_finding_carries_the_glossary_for_its_terms(chart):
+    from jyotish.narrate import _check_data, glossary_for
+    ok, _ = findings(chart, "career")
+    by = {f["finding_id"]: f for f in ok}
+    ruchaka = by["yoga.ruchaka@lagna+sun"]["glossary"]
+    assert {"Ruchaka yoga", "marana karaka sthana", "Vipat tara", "Sudarshana", "lagna"} <= set(ruchaka)
+    budh = by["yoga.budhaditya@lagna"]["glossary"]
+    assert {"Budhaditya yoga", "Bala avastha"} <= set(budh)
+    assert "Sudarshana" not in budh and "marana karaka sthana" not in budh   # empty fields gloss nothing
+    assert "vargottama" not in by["vote:career.varga"]["glossary"]           # no career planet is vargottama
+    longevity = {f["finding_id"]: f for f in findings(chart, "longevity")[0]}
+    assert "vargottama" in longevity["vote:longevity.varga"]["glossary"]    # the Moon is
+    mks = longevity["vote:longevity.arudha"]
+    assert mks["glossary"]["marana karaka sthana"].startswith("A house placement in which the texts hold a planet")
+    assert _check_data(mks)["glossary"] == mks["glossary"]                  # the checker sees it
+    marriage = {f["finding_id"]: f for f in findings(chart, "marriage")[0]}
+    assert {"Upapada", "A7", "arudha", "Jaimini"} <= set(marriage["vote:marriage.arudha"]["glossary"])
+    assert {"sub-lord", "star lord", "cusp", "KP"} <= set(marriage["vote:marriage.kp"]["glossary"])
+    # Short codes match in capitals only: "ul" inside a word or lowercase is not the Upapada.
+    assert "Upapada" not in glossary_for({"text": "a full chart, ul"}) and "Upapada" in glossary_for({"pada": "UL"})
+
+
+def test_checker_prompt_supports_a_gloss_that_matches_the_glossary():
+    from jyotish.narrate import CHECKER_PROMPT
+    p = " ".join(CHECKER_PROMPT.split())
+    assert "supported when it matches the meaning of that term's entry in the data's glossary" in p
+    assert "unsupported when it does not match or the term has no entry there" in p

@@ -1,0 +1,313 @@
+# The engine's glossary: one plain, one-line definition for every Sanskrit or technical term the
+# engine's findings use. The writer glosses a term from its entry; the checker supports a gloss
+# that matches the entry and rejects one that does not (SPEC Layer 7, item 10; a gloss is a
+# definition, and a finding's derivation holds none).
+#
+# `aliases` are matched as whole words in a finding's data (case-insensitive; two- and
+# three-letter codes such as UL and AK case-sensitive). `source` names where the term is
+# defined; `checked: true` only where the verse was read in that edition (the rule sources),
+# `checked: false` otherwise. Definitions avoid the words the validator refuses (death,
+# medical terms), since the writer may quote them; `writer: false` marks the timing terms, which the
+# writer may not use at all and which are left out of its payload.
+
+# --- yogas (the rule library) -------------------------------------------------------------
+- term: Pancha Mahapurusha yoga
+  aliases: [Pancha Mahapurusha, Mahapurusha]
+  definition: "One of five combinations formed when Mars, Mercury, Jupiter, Venus or Saturn is in its own or exaltation sign in an angular house (the 1st, 4th, 7th or 10th)."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true}
+- term: Ruchaka yoga
+  aliases: [Ruchaka, yoga.ruchaka]
+  definition: "The Pancha Mahapurusha combination of Mars: Mars in its own or exaltation sign in an angular house."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true}
+- term: Bhadra yoga
+  aliases: [Bhadra, yoga.bhadra]
+  definition: "The Pancha Mahapurusha combination of Mercury: Mercury in its own or exaltation sign in an angular house."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true}
+- term: Hamsa yoga
+  aliases: [Hamsa, yoga.hamsa]
+  definition: "The Pancha Mahapurusha combination of Jupiter: Jupiter in its own or exaltation sign in an angular house."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true}
+- term: Malavya yoga
+  aliases: [Malavya, yoga.malavya]
+  definition: "The Pancha Mahapurusha combination of Venus: Venus in its own or exaltation sign in an angular house."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true}
+- term: Sasa yoga
+  aliases: [Sasa, Shasha, yoga.sasa]
+  definition: "The Pancha Mahapurusha combination of Saturn: Saturn in its own or exaltation sign in an angular house."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 75, verse: 1-2, checked: true}
+- term: Budhaditya yoga
+  aliases: [Budhaditya, Budha-Aditya, yoga.budhaditya]
+  definition: "The combination of Mercury (Budha) and the Sun (Aditya) in the same sign."
+  source: {text: Phaladeepika, edition: Sastri 1937, chapter: 18, verse: 1, checked: true}
+- term: Gaja Kesari yoga
+  aliases: [Gaja Kesari, Gajakesari, Kesari, yoga.gaja_kesari, yoga.gaja_kesari_bphs]
+  definition: "The combination of Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 36, verse: 3-4, checked: true}
+- term: Kendra-Trikona Raja yoga
+  aliases: [raja yoga, kendra-trikona, kendra trikona, kendra_trikona_raja, yoga.kendra_trikona_raja]
+  definition: "A combination joining the lord of an angular house (1st, 4th, 7th or 10th) with the lord of a trine house (1st, 5th or 9th), by conjunction, mutual aspect or exchange."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 34, verse: 11-12, checked: true}
+- term: Parivartana yoga
+  aliases: [Parivartana, yoga.parivartana, exchange]
+  definition: "An exchange of signs: two planets each sitting in the sign the other rules."
+  source: {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: true}
+- term: Dainya parivartana
+  aliases: [dainya]
+  definition: "An exchange of signs in which one of the two planets rules the 6th, 8th or 12th house."
+  source: {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: true}
+- term: Neecha Bhanga
+  aliases: [Neecha Bhanga, Neechabhanga, yoga.neecha_bhanga]
+  definition: "The cancellation of a planet's debilitation by the placement of particular other planets."
+  source: {text: Phaladeepika, edition: Sastri 1937, chapter: 7, verse: 26, checked: true}
+
+# --- dignity --------------------------------------------------------------------------------
+- term: exalted
+  aliases: [exalted, exaltation, uccha]
+  definition: "Placed in its exaltation sign, the sign where the texts hold a planet at its strongest."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: debilitated
+  aliases: [debilitated, debilitation, neecha]
+  definition: "Placed in its debilitation sign, the sign opposite its exaltation, where the texts hold a planet at its weakest."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: moolatrikona
+  aliases: [moolatrikona, mulatrikona]
+  definition: "A stretch of one of a planet's own signs where the texts hold it nearly as strong as in exaltation."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: own sign
+  aliases: [own sign, swakshetra]
+  definition: "A sign the planet itself rules."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+
+# --- houses and charts ----------------------------------------------------------------------
+- term: lagna
+  aliases: [lagna, ascendant]
+  definition: "The ascendant: the sign rising in the east at birth, counted as the 1st house and read for the self."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 4, checked: false}
+- term: Chandra lagna
+  aliases: [chandra, Chandra lagna]
+  definition: "The Moon's sign read as a second ascendant."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: Sudarshana
+  aliases: [sudarshana, sudarshana_bases]
+  definition: "Reading the chart three times, counting the houses from the ascendant, from the Moon and from the Sun."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: bhava
+  aliases: [bhava]
+  definition: "A house of the chart."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 11, checked: false}
+- term: kendra
+  aliases: [kendra, angular house]
+  definition: "An angular house: the 1st, 4th, 7th or 10th."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: trikona
+  aliases: [trikona, trine]
+  definition: "A trine house: the 1st, 5th or 9th."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: dusthana
+  aliases: [dusthana]
+  definition: "A difficult house: the 6th, 8th or 12th."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: Bhavat Bhavam
+  aliases: [Bhavat Bhavam, bhavat_bhavam_of]
+  definition: "The house as far from a given house as that house is from the ascendant, read as a second seat of its matters."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: Bhava Bala
+  aliases: [Bhava Bala, bhava_bala_rupas, bhava bala]
+  definition: "The strength of a house, reckoned from its lord's strength, its direction and the aspects on it, in rupas."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 27, verse: 26-31, checked: false}
+- term: varga
+  aliases: [varga, vargas, varga_dignity, varga_sign]
+  definition: "A divisional chart: each sign divided into equal parts, read for one area of life."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 6, checked: false}
+- term: navamsa
+  aliases: [navamsa, D9]
+  definition: "The ninth-part divisional chart, read for marriage and the strength of planets."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 6, checked: false}
+- term: dasamsa
+  aliases: [dasamsa, D10]
+  definition: "The tenth-part divisional chart, read for career."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 6, checked: false}
+- term: trimsamsa
+  aliases: [trimsamsa, D30]
+  definition: "The thirtieth-part divisional chart, read for misfortunes and constitution."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 6, checked: false}
+- term: vargottama
+  aliases: [vargottama, vargottama_d9]
+  definition: "A planet in the same sign in the birth chart and the ninth-part (navamsa) chart."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: marana karaka sthana
+  aliases: [marana karaka sthana, marana_karaka_sthana, marana karaka]
+  definition: "A house placement in which the texts hold a planet unable to give its good results, such as Mars in the 7th or Saturn in the 1st."
+  source: {text: Jaimini tradition as taught by Sanjay Rath, edition: "", checked: false}
+
+# --- strength and state ----------------------------------------------------------------------
+- term: Shadbala
+  aliases: [Shadbala, shadbala_ratio]
+  definition: "A planet's strength by six measures (position, direction, time, motion, nature and aspect), compared with the strength it requires."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 27, checked: false}
+- term: rupa
+  aliases: [rupa, rupas]
+  definition: "The unit of Shadbala and Bhava Bala strength (sixty virupas)."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 27, checked: false}
+- term: avastha
+  aliases: [avastha, avasthas]
+  definition: "A planet's state, here by its degree in the sign, from infant to aged."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 45, verse: 3-4, checked: false}
+- term: Bala avastha
+  aliases: [bala]
+  definition: "The infant state: the first stretch of a sign (the last, in an even sign), in which a planet gives a fraction of its results."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 45, verse: 3-4, checked: false}
+- term: Mrita avastha
+  aliases: [mrita]
+  definition: "The last of the five degree states, at the far end of a sign from the infant state, in which a planet gives little."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 45, verse: 3-4, checked: false}
+- term: final dispositor
+  aliases: [final_dispositor, dispositor]
+  definition: "The planet at the end of a chain of sign rulers (the ruler of the sign a planet is in, then that planet's sign ruler, and so on)."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+
+# --- nakshatras and taras -------------------------------------------------------------------
+- term: nakshatra
+  aliases: [nakshatra]
+  definition: "One of the 27 lunar mansions, equal stretches of the zodiac each ruled by a planet."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: tara
+  aliases: [tara, tara_from_moon, Navatara]
+  definition: "The class of a nakshatra counted from the Moon's nakshatra, in a cycle of nine (janma, sampat, vipat, kshema, pratyak, sadhaka, vadha, mitra, atimitra)."
+  source: {text: Brihat Samhita, edition: "", checked: false}
+- term: Vipat tara
+  aliases: [vipat]
+  definition: "The third tara from the Moon's nakshatra, counted as adverse (danger)."
+  source: {text: Brihat Samhita, edition: "", checked: false}
+- term: Pratyak tara
+  aliases: [pratyak]
+  definition: "The fifth tara from the Moon's nakshatra, counted as adverse (obstacle)."
+  source: {text: Brihat Samhita, edition: "", checked: false}
+- term: Vadha tara
+  aliases: [vadha]
+  definition: "The seventh tara from the Moon's nakshatra, counted as adverse (the most unfavourable)."
+  source: {text: Brihat Samhita, edition: "", checked: false}
+
+# --- Jaimini --------------------------------------------------------------------------------
+- term: Jaimini
+  aliases: [jaimini]
+  definition: "The school of the Jaimini Sutras, which reads image points (arudhas), sign aspects and its own significators."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: arudha
+  aliases: [arudha, pada, padas]
+  definition: "The image point of a house: the sign as far from the house's lord as the lord is from the house, read for how its matters appear to the world."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: Arudha lagna
+  aliases: [AL, Arudha lagna]
+  definition: "The image point of the 1st house, read for how the person is seen."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: Upapada
+  aliases: [UL, UL2, upapada]
+  definition: "The image point of the 12th house, read for marriage; UL2 is the sign second from it."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: A7
+  aliases: [A7]
+  definition: "The image point of the 7th house, read for partners as they appear."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: karakamsa
+  aliases: [karakamsa]
+  definition: "The navamsa sign of the atmakaraka, the planet with the highest degree in its sign."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: chara karaka
+  aliases: [chara karaka, AK, AmK, BK, MK, PiK, PK, GK, DK]
+  definition: "Jaimini's significators, ranked by degree in sign: atmakaraka (AK, the self), amatyakaraka (AmK, career), bhratrikaraka (BK), matrikaraka (MK), pitrikaraka (PiK), putrakaraka (PK), gnatikaraka (GK) and darakaraka (DK, spouse)."
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+
+# --- KP -------------------------------------------------------------------------------------
+- term: KP
+  aliases: [KP, kp]
+  definition: "Krishnamurti Paddhati, a 20th-century school that reads houses by the star lord and sub-lord of their cusps."
+  source: {text: KP Readers, edition: K.S. Krishnamurti, checked: false}
+- term: cusp
+  aliases: [cusp, cusp_star]
+  definition: "The starting degree of a house in the KP (Placidus) house division."
+  source: {text: KP Readers, edition: K.S. Krishnamurti, checked: false}
+- term: star lord
+  aliases: [star lord, star]
+  definition: "The ruler of the nakshatra a planet or cusp falls in."
+  source: {text: KP Readers, edition: K.S. Krishnamurti, checked: false}
+- term: sub-lord
+  aliases: [sub-lord, sub lord, sub]
+  definition: "The ruler of the subdivision of a nakshatra a planet or cusp falls in, the deciding factor in KP."
+  source: {text: KP Readers, edition: K.S. Krishnamurti, checked: false}
+- term: significations
+  aliases: [significations, matter_houses, denial_houses]
+  definition: "In KP, the houses a planet stands for: those its star lord occupies and owns, then those it occupies and owns."
+  source: {text: KP Readers, edition: K.S. Krishnamurti, checked: false}
+
+# --- panchanga ------------------------------------------------------------------------------
+- term: panchanga
+  aliases: [panchanga]
+  definition: "The five limbs of the day at birth: tithi, vara, nakshatra, nitya yoga and karana."
+  source: {text: Muhurta Chintamani, edition: "", checked: false}
+- term: tithi
+  aliases: [tithi]
+  definition: "The lunar day: one of thirty steps of twelve degrees between the Sun and the Moon."
+  source: {text: Muhurta Chintamani, edition: "", checked: false}
+- term: vara
+  aliases: [vara, weekday]
+  definition: "The weekday of birth, each ruled by a planet."
+  source: {text: Muhurta Chintamani, edition: "", checked: false}
+- term: nitya yoga
+  aliases: [nitya yoga, nitya-yoga]
+  definition: "One of 27 divisions of the joint motion of the Sun and the Moon."
+  source: {text: Muhurta Chintamani, edition: "", checked: false}
+
+# --- planets and schools --------------------------------------------------------------------
+- term: Rahu
+  aliases: [Rahu]
+  definition: "The Moon's north node, counted as a shadow planet."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: Ketu
+  aliases: [Ketu]
+  definition: "The Moon's south node, counted as a shadow planet."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: karaka
+  aliases: [karaka, karakas]
+  definition: "A significator: the planet that naturally stands for a matter (Venus for partnership, the Sun for status)."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 32, checked: false}
+- term: benefic
+  aliases: [benefic, benefics]
+  definition: "A planet counted as naturally favourable: Jupiter, Venus, an unafflicted Mercury and a waxing Moon."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 3, checked: false}
+- term: Parashari
+  aliases: [parashari, Parashari]
+  definition: "The school of the Brihat Parashara Hora Shastra, the main tradition of house, lord and sign reading."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+
+# --- time (writer: false: the writer may not write about timing, so these are never offered) ---
+- term: dasha
+  aliases: [dasha, maha, mahadasha]
+  definition: "A planetary period: a stretch of life ruled by one planet (or sign), in a fixed sequence."
+  writer: false
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 46, checked: false}
+- term: antardasha
+  aliases: [antardasha, antar, bhukti]
+  definition: "A sub-period within a dasha, ruled by a second planet."
+  writer: false
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 46, checked: false}
+- term: Vimshottari
+  aliases: [Vimshottari, vimshottari]
+  definition: "The 120-year dasha system whose sequence starts from the Moon's nakshatra."
+  writer: false
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 46, checked: false}
+- term: Yogini
+  aliases: [Yogini, yogini]
+  definition: "A 36-year dasha system of eight periods named after the yoginis."
+  writer: false
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: Chara dasha
+  aliases: [Chara dasha, chara]
+  definition: "Jaimini's dasha of signs rather than planets."
+  writer: false
+  source: {text: Jaimini Sutras, edition: Rath, checked: false}
+- term: dasha sandhi
+  aliases: [sandhi, dasha_sandhi]
+  definition: "The junction where one dasha ends and the next begins, read as a time of transition."
+  writer: false
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}

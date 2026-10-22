@@ -35,6 +35,8 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Callable
 
 from pydantic import BaseModel, Field
@@ -416,6 +418,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                            "stability": f.stability.time if f.stability else None} for f in fires],
                 "allowed_tags": tags, "stability": min(times) if times else None,
                 "confidence": min(f.scale for f in fires) * base}
+        item["glossary"] = glossary_for(_check_data(item))
         (shaky if unstable else ok).append(item)
     a = chart.scored.areas.get(area)
     tally = area_votes(a) if a is not None and a.score_classical is not None else None
@@ -433,6 +436,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                     "derivation": a.vote_details.get(family), "term": a.terms.get(family),
                     "allowed_tags": [tag], "stability": a.vote_stability.get(family),
                     "confidence": min(1.0, weights[family]) * abs(vote)}
+            item["glossary"] = glossary_for(_check_data(item))
             st = item["stability"]
             (shaky if st is not None and st < 0.5 else ok).append(item)
     return ok, shaky
@@ -446,6 +450,43 @@ def area_votes(a) -> dict:
     verdict = {f: word[a.votes.get(f)] for f in FAMILIES}
     counts = {w: sum(1 for v in verdict.values() if v == w) for w in ("for", "against", "abstains", "not applicable")}
     return {"tests": len(FAMILIES), "verdict": verdict, **counts}
+
+
+GLOSSARY_FILE = Path(__file__).with_name("data") / "glossary.yaml"
+
+
+@lru_cache(maxsize=1)
+def glossary() -> list[dict]:
+    """data/glossary.yaml: one plain definition per Sanskrit or technical term, with its source.
+    Each entry gets one pattern over its aliases: whole words, case-insensitive, except two- and
+    three-letter codes (UL, AK, A7), which must match in capitals."""
+    import yaml
+    out = []
+    for e in yaml.safe_load(GLOSSARY_FILE.read_text()):
+        long = [a for a in e["aliases"] if len(a) > 3]
+        short = [a for a in e["aliases"] if len(a) <= 3]
+        parts = ([rf"(?i:\b(?:{'|'.join(re.escape(a) for a in long)})\b)"] if long else []) + \
+                ([rf"\b(?:{'|'.join(re.escape(a) for a in short)})\b"] if short else [])
+        out.append(dict(e, pattern=re.compile("|".join(parts))))
+    return out
+
+
+def _present(data: Any) -> Any:
+    """The data with empty and false values (and their keys) removed: `sudarshana_bases: []` or
+    `vargottama_d9: false` is no reason to gloss Sudarshana or vargottama."""
+    if isinstance(data, dict):
+        kept = {k: _present(v) for k, v in data.items()}
+        return {k: v for k, v in kept.items() if v not in (None, False, [], {}, "")}
+    if isinstance(data, list):
+        return [x for x in (_present(v) for v in data) if x not in (None, False, [], {}, "")]
+    return data
+
+
+def glossary_for(data: Any) -> dict[str, str]:
+    """The glossary entries for every term that appears in a finding's data (empty and false
+    fields left out), term -> definition."""
+    text = json.dumps(_present(data), default=str)
+    return {e["term"]: e["definition"] for e in glossary() if e.get("writer", True) and e["pattern"].search(text)}
 
 
 def school_conflicts(area) -> list[dict]:
@@ -511,7 +552,9 @@ other way; a test that abstains. Last, in one clause, how many of the engine's s
 from the area's `tests` (say how many apply when some do not) - never a list of the tests or votes, \
 and do not name the votes one by one anywhere in the paragraph. No degrees, rupas, strength ratios \
 or other figures beyond that count; every Sanskrit or technical term glossed once, the first time \
-it appears ("Ruchaka yoga, a Mars combination for drive and courage"). Each sentence that states \
+it appears, from the finding's glossary entry for it: the same meaning, in plain words ("Ruchaka \
+yoga, the great-person combination of Mars"); a term \
+with no glossary entry is left out rather than glossed from elsewhere. Each sentence that states \
 something ends with the tags of the findings it draws on, written exactly as in the claims, and \
 is checked against those findings' data only; the closing clause cites the votes it counts. Do \
 not state the tier, the stability or any timing: the engine states them.
@@ -585,7 +628,10 @@ clause attaches to, read the way an ordinary reader would read it. For each, say
 states it. Mark it unsupported if the data does not state it, if the sentence attaches a detail to \
 the wrong thing, or if the sentence is ambiguous between a supported and an unsupported reading. \
 Generic framing ("for career", "the vote is against") is supported when the data's direction or \
-area says so. Ignore the bracketed citation tags."""
+area says so. A gloss, a short definition given beside a term ("marana karaka sthana, a placement \
+in which a planet cannot give its good results"), is supported when it matches the meaning of \
+that term's entry in the data's glossary, and unsupported when it does not match or the term has \
+no entry there. Ignore the bracketed citation tags."""
 
 
 def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
@@ -895,7 +941,7 @@ def _check_payload(f: dict) -> str:
 def _check_data(f: dict) -> dict:
     keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
             "school", "planets",
-            "themes", "fires", "derivation", "area_votes")
+            "themes", "fires", "derivation", "area_votes", "glossary")
     return {k: f[k] for k in keep if k in f}
 
 

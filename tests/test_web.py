@@ -300,8 +300,11 @@ def test_curious_reading_on_the_site(page, curious_url):
     submit_reference(page, curious_url, depth="curious")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
-    assert career.locator("p.paragraph").inner_text().startswith("Your work life is marked by the Sun and Mercury")
-    assert page.locator("#incomplete").count() == 0 and page.locator(".notice").count() == 0    # complete, all checked
+    assert career.locator("p.paragraph").inner_text().startswith("In your chart the Sun and Mercury sit together")
+    # The longevity paragraph is a gap in this recording: said at the top and in its area.
+    assert page.locator("#incomplete").is_visible()
+    assert page.locator('section.area[data-area="longevity"] .gaps li[data-finding="paragraph"]').count() == 1
+    assert page.locator('section.area[data-area="longevity"] p.paragraph').count() == 0
     toggle = career.locator("details.astrologer")
     assert toggle.count() == 1 and toggle.get_attribute("open") is None    # the claims are one click away
     assert toggle.locator(":scope > summary").inner_text() == "Show the astrologer's reading"

@@ -27,7 +27,7 @@ jyotish = "jyotish.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-jyotish = ["data/*.json", "data/*.tsv.gz"]
+jyotish = ["data/*.json", "data/*.tsv.gz", "data/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

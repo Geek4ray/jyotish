@@ -49,8 +49,24 @@ def test_live_narration_passes_validator_and_checker():
             "accepted": reading.narration_complete,
             "calls": recording}, indent=2, ensure_ascii=False, default=str) + "\n")
 
+    # A gap is reported, not failed: the reading never fails on narration alone. What must hold
+    # is that the reading is there, that a curious one has its paragraphs, and that every
+    # sentence the reading shows went through the checker and was accepted on its attempt.
+    gaps = [(a.name, g["finding_id"], g["last_error"][:200]) for a in reading.areas for g in a.narration_gaps]
+    for gap in gaps:
+        print("narration gap:", *gap)
+    if reading.summary.source == "engine":
+        print("summary: written by the engine")
     assert reading.areas and all(c.cites for a in reading.areas for c in a.claims)
     assert all(e.get("request_id") for e in recording if e["kind"] == "writer")
     if DEPTH == "curious":
         assert any(a.paragraph for a in reading.areas)
-    assert reading.narration_complete, [g for a in reading.areas for g in a.narration_gaps]
+    accepted = {e["sentence"] for e in recording
+                if e["kind"] == "checker" and all(p["supported"] for p in e["result"]["propositions"])}
+    from jyotish.narrate import TAG, sentences
+    shown = [c.text for a in reading.areas for c in a.claims]
+    shown += [x for a in reading.areas if a.paragraph for x in sentences(a.paragraph) if TAG.search(x)]
+    if reading.summary.source == "model":
+        shown += [x for x in sentences(reading.summary.text) if TAG.search(x)]
+    unchecked = [x for x in shown if x not in accepted]
+    assert not unchecked, unchecked

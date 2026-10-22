@@ -270,9 +270,11 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
     assert e.value.code == 0
     reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
     assert reading.depth == "curious" and reading.chart["depth"] == "curious" and "--depth curious" in reading.chart["command"]
-    assert reading.attempts == 3 and reading.narration_complete and reading.unchecked_sentences == 0   # live verdicts
+    assert reading.attempts == 3 and reading.unchecked_sentences == 0                                # live verdicts
+    assert not reading.narration_complete and [g["finding_id"] for a in reading.areas for g in a.narration_gaps] == ["paragraph"]
     md = out.with_suffix(".md").read_text()
     career = md[md.index("## Career"):md.index("## Marriage")]
-    assert career.index("Your work life is marked by the Sun and Mercury") < career.index("<details><summary>Show the astrologer's reading")
+    assert career.index("In your chart the Sun and Mercury sit together in the 10th house") < \
+        career.index("<details><summary>Show the astrologer's reading")
     assert career.index("<details>") < career.index("1. ") < career.index("</details>")
     assert "*These are periods the engine scores as favourable for career; it does not predict when you will act.*" in md

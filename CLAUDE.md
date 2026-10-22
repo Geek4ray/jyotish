@@ -89,7 +89,8 @@ done; their readings are in `timing.READINGS` / `READINGS_V2`. Layer 7 narration
 a code validator on every sentence; a reading never fails on narration alone: after the last
 attempt the accepted claims stand, the rest are `narration_gaps`, and a rejected summary is replaced by
 the engine's own; depth curious, the request's default, adds a plain-language paragraph per
-area, checked like the summary, with the claims under "Show the astrologer's reading") is done, with the
+area, checked like the summary, with the claims under "Show the astrologer's reading"; every finding
+carries the `data/glossary.yaml` entries for its terms, so a gloss is checked against a definition) is done, with the
 semantic checker after the validator: a second structured call (at
 `CONFIG.checker_effort`) per claim and per tagged summary sentence, on every attempt. A rule's
 fires on the same planets from several bases are one finding (`yoga.ruchaka@lagna+sun`). Its
