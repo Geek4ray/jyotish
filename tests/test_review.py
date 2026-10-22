@@ -162,3 +162,37 @@ def test_an_older_database_gets_the_review_column(tmp_path):
     create_app(f"sqlite:///{db}")
     cols = {c["name"] for c in inspect(create_engine(f"sqlite:///{db}")).get_columns("readings")}
     assert "review_status" in cols
+
+
+# --- the structured verdict: judgement data, logged, never shown to the client ---------------
+
+def test_a_verdict_is_recorded_and_the_client_sees_nothing_of_it(setup):
+    app, c, rid, _ = setup
+    before = c.get(f"/readings/{rid}").json()
+    v = c.post(f"/readings/{rid}/review/verdict", headers=AUTH,
+               json={"area": "career", "verdict": "partly", "reason": "wrong_timing"}).json()
+    assert v["verdicts"]["career"]["verdict"] == "partly" and v["verdicts"]["career"]["reason"] == "wrong_timing"
+    with app.state.Session() as s:
+        row = s.query(ReviewRow).filter_by(reading_id=rid, action="verdict").order_by(ReviewRow.id.desc()).first()
+        assert (row.area, row.verdict, row.reason, row.reviewer_id) == ("career", "partly", "wrong_timing", "judge-1")
+        assert row.chart_id == before["chart_id"] and row.created_at is not None and row.target == "verdict:career"
+    after = c.get(f"/readings/{rid}").json()
+    assert after["reading"] == before["reading"] and after["page"] == before["page"]        # unchanged
+    assert "partly" not in after["page"] and "wrong_timing" not in json.dumps(after["reading"])
+    # A later verdict on the same area is the one shown to the reviewer; both are logged.
+    v = c.post(f"/readings/{rid}/review/verdict", headers=AUTH, json={"area": "career", "verdict": "agree"}).json()
+    assert v["verdicts"]["career"] == {**v["verdicts"]["career"], "verdict": "agree", "reason": None}
+    assert [h["verdict"] for h in v["history"] if h["action"] == "verdict"][-2:] == ["partly", "agree"]
+
+
+@pytest.mark.parametrize("body,status", [
+    ({"area": "career", "verdict": "disagree"}, 422),                                   # not agree: needs a reason
+    ({"area": "career", "verdict": "agree", "reason": "other"}, 422),                   # agree takes none
+    ({"area": "career", "verdict": "maybe", "reason": "other"}, 422),
+    ({"area": "career", "verdict": "partly", "reason": "bad_vibes"}, 422),
+    ({"area": "nowhere", "verdict": "agree"}, 422),
+])
+def test_a_verdict_is_checked(setup, body, status):
+    _, c, rid, _ = setup
+    assert c.post(f"/readings/{rid}/review/verdict", headers=AUTH, json=body).status_code == status
+    assert c.post(f"/readings/{rid}/review/verdict", json={"area": "career", "verdict": "agree"}).status_code == 401

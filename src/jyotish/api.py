@@ -42,7 +42,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
@@ -101,6 +101,9 @@ class ReviewRow(Base):
     after: Mapped[str | None] = mapped_column(Text, nullable=True)
     accepted: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     errors: Mapped[list | None] = mapped_column(DOCUMENT, nullable=True)
+    area: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    verdict: Mapped[str | None] = mapped_column(String(16), nullable=True)      # agree | partly | disagree
+    reason: Mapped[str | None] = mapped_column(String(32), nullable=True)       # why, when not agree
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
@@ -146,6 +149,26 @@ class EditRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     target: str
     text: str
+
+
+VERDICTS = ("agree", "partly", "disagree")
+REASONS = ("missing_rule", "wrong_weight", "wrong_timing", "other")
+
+
+class VerdictRequest(BaseModel):
+    """The reviewer's structured verdict on an area: judgement data, never shown to the client."""
+    model_config = ConfigDict(extra="forbid")
+    area: str
+    verdict: Literal["agree", "partly", "disagree"]
+    reason: Literal["missing_rule", "wrong_weight", "wrong_timing", "other"] | None = None
+
+    @model_validator(mode="after")
+    def _reason_when_not_agree(self):
+        if self.verdict == "agree" and self.reason is not None:
+            raise ValueError("an agree verdict takes no reason")
+        if self.verdict != "agree" and self.reason is None:
+            raise ValueError(f"a {self.verdict} verdict needs a reason: {', '.join(REASONS)}")
+        return self
 
 
 class NoteRequest(BaseModel):
@@ -337,10 +360,14 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     def review_view(s, row, reading) -> dict:
         from .review import units
+        rows = list(s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id))
         history = [{"action": r.action, "target": r.target, "reviewer": r.reviewer_id, "accepted": r.accepted,
-                    "before": r.before, "after": r.after, "errors": r.errors, "at": r.created_at.isoformat()}
-                   for r in s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id)]
-        return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status, "reading": row.document,
+                    "before": r.before, "after": r.after, "errors": r.errors, "area": r.area, "verdict": r.verdict,
+                    "reason": r.reason, "at": r.created_at.isoformat()} for r in rows]
+        verdicts = {r.area: {"verdict": r.verdict, "reason": r.reason, "by": r.reviewer_id, "at": r.created_at.isoformat()}
+                    for r in rows if r.action == "verdict"}           # the latest per area
+        return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status, "verdicts": verdicts,
+                "reading": row.document,
                 "page": row.page, "units": units(reading), "history": history}
 
     @app.get("/review/{reading_id}", include_in_schema=False)
@@ -397,6 +424,21 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 raise HTTPException(status_code=422, detail=str(e))
             log(s, row, who, "note", target=f"note:{req.area}", after=req.text.strip())
             save(s, row, reading)
+            s.flush()
+            return review_view(s, row, reading)
+
+    @app.post("/readings/{reading_id}/review/verdict")
+    def post_verdict(reading_id: str, req: VerdictRequest, request: Request) -> dict:
+        """The reviewer's verdict on an area (agree, partly, disagree, and why when not agree),
+        logged with the area, reviewer and time. Judgement data only: the reading and its page
+        are not touched, so the client sees nothing of it."""
+        who = reviewer(request)
+        with Session.begin() as s:
+            row, reading = done_reading(s, reading_id)
+            if req.area not in [a.name for a in reading.areas]:
+                raise HTTPException(status_code=422, detail=f"no area {req.area!r} in this reading")
+            log(s, row, who, "verdict", target=f"verdict:{req.area}", area=req.area, verdict=req.verdict,
+                reason=req.reason)
             s.flush()
             return review_view(s, row, reading)
 

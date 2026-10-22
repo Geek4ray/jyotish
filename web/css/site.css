@@ -230,3 +230,10 @@ p.timing-note { margin: 0; }
 .effect-line .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-right: 6px; }
 .effect-line.draft { border-left: 3px dashed var(--moderate); padding-left: 8px; color: var(--muted); }
 .effect-status { color: var(--moderate); font-style: italic; }
+
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+.verdict .verdict-choice[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.verdict .verdict-reason { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.verdict .verdict-reason[hidden] { display: none; }
+.verdict select { background: var(--bg); color: var(--text); border: 1px solid var(--rule); border-radius: 8px; padding: 8px; min-height: 40px; }
+.verdict p.tiny { flex-basis: 100%; margin: 0; }

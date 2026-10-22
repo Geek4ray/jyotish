@@ -411,3 +411,36 @@ def test_other_placements_sit_with_the_astrologers_reading(page, curious_url):
     other.locator("summary").click()
     li = other.locator('li[data-rule="place.mercury_h10"]')
     assert li.is_visible() and "(draft effect, verse not yet read)" in li.inner_text()
+
+
+def test_review_verdict_buttons_and_reason(browser, review_url):
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+    client = ctx.new_page()
+    submit_reference(client, review_url)
+    client.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    rid = client.url.split("id=")[1]
+    shown = client.inner_text("#reading")
+    rev = ctx.new_page()
+    rev.goto(f"{review_url}/review/{rid}")
+    rev.fill("#token", "web-token")
+    rev.click("#token-form button[type=submit]")
+    rev.wait_for_selector("#review[data-state=draft]")
+    box = rev.locator('.verdict[data-area="career"]')
+    # The verdict sits at the top of the area, before the sentences and the note.
+    first = rev.locator('section.card[data-area="career"] > *:nth-child(2)')
+    assert "verdict" in (first.get_attribute("class") or "")
+    assert not box.locator(".verdict-reason").is_visible()
+    box.locator('[data-verdict="disagree"]').click()
+    assert box.locator(".verdict-reason").is_visible()                            # not agree: a reason first
+    box.locator(".save-verdict").click()
+    assert "Choose a reason first" in box.locator(".verdict-status").inner_text()
+    box.locator(".reason").select_option("missing_rule")
+    box.locator(".save-verdict").click()
+    rev.wait_for_selector('.verdict[data-area="career"] .verdict-status:has-text("Recorded: disagree (missing rule)")')
+    assert "verdict · verdict:career · disagree (missing_rule)" in rev.inner_text("#history")
+    rev.locator('.verdict[data-area="marriage"] [data-verdict="agree"]').click()
+    rev.wait_for_selector('.verdict[data-area="marriage"] .verdict-status:has-text("Recorded: agree")')
+    client.reload()
+    client.wait_for_selector("#reading[data-state=done]")
+    assert client.inner_text("#reading") == shown                                  # the client sees nothing of it
+    ctx.close()

@@ -33,6 +33,23 @@ function render(view) {
       <textarea aria-label="Edit ${esc(u.target)}">${esc(u.text)}</textarea>
       <div class="row-actions"><button class="button secondary save" type="button">Check and save</button>
       <span class="result small" role="status"></span></div></div>`;
+  const REASONS = [["missing_rule", "Missing a rule"], ["wrong_weight", "Wrong weight"],
+                   ["wrong_timing", "Wrong timing"], ["other", "Other"]];
+  // The structured verdict (judgement data, logged; the client never sees it).
+  const verdictBlock = (a) => {
+    const v = (view.verdicts || {})[a.name];
+    const btn = (key, label) => `<button type="button" class="button secondary verdict-choice" data-verdict="${key}" aria-pressed="${v && v.verdict === key}">${label}</button>`;
+    return `<div class="verdict" data-area="${esc(a.name)}" role="group" aria-label="Your verdict on ${esc(a.name)}">
+      <span class="small muted">Your verdict on this area:</span>
+      ${btn("agree", "Agree")}${btn("partly", "Partly")}${btn("disagree", "Disagree")}
+      <div class="verdict-reason" hidden>
+        <label class="small">Why?
+          <select class="reason">${["<option value=''>Choose a reason</option>", ...REASONS.map(([k, l]) => `<option value="${k}"${v && v.reason === k ? " selected" : ""}>${l}</option>`)].join("")}</select></label>
+        <button type="button" class="button secondary save-verdict">Record verdict</button>
+      </div>
+      <span class="result small verdict-status" role="status">${v ? `Recorded: ${esc(v.verdict)}${v.reason ? ` (${esc(v.reason.replaceAll("_", " "))})` : ""}` : ""}</span>
+      <p class="tiny muted">For the engine's learning only: the client never sees your verdict.</p></div>`;
+  };
   const areaNote = (a) => `<div class="field note" data-area="${esc(a.name)}"><label>The astrologer's note on ${esc(a.name.replaceAll("_", " "))} (your own words, shown apart and not checked)</label>
       <textarea>${esc(a.astrologer_note ? a.astrologer_note.text : "")}</textarea>
       <div><button class="button secondary save-note" type="button">Save note</button> <span class="result small" role="status"></span></div></div>`;
@@ -42,10 +59,11 @@ function render(view) {
       <p class="muted small">Every sentence below can be edited. An edit is kept only if it passes the validator and the checker against the engine's data. A note is your own words and is shown to the client as the astrologer's note.</p></section>
     <section class="card"><h2>Summary</h2>${(byArea.summary || []).map(unit).join("")}</section>
     ${r.areas.map((a) => `<section class="card" data-area="${esc(a.name)}"><h2>${esc(a.name.replaceAll("_", " "))} · tier ${esc(a.tier)}</h2>
+      ${verdictBlock(a)}
       ${(byArea[a.name] || []).map(unit).join("")}${areaNote(a)}</section>`).join("")}
     <section class="card"><h2>Approve</h2><p class="small muted">The client-facing page says "reviewed by" only after approval.</p>
       <button class="button" id="approve" type="button"${view.review_status === "reviewed" ? " disabled" : ""}>${view.review_status === "reviewed" ? "Reviewed" : "Approve this reading"}</button></section>
-    <section class="card"><h2>Log</h2><ol class="small" id="history">${view.history.map((h) => `<li>${esc(h.at.slice(0, 19))} · ${esc(h.reviewer)} · ${esc(h.action)}${h.target ? ` · ${esc(h.target)}` : ""}${h.accepted === false ? " · refused" : h.accepted ? " · accepted" : ""}</li>`).join("")}</ol></section>`;
+    <section class="card"><h2>Log</h2><ol class="small" id="history">${view.history.map((h) => `<li>${esc(h.at.slice(0, 19))} · ${esc(h.reviewer)} · ${esc(h.action)}${h.target ? ` · ${esc(h.target)}` : ""}${h.verdict ? ` · ${esc(h.verdict)}${h.reason ? ` (${esc(h.reason)})` : ""}` : ""}${h.accepted === false ? " · refused" : h.accepted ? " · accepted" : ""}</li>`).join("")}</ol></section>`;
   main.dataset.state = view.review_status;
   body.querySelectorAll(".review-unit .save").forEach((b) => b.addEventListener("click", async () => {
     const el = b.closest(".review-unit");
@@ -57,6 +75,25 @@ function render(view) {
       else { out.className = "result small bad"; out.textContent = `Refused: ${res.errors.join(" · ")}`; }
     } catch (e) { out.className = "result small bad"; out.textContent = e.message; if (e.auth) ask(); }
   }));
+  body.querySelectorAll(".verdict").forEach((box) => {
+    const area = box.dataset.area;
+    const reasonBox = box.querySelector(".verdict-reason");
+    const status = box.querySelector(".verdict-status");
+    const send = async (verdict, reason) => {
+      try { render(await call("/verdict", "POST", { area, verdict, reason: reason || null })); }
+      catch (e) { status.className = "result small bad verdict-status"; status.textContent = e.message; if (e.auth) ask(); }
+    };
+    box.querySelectorAll(".verdict-choice").forEach((b) => b.addEventListener("click", () => {
+      box.querySelectorAll(".verdict-choice").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      if (b.dataset.verdict === "agree") { reasonBox.hidden = true; send("agree"); }
+      else { reasonBox.hidden = false; reasonBox.dataset.verdict = b.dataset.verdict; box.querySelector(".reason").focus(); }
+    }));
+    box.querySelector(".save-verdict").addEventListener("click", () => {
+      const reason = box.querySelector(".reason").value;
+      if (!reason) { status.className = "result small bad verdict-status"; status.textContent = "Choose a reason first."; return; }
+      send(reasonBox.dataset.verdict, reason);
+    });
+  });
   body.querySelectorAll(".note .save-note").forEach((b) => b.addEventListener("click", async () => {
     const el = b.closest(".note");
     try { render(await call("/note", "POST", { area: el.dataset.area, text: el.querySelector("textarea").value })); }
