@@ -9,6 +9,7 @@ app (`src/jyotish/api.py`) at `/`. Built from `design/mockups/` with the palette
 | Home | `index.html` | birth-data form: Place autocomplete (GeoNames, `GET /places`) filling latitude, longitude and timezone, each correctable by hand; accuracy class; node (mean by default); question; empty, out-of-range and 0, 0 coordinates refused; the honest-scope text from SPEC "Goal and honest scope" |
 | Reading | `reading.html?id=<job>` | polls `GET /readings/{id}` and shows the progress log, then the reading: summary with the engine's timing line and fields, each area with tier, three stability numbers, polarity touches, claims with citations as footnotes, school conflicts, windows, a collapsed learner panel per claim; "depends on exact birth time"; disclaimers |
 | When | `timing.html?id=<job>` | the windows and the avoid window with q, t, strongest piece and the q components |
+| Chart | `chart.html?chart=<chart id>` | the engine's SVG (D1, D9, D10, North-Indian) and its tables: planets, Vimshottari to the pratyantar with the current period, Shadbala, Ashtakavarga, Bhava Bala (`GET /charts/{id}/chart.svg`, `/tables.json`); linked from the reading |
 | Phone | the same pages under 720 px | one column and the tab bar from `mockups/Phone.html` |
 
 Either page also takes `?src=/examples/reference_reading.json` to show a reading file served by

@@ -32,7 +32,7 @@ from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict
@@ -194,6 +194,32 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                              progress={"stage": "queued", "log": []}))
         pool.submit(run, reading_id, req)
         return Accepted(id=reading_id, status="queued", url=f"/readings/{reading_id}")
+
+    def chart_of(chart_id: str):
+        from .models import Chart
+        with Session() as s:
+            row = s.get(ChartRow, chart_id)
+            if row is None:
+                raise HTTPException(status_code=404, detail="no such chart")
+            return Chart.model_validate(row.document)
+
+    @app.get("/charts/{chart_id}/chart.svg")
+    def chart_svg(chart_id: str) -> Response:
+        """D1, D9 and D10 in the North-Indian style, drawn by the engine from the stored chart."""
+        from .display import svg
+        return Response(svg(chart_of(chart_id)), media_type="image/svg+xml")
+
+    @app.get("/charts/{chart_id}/tables.json")
+    def chart_tables(chart_id: str, as_of: str | None = None) -> dict:
+        """Planets, Vimshottari to the pratyantar (current period marked at `as_of`, default
+        today), Shadbala, Ashtakavarga and Bhava Bala, from the stored chart."""
+        from datetime import date as _date
+        from .display import tables
+        try:
+            day = _date.fromisoformat(as_of) if as_of else None
+        except ValueError:
+            raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD")
+        return tables(chart_of(chart_id), day)
 
     @app.get("/places")
     def get_places(q: str, limit: int = 10) -> list[dict]:

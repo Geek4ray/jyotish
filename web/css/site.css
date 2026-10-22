@@ -204,3 +204,13 @@ details.astrologer > summary { cursor: pointer; color: var(--accent); font-weigh
 details.astrologer[open] > summary { margin-bottom: 8px; }
 .timing-note { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; font-style: italic; }
 p.timing-note { margin: 0; }
+
+/* chart display */
+.chart-figure { overflow-x: auto; }
+.chart-figure svg { width: 100%; height: auto; min-width: 640px; display: block; }
+.dasha-tree, .dasha-tree ul { list-style: none; margin: 0; padding-left: 16px; font-size: 13px; }
+.dasha-tree > li { padding-left: 0; }
+.dasha-tree summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.dasha-tree li { color: var(--text); }
+.dasha-tree li[data-current] > details > summary, .dasha-tree li[data-current]:not(:has(> details)) { color: var(--accent); }
+.chart-link { margin: 0; }

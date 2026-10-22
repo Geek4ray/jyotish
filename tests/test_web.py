@@ -318,3 +318,19 @@ def test_curious_reading_on_the_site(page, curious_url):
     for a in reading["reading"]["areas"]:
         tags |= set(a["paragraph_cites"]) | {t for c in a["claims"] for t in c["cites"]}
     assert footnotes == tags
+
+
+def test_chart_page_and_the_link_from_the_reading(page, base_url):
+    submit_reference(page, base_url)
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    link = page.locator(".chart-link a")
+    assert link.is_visible() and "/chart.html?chart=" in link.get_attribute("href")
+    link.click()
+    page.wait_for_selector("#chart[data-state=done]")
+    assert page.locator("#chart-svg svg g[data-varga]").count() == 3
+    assert page.locator('#chart-svg text[data-planet="Venus"]').first.text_content() == "Ve 23° R"   # SVG text
+    assert page.inner_text(".current-period") == "Jupiter – Mercury – Mercury"
+    assert page.locator(".dasha-tree li[data-current]").count() == 3                 # maha, antar, pratyantar
+    assert page.locator("#shadbala tbody tr").count() == 7 and page.locator("#bhava-bala tbody tr").count() == 12
+    assert page.locator("#ashtakavarga tbody tr").count() == 8                       # seven BAV rows and SAV
+    assert page.locator("#planets tbody tr").count() == 10
