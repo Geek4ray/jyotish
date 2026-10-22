@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-10-22 at commit `8584ee5` by `scripts/evaluate.py`. CI fails when any number with a direction is worse than in the committed `docs/scorecard.json`.
+Run 2026-10-22 at commit `3c71259` by `scripts/evaluate.py`. CI fails when any number with a direction is worse than in the committed `docs/scorecard.json`.
 
 ## Reference acceptance tests
 
@@ -21,6 +21,14 @@ Run 2026-10-22 at commit `8584ee5` by `scripts/evaluate.py`. CI fails when any n
 ## Placement generator check
 
 `scripts/make_placements.py --check`: 0 file(s) differ from scripts/placements.csv.
+
+## Synthetic validation (the pipeline, not the engine)
+
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.50 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 0.38; 22 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 17 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 202 s.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 182 s.
+Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
 ## Every number
 
@@ -71,6 +79,20 @@ Run 2026-10-22 at commit `8584ee5` by `scripts/evaluate.py`. CI fails when any n
 | `checker.bench_rows` | 119 |  | informational |
 | `checker.tests_failed` | 0 |  | lower |
 | `placements.files_differing_from_table` | 0 |  | lower |
+| `synthetic.planted.2000.predicted_power` | 0.4146 |  | informational |
+| `synthetic.planted.2000.recovered_share` | 0.5 |  | higher |
+| `synthetic.planted.2000.survived_bh_share` | 0.375 |  | higher |
+| `synthetic.planted.2000.recovery_gap` | 0.0854 |  | informational |
+| `synthetic.planted.2000.timing_recovered_share` | 0.375 |  | higher |
+| `synthetic.null.2000.areas_surviving_bh` | 0 |  | lower |
+| `synthetic.null.2000.rules_with_effect` | 0 |  | lower |
+| `synthetic.planted.20000.predicted_power` | 0.9987 |  | informational |
+| `synthetic.planted.20000.recovered_share` | 1.0 |  | higher |
+| `synthetic.planted.20000.survived_bh_share` | 1.0 |  | higher |
+| `synthetic.planted.20000.recovery_gap` | 0.0013 |  | informational |
+| `synthetic.planted.20000.timing_recovered_share` | 1.0 |  | higher |
+| `synthetic.null.20000.areas_surviving_bh` | 0 |  | lower |
+| `synthetic.null.20000.rules_with_effect` | 0 |  | lower |
 
 ## Skips and what is blocked
 

@@ -1,6 +1,6 @@
 {
   "date": "2026-10-22",
-  "commit": "8584ee5",
+  "commit": "3c71259",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -223,6 +223,76 @@
       "unit": ""
     },
     "placements.files_differing_from_table": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "synthetic.planted.2000.predicted_power": {
+      "value": 0.4146,
+      "better": null,
+      "unit": ""
+    },
+    "synthetic.planted.2000.recovered_share": {
+      "value": 0.5,
+      "better": "higher",
+      "unit": ""
+    },
+    "synthetic.planted.2000.survived_bh_share": {
+      "value": 0.375,
+      "better": "higher",
+      "unit": ""
+    },
+    "synthetic.planted.2000.recovery_gap": {
+      "value": 0.0854,
+      "better": null,
+      "unit": ""
+    },
+    "synthetic.planted.2000.timing_recovered_share": {
+      "value": 0.375,
+      "better": "higher",
+      "unit": ""
+    },
+    "synthetic.null.2000.areas_surviving_bh": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "synthetic.null.2000.rules_with_effect": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "synthetic.planted.20000.predicted_power": {
+      "value": 0.9987,
+      "better": null,
+      "unit": ""
+    },
+    "synthetic.planted.20000.recovered_share": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "synthetic.planted.20000.survived_bh_share": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "synthetic.planted.20000.recovery_gap": {
+      "value": 0.0013,
+      "better": null,
+      "unit": ""
+    },
+    "synthetic.planted.20000.timing_recovered_share": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "synthetic.null.20000.areas_surviving_bh": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "synthetic.null.20000.rules_with_effect": {
       "value": 0,
       "better": "lower",
       "unit": ""
