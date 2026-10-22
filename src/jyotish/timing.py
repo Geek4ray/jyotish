@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import math
+from typing import Any
 
 from .constants import GRAHAS, SEVEN, SIGN_LORD, SIGNS, TARA_ADVERSE
 from .dignity import aspected_houses, house_of
@@ -291,50 +292,132 @@ def period_quality_v2(chart: Chart, lords: list[str], relevance: float) -> dict[
     return terms
 
 
-def _transit_share(rows, a: float, b: float, area_signs: set[int], lord_signs: set[int], lagna: int) -> float:
-    """Time-weighted t over [a, b]."""
-    edges = sorted({a, b} | {x for r in rows for x in (r.start_jd, r.end_jd) if a < x < b})
-    total = 0.0
-    for x, y in zip(edges, edges[1:]):
-        m = (x + y) / 2.0
-        on = {}
-        for r in rows:
-            if r.body in SLOW_MOVERS and r.start_jd <= m < r.end_jd:
-                hit = any(_touches(r.sign, r.body, s, lagna) for s in area_signs | lord_signs)
-                key = "nodes" if r.body in ("Rahu", "Ketu") else r.body
-                on[key] = on.get(key, False) or hit
-        share = sum(on.values()) / 3.0
-        if on.get("Saturn") and on.get("Jupiter"):
-            share = 1.0
-        total += share * (y - x)
-    return total / (b - a)
+# --- the pieces of the v2 join (shared with cohort runs, jyotish.cohort) ---------------------
+
+def rao_targets(chart: Chart, area: str, basis: str = "lagna") -> dict[str, Any]:
+    """What the join reads of an area from a basis: the basis sign, the area's house signs and
+    their lords' signs, its karakas, and K.N. Rao's double-transit targets (v2.1): the full
+    targets are the primary house, its lord's sign and the main karaka's sign; the secondary
+    ones the other area houses and their lords' signs."""
+    spec = AREAS[area]
+    base = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign,
+            "sun": chart.bodies["Sun"].sign}[basis]
+    area_signs = {(base + h - 1) % 12 for h in spec["houses"]}
+    karaka_list = _karakas(_View(chart), spec["karakas"])
+    primary = (base + spec["houses"][0] - 1) % 12
+    full = {primary, chart.bodies[SIGN_LORD[primary]].sign}
+    if karaka_list:
+        full.add(chart.bodies[karaka_list[0]].sign)
+    secondary = ({s for s in area_signs if s != primary}
+                 | {chart.bodies[SIGN_LORD[s]].sign for s in area_signs if s != primary}) - full
+    return {"base": base, "area_signs": area_signs, "lord_signs": {chart.bodies[SIGN_LORD[s]].sign for s in area_signs},
+            "karakas": set(karaka_list), "full": full, "secondary": secondary}
 
 
-def _transit_credit_rao(rows, a: float, b: float, full: set[int], secondary: set[int], lagna: int):
-    """v2.1: time-weighted t over [a, b] against K.N. Rao's double-transit targets. Per mover
-    (Saturn, Jupiter, the nodal axis): credit 1 for touching a full target sign (the primary
-    house, its lord's sign, the main karaka's sign), 1/2 for touching only a secondary one
-    (the other area houses and their lords' signs), else 0. t is the mean of the three
-    credits, and 1 when Saturn and Jupiter both touch a full target. Returns (t, the slice
-    detail of the longest slice, for the derivation)."""
-    edges = sorted({a, b} | {x for r in rows for x in (r.start_jd, r.end_jd) if a < x < b})
-    total, detail, longest = 0.0, None, -1.0
-    for x, y in zip(edges, edges[1:]):
-        m = (x + y) / 2.0
-        credit = {"Saturn": 0.0, "Jupiter": 0.0, "nodes": 0.0}
-        signs = {}
-        for r in rows:
-            if r.body in SLOW_MOVERS and r.start_jd <= m < r.end_jd:
-                key = "nodes" if r.body in ("Rahu", "Ketu") else r.body
-                c = 1.0 if any(_touches(r.sign, r.body, t, lagna) for t in full) else \
-                    0.5 if any(_touches(r.sign, r.body, t, lagna) for t in secondary) else 0.0
-                credit[key] = max(credit[key], c)
-                signs.setdefault(key, []).append(f"{r.body} {SIGNS[r.sign]}")
-        t = 1.0 if credit["Saturn"] == 1.0 and credit["Jupiter"] == 1.0 else sum(credit.values()) / 3.0
-        total += t * (y - x)
-        if y - x > longest:
-            longest, detail = y - x, {"credits": credit, "bodies": signs}
-    return total / (b - a), detail
+def _share_slice(signs: dict[str, int], area_signs: set[int], lord_signs: set[int], lagna: int) -> float:
+    """v2's t for one slice, from each slow mover's sign: the share of Saturn, Jupiter and the
+    nodal axis touching an area house or an area-house lord's sign; 1 when Saturn and Jupiter
+    both do."""
+    on: dict[str, bool] = {}
+    for body, sign in signs.items():
+        key = "nodes" if body in ("Rahu", "Ketu") else body
+        on[key] = on.get(key, False) or any(_touches(sign, body, s, lagna) for s in area_signs | lord_signs)
+    return 1.0 if on.get("Saturn") and on.get("Jupiter") else sum(on.values()) / 3.0
+
+
+def _rao_slice(signs: dict[str, int], full: set[int], secondary: set[int], lagna: int) -> tuple[float, dict]:
+    """v2.1's t for one slice, from each slow mover's sign: per mover (Saturn, Jupiter, the nodal
+    axis) credit 1 for touching a full target, 1/2 for touching only a secondary one, else 0; t
+    is the mean of the three, and 1 when Saturn and Jupiter both touch a full target. Returns
+    (t, the slice detail for the derivation)."""
+    credit = {"Saturn": 0.0, "Jupiter": 0.0, "nodes": 0.0}
+    bodies: dict[str, list[str]] = {}
+    for body, sign in signs.items():
+        key = "nodes" if body in ("Rahu", "Ketu") else body
+        c = 1.0 if any(_touches(sign, body, t, lagna) for t in full) else \
+            0.5 if any(_touches(sign, body, t, lagna) for t in secondary) else 0.0
+        credit[key] = max(credit[key], c)
+        bodies.setdefault(key, []).append(f"{body} {SIGNS[sign]}")
+    t = 1.0 if credit["Saturn"] == 1.0 and credit["Jupiter"] == 1.0 else sum(credit.values()) / 3.0
+    return t, {"credits": credit, "bodies": bodies}
+
+
+def slow_spans_of(rows) -> list[tuple[str, int, float, float]]:
+    """The slow movers' sign spans (body, sign, start, end) from a transit timeline's rows."""
+    return [(r.body, r.sign, r.start_jd, r.end_jd) for r in rows if r.body in SLOW_MOVERS]
+
+
+def slices(chart: Chart, start: float, end: float, spans: list[tuple[str, int, float, float]]) -> list[tuple]:
+    """Every Vimshottari antar inside [start, end] cut at the slow movers' sign ingresses:
+    (x, y, period, signs), `signs` being each slow mover's sign over the slice (no ingress falls
+    inside one). `spans` are the slow movers' sign spans covering the range. The same slices
+    serve every area of a chart, which is what a cohort run needs (jyotish.cohort)."""
+    import bisect
+    by_body: dict[str, list[tuple[float, float, int]]] = {}
+    for body, sign, t0, t1 in spans:
+        if t1 > start and t0 < end:
+            by_body.setdefault(body, []).append((t0, t1, sign))
+    for v in by_body.values():
+        v.sort()
+    starts = {b: [t0 for t0, _, _ in v] for b, v in by_body.items()}
+    edges = sorted({t0 for v in by_body.values() for t0, _, _ in v if start < t0 < end})
+
+    def signs_at(m: float) -> dict[str, int]:
+        out = {}
+        for b in SLOW_MOVERS:
+            v = by_body.get(b)
+            if not v:
+                continue
+            i = bisect.bisect_right(starts[b], m) - 1
+            if i >= 0 and v[i][0] <= m < v[i][1]:
+                out[b] = v[i][2]
+        return out
+    out = []
+    for per in chart.dashas.get("vimshottari", []):
+        if len(per.lords) != 2 or per.end_jd <= start or per.start_jd >= end:
+            continue
+        a, b = max(start, per.start_jd), min(end, per.end_jd)
+        cuts = [a] + edges[bisect.bisect_right(edges, a):bisect.bisect_left(edges, b)] + [b]
+        for x, y in zip(cuts, cuts[1:]):
+            out.append((x, y, per, signs_at((x + y) / 2.0)))
+    return out
+
+
+def window_pieces(chart: Chart, area: str, start: float, end: float, spans: list[tuple[str, int, float, float]],
+                  basis: str = "lagna", formula: str = "v2.1", cut: list[tuple] | None = None) -> list[dict]:
+    """The join's pieces for an area over [start, end]: the slices of the gated antars (maha or
+    antar lord relevant to the area from `basis`), each with its q terms, q, t (v2.1's Rao credit,
+    v2's share) and joint = 0.6 q + 0.4 t. `cut` is `slices(...)` already made, so a cohort run
+    cuts a chart once for all its areas. answer_v2 builds its windows from these pieces, and
+    jyotish.cohort its activation years, so the two cannot drift apart."""
+    tg = rao_targets(chart, area, basis)
+    lagna = chart.lagnas.asc_sign
+
+    def relevant(lords: list[str]) -> bool:
+        planet = lords[-1]
+        return any(_relevant(chart, q, tg["base"], tg["area_signs"], tg["karakas"])
+                   for q in [planet] + activation_set(chart, planet))
+    gate: dict[tuple, tuple[bool, bool]] = {}
+    quality: dict[tuple, tuple[dict, float]] = {}
+    pieces = []
+    for x, y, per, signs in (cut if cut is not None else slices(chart, start, end, spans)):
+        key = tuple(per.lords)
+        if key not in gate:
+            gate[key] = (relevant(list(per.lords[:1])), relevant(list(per.lords)))
+        maha_rel, antar_rel = gate[key]
+        if not (maha_rel or antar_rel):
+            continue
+        if key not in quality:
+            terms = period_quality_v2(chart, list(per.lords), 1.0 if antar_rel else 0.0)
+            quality[key] = (terms, sum(terms.values()) / len(terms))
+        terms, q = quality[key]
+        if formula == "v2.1":
+            t, tdetail = _rao_slice(signs, tg["full"], tg["secondary"], lagna)
+        else:
+            t, tdetail = _share_slice(signs, tg["area_signs"], tg["lord_signs"], lagna), None
+        pieces.append({"a": x, "b": y, "lords": key, "q": q, "t": t, "terms": terms,
+                       "joint": 0.6 * q + 0.4 * t, "transit": tdetail})
+    return pieces
 
 
 def answer_v2(chart: Chart, query: TimingQuery, formula: str = "v2") -> TimingAnswer:
@@ -342,20 +425,8 @@ def answer_v2(chart: Chart, query: TimingQuery, formula: str = "v2") -> TimingAn
         raise ValueError("the chart has no Layer 5 score (it needs the birth moment)")
     start, end = _jd(query.start), _jd(query.end)
     area = chart.scored.areas[query.area]
-    spec = AREAS[query.area]
-    base = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign,
-            "sun": chart.bodies["Sun"].sign}[query.basis]
-    area_signs = {(base + h - 1) % 12 for h in spec["houses"]}
-    lord_signs = {chart.bodies[SIGN_LORD[s]].sign for s in area_signs}
-    karaka_list = _karakas(_View(chart), spec["karakas"])
-    karakas = set(karaka_list)
-    lagna = chart.lagnas.asc_sign
-    primary = (base + spec["houses"][0] - 1) % 12
-    full_targets = {primary, chart.bodies[SIGN_LORD[primary]].sign}
-    if karaka_list:
-        full_targets.add(chart.bodies[karaka_list[0]].sign)
-    secondary_targets = ({s for s in area_signs if s != primary}
-                         | {chart.bodies[SIGN_LORD[s]].sign for s in area_signs if s != primary}) - full_targets
+    tg = rao_targets(chart, query.area, query.basis)
+    base, area_signs, karakas = tg["base"], tg["area_signs"], tg["karakas"]
 
     def relevant(system: str, lords: list[str]) -> bool:
         planet = _lord_planet(system, lords[-1])
@@ -366,31 +437,15 @@ def answer_v2(chart: Chart, query: TimingQuery, formula: str = "v2") -> TimingAn
     periods = {s: [p for p in chart.dashas.get(s, []) if len(p.lords) == 2 and p.end_jd > start and p.start_jd < end]
                for s in ("vimshottari",) + tuple(x for x in query.systems if x != "vimshottari")}
     transit = transit_timeline(chart, start, end, taras=False)     # tara rows are not scored yet
-    slow_edges = {r.start_jd for r in transit.rows if r.body in SLOW_MOVERS and start < r.start_jd < end}
     mahas = [p for s in query.systems for p in chart.dashas.get(s, []) if len(p.lords) == 1]
     bounds = {}
     if chart.uncertainty is not None:
         for bd in chart.uncertainty.boundaries:
             bounds.setdefault(round(bd.start_jd, 6), []).append(bd)
 
-    # Pieces: gated Vimshottari antars, split at slow-mover ingresses.
-    pieces = []
-    for per in periods["vimshottari"]:
-        maha_rel = relevant("vimshottari", per.lords[:1])
-        antar_rel = relevant("vimshottari", per.lords)
-        if not (maha_rel or antar_rel):
-            continue
-        a, b = max(start, per.start_jd), min(end, per.end_jd)
-        cuts = sorted({a, b} | {x for x in slow_edges if a < x < b})
-        terms = period_quality_v2(chart, list(per.lords), 1.0 if antar_rel else 0.0)
-        q = sum(terms.values()) / len(terms)
-        for x, y in zip(cuts, cuts[1:]):
-            if formula == "v2.1":
-                t, tdetail = _transit_credit_rao(transit.rows, x, y, full_targets, secondary_targets, lagna)
-            else:
-                t, tdetail = _transit_share(transit.rows, x, y, area_signs, lord_signs, lagna), None
-            pieces.append({"a": x, "b": y, "lords": tuple(per.lords), "q": q, "t": t, "terms": terms,
-                           "joint": 0.6 * q + 0.4 * t, "transit": tdetail})
+    # Pieces: gated Vimshottari antars, split at slow-mover ingresses (window_pieces, shared with
+    # the cohort runs).
+    pieces = window_pieces(chart, query.area, start, end, slow_spans_of(transit.rows), query.basis, formula)
 
     def weighted(ws):
         span = sum(w["b"] - w["a"] for w in ws)
@@ -465,8 +520,8 @@ def answer_v2(chart: Chart, query: TimingQuery, formula: str = "v2") -> TimingAn
                         "strongest_piece": {"start_jd": best["a"], "end_jd": best["b"], "joint": best["joint"],
                                             "q": best["q"], "t": best["t"], "transit": best.get("transit")},
                         "absorbed": w.get("absorbed", []),
-                        "targets": ({"full": sorted(SIGNS[x] for x in full_targets),
-                                     "secondary": sorted(SIGNS[x] for x in secondary_targets)}
+                        "targets": ({"full": sorted(SIGNS[x] for x in tg["full"]),
+                                     "secondary": sorted(SIGNS[x] for x in tg["secondary"])}
                                     if formula == "v2.1" else None),
                         "area_tier": area.tier}))
     ranked = sorted(windows, key=lambda x: -x.joint)
