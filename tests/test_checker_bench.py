@@ -86,6 +86,22 @@ def test_the_validator_alone_catches_every_tag_and_wording_error_and_no_accepted
     assert s["overall"]["precision"] == 1.0 and s["tier_word"]["recall"] == 1.0
 
 
+def test_an_offline_run_keeps_the_live_section_on_record(cb, tmp_path, monkeypatch):
+    old = ("# Checker benchmark\n\nRun 2026-10-22 at commit `b0eb697` by `scripts/checker_bench.py`.\n\n"
+           "## The code validator alone\n\nold table\n\n" + cb.LIVE_HEADING + "\n\nModel claude-opus-5-5, checker effort high; "
+           "103 checker calls.\n\n| category | n | caught / false rejects | precision | recall | F1 |\n"
+           "| overall | 119 | 72 of 74 | 1.000 | 0.973 | 0.986 |\n")
+    out = tmp_path / "checker_scorecard.md"
+    out.write_text(old)
+    monkeypatch.setattr(cb, "SCORECARD", out)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert cb.main(["--offline"]) == 0
+    new = out.read_text()
+    assert "old table" not in new and "| overall | 119 | 72 of 74 | 1.000 | 0.973 | 0.986 |" in new
+    assert "Carried over from the run of 2026-10-22 at commit `b0eb697`" in new and new.count(cb.LIVE_HEADING) == 1
+    assert cb.main(["--offline"]) == 0 and out.read_text().count("Carried over") == 1       # once, not twice
+
+
 def test_the_file_is_what_the_builder_makes(cb, rows):
     assert cb.build() == rows                                                # regenerate with --build
 

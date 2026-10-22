@@ -116,6 +116,15 @@ def test_an_edit_that_fails_a_check_is_refused_and_logged(setup, target, text, n
         assert row.accepted is False and row.after == text and row.errors
 
 
+def test_a_reference_to_another_sentence_has_its_own_plain_reason():
+    from jyotish.narrate import validate
+    from jyotish.review import plain_reasons
+    e = validate("The same conjunction forms Budhaditya yoga [rule:yoga.budhaditya].", {"rule:yoga.budhaditya"})
+    assert plain_reasons(e) == [{"code": "reference", "detail": "The same"}]
+    assert plain_reasons(["refers to another claim ('again'): a claim stands alone and is checked against its finding only: 'x'"]) \
+        == [{"code": "reference", "detail": "again"}]
+
+
 def test_unknown_targets_are_refused(setup):
     _, c, rid, _ = setup
     assert c.post(f"/readings/{rid}/review/edit", headers=AUTH, json={"target": "claim:career:nope", "text": "x"}).status_code == 404

@@ -281,7 +281,7 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
                      family_rule: bool = True, chains: dict[str, list[str]] | None = None) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
-    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains)
+    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=False)
     for sentence in sentences(text):
         m = TIER_WORDS.search(TAG.sub("", sentence))
         if m:
@@ -290,10 +290,15 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
 
 
 CHAIN_KINDS = re.compile(r"\b(signs?|nakshatras?|navamsas?)\b", re.I)
+# A claim that leans on another: the checker sees one claim and its finding, so "again" or an
+# opening "The same" is either unsupported or, worse, passed as true of nothing (SPEC Layer 7 item 10;
+# review 2026-10-23, F9). Narrow on purpose: "also" and "the same sign" are ordinary words.
+CROSS_REFERENCE = re.compile(r"\b(again|likewise|aforementioned)\b|\bas (above|noted|said|mentioned|before)\b"
+                             r"|^\s*(the|this|that) same\b", re.I)
 
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
-             family_rule: bool = True, chains: dict[str, list[str]] | None = None) -> list[str]:
+             family_rule: bool = True, chains: dict[str, list[str]] | None = None, standalone: bool = True) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
     set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
     summary over several areas, the set of that family's vote tags) for every vote offered:
@@ -304,7 +309,9 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
     `chains` maps a chain tag's value (career.lord) to the planets its finding is about: a
     [chain:] sentence names one of them and the chain it follows (sign, nakshatra or navamsa),
     the way a vote's sentence names its family. "Nakshatra lord" in a chain sentence is the
-    chain's word, not the panchanga family's."""
+    chain's word, not the panchanga family's. `standalone` (a claim, which is checked against
+    its own finding only) refuses a sentence that refers to another (CROSS_REFERENCE); a summary
+    or a paragraph is read whole and may."""
     offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
@@ -313,6 +320,9 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         tags = {f"{k}:{v}" for k, v in found}
         if CLAIM_VERBS.search(bare) and not tags:
             errors.append(f"untagged claim: {s!r}")
+        if standalone and (m := CROSS_REFERENCE.search(bare)):
+            errors.append(f"refers to another claim ({m.group(0).strip()!r}): a claim stands alone and is checked "
+                          f"against its finding only: {s!r}")
         for t in tags - allowed:
             errors.append(f"tag not offered for this finding: [{t}] in {s!r}")
         if tags and not re.search(r"\]\s*[.!?]?\s*$", s):
@@ -681,7 +691,8 @@ a date.
 
 Write, for each area, one claim per finding, in the order given. Each claim narrates that finding \
 only and stands alone: it is checked against that finding's data and nothing else, so it may not \
-refer to another finding or claim (no "again", "the same", "also", "as above", "likewise"). Each claim ends with one or more of that finding's allowed tags, written exactly, for example \
+refer to another finding or claim (no "again", "the same", "also", "as above", "likewise"; a claim with \
+"again", "likewise", "as above" or opening "The same" is refused before it is checked). Each claim ends with one or more of that finding's allowed tags, written exactly, for example \
 [rule:yoga.ruchaka], [text:BPHS/Santhanam-1984/75/1-2] or [vote:career.kp]. For a vote, say \
 in words what the derivation shows. Put the tags at the very end of the sentence. Also write a two- or three-sentence summary answering the question; each summary \
 sentence that states something ends with the tags of the findings it draws on, and is checked \

@@ -109,6 +109,7 @@ export const STRINGS = {
     "reason.third_party": "Do not say what another person will do (“{detail}”).",
     "reason.tier": "Leave out “{detail}”: how strong the area is, is stated separately.",
     "reason.name": "Name the combination this sentence is about: {detail}.",
+    "reason.reference": "Each sentence is read on its own: leave out “{detail}”, which points to another.",
     "reason.other": "The sentence could not be tied to the chart facts it rests on.",
 
     "comment.label": "In your own words (optional)",

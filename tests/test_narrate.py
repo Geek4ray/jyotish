@@ -110,6 +110,28 @@ def test_validator_rejects(text, needle):
     assert any(needle in e for e in errs), errs
 
 
+@pytest.mark.parametrize("text", [
+    "Counted from the Sun, Mars again forms Ruchaka yoga [rule:yoga.ruchaka].",
+    "The same conjunction forms Ruchaka yoga [rule:yoga.ruchaka].",
+    "Likewise, Mars forms Ruchaka yoga [rule:yoga.ruchaka].",
+    "As above, Mars forms Ruchaka yoga [rule:yoga.ruchaka].",
+    "Mars forms Ruchaka yoga, as noted [rule:yoga.ruchaka].",
+])
+def test_validator_rejects_a_claim_that_refers_to_another(text):
+    # The checker sees one claim and its finding; a reference to another passes it as true of nothing
+    # (the first recording's "The same conjunction" and "again forms Ruchaka": review 2026-10-23, F9).
+    errs = validate(text, OK)
+    assert any(e.startswith("refers to another claim") for e in errs), errs
+
+
+def test_the_same_sign_is_no_reference_and_a_summary_may_refer_within_itself():
+    from jyotish.narrate import validate_summary
+    assert validate("Mars in the same sign as Saturn forms Ruchaka yoga [rule:yoga.ruchaka].", OK) == []
+    assert validate("Mars also forms Ruchaka yoga against Saturn's aspect [rule:yoga.ruchaka].", OK) == []
+    # A summary or a curious paragraph is read whole: "again" in it refers within the text.
+    assert not any(e.startswith("refers") for e in validate_summary("Mars again forms Ruchaka yoga [rule:yoga.ruchaka].", OK))
+
+
 def test_validator_accepts_tagged_claims_and_plain_lines():
     assert validate("Mars in its own sign forms Ruchaka yoga [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2].", OK) == []
     # "trade" names a profession; only a buy/sell/invest verb with an instrument is advice.
@@ -126,15 +148,19 @@ def test_recorded_draft_is_rejected_then_edited_one_accepted(reading_and_drafter
     # was recorded before item 8 merged Ruchaka's two bases into one finding, and before KP
     # vote v2, under which the career KP vote abstains and is no finding: its two Ruchaka
     # claims and its KP claim carry unknown finding ids, and its summary cites the KP tag
-    # that is no longer offered. Its other seven claims pass the validator. The hand-edited
-    # draft is accepted on the second attempt.
+    # that is no longer offered. Its Kendra-Trikona claim opens "The same conjunction", which the
+    # validator refuses since 2026-10-23 (its "again forms Ruchaka" claim is one of the unknown
+    # ids, and the checker benchmark's known_bad-2); the other six claims pass.
+    # The hand-edited draft is accepted on the second attempt.
     reading, d = reading_and_drafter
     assert reading.attempts == 2 and len(d.calls) == 2
     errs = d.calls[1]["errors"]
     unknown = [e for e in errs if e.startswith("unknown finding id")]
     assert unknown == ["unknown finding id 'yoga.ruchaka@lagna'", "unknown finding id 'yoga.ruchaka@sun'",
                        "unknown finding id 'vote:career.kp'"]
-    errs = [e for e in errs if e not in unknown]
+    refs = [e for e in errs if e.startswith("refers to another claim")]
+    assert len(refs) == 1 and "('The same')" in refs[0]        # the "again" claim is dropped first, for its unknown id
+    errs = [e for e in errs if e not in unknown and e not in refs]
     assert sum(1 for e in errs if e.startswith("tag not offered for this finding: [vote:career.kp]")) == 1
     for fam in ("house", "karaka", "varga", "panchanga"):
         assert any(f"names the {fam} family but does not cite [vote:career.{fam}]" in e for e in errs), fam

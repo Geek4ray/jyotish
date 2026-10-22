@@ -49,9 +49,12 @@ SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpi
 ORD = {1: "1st", 2: "2nd", 3: "3rd"} | {n: f"{n}th" for n in range(4, 13)}
 CONSTRUCTED = ["planet_swapped", "house_changed", "sign_changed", "dignity_changed", "dasha_lord_changed",
                "negated", "unsupported_clause", "tier_word"]
-# Categories that are tag or wording errors: the validator alone must reject every one of them.
-WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited"}
-SEMANTIC = set(CONSTRUCTED) - WORDING | {"refers_to_another_claim", "misattached_detail", "wrong_dignity"}
+# Categories that are tag or wording errors: the validator alone must reject every one of them. A
+# reference to another claim ("again", an opening "The same") joined them on 2026-10-23 (review, F9):
+# the checker sees one claim and cannot resolve it, the validator can read the word.
+WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited", "refers_to_another_claim"}
+SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity"}
+LIVE_HEADING = "## Validator + semantic checker (live)"
 
 
 # --- the chart behind the reading ---------------------------------------------------------------
@@ -441,7 +444,17 @@ def main(argv=None) -> int:
         t = time.time()
         lp, usage = run_live(rows)
         live = (lp, usage, time.time() - t)
-    SCORECARD.write_text(report(rows, vpred, live))
+    text = report(rows, vpred, live)
+    if live is None and SCORECARD.exists() and LIVE_HEADING in (old := SCORECARD.read_text()):
+        # The live run on record stays, under the new validator table, with the run it came from
+        # named: an offline run must not erase the only measurement of the checker.
+        head = re.search(r"Run (\d{4}-\d{2}-\d{2}) at commit `([0-9a-f]+)`", old)
+        kept = old[old.index(LIVE_HEADING) + len(LIVE_HEADING):]
+        if "Carried over from the run of" not in kept and head:
+            kept = (f"\n\n(Carried over from the run of {head.group(1)} at commit `{head.group(2)}`; the validator table "
+                    "above is from this run, the live numbers are that run's.)" + kept)
+        text = text[:text.index(LIVE_HEADING) + len(LIVE_HEADING)] + kept
+    SCORECARD.write_text(text)
     s = scores(rows, vpred)["overall"]
     print(f"validator alone: precision {s['precision']:.3f} recall {s['recall']:.3f} F1 {s['f1']:.3f} -> {SCORECARD}")
     return 0

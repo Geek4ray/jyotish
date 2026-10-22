@@ -18,8 +18,9 @@ The guided review (web/review.html) asks its questions one step at a time and lo
 reviewer's own words; a last step asks about the reading as a whole. Answers and comments are
 judgement data: never shown to the client, never checked. Its words are an astrologer's: the chart
 facts beside a sentence (`facts`) and the reasons an edit is refused (`plain_reasons`) are
-written without the engine's own vocabulary. In blind mode (the judge page) an area's paragraph
-and windows are withheld (`redact`) until the reviewer has answered from the chart alone."""
+written without the engine's own vocabulary; a rewrite that leans on another sentence ("again", an
+opening "The same") is refused with the code `reference`. In blind mode (the judge page) an area's
+paragraph and windows are withheld (`redact`) until the reviewer has answered from the chart alone."""
 
 from __future__ import annotations
 
@@ -118,7 +119,8 @@ def with_tags(before: str, text: str) -> str:
 def plain_reasons(errors: list[str]) -> list[dict[str, str]]:
     """The validator's errors as codes the review page words for an astrologer (web/js/strings.js):
     timing, probability, confidence, death, medical, trade, third_party (a forbidden word, with the
-    word), tier (a strength word), name (the combination the sentence must name), other."""
+    word), tier (a strength word), name (the combination the sentence must name), reference (a word
+    that leans on another sentence), other."""
     out = []
     for e in errors:
         m = re.match(r"(\w+) language \((['\"])(.*?)\2\)", e)
@@ -128,6 +130,8 @@ def plain_reasons(errors: list[str]) -> list[dict[str, str]]:
             out.append({"code": m.group(1), "detail": m.group(3)})
         elif (m := re.match(r"\[rule:([^\]]+)\] on a sentence that names none of", e)):
             out.append({"code": "name", "detail": rule_names(m.group(1))[0]})
+        elif (m := re.match(r"refers to another claim \('(.+?)'\)", e)):
+            out.append({"code": "reference", "detail": m.group(1)})
         else:
             out.append({"code": "other", "detail": ""})
     seen, uniq = set(), []

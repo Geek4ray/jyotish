@@ -179,6 +179,8 @@ def live_checker(card: Card) -> str:
     text = doc.read_text() if doc.exists() else ""
     head = re.search(r"Run (\d{4}-\d{2}-\d{2}) at commit `([0-9a-f]+)`", text)
     parts = text.split("## Validator + semantic checker (live)", 1)
+    if len(parts) == 2 and (kept := re.search(r"Carried over from the run of (\d{4}-\d{2}-\d{2}) at commit `([0-9a-f]+)`", parts[1])):
+        head = kept                                   # the live section is an earlier run's
     row = re.search(r"\| overall \| \d+ \| (\d+) of (\d+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \|", parts[1]) \
         if len(parts) == 2 else None
     model = re.search(r"Model ([\w.-]+), checker effort (\w+)", parts[1]) if len(parts) == 2 else None

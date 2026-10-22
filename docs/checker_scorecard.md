@@ -1,12 +1,12 @@
 # Checker benchmark
 
-Run 2026-10-22 at commit `b0eb697` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (119 rows: 45 accept, 74 reject). The positive class is reject.
+Run 2026-10-23 at commit `23c7a2c` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (119 rows: 45 accept, 74 reject). The positive class is reject.
 
 ## The code validator alone
 
 | category | n | caught / false rejects | precision | recall | F1 |
 | --- | --- | --- | --- | --- | --- |
-| overall | 119 | 16 of 74 | 1.000 | 0.216 | 0.356 |
+| overall | 119 | 18 of 74 | 1.000 | 0.243 | 0.391 |
 | accepted | 45 | 0 false rejects | 1.000 | 1.000 | 1.000 |
 | dasha_lord_changed | 6 | 0 of 6 | 1.000 | 0.000 | 0.000 |
 | dignity_changed | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
@@ -15,7 +15,7 @@ Run 2026-10-22 at commit `b0eb697` by `scripts/checker_bench.py` on `tests/fixtu
 | house_changed | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | negated | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | planet_swapped | 9 | 1 of 9 | 1.000 | 0.111 | 0.200 |
-| refers_to_another_claim | 2 | 0 of 2 | 1.000 | 0.000 | 0.000 |
+| refers_to_another_claim | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | sign_changed | 5 | 0 of 5 | 1.000 | 0.000 | 0.000 |
 | tag_not_offered | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | tier_word | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
@@ -23,7 +23,7 @@ Run 2026-10-22 at commit `b0eb697` by `scripts/checker_bench.py` on `tests/fixtu
 | untagged | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | wrong_dignity | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 
-The validator reads tags and words, not meaning: it is meant to catch the tag and wording categories (family_not_cited, forbidden_word, tag_not_offered, tier_word, untagged) and to leave the semantic ones to the checker.
+The validator reads tags and words, not meaning: it is meant to catch the tag and wording categories (family_not_cited, forbidden_word, refers_to_another_claim, tag_not_offered, tier_word, untagged) and to leave the semantic ones to the checker.
 
 Misses and false rejects (validator alone):
 
@@ -137,14 +137,12 @@ Misses and false rejects (validator alone):
   reason: (none given)
 - `dasha_lord_changed-6` (dasha_lord_changed, missed): Ketu, the Moon's south node, sits in the 8th, while Saturn and Jupiter share the 1st and Venus, ruler of the 1st, sits exalted, in the sign where the texts hold a planet at its peak, in the 11th, and the current major period of Rahu activates Venus through its nakshatra [rule:place.ketu_h8] [vote:longevity.karaka] [vote:longevity.lord] [chain:longevity.lord].  
   reason: (none given)
-- `known_bad-1` (refers_to_another_claim, missed): The same conjunction joins the Sun as 4th lord with Mercury as 2nd and 5th lord in the 10th, forming a kendra-trikona raja yoga that points to authority, reputation and career standing [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12].  
-  reason: (none given)
-- `known_bad-2` (refers_to_another_claim, missed): Counted from the Sun, Mars falls in the 10th and again forms Ruchaka yoga, with the same weakening from Saturn's aspect, the tara and the marana karaka placement [rule:yoga.ruchaka] [text:Phaladeepika/Sastri-1937/6/1].  
-  reason: (none given)
 - `known_bad-4` (wrong_dignity, missed): The varga vote leans narrowly for career in the D10: Saturn, Mars and Venus score well there, while Jupiter and the Sun score poorly and Mercury and the Moon are neutral [vote:career.varga].  
   reason: (none given)
 
 ## Validator + semantic checker (live)
+
+(Carried over from the run of 2026-10-22 at commit `b0eb697`; the validator table above is from this run, the live numbers are that run's.)
 
 Model claude-opus-5-5, checker effort high; 103 checker calls, 340790 input and 63545 output tokens, 54 s. Cost: the token counts at the account's current price (not computed here).
 
