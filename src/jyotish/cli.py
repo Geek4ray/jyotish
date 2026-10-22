@@ -442,6 +442,11 @@ def main(argv: list[str] | None = None) -> None:
     pg.add_argument("--out", help="Markdown path (default: the JSON path with .md)")
     pg.add_argument("--json-out", help="also write the reading JSON with the engine-derived fields a reading "
                                        "written before them lacks (learner blocks, timing line)")
+    ex = sub.add_parser("export-reviews", help="the review step's judgements as preference files "
+                                                "(data/preferences/; judgements, not outcomes)")
+    ex.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
+    ex.add_argument("--out", default="data/preferences")
+    ex.add_argument("--with-birth-data", action="store_true", help="include each chart's birth data (left out by default)")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
@@ -454,6 +459,14 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.cmd == "read":
         raise SystemExit(cmd_read(args))
+    if args.cmd == "export-reviews":
+        import os
+        from .export import export_reviews
+        url = args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
+        n = export_reviews(url, args.out, with_birth_data=args.with_birth_data)
+        print(f"{n['rewrites']} accepted rewrites, {n['judgements']} judgement rows -> {args.out} "
+              f"(judgements, not outcomes{'; with birth data' if args.with_birth_data else '; no birth data'})")
+        raise SystemExit(0)
     if args.cmd == "page":
         raise SystemExit(cmd_page(args))
     if args.cmd == "reference":
