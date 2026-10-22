@@ -654,8 +654,14 @@
           "required": [
             "pair"
           ]
+        },
+        {
+          "required": [
+            "lord_of"
+          ]
         }
-      ]
+      ],
+      "description": "The subject is named by exactly one of: planet, planet_in, pair, or lord_of (the planets that rule those houses from the basis: a lord-in-house rule)"
     },
     "source": {
       "oneOf": [

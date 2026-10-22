@@ -33,6 +33,16 @@ from .shadbala import natural_benefics
 # confirm it (SPEC Layer 6b).
 OUT_OF_DEFAULT = frozenset({"experimental", "practitioner_unconfirmed"})
 
+# Rule families in the library that fire and are recorded but are not yet weighed in scoring or
+# offered to narration: the placement library (SPEC Layer 6b item 4) until the rule term is
+# re-balanced for some twenty placement fires per chart.
+PENDING_FAMILIES = frozenset({"lord_in_house", "planet_in_house"})
+
+
+def in_default(status: str, family: str) -> bool:
+    """Whether a rule's fires enter default scoring and narration."""
+    return status not in OUT_OF_DEFAULT and family not in PENDING_FAMILIES
+
 RULES_DIR = Path(os.environ.get("JYOTISH_RULES_PATH", Path(__file__).resolve().parents[2] / "rules"))
 SCHEMA_FILE = "rule.schema.json"
 

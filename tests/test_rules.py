@@ -43,8 +43,10 @@ def by_id(chart, rule_id):
 # --- the library ---------------------------------------------------------------------
 
 def test_library_loads_and_validates():
-    assert {r.id for r in load_rules()} == FIRST_TEN
-    for r in load_rules():
+    # The yoga library; the placement library (place.*) has its own tests (test_placements.py).
+    yogas = [r for r in load_rules() if not r.id.startswith("place.")]
+    assert {r.id for r in yogas} == FIRST_TEN
+    for r in yogas:
         if r.id in EXPERIMENTAL:
             assert r.data["status"] == "experimental" and "source" not in r.data
             continue
@@ -62,7 +64,7 @@ def test_schema_features_are_all_evaluable():
 # --- the reference chart -------------------------------------------------------------
 
 def test_reference_fires_exactly(ref):
-    assert {(f.id, f.basis) for f in ref.fired_rules} == {
+    assert {(f.id, f.basis) for f in ref.fired_rules if not f.id.startswith("place.")} == {
         ("yoga.ruchaka", "lagna"), ("yoga.ruchaka", "sun"), ("yoga.budhaditya", "lagna"),
         ("yoga.kendra_trikona_raja", "lagna"), ("yoga.kendra_trikona_raja_weak", "lagna"),
         ("yoga.parivartana", "lagna")}
