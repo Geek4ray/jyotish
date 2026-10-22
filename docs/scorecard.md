@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-10-22 at commit `c71f59c` by `scripts/evaluate.py`. CI fails when any number with a direction is worse than in the committed `docs/scorecard.json`.
+Run 2026-10-22 at commit `8584ee5` by `scripts/evaluate.py`. CI fails when any number with a direction is worse than in the committed `docs/scorecard.json`.
 
 ## Reference acceptance tests
 
