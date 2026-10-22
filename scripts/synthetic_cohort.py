@@ -70,15 +70,15 @@ def make(n: int, mode: str, database_url: str, seed: int = 0, odds_ratio: float 
     import validate as V
     from jyotish.outcomes import add_consent, area_events, import_rows, sessionmaker_for
     from jyotish.service import BirthInput, assess_kwargs
-    from jyotish.cache import chart_key
+    from jyotish.cache import birth_key
     rng = np.random.default_rng(seed + 1)
     bs = births(n, seed)
     keys = {}
     for b in bs:
         bi = BirthInput(date=b["date"], time=b["time"], tz=b["tz"], lat=b["lat"], lon=b["lon"], node="mean")
-        utc, kw = assess_kwargs(bi)
-        keys[b["subject_id"]] = chart_key(utc, bi.lat, bi.lon, **kw)
-    feats = V.features_for({keys[b["subject_id"]]: b for b in bs})
+        utc, _ = assess_kwargs(bi)
+        keys[b["subject_id"]] = birth_key(utc, bi.lat, bi.lon)
+    feats = V.features_for({keys[b["subject_id"]]: b for b in bs}, until=TODAY.isoformat())
     beta = math.log(odds_ratio) if mode == "planted" else 0.0
     truth = {"mode": mode, "n": n, "odds_ratio_per_sd": odds_ratio if mode == "planted" else 1.0, "base_rate": BASE_RATE,
              "timing_weight": timing_weight if mode == "planted" else 1.0, "areas": {}}

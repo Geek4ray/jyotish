@@ -74,9 +74,17 @@ def test_a_fixed_salt_makes_a_synthetic_run_reproducible_and_is_refused_for_a_re
 
 def test_synthetic_runs_never_touch_the_real_split(mods, tmp_path):
     V, SC = mods
-    real = ROOT / "data" / "sequestered.txt"
+    real, registry = ROOT / "data" / "sequestered.txt", ROOT / "docs" / "pre_registration.json"
     before = real.read_text() if real.exists() else None
+    reg_before = registry.read_text() if registry.exists() else None
     _run(mods, tmp_path, "null", 60)
     assert (real.read_text() if real.exists() else None) == before
+    assert (registry.read_text() if registry.exists() else None) == reg_before
+    # Even when a registry is given, a synthetic cohort never writes one.
+    url = f"sqlite:///{tmp_path / 'r2.db'}"
+    feats, _ = SC.make(60, "null", url, seed=11)
+    V.run(V.load_cohort(url, features=feats, synthetic=True), tmp_path / "s_r2.txt", permutations=20, bootstrap=10,
+          shifts=5, salt="fixed", registry=tmp_path / "never.json")
+    assert not (tmp_path / "never.json").exists()
     with pytest.raises(SystemExit):
         SC.main(["--n", "5", "--mode", "null", "--database", "sqlite:///jyotish.db"])
