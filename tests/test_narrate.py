@@ -33,11 +33,11 @@ PREDATES = "no claim was drafted for this finding"
 
 
 def drafted_gaps(area):
-    """The area's narration gaps other than the placement findings a recording predates: every
-    fixture was drafted before the placement library existed, so its placement findings have no
-    claim, which is an honest gap and not the test's subject."""
+    """The area's narration gaps other than the findings a recording predates: every fixture was
+    drafted before the placement library and the dispositor chains existed, so its placement and
+    chain findings have no claim, which is an honest gap and not the test's subject."""
     return [g for g in area.narration_gaps
-            if not (g["finding_id"].startswith("place.") and g["last_error"] == PREDATES)]
+            if not (g["finding_id"].startswith(("place.", "chain:")) and g["last_error"] == PREDATES)]
 
 
 def complete_but_placements(r):

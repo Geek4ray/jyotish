@@ -224,10 +224,6 @@
   aliases: [mrita]
   definition: "The last of the five degree states, at the far end of a sign from the infant state, in which a planet gives little."
   source: {text: BPHS, edition: Santhanam 1984, chapter: 45, verse: 3-4, checked: false}
-- term: final dispositor
-  aliases: [final_dispositor, dispositor]
-  definition: "The planet at the end of a chain of sign rulers (the ruler of the sign a planet is in, then that planet's sign ruler, and so on)."
-  source: {text: BPHS, edition: Santhanam 1984, checked: false}
 
 # --- nakshatras and taras -------------------------------------------------------------------
 - term: nakshatra
@@ -374,3 +370,25 @@
   definition: "The junction where one dasha ends and the next begins, read as a time of transition."
   writer: false
   source: {text: BPHS, edition: Santhanam 1984, checked: false}
+
+# --- dispositor chains (chains.py; SPEC Layer 2, dispositor analysis) ----------------------
+- term: dispositor
+  aliases: [dispositor, dispositors, disposits, disposited]
+  definition: "The lord of the sign (or nakshatra, or navamsa sign) a planet occupies, which is said to hold that planet's results."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: final dispositor
+  aliases: [final dispositor, final dispositors, final_dispositor, final_dispositors, self-disposited]
+  definition: "Where a chain of dispositors ends: a planet in its own sign, or a loop of planets each in the other's sign, through which the planets of the chain finally act."
+  source: {text: BPHS, edition: Santhanam 1984, checked: false}
+- term: nakshatra lord
+  aliases: [nakshatra lord, nakshatra lords, nakshatra_lord]
+  definition: "The planet ruling the nakshatra a planet occupies, in the order of the Vimshottari periods; the nakshatra chain follows these lords."
+  source: {text: BPHS, edition: Santhanam 1984, chapter: 46, checked: false}
+- term: mutual exchange
+  aliases: [mutual exchange, mutual sign exchange, mutual nakshatra exchange, mutual navamsa exchange]
+  definition: "Two planets each in the other's sign, nakshatra or navamsa sign; the sign exchange is Parivartana, the nakshatra exchange its nakshatra-level counterpart."
+  source: {text: Phaladeepika, edition: Sastri 1937, chapter: 6, verse: 32, checked: false}
+- term: activation
+  aliases: [activation, activated, activates, activation set]
+  definition: "In the Nadi reading, the lord of a running period brings into play the planets in its nakshatras and the lord of its own nakshatra."
+  source: {text: KP Readers, edition: K.S. Krishnamurti, checked: false}

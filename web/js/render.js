@@ -2,7 +2,7 @@
 // every tier or stability word comes from the JSON: nothing here computes, rounds beyond
 // display precision, or rewords an engine field. Text from the JSON is always escaped.
 
-const TAG = /\[(rule|text|vote):([^\]\s]+)\]/g;
+const TAG = /\[(rule|text|vote|chain):([^\]\s]+)\]/g;
 
 export function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -82,6 +82,7 @@ export class Footnotes {
       return `${esc(text)}, ${esc(edition.replaceAll("-", " "))}, chapter ${esc(chapter)}, verse ${esc(verse)} (checked in that edition).`;
     }
     const [area, fam] = value.split(".");
+    if (kind === "chain") return `The dispositor chains of ${fam === "chart" ? "the whole chart's final dispositors" : `the ${esc(human(area))} ${esc(fam)}`}, traced by the engine (see the claim's learner panel).`;
     return `The ${esc(family(fam))} family's vote on ${esc(human(area))}, derived by the engine (see the claim's learner panel).`;
   }
   html() {
@@ -146,6 +147,9 @@ export function learnerPanel(learner) {
       <h3>Fires</h3>
       ${table(learner.fires.map((f) => ({ basis: f.basis, nodes: f.nodes, scale: f.scale, stability: f.stability, "cited to": f.cited_to, sudarshana: f.sudarshana })))}
       ${learner.sudarshana_bases.length ? `<p class="muted">Sudarshana: the fire from the ${learner.sudarshana_bases.map(title).join(" and the ")} ${SUDARSHANA}</p>` : ""}`;
+  } else if (learner.kind === "chain") {
+    body = `<p>Dispositor chains of ${esc(learner.planet || "the whole chart")} (${esc(learner.role)}), stability ${num(learner.stability)}.</p>
+      <p class="muted">${esc(learner.what)}</p><ul class="chain-facts">${learner.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`;
   } else {
     body = `<p>Vote ${esc(learner.direction)} (${learner.vote > 0 ? "+" : ""}${num(learner.vote)}), family ${esc(family(learner.family))}, school ${esc(learner.school)}, stability ${num(learner.stability)}, term ${num(learner.term)}.</p>
       ${derivation(learner.derivation)}`;
@@ -227,7 +231,7 @@ function astrologerNote(n) {
 
 function dependsSection(items) {
   const rows = items.map((d) => {
-    const what = d.rule || d.vote || `tier ${d.tier}`;
+    const what = d.rule || d.vote || d.chain || `tier ${d.tier}`;
     const extra = d.basis ? ` from ${d.basis}` : d.direction ? `, ${d.direction}` : "";
     return `<li>${esc(d.area)}: ${esc(what)}${esc(extra)}: time-stability ${num(d.stability)} (holds in that share of the birth-time samples)</li>`;
   }).join("");

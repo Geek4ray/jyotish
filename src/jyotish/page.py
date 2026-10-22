@@ -11,6 +11,7 @@ a learner section per claim with its finding's derivation as a table; disclaimer
 from __future__ import annotations
 
 import json
+from datetime import date
 from typing import Any
 
 from .models import Chart
@@ -45,6 +46,9 @@ class _Notes:
             text, edition, chapter, verse = value.split("/")
             return f"{text}, {edition.replace('-', ' ')}, chapter {chapter}, verse {verse} (checked in that edition)."
         area, family = value.split(".", 1)
+        if kind == "chain":
+            what = "the whole chart's final dispositors" if family == "chart" else f"the {area.replace('_', ' ')} {family}"
+            return f"The dispositor chains of {what}, traced by the engine (learner table below)."
         return f"The {_family(family)} family's vote on {area.replace('_', ' ')}, derived by the engine (learner table below)."
 
     def block(self) -> list[str]:
@@ -170,6 +174,13 @@ def derivation_table(d: Any) -> list[str]:
     raise TypeError(f"unknown derivation shape: {type(d).__name__}")
 
 
+def _chain_learner(d: dict) -> list[str]:
+    out = [f"Dispositor chains of {d['planet'] or 'the whole chart'} ({d['role']}), stability {_cell(d['stability'])}. "
+           f"{d['what']}", ""]
+    out += [f"- {x}" for x in d["facts"]]
+    return out
+
+
 def _vote_learner(d: dict) -> list[str]:
     out = [f"Vote {d['direction']} ({d['vote']:+d}), family {_family(d['family'])}, school {d['school']}, "
            f"stability {_cell(d['stability'])}, term {_cell(d['term'])}. Derivation:", ""]
@@ -228,7 +239,8 @@ def render(reading: Reading, chart: Chart) -> str:
           *fired_lines(s),
           f"- Abstained areas: {', '.join(s.abstained_areas) or 'none'}", ""]
 
-    by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name)[0]}
+    as_of = date.fromisoformat(reading.as_of)
+    by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
     learner: list[tuple[str, Any, dict]] = []
     for a in reading.areas:
         L += [f"## {a.name.replace('_', ' ').capitalize()}", "",
@@ -259,7 +271,7 @@ def render(reading: Reading, chart: Chart) -> str:
                                  "(different birth data, settings or engine version)")
             learner += [(a.name, c, by_id[c.finding_id]) for c in a.claims]
         elif not a.narration_gaps:
-            offered = len(findings(chart, a.name)[0])
+            offered = len(findings(chart, a.name, as_of)[0])
             L.append(f"No claims were drafted for this area ({offered} finding(s) offered).")
         if a.other_placements:
             L += ["", "Other placements the engine weighed (not narrated; the three strongest are above):", ""]
@@ -289,7 +301,7 @@ def render(reading: Reading, chart: Chart) -> str:
     L += ["## Depends on exact birth time", ""]
     if reading.depends_on_birth_time:
         for d in reading.depends_on_birth_time:
-            what = d.get("rule") or d.get("vote") or f"tier {d.get('tier')}"
+            what = d.get("rule") or d.get("vote") or d.get("chain") or f"tier {d.get('tier')}"
             extra = f" from {d['basis']}" if "basis" in d else (f", {d['direction']}" if "direction" in d else "")
             L.append(f"- {d['area']}: {what}{extra} holds in {d['stability']:.0%} of birth-time samples")
     else:
@@ -300,7 +312,7 @@ def render(reading: Reading, chart: Chart) -> str:
     for i, (area, c, f) in enumerate(learner, 1):
         L += [f"### {area}.{i}: `{c.finding_id}`", "", _claim(notes, c), ""]
         d = c.learner or learner_data(f)                 # the JSON's block, or the engine's for an older reading
-        L += (_rule_learner(d) if d["kind"] == "rule" else _vote_learner(d)) + [""]
+        L += {"rule": _rule_learner, "chain": _chain_learner}.get(d["kind"], _vote_learner)(d) + [""]
 
     if reading.disclaimers:
         L += ["## Disclaimers", ""] + [f"- {DISCLAIMERS[k]}" for k in reading.disclaimers] + [""]

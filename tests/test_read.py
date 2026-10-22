@@ -274,7 +274,7 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
     assert reading.attempts == 2 and reading.unchecked_sentences == 0                                # live verdicts
     # The recording predates the placement library: its placement findings are the only gaps.
     gaps = [g for a in reading.areas for g in a.narration_gaps]
-    assert gaps and all(g["finding_id"].startswith("place.") and g["last_error"].startswith("no claim was drafted")
+    assert gaps and all(g["finding_id"].startswith(("place.", "chain:")) and g["last_error"].startswith("no claim was drafted")
                         for g in gaps)
     md = out.with_suffix(".md").read_text()
     career = md[md.index("## Career"):md.index("## Marriage")]

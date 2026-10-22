@@ -91,12 +91,12 @@ class ReadingClaim(BaseModel):
     finding_id: str
     text: str
     cites: list[str]
-    kind: str                           # rule | vote
+    kind: str                           # rule | vote | chain
     school: str
     basis: str
     stability: float | None
     stability_label: str | None = None  # the sampler's word for `stability` (uncertainty.label)
-    confidence: float                   # rule: scale x confidence_base; vote: min(1, 1 - rho) x |vote|
+    confidence: float | None            # rule: scale x confidence_base; vote: min(1, 1 - rho) x |vote|; chain: none
     learner: dict[str, Any] | None = None   # the finding's derivation, by the engine (learner_data)
     edited: dict[str, Any] | None = None    # review step: {by, at} when a reviewer's edit replaced the text (checked)
 
@@ -200,7 +200,7 @@ class NarrationError(RuntimeError):
 
 # --- the validator ---------------------------------------------------------------------
 
-TAG = re.compile(r"\[(rule|text|vote):([^\]\s]+)\]")
+TAG = re.compile(r"\[(rule|text|vote|chain):([^\]\s]+)\]")
 CLAIM_VERBS = re.compile(
     r"\b(is|are|was|were|has|have|gives|give|shows|show|indicates|indicate|suggests|suggest|"
     r"brings|bring|forms|form|makes|make|supports|support|favours|favors|promises|denotes|"
@@ -278,10 +278,10 @@ TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 
 def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary",
-                     family_rule: bool = True) -> list[str]:
+                     family_rule: bool = True, chains: dict[str, list[str]] | None = None) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
-    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule)
+    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains)
     for sentence in sentences(text):
         m = TIER_WORDS.search(TAG.sub("", sentence))
         if m:
@@ -289,15 +289,22 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
     return errors
 
 
+CHAIN_KINDS = re.compile(r"\b(signs?|nakshatras?|navamsas?)\b", re.I)
+
+
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
-             family_rule: bool = True) -> list[str]:
+             family_rule: bool = True, chains: dict[str, list[str]] | None = None) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
     set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
     summary over several areas, the set of that family's vote tags) for every vote offered:
     a sentence naming such a family must cite it (one of them). `family_rule` False (the
     curious depth, SPEC Layer 7 "Depth") drops both halves of that rule: a vote tag need not
     be on a sentence naming its family, and naming a family need not cite it; the checker,
-    which reads every sentence against the derivations it cites, carries the guarantee."""
+    which reads every sentence against the derivations it cites, carries the guarantee.
+    `chains` maps a chain tag's value (career.lord) to the planets its finding is about: a
+    [chain:] sentence names one of them and the chain it follows (sign, nakshatra or navamsa),
+    the way a vote's sentence names its family. "Nakshatra lord" in a chain sentence is the
+    chain's word, not the panchanga family's."""
     offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
@@ -311,6 +318,9 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         if tags and not re.search(r"\]\s*[.!?]?\s*$", s):
             errors.append(f"tags must end the sentence: {s!r}")
         named = families_named(s)
+        if any(k == "chain" for k, _ in found) and "panchanga" in named and \
+                not FAMILY_WORDS["panchanga"].search(re.sub(r"\bnakshatra lords?\b", "", bare, flags=re.I)):
+            named.discard("panchanga")
         for kind, value in found:
             if kind == "vote":
                 family = value.split(".", 1)[-1]
@@ -319,6 +329,12 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
             elif kind == "rule":
                 if not any(n.lower() in bare.lower() for n in rule_names(value)):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
+            elif kind == "chain":
+                planets = (chains or {}).get(value, [])
+                if planets and not any(re.search(rf"\b{p}\b", bare, re.I) for p in planets):
+                    errors.append(f"[chain:{value}] on a sentence that names none of {planets}: {s!r}")
+                if not CHAIN_KINDS.search(bare):
+                    errors.append(f"[chain:{value}] on a sentence that names no chain (sign, nakshatra or navamsa): {s!r}")
         for family in sorted(named) if family_rule else ():
             want = offered_votes.get(family)
             want = {want} if isinstance(want, str) else set(want or ())
@@ -453,7 +469,7 @@ def other_placements(chart: Chart, area: str) -> list[dict]:
     return sorted(rows, key=lambda r: (-r["contribution"], r["finding_id"]))
 
 
-def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
+def findings(chart: Chart, area: str, as_of: date | None = None) -> tuple[list[dict], list[dict]]:
     """(narratable, depends-on-birth-time) findings for an area, split at time-stability
     0.5. Two kinds (SPEC Layer 7 item 8): the non-experimental fired rules whose themes map
     to the area, tagged by rule id and each checked source; and the area's family votes
@@ -466,7 +482,10 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     engine's Sudarshana reading (Layer 2), so each non-lagna fire is marked `sudarshana`
     and cited to the rule, and the text tags are offered only when a lagna fire is present.
     Each finding carries its claim confidence: a fire's scale x the rule's confidence_base,
-    a vote's family weight min(1, 1 - rho) x |vote|."""
+    a vote's family weight min(1, 1 - rho) x |vote|. A third kind, the dispositor chains
+    (chains.py): the area's primary lord and main karaka, and in the personality area the
+    chart's final dispositors, tagged [chain:<area>.<lord|karaka|chart>]; with `as_of` (the
+    reading's date) each carries the Nadi activation of the periods running then."""
     from .scoring import family_rho
     lib = {r.id: r for r in default_rules()}
     ok, shaky = [], []
@@ -541,7 +560,19 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
             item["glossary"] = glossary_for(_check_data(item))
             st = item["stability"]
             (shaky if st is not None and st < 0.5 else ok).append(item)
+    from .chains import area_chain_findings
+    for item in area_chain_findings(chart, area, as_of):
+        item["area_houses"] = []
+        item["glossary"] = glossary_for(_check_data(item))
+        st = item["stability"]
+        (shaky if st is not None and st < 0.5 else ok).append(item)
     return ok, shaky
+
+
+def offered_chains(chart: Chart, areas: list[str]) -> dict[str, dict[str, list[str]]]:
+    """area -> chain tag value -> the planets its finding is about (for the validator)."""
+    from .chains import area_chain_findings
+    return {a: {f["finding_id"].split(":", 1)[1]: f["planets"] for f in area_chain_findings(chart, a)} for a in areas}
 
 
 def area_votes(a) -> dict:
@@ -614,7 +645,13 @@ KP, panchanga) with its derivation: the planets, houses, dignities, cusp sub-lor
 placements the vote used, and whether it is for or against the area. Each finding has an id and \
 the citation tags you may use. A rule that fires from more than one basis (lagna, Moon, Sun) is \
 one finding listing its bases, with each basis's fire; narrate it as one claim ("forms from the \
-lagna and from the Sun").
+lagna and from the Sun"). A third kind is a dispositor chain: for one planet (the area's lord or its \
+main karaka) the sign, nakshatra and navamsa chains to their final dispositors, the loops and mutual \
+exchanges it is part of, and whether a running period activates it, each stated in its `facts`; the \
+chart chain (chain:personality.chart) is the final dispositors of the whole chart. A sentence citing \
+a chain names the planet and the chain it follows (sign, nakshatra or navamsa) and says only what \
+the facts state; a running period is "the current major period" or "sub-period" of its lord, never \
+a date.
 
 Write, for each area, one claim per finding, in the order given. Each claim narrates that finding \
 only and stands alone: it is checked against that finding's data and nothing else, so it may not \
@@ -690,12 +727,13 @@ def timing_note(areas: list[str]) -> str:
     return f"These are periods the engine scores as favourable for {joined}; it does not predict when you will act."
 
 
-def payload(chart: Chart, question: str, areas: list[str], depth: str = "astrologer") -> tuple[str, dict[str, set[str]]]:
+def payload(chart: Chart, question: str, areas: list[str], depth: str = "astrologer",
+            as_of: date | None = None) -> tuple[str, dict[str, set[str]]]:
     """The user message for the model, and the tags allowed per finding id."""
     allowed: dict[str, set[str]] = {}
     body = {"question": question, "depth": depth, "areas": []}
     for name in areas:
-        ok, _ = findings(chart, name)
+        ok, _ = findings(chart, name, as_of)
         for f in ok:
             allowed[f["finding_id"]] = set(f["allowed_tags"])
         a = chart.scored.areas.get(name)
@@ -739,7 +777,8 @@ Generic framing ("for career", "the vote is against") is supported when the data
 area says so. A gloss, a short definition given beside a term ("marana karaka sthana, a placement \
 in which a planet cannot give its good results"), is supported when it matches the meaning of \
 that term's entry in the data's glossary, and unsupported when it does not match or the term has \
-no entry there. A house called by its area ("the house of career", "a career house") is supported \
+no entry there. A chain finding's `facts` state its rows in sentences; a proposition about a \
+chain is supported when its facts or rows state it. A house called by its area ("the house of career", "a career house") is supported \
 when the data's area_houses lists that house in those words, and unsupported otherwise. Ignore the \
 bracketed citation tags."""
 
@@ -960,6 +999,10 @@ def learner_data(f: dict) -> dict[str, Any]:
     """What a claim rests on, as data the page and the website render (never the model): for a
     rule, the rule block, each modifier with where it applied, and each basis's fire with the
     Sudarshana mark; for a vote, its direction, family, stability and derivation rows."""
+    if f["kind"] == "chain":
+        from .chains import DISPOSITOR
+        return {"kind": "chain", "chain": f["chain"], "planet": f["planet"], "role": f["role"], "what": DISPOSITOR,
+                "stability": f["stability"], "facts": f["facts"], "derivation": f["derivation"]}
     if f["kind"] == "vote":
         return {"kind": "vote", "family": f["family"], "school": f["school"], "vote": f["vote"],
                 "direction": f["direction"], "stability": f["stability"], "term": f["term"],
@@ -994,7 +1037,8 @@ def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     """A reading JSON brought up to the current schema from its own chart: the engine-derived
     fields a reading written before them lacks (each claim's learner block, the timing line).
     The model's text is not touched."""
-    by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name)[0]}
+    as_of = date.fromisoformat(reading.as_of)
+    by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
     def up(c):
         fill = {}
         if not c.learner:
@@ -1069,7 +1113,7 @@ def _check_data(f: dict) -> dict:
     keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
             "school", "planets",
             "themes", "fires", "derivation", "area_votes", "glossary", "classical_effect", "status", "placement",
-            "area_houses")
+            "area_houses", "chain", "planet", "role", "facts")
     return {k: f[k] for k in keep if k in f}
 
 
@@ -1105,13 +1149,15 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     areas = list(areas) if areas is not None else routed
     system = system_prompt(depth)
     curious = depth == "curious"
-    user, allowed = payload(chart, question, areas, depth)
-    area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name)[0])) for name in areas}
+    user, allowed = payload(chart, question, areas, depth, as_of)
+    area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name, as_of)[0])) for name in areas}
     all_tags = set().union(*allowed.values()) if allowed else set()
     drafter = drafter or AnthropicDrafter(config)
     checker = checker or AnthropicChecker(config)
     votes_offered = offered_votes(chart, areas)
-    finding_data = {f["finding_id"]: f for name in areas for f in findings(chart, name)[0]}
+    chains_offered = offered_chains(chart, areas)
+    all_chains = {k: v for name in areas for k, v in chains_offered[name].items()}
+    finding_data = {f["finding_id"]: f for name in areas for f in findings(chart, name, as_of)[0]}
     all_votes: dict[str, set[str]] = {}
     for name in areas:
         for fam, tag in votes_offered[name].items():
@@ -1140,12 +1186,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             summary_error = (errors[0], attempts)
             for name in areas:
                 para_error[name] = (errors[0], attempts)
-                for f in findings(chart, name)[0]:
+                for f in findings(chart, name, as_of)[0]:
                     last_error[(name, f["finding_id"])] = (errors[0], attempts)
             continue
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
-        summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious)
+        summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious,
+                                        chains=all_chains)
         errors = list(summary_errs)
         claim_errs: dict[tuple[str, str], list[str]] = {}
         drafted: list[tuple[str, DraftClaim]] = []
@@ -1161,7 +1208,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     errors.append(f"two claims for {c.finding_id} in {da.name}")
                     continue
                 errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name],
-                                family_rule=not curious)
+                                family_rule=not curious, chains=chains_offered[da.name])
                 if not TAG.search(c.text):
                     errs.append(f"claim without a tag: {c.text!r}")
                 claim_errs[(da.name, c.finding_id)] = errs
@@ -1174,7 +1221,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             for name in areas:
                 text = next((d.paragraph for d in draft.areas if d.name == name), None)
                 para_errs[name] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
-                                                    where=f"{name} paragraph", family_rule=False)
+                                                    where=f"{name} paragraph", family_rule=False,
+                                                    chains=chains_offered[name])
                                    if text else [f"no paragraph for {name}: at curious depth every area has one"])
                 errors += para_errs[name]
         entry["validator_errors"] = list(errors)
@@ -1256,12 +1304,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         kept_summary = draft.summary
         kept_para = {d.name: d.paragraph for d in draft.areas if d.paragraph} if curious else {}
 
-    by_finding = {f["finding_id"]: f for name in areas for f in findings(chart, name)[0]}
+    by_finding = {f["finding_id"]: f for name in areas for f in findings(chart, name, as_of)[0]}
     reading_areas, depends = [], []
     for name in areas:
         a = sc.areas[name]
         conf = a.confidence or 0.0
-        offered = findings(chart, name)[0]
+        offered = findings(chart, name, as_of)[0]
         claims, gaps = [], []
         for f in offered:
             c = kept.get((name, f["finding_id"]))
@@ -1276,11 +1324,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         # SPEC Layer 7 item 4: two groups, rule fires first, then votes, each by stability x the
         # claim's own confidence. The two confidences are on different scales (a rule's is
         # capped at 0.7, a vote's is near 1), so they are never ranked against each other.
-        claims.sort(key=lambda c: (c.kind != "rule",
-                                   -((c.stability if c.stability is not None else 1.0) * c.confidence)))
-        _, shaky = findings(chart, name)
+        claims.sort(key=lambda c: ({"rule": 0, "vote": 1}.get(c.kind, 2),
+                                   -((c.stability if c.stability is not None else 1.0) * (c.confidence or 0.0))))
+        _, shaky = findings(chart, name, as_of)
         depends += [({"area": name, "rule": f["rule_id"], "basis": f["basis"], "stability": f["stability"]}
                      if f["kind"] == "rule" else
+                     {"area": name, "chain": f["finding_id"], "stability": f["stability"]} if f["kind"] == "chain" else
                      {"area": name, "vote": f["finding_id"], "direction": f["direction"], "stability": f["stability"]})
                     for f in shaky]
         if a.stability is not None and a.stability.time < 0.5:

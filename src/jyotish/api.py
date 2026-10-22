@@ -397,9 +397,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         sentences, and so are the page, the summary and the log."""
         from .review import facts, plain, redact, sentence_facts, units
         names = [a.name for a in reading.areas]
-        key = (row.chart_id, tuple(names))
+        key = (row.chart_id, tuple(names), reading.as_of)
         if key not in fact_cache:
-            fact_cache[key] = facts(chart_of(row.chart_id), names)
+            from datetime import date as _date
+            fact_cache[key] = facts(chart_of(row.chart_id), names, _date.fromisoformat(reading.as_of))
         area_facts = fact_cache[key]
         shown = shown_areas(s, row, reading, who, mode)
         us = [dict(u, plain=plain(u["text"]), facts=sentence_facts(u["text"], area_facts.get(u["area"], [])))

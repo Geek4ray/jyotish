@@ -304,7 +304,7 @@ def test_curious_reading_on_the_site(page, curious_url):
     # The recording predates the placement library: its placement findings are listed as gaps,
     # every one "no claim was drafted"; nothing else is missing and every sentence was checked.
     gaps = page.eval_on_selector_all(".gaps li", "els => els.map(e => [e.dataset.finding, e.textContent])")
-    assert gaps and all(f.startswith("place.") and "no claim was drafted" in t for f, t in gaps)
+    assert gaps and all(f.startswith(("place.", "chain:")) and "no claim was drafted" in t for f, t in gaps)
     assert "Offline replay" not in page.inner_text("#reading")
     assert page.locator('section.area[data-area="longevity"] p.paragraph').count() == 1
     toggle = career.locator("details.astrologer")

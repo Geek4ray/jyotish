@@ -123,5 +123,9 @@ verse, when, and effect_confirmed yes or changed; the astrologer works in `scrip
 (`docs/triage.md`). The library is generated from
 `scripts/placements.csv` by `scripts/make_placements.py` (`--check` in the suite): edit the table, not
 the files. Each fire weighs its rule's confidence_base in the rule term; an area offers narration at
-most three placements, the rest are `other_placements`.
+most three placements, the rest are `other_placements`. Dispositor chains are findings too
+(`chains.py`): per area the primary lord's and main karaka's sign, nakshatra and navamsa chains,
+loops, mutual exchanges and Nadi activation at the reading date, and the chart's final dispositors in
+personality, tagged `[chain:<area>.<lord|karaka|chart>]` (the sentence names the planet and the chain),
+checked against their `facts`; `findings(chart, area, as_of)` takes the reading date for them.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

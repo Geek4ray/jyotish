@@ -26,8 +26,8 @@ from datetime import date, datetime, timezone
 from typing import Any, Callable
 
 from .models import Chart
-from .narrate import (_ORD, TAG, CheckResult, Reading, _check_payload, _summary_checks, findings, offered_votes,
-                      rule_names, sentences, validate, validate_summary)
+from .narrate import (_ORD, TAG, CheckResult, Reading, _check_payload, _summary_checks, findings, offered_chains,
+                      offered_votes, rule_names, sentences, validate, validate_summary)
 
 
 def now() -> str:
@@ -66,14 +66,17 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
     family_rule = reading.depth != "curious"
     if area is not None and area not in names:
         raise ValueError(f"no area {area!r} in this reading")
-    offered = {name: findings(chart, name)[0] for name in names}
+    as_of = date.fromisoformat(reading.as_of)
+    offered = {name: findings(chart, name, as_of)[0] for name in names}
     data_by_id = {f["finding_id"]: f for fs in offered.values() for f in fs}
     votes = offered_votes(chart, names)
+    chains = offered_chains(chart, names)
     if kind == "claim":
         f = next((x for x in offered[area] if x["finding_id"] == key), None)
         if f is None:
             raise ValueError(f"no finding {key!r} in {area}")
-        errors = validate(text, set(f["allowed_tags"]), offered_votes=votes[area], family_rule=family_rule)
+        errors = validate(text, set(f["allowed_tags"]), offered_votes=votes[area], family_rule=family_rule,
+                          chains=chains[area])
         if not TAG.search(text):
             errors.append(f"claim without a tag: {text!r}")
         to_check = [(text, [key], _check_payload(f))]
@@ -82,7 +85,8 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
         tags = set().union(*(set(f["allowed_tags"]) for n in scope for f in offered[n]))
         fam = votes[area] if kind == "paragraph" else {k: {v} for n in names for k, v in votes[n].items()}
         errors = validate_summary(text, tags, offered_votes=fam, where=f"{area} paragraph" if area else "summary",
-                                  family_rule=family_rule and kind == "summary")
+                                  family_rule=family_rule and kind == "summary",
+                                  chains=chains[area] if area else {k: v for n in names for k, v in chains[n].items()})
         scope_data = {fid: f for fid, f in data_by_id.items() if any(fid == x["finding_id"] for n in scope for x in offered[n])}
         to_check = _summary_checks(text, scope_data)
     checks = []
@@ -194,13 +198,15 @@ def _vote_facts(f: dict) -> list[str]:
 
 def finding_facts(f: dict) -> list[str]:
     """A finding's chart facts in an astrologer's words (planets, houses, signs, dignities)."""
+    if f["kind"] == "chain":
+        return list(f["facts"])
     return _rule_facts(f) if f["kind"] == "rule" else _vote_facts(f)
 
 
-def facts(chart: Chart, areas: list[str]) -> dict[str, list[tuple[set[str], list[str]]]]:
+def facts(chart: Chart, areas: list[str], as_of: date | None = None) -> dict[str, list[tuple[set[str], list[str]]]]:
     """area -> [(the finding's citation tags, its facts)] for every finding offered."""
     return {a: [({t for t in f["allowed_tags"] if not t.startswith("text:")}, finding_facts(f))
-                for f in findings(chart, a)[0]] for a in areas}
+                for f in findings(chart, a, as_of)[0]] for a in areas}
 
 
 def sentence_facts(text: str, area_facts: list[tuple[set[str], list[str]]]) -> list[str]:
