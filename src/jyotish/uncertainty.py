@@ -8,8 +8,11 @@ scoring and is not here).
     Gaussian, sigma 30 min; unknown: uniform over the day);
   - the ayanamsa axis: the recorded time under Lahiri, Raman and KP;
   - the house axis: the recorded time under whole sign and Sripati.
-Every fired rule, varga placement and dasha boundary of the recorded-time chart gets one
-number per axis, never pooled: a doctrinal choice is not clock error.
+Every fired rule, varga placement, nakshatra (of each body and the lagna) and dasha boundary of
+the recorded-time chart gets one number per axis, never pooled: a doctrinal choice is not clock
+error. The nakshatras are what the nakshatra dispositor chains and the Vimshottari lords rest on;
+without them a chain finding could be called stable while its first link moved inside the window
+(review 2026-10-23, F6).
 
 The per-sample charts are computed one by one (the ephemeris and the rule evaluator are
 scalar); the aggregation over samples is vectorised."""
@@ -27,6 +30,7 @@ from .ephemeris import compute_sky
 from .models import (
     BoundaryStability, Chart, RuleShare, Stability, TimePosterior, Uncertainty,
 )
+from .nakshatra import nakshatra_of
 from .vargas import PRODUCTION_VARGAS, VARGAS
 
 AYANAMSA_AXIS = ("lahiri", "raman", "kp")
@@ -59,6 +63,11 @@ def placements(chart: Chart) -> dict[tuple[str, str], int]:
     return {(v, b): s for v, signs in chart.vargas.items() for b, s in signs.items()}
 
 
+def nakshatras(chart: Chart) -> dict[str, int]:
+    """The nakshatra index of every body and of the lagna ("Asc")."""
+    return {b: body.nak for b, body in chart.bodies.items()} | {"Asc": nakshatra_of(chart.lagnas.asc).index}
+
+
 def boundaries(chart: Chart) -> dict[tuple[str, tuple[str, ...]], float]:
     """Start of every dasha period, keyed by system and the lord sequence. Chara and
     Yogini lords repeat across cycles, so repeats are numbered."""
@@ -82,11 +91,12 @@ class _Run:
     chart: Chart
     rules: set
     places: dict
+    naks: dict
     starts: dict
 
 
 def _run(chart: Chart) -> _Run:
-    return _Run(chart, rule_keys(chart), placements(chart), boundaries(chart))
+    return _Run(chart, rule_keys(chart), placements(chart), nakshatras(chart), boundaries(chart))
 
 
 def assess(utc: datetime, lat: float, lon: float, *, time_accuracy: str = "exact",
@@ -139,6 +149,16 @@ def assess(utc: datetime, lat: float, lon: float, *, time_accuracy: str = "exact
             label=label(float(t_share[i])))
     varga_stability = {v: placement_block[v]["Asc"].time for v in PRODUCTION_VARGAS}
 
+    # Nakshatras: the index arrays over samples, compared with the recorded index.
+    nkeys = sorted(c.naks)
+    centre_naks = np.array([c.naks[k] for k in nkeys])
+    t_naks = np.array([[s.naks[k] for k in nkeys] for s in samples])              # (n, keys)
+    a_naks = np.array([[r.naks[k] for k in nkeys] for r in ayan])
+    h_naks = np.array([[r.naks[k] for k in nkeys] for r in house])
+    tn, an, hn = (t_naks == centre_naks).mean(axis=0), (a_naks == centre_naks).mean(axis=0), (h_naks == centre_naks).mean(axis=0)
+    nakshatra_block = {k: Stability(time=float(tn[i]), ayanamsa=float(an[i]), house=float(hn[i]), label=label(float(tn[i])))
+                       for i, k in enumerate(nkeys)}
+
     # Dasha boundaries: start dates across samples, in days.
     bkeys = list(c.starts)
     t_starts = np.array([[s.starts.get(k, np.nan) for k in bkeys] for s in samples], dtype=float)
@@ -188,7 +208,7 @@ def assess(utc: datetime, lat: float, lon: float, *, time_accuracy: str = "exact
     center.uncertainty = Uncertainty(
         samples=n, half_width_min=ACCURACY_HALF_WIDTH_MIN[time_accuracy], shape=shape,
         center_jd=jd0, ayanamsas=list(AYANAMSA_AXIS), house_systems=list(HOUSE_AXIS),
-        varga_stability=varga_stability, placements=placement_block,
+        varga_stability=varga_stability, placements=placement_block, nakshatras=nakshatra_block,
         boundaries=boundary_block, rules_elsewhere=rules_elsewhere,
         seconds=_time.perf_counter() - t0)
     return center

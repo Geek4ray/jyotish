@@ -76,7 +76,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   Argala (Rath's reading, BPHS 31) are done. The nakshatra layer: every body carries
   `nak_attributes` (deity, gana, yoni, nadi, tri-nadi, gender, direction, activity) from
   `constants.NAK_ATTRIBUTES`, whose sources are on the table (none checked yet); `nakpoints.py` gives
-  the 64th navamsa and 88th pada from the Moon and the lagna, Abhijit and the nakshatra lagnesha
+  the 64th navamsa and the 22nd drekkana (the Khara points, both 210° on) from the Moon and the lagna, Abhijit and the nakshatra lagnesha
   (`Features.nakshatra_points`); tables.json and chart.html show the nakshatra table, the points and
   the three dispositor chains. Not yet: synastry module.
 - Phase 2 (rules and time): Vimshottari to any depth; Yogini and Chara (K.N. Rao default,

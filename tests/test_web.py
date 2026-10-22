@@ -341,7 +341,8 @@ def test_chart_page_and_the_link_from_the_reading(page, base_url):
     # The nakshatra table, the special points and the dispositor chains as arrows, loops marked.
     assert page.locator("#nakshatras tbody tr").count() == 10
     assert "Tvashtar" in page.inner_text("#nakshatras") and "not yet checked" in page.inner_text("#nakshatras")
-    assert "Nakshatra lagnesha" in page.inner_text("#nakshatra-points") and "88th pada" in page.inner_text("#nakshatra-points")
+    assert "Nakshatra lagnesha" in page.inner_text("#nakshatra-points") and "22nd drekkana" in page.inner_text("#nakshatra-points")
+    assert "88th pada" not in page.inner_text("#nakshatra-points") and "Sagittarius 1st drekkana" in page.inner_text("#nakshatra-points")
     sat = page.locator('#dispositors li[data-planet="Saturn"][data-kind="nakshatra"]')
     assert sat.inner_text().startswith("Saturn → Sun → Jupiter → Moon → Mars → Mercury")
     assert sat.locator(".in-loop").all_inner_texts() == ["Mars", "Mercury"]

@@ -2,8 +2,9 @@
 they may (SPEC Layer 1b, Layer 7). On the reference chart and three synthetic births
 (tests/fixtures/births.json; no other births were in the fixtures).
 
-  - birth time +-1 minute changes nothing the sampler marked stable, and everything that changed is
-    something the sampler saw change (time share under 1, or a fire seen only elsewhere in the window).
+  - birth time +-1 minute changes nothing the sampler marked stable (a fire, a varga sign, a nakshatra,
+    a tier), and everything that changed is something the sampler saw change (time share under 1, or a
+    fire seen only elsewhere in the window).
     The exact-accuracy sampler draws +-2 minutes; a finding whose boundary is d minutes away holds in
     1 - (2 - d)/4 of the window, so "stable" (over 0.8) puts the boundary beyond 1.2 minutes;
   - a 1'' change of ayanamsa moves every position by 1'' and changes nothing else (no fire, tier,
@@ -69,6 +70,12 @@ def test_a_minute_changes_nothing_marked_stable(birth, minutes):
     for varga, body in changed:
         st = u.placements[varga][body]
         assert st.label != "stable" and st.time < 1.0, (varga, body, st)
+    # Nakshatras likewise: a body or the lagna whose nakshatra changed was never marked stable.
+    from jyotish.uncertainty import nakshatras
+    for k, idx in nakshatras(c).items():
+        if nakshatras(other)[k] != idx:
+            st = u.nakshatras[k]
+            assert st.label != "stable" and st.time < 1.0, (k, st)
     # Tiers likewise.
     for name, tier in _tiers(other).items():
         if tier != c.scored.areas[name].tier:

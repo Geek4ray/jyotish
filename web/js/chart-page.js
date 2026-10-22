@@ -45,9 +45,13 @@ function points(np) {
   if (!np) return `<p class="muted small">Not computed for this chart (stored before the points were).</p>`;
   const row = (name, p) => ({ point: name, from: p.origin, sign: p.sign, nakshatra: `${p.nakshatra} ${p.pada}`,
     "nakshatra lord": p.nakshatra_lord, "navamsa sign": p.navamsa_sign, "navamsa lord": p.navamsa_lord });
-  const rows = [...Object.values(np.navamsa_64).map((p) => row("64th navamsa", p)), ...Object.values(np.pada_88).map((p) => row("88th pada", p))];
+  const rows = Object.values(np.navamsa_64).map((p) => row("64th navamsa", p));
+  const nth = (d) => ["1st", "2nd", "3rd"][d - 1];
+  const rows22 = Object.values(np.drekkana_22 || {}).map((p) => ({ point: "22nd drekkana", from: p.origin,
+    span: `${p.sign} ${nth(p.drekkana)} drekkana (${(p.start % 30).toFixed(0)}°–${(p.start % 30 + 10).toFixed(0)}°)`,
+    "D3 sign": p.d3_sign, lord: p.lord }));
   const lag = np.nakshatra_lagnesha;
-  return `${table(rows)}
+  return `${table(rows)}${rows22.length ? table(rows22) : `<p class="muted small">The 22nd drekkana: not computed for this chart (stored before it replaced the 88th pada).</p>`}
     <p class="small">Abhijit (276°40′ to 280°53′20″): ${np.abhijit.occupants.length ? esc(np.abhijit.occupants.join(", ")) : "no body or lagna in it"}.</p>
     <p class="small">Nakshatra lagnesha (lord of the lagna's nakshatra, ${esc(lag.lagna_nakshatra)}): <strong>${esc(lag.planet)}</strong>, in ${esc(lag.sign)} (the ${esc(lag.house)}), ${esc(lag.nakshatra)}, ${esc(lag.dignity || "–")}.</p>
     <p class="muted tiny">Sources: ${Object.entries(np.sources).map(([k, s]) => `${esc(k.replaceAll("_", " "))}: ${esc(s.text)}${s.checked ? "" : " (not yet checked)"}`).join(" · ")}.</p>`;

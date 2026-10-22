@@ -73,6 +73,7 @@ class NakAttributes(BaseModel):
     deity: str
     gana: str
     yoni: str
+    yoni_sex: str | None = None    # the yoni koota's male or female animal; None only on a chart stored before 2026-10-23
     nadi: str
     tri_nadi: str
     gender: str
@@ -279,7 +280,7 @@ class BhavaBala(BaseModel):
 
 
 class SpecialPoint(BaseModel):
-    """A pada counted from a body (nakpoints.py): the 64th navamsa or the 88th pada."""
+    """A pada counted from a body (nakpoints.py): the 64th navamsa."""
     origin: str                    # moon | lagna
     count: int
     start: float                   # sidereal longitude, degrees
@@ -290,6 +291,18 @@ class SpecialPoint(BaseModel):
     nakshatra_lord: str
     navamsa_sign: str
     navamsa_lord: str
+
+
+class DrekkanaPoint(BaseModel):
+    """A drekkana counted from a body (nakpoints.py): the 22nd, the Khara drekkana."""
+    origin: str                    # moon | lagna
+    count: int
+    start: float                   # sidereal longitude, degrees
+    end: float
+    sign: str
+    drekkana: int                  # 1, 2 or 3 within the sign
+    d3_sign: str                   # the span's sign in D3 (Parashari): its lord is the drekkana lord
+    lord: str
 
 
 class AbhijitInfo(BaseModel):
@@ -310,7 +323,7 @@ class NakLagnesha(BaseModel):
 class NakshatraPoints(BaseModel):
     """SPEC Layer 2's special nakshatra points, with their sources (none yet checked)."""
     navamsa_64: dict[str, SpecialPoint]
-    pada_88: dict[str, SpecialPoint]
+    drekkana_22: dict[str, DrekkanaPoint] | None = None   # None only on a chart stored with the 88th pada, before 2026-10-23
     abhijit: AbhijitInfo
     nakshatra_lagnesha: NakLagnesha
     sources: dict[str, dict[str, Any]]
@@ -392,6 +405,7 @@ class Uncertainty(BaseModel):
     house_systems: list[str]
     varga_stability: dict[str, float]                  # the lagna's sign per varga, time axis
     placements: dict[str, dict[str, Stability]]        # varga -> body (and Asc) -> stability
+    nakshatras: dict[str, Stability] | None = None     # body (and Asc) -> its nakshatra's stability; None only on a chart stored before 2026-10-23
     boundaries: list[BoundaryStability]
     rules_elsewhere: list[RuleShare]
     seconds: float

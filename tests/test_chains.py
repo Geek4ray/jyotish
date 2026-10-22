@@ -45,7 +45,10 @@ def test_career_lord_chains_on_the_reference_chart(chart):
     assert d["navamsa"]["ends_in"] == ["Saturn"] and d["exchanges"] == []
     assert "Saturn is in no nakshatra loop; its final nakshatra dispositors are Mars and Mercury" in f["facts"]
     assert "Saturn is its own final navamsa dispositor" in f["facts"]
-    assert f["allowed_tags"] == ["chain:career.lord"] and f["stability"] == 1.0
+    # The navamsa step states Saturn's house from the D9 lagna, which is 0.78 stable on this chart
+    # (SPEC: the navamsa boundary 1.4 minutes of clock away); every other link holds in every sample.
+    assert f["allowed_tags"] == ["chain:career.lord"]
+    assert f["stability"] == pytest.approx(chart.uncertainty.varga_stability["D9"]) and 0.7 < f["stability"] < 0.85
 
 
 def test_loops_exchanges_and_activation(chart):
@@ -85,6 +88,23 @@ def test_the_charts_final_dispositors(chart):
         ("sign", ("Jupiter", "Venus")), ("nakshatra", ("Mars", "Mercury")), ("navamsa", ("Jupiter", "Mars"))}
     assert all("chain:personality.chart" not in [x["finding_id"] for x in area_chain_findings(chart, a)]
                for a in AREAS if a != "personality")
+
+
+def test_a_chain_is_as_stable_as_its_nakshatra_links(chart):
+    # Fifteen minutes after the reference birth the lagna is within the +-2-minute window of the
+    # Krittika/Rohini edge: its nakshatra, the first link of the lagna's nakshatra chain, holds in a
+    # share of the samples below 1, and the chart's chain finding is no more stable than that.
+    from datetime import timedelta
+    near = assess(REFERENCE_BIRTH_UTC + timedelta(minutes=15), REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    share = near.uncertainty.nakshatras["Asc"].time
+    assert near.lagnas.asc_nak == "Rohini" and 0.5 < share < 1.0
+    f = by_id(near, "personality")["chain:personality.chart"]
+    assert f["stability"] <= share
+    # Every stamped placement a finding's steps state bounds it: on the reference chart the Moon's
+    # nakshatra (Chitra, 5 degrees from an edge) and sign hold in every sample.
+    u = chart.uncertainty
+    assert set(u.nakshatras) == set(chart.bodies) | {"Asc"} and u.nakshatras["Moon"].time == 1.0
+    assert all(0.0 <= s.time <= 1.0 and s.label for s in u.nakshatras.values())
 
 
 def test_a_karaka_that_is_the_lord_is_one_finding(chart):

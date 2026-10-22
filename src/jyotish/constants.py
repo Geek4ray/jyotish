@@ -86,8 +86,8 @@ NAKSHATRAS = [
 NAKSHATRA_SPAN = 360.0 / 27.0  # 13°20'
 
 # --- the 27 nakshatras' attributes (SPEC Layer 2, nakshatra layer) ---------------------------
-# One row per nakshatra, Ashwini first: deity, gana, yoni (animal), nadi (dosha), tri-nadi segment,
-# gender, direction, activity. Each column's source is in NAK_ATTRIBUTE_SOURCES; none has been
+# One row per nakshatra, Ashwini first: deity, gana, yoni (animal) and the animal's sex, nadi (dosha),
+# tri-nadi segment, gender (the modern listing), direction, activity. Each column's source is in NAK_ATTRIBUTE_SOURCES; none has been
 # read against its edition yet (checked: false), and where texts are known to differ the note
 # says so. Nadi and the tri-nadi segment are one classification under two names (adi = vata,
 # madhya = pitta, antya = kapha), kept as two columns because the koota tables use the first and
@@ -109,41 +109,47 @@ NAK_ATTRIBUTE_SOURCES = {
                   "chapter": 11, "checked": False,
                   "note": "seven nakshatras to each quarter from Krittika (east); with Abhijit the west has seven, "
                           "without it six"},
+    "yoni_sex": {"text": "Muhurta Chintamani", "edition": "G.C. Sharma (edition to be confirmed by the reader)",
+                 "chapter": 6, "checked": False,
+                 "note": "the Yoni koota's male or female animal: every animal has one of each (the mongoose a male "
+                         "alone), so the column is checkable against itself"},
     "gender": {"text": "not yet located in a classical text", "edition": None, "checked": False,
-               "note": "the listing common in modern compilations; texts differ on Mrigashira, Mula and "
-                       "Shatabhisha, which some count neuter"},
+               "note": "the listing of the modern compilations: eight male (Ashwini, Punarvasu, Pushya, Hasta, Anuradha, "
+                       "Shravana, Purva and Uttara Bhadrapada), three neuter where the texts differ (Mrigashira, Mula, "
+                       "Shatabhisha), sixteen female. The first table (2026-10-22) mixed this with the yoni's sex and "
+                       "matched neither (review 2026-10-23, F8); the koota's sex is yoni_sex"},
 }
 _NAK_ROWS = [
-    # deity, gana, yoni, nadi, tri_nadi, gender, direction, activity
-    ("Ashwini Kumaras", "deva", "horse", "vata", "adi", "male", "north", "kshipra"),
-    ("Yama", "manushya", "elephant", "pitta", "madhya", "male", "north", "ugra"),
-    ("Agni", "rakshasa", "sheep", "kapha", "antya", "female", "east", "mishra"),
-    ("Brahma", "manushya", "serpent", "kapha", "antya", "female", "east", "dhruva"),
-    ("Soma", "deva", "serpent", "pitta", "madhya", "female", "east", "mridu"),
-    ("Rudra", "manushya", "dog", "vata", "adi", "female", "east", "tikshna"),
-    ("Aditi", "deva", "cat", "vata", "adi", "female", "east", "chara"),
-    ("Brihaspati", "deva", "sheep", "pitta", "madhya", "male", "east", "kshipra"),
-    ("Sarpas", "rakshasa", "cat", "kapha", "antya", "male", "east", "tikshna"),
-    ("Pitris", "rakshasa", "rat", "kapha", "antya", "male", "south", "ugra"),
-    ("Bhaga", "manushya", "rat", "pitta", "madhya", "female", "south", "ugra"),
-    ("Aryaman", "manushya", "cow", "vata", "adi", "male", "south", "dhruva"),
-    ("Savitar", "deva", "buffalo", "vata", "adi", "female", "south", "kshipra"),
-    ("Tvashtar", "rakshasa", "tiger", "pitta", "madhya", "female", "south", "mridu"),
-    ("Vayu", "deva", "buffalo", "kapha", "antya", "male", "south", "chara"),
-    ("Indragni", "rakshasa", "tiger", "kapha", "antya", "female", "south", "mishra"),
-    ("Mitra", "deva", "deer", "pitta", "madhya", "female", "west", "mridu"),
-    ("Indra", "rakshasa", "deer", "vata", "adi", "male", "west", "tikshna"),
-    ("Nirriti", "rakshasa", "dog", "vata", "adi", "male", "west", "tikshna"),
-    ("Apas", "manushya", "monkey", "pitta", "madhya", "male", "west", "ugra"),
-    ("Vishvedevas", "manushya", "mongoose", "kapha", "antya", "male", "west", "dhruva"),
-    ("Vishnu", "deva", "monkey", "kapha", "antya", "male", "west", "chara"),
-    ("Vasus", "rakshasa", "lion", "pitta", "madhya", "female", "north", "chara"),
-    ("Varuna", "rakshasa", "horse", "vata", "adi", "female", "north", "chara"),
-    ("Aja Ekapada", "manushya", "lion", "vata", "adi", "male", "north", "ugra"),
-    ("Ahirbudhnya", "manushya", "cow", "pitta", "madhya", "male", "north", "dhruva"),
-    ("Pushan", "deva", "elephant", "kapha", "antya", "female", "north", "mridu"),
+    # deity, gana, yoni, yoni_sex, nadi, tri_nadi, gender, direction, activity
+    ("Ashwini Kumaras", "deva", "horse", "male", "vata", "adi", "male", "north", "kshipra"),
+    ("Yama", "manushya", "elephant", "male", "pitta", "madhya", "female", "north", "ugra"),
+    ("Agni", "rakshasa", "sheep", "female", "kapha", "antya", "female", "east", "mishra"),
+    ("Brahma", "manushya", "serpent", "male", "kapha", "antya", "female", "east", "dhruva"),
+    ("Soma", "deva", "serpent", "female", "pitta", "madhya", "neuter", "east", "mridu"),
+    ("Rudra", "manushya", "dog", "female", "vata", "adi", "female", "east", "tikshna"),
+    ("Aditi", "deva", "cat", "female", "vata", "adi", "male", "east", "chara"),
+    ("Brihaspati", "deva", "sheep", "male", "pitta", "madhya", "male", "east", "kshipra"),
+    ("Sarpas", "rakshasa", "cat", "male", "kapha", "antya", "female", "east", "tikshna"),
+    ("Pitris", "rakshasa", "rat", "male", "kapha", "antya", "female", "south", "ugra"),
+    ("Bhaga", "manushya", "rat", "female", "pitta", "madhya", "female", "south", "ugra"),
+    ("Aryaman", "manushya", "cow", "male", "vata", "adi", "female", "south", "dhruva"),
+    ("Savitar", "deva", "buffalo", "female", "vata", "adi", "male", "south", "kshipra"),
+    ("Tvashtar", "rakshasa", "tiger", "female", "pitta", "madhya", "female", "south", "mridu"),
+    ("Vayu", "deva", "buffalo", "male", "kapha", "antya", "female", "south", "chara"),
+    ("Indragni", "rakshasa", "tiger", "male", "kapha", "antya", "female", "south", "mishra"),
+    ("Mitra", "deva", "deer", "female", "pitta", "madhya", "male", "west", "mridu"),
+    ("Indra", "rakshasa", "deer", "male", "vata", "adi", "female", "west", "tikshna"),
+    ("Nirriti", "rakshasa", "dog", "male", "vata", "adi", "neuter", "west", "tikshna"),
+    ("Apas", "manushya", "monkey", "male", "pitta", "madhya", "female", "west", "ugra"),
+    ("Vishvedevas", "manushya", "mongoose", "male", "kapha", "antya", "female", "west", "dhruva"),
+    ("Vishnu", "deva", "monkey", "female", "kapha", "antya", "male", "west", "chara"),
+    ("Vasus", "rakshasa", "lion", "female", "pitta", "madhya", "female", "north", "chara"),
+    ("Varuna", "rakshasa", "horse", "female", "vata", "adi", "neuter", "north", "chara"),
+    ("Aja Ekapada", "manushya", "lion", "male", "vata", "adi", "male", "north", "ugra"),
+    ("Ahirbudhnya", "manushya", "cow", "female", "pitta", "madhya", "male", "north", "dhruva"),
+    ("Pushan", "deva", "elephant", "female", "kapha", "antya", "female", "north", "mridu"),
 ]
-NAK_ATTRIBUTE_KEYS = ("deity", "gana", "yoni", "nadi", "tri_nadi", "gender", "direction", "activity")
+NAK_ATTRIBUTE_KEYS = ("deity", "gana", "yoni", "yoni_sex", "nadi", "tri_nadi", "gender", "direction", "activity")
 NAK_ATTRIBUTES = [dict(zip(NAK_ATTRIBUTE_KEYS, row)) for row in _NAK_ROWS]
 PADA_SPAN = NAKSHATRA_SPAN / 4.0  # 3°20'
 

@@ -17,9 +17,11 @@ each chain, with the bodies (the lagna included) that end in each.
 
 The rows are the engine's; `facts` states them in sentences, and those are what the semantic
 checker reads a [chain:<area>.<lord|karaka|chart>] sentence against. Stability: the smallest
-time-share of the D1 and D9 placements of every planet the chains pass through, and of the
-lagna's D1 sign (house numbers). The sampler does not stamp nakshatras, so the nakshatra chain's
-own boundary is not in that number."""
+time-share of what the chains' steps state: the D1 sign of every planet passed (every step names
+its sign and house) and of the lagna (the house numbers), the D9 sign of every planet in the
+navamsa chain and of the D9 lagna, and the nakshatra of every planet in the nakshatra chain,
+from the sampler's nakshatra block (review 2026-10-23, F6). A chart stored before that block
+existed gives the number without the nakshatra links."""
 
 from __future__ import annotations
 
@@ -186,12 +188,27 @@ def _activation_words(planet: str, x: dict) -> str:
 
 # --- the findings -----------------------------------------------------------------------------
 
-def _stability(chart: Chart, planets: set[str]) -> float | None:
+def _stability(chart: Chart, chains: dict[str, dict]) -> float | None:
+    """The smallest time-share among the placements the chains' steps state (see the module
+    docstring); `chains` maps the kind to its chain, or to {"steps": [...]} over any planets."""
     u = chart.uncertainty
     if u is None:
         return None
-    vals = [u.placements[v][p].time for v in ("D1", "D9") for p in planets if p in u.placements.get(v, {})]
-    vals += [u.placements["D1"]["Asc"].time] if "Asc" in u.placements.get("D1", {}) else []
+    d1, d9, naks = u.placements.get("D1", {}), u.placements.get("D9", {}), u.nakshatras or {}
+    vals: list[float] = []
+
+    def add(block: dict, key: str) -> None:
+        if key in block:
+            vals.append(block[key].time)
+    add(d1, "Asc")
+    for kind, c in chains.items():
+        for s in c["steps"]:
+            add(d1, s["planet"])
+            if kind == "navamsa":
+                add(d9, s["planet"])
+                add(d9, "Asc")
+            if kind == "nakshatra":
+                add(naks, s["planet"])
     return min(vals) if vals else None
 
 
@@ -213,13 +230,12 @@ def planet_finding(chart: Chart, area: str, role: str, planet: str, what: str, a
     facts = [f"{planet} is {what}"] + [f for k in KINDS for f in chain_facts(chains[k])] + [_exchange_words(x) for x in ex]
     if act is not None:
         facts += [_activation_words(planet, x) for x in act] or [f"{planet} is in neither current period's activation set"]
-    passed = {s["planet"] for c in chains.values() for s in c["steps"]}
     tag = f"chain:{area}.{role}"
     return {"finding_id": tag, "kind": "chain", "chain": role, "planet": planet, "planets": [planet], "role": what,
             "school": "parashari", "basis": "lagna",
             "derivation": {"sign": chains["sign"], "nakshatra": chains["nakshatra"], "navamsa": chains["navamsa"],
                            "exchanges": ex, **({"activation": act, "as_of": as_of.isoformat()} if act is not None else {})},
-            "facts": facts, "allowed_tags": [tag], "stability": _stability(chart, passed), "confidence": None}
+            "facts": facts, "allowed_tags": [tag], "stability": _stability(chart, chains), "confidence": None}
 
 
 def chart_finding(chart: Chart) -> dict[str, Any]:
@@ -255,10 +271,13 @@ def chart_finding(chart: Chart) -> dict[str, Any]:
                     facts.append(_exchange_words(x))
     rows["exchanges"] = [x for p in GRAHAS for x in exchanges(chart, p) if x["planets"][0] < x["planets"][1]]
     tag = "chain:personality.chart"
+    # Every body's chain of every kind, and the lagna's nakshatra, which starts its nakshatra chain.
+    everything = {kind: {"steps": [{"planet": p} for p in GRAHAS] + ([{"planet": "Asc"}] if kind == "nakshatra" else [])}
+                  for kind in KINDS}
     return {"finding_id": tag, "kind": "chain", "chain": "chart", "planet": None, "planets": finals,
             "role": "the final dispositors of the whole chart", "school": "parashari", "basis": "lagna",
             "derivation": rows, "facts": facts, "allowed_tags": [tag],
-            "stability": _stability(chart, set(GRAHAS)), "confidence": None}
+            "stability": _stability(chart, everything), "confidence": None}
 
 
 def area_chain_findings(chart: Chart, area: str, as_of: date | None = None) -> list[dict[str, Any]]:

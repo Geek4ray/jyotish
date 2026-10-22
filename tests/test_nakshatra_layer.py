@@ -9,7 +9,7 @@ import swisseph as swe
 
 from jyotish.constants import NAK_ATTRIBUTE_KEYS, NAK_ATTRIBUTE_SOURCES, NAK_ATTRIBUTES, NAKSHATRAS
 from jyotish.display import tables
-from jyotish.nakpoints import ABHIJIT, counted_pada, in_abhijit
+from jyotish.nakpoints import ABHIJIT, counted_drekkana, counted_pada, in_abhijit
 from jyotish.nakshatra import navatara
 from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.transits import Sky, transit_timeline
@@ -35,6 +35,15 @@ def test_the_attribute_table_is_whole_and_sourced():
     assert Counter(a["activity"] for a in NAK_ATTRIBUTES) == {
         "dhruva": 4, "chara": 5, "ugra": 5, "mishra": 2, "kshipra": 3, "mridu": 4, "tikshna": 4}
     assert Counter(a["direction"] for a in NAK_ATTRIBUTES) == {"east": 7, "south": 7, "west": 6, "north": 7}
+    # The yoni koota's animals: one male and one female of each, the mongoose a male alone.
+    by_animal: dict = {}
+    for a in NAK_ATTRIBUTES:
+        by_animal.setdefault(a["yoni"], []).append(a["yoni_sex"])
+    assert len(by_animal) == 14 and by_animal["mongoose"] == ["male"]
+    assert all(sorted(v) == ["female", "male"] for k, v in by_animal.items() if k != "mongoose")
+    # The modern listing's gender: eight male, sixteen female, three neuter.
+    assert Counter(a["gender"] for a in NAK_ATTRIBUTES) == {"female": 16, "male": 8, "neuter": 3}
+    assert [NAKSHATRAS[i] for i, a in enumerate(NAK_ATTRIBUTES) if a["gender"] == "neuter"] == ["Mrigashira", "Mula", "Shatabhisha"]
     assert set(NAK_ATTRIBUTE_SOURCES) == set(NAK_ATTRIBUTE_KEYS)
     assert all("text" in s and s["checked"] is False for s in NAK_ATTRIBUTE_SOURCES.values())   # none read yet
 
@@ -42,8 +51,9 @@ def test_the_attribute_table_is_whole_and_sourced():
 def test_each_body_carries_its_nakshatras_attributes(chart):
     moon = chart.bodies["Moon"].nak_attributes
     assert chart.bodies["Moon"].nak_name == "Chitra"
-    assert moon.model_dump() == {"deity": "Tvashtar", "gana": "rakshasa", "yoni": "tiger", "nadi": "pitta",
-                                 "tri_nadi": "madhya", "gender": "female", "direction": "south", "activity": "mridu"}
+    assert moon.model_dump() == {"deity": "Tvashtar", "gana": "rakshasa", "yoni": "tiger", "yoni_sex": "female",
+                                 "nadi": "pitta", "tri_nadi": "madhya", "gender": "female", "direction": "south",
+                                 "activity": "mridu"}
     jup = chart.bodies["Jupiter"]
     assert jup.nak_name == "Rohini" and (jup.nak_attributes.deity, jup.nak_attributes.activity) == ("Brahma", "dhruva")
     assert all(b.nak_attributes.model_dump() == NAK_ATTRIBUTES[b.nak] for b in chart.bodies.values())
@@ -79,14 +89,17 @@ def test_the_special_nakshatra_points(chart, t):
     assert (m64.start, m64.sign, m64.nakshatra, m64.pada, m64.navamsa_sign, m64.navamsa_lord) == \
         (30.0, "Taurus", "Krittika", 2, "Capricorn", "Saturn")
     assert (l64.sign, l64.nakshatra, l64.pada, l64.navamsa_sign, l64.navamsa_lord) == ("Sagittarius", "Mula", 2, "Taurus", "Venus")
-    m88, l88 = np.pada_88["moon"], np.pada_88["lagna"]
-    assert (m88.nakshatra, m88.pada, m88.navamsa_sign) == ("Ashlesha", 2, "Capricorn")
-    assert (l88.nakshatra, l88.pada) == ("PurvaBhadra", 2)
+    # The 22nd drekkana, 210° on like the 64th navamsa: from the Moon (Libra's 1st) Taurus's 1st, D3 Taurus,
+    # Venus; from the lagna (Taurus's 1st) Sagittarius's 1st, D3 Sagittarius, Jupiter.
+    m22, l22 = np.drekkana_22["moon"], np.drekkana_22["lagna"]
+    assert (m22.start, m22.end, m22.sign, m22.drekkana, m22.d3_sign, m22.lord) == (30.0, 40.0, "Taurus", 1, "Taurus", "Venus")
+    assert (l22.start, l22.sign, l22.drekkana, l22.d3_sign, l22.lord) == (240.0, "Sagittarius", 1, "Sagittarius", "Jupiter")
+    assert m22.start == m64.start and (m22.count, m22.origin) == (22, "moon")
     assert np.abhijit.occupants == [] and (np.abhijit.start, round(np.abhijit.end, 6)) == (276 + 40 / 60, 280.888889)
     lag = np.nakshatra_lagnesha
     assert (lag.planet, lag.lagna_nakshatra, lag.sign, lag.house, lag.nakshatra, lag.dignity) == \
         ("Sun", "Krittika", "Aquarius", 10, "PurvaBhadra", "enemy")
-    assert set(np.sources) == {"navamsa_64", "pada_88", "abhijit", "nakshatra_lagnesha"}
+    assert set(np.sources) == {"navamsa_64", "drekkana_22", "abhijit", "nakshatra_lagnesha"}
     assert all(s["checked"] is False for s in np.sources.values())
     assert t["nakshatra_points"]["nakshatra_lagnesha"]["planet"] == "Sun"
 
@@ -98,6 +111,12 @@ def test_pada_and_abhijit_boundaries():
     assert counted_pada(359.999, 2, "x").nakshatra == "Ashwini"                    # counts wrap at Revati
     assert counted_pada(0.0, 64, "x").start == pytest.approx(210.0)              # 63 padas on
     assert in_abhijit(ABHIJIT[0]) and not in_abhijit(ABHIJIT[0] - 1e-9) and not in_abhijit(ABHIJIT[1])
+    # Drekkanas: 36 * lon / 360; the 22nd is 21 on, 210°, whatever the start; the lord is the D3 sign's.
+    assert (counted_drekkana(10.0 - 1e-9, 1, "x").drekkana, counted_drekkana(10.0, 1, "x").drekkana) == (1, 2)
+    assert counted_drekkana(0.0, 22, "x").start == pytest.approx(210.0) and counted_drekkana(359.9, 2, "x").sign == "Aries"
+    third = counted_drekkana(25.0, 22, "x")                                       # Aries's 3rd -> Scorpio's 3rd
+    assert (third.sign, third.drekkana, third.d3_sign, third.lord) == ("Scorpio", 3, "Cancer", "Moon")
+    assert counted_drekkana(45.0, 1, "x").d3_sign == "Virgo"                     # Taurus's 2nd: the 5th sign from it
 
 
 @pytest.fixture(scope="module")

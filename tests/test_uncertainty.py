@@ -57,6 +57,17 @@ def test_lagna_varga_stability(run):
     assert u.placements["D1"]["Moon"].time == 1.0   # the Moon does not leave Libra in 4 minutes
 
 
+def test_nakshatras_are_stamped(run):
+    u = run[0].uncertainty
+    assert set(u.nakshatras) == {"Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Asc"}
+    for s in u.nakshatras.values():
+        assert 0.0 <= s.time <= 1.0 and 0.0 <= s.ayanamsa <= 1.0 and 0.0 <= s.house <= 1.0 and s.label == label(s.time)
+    # Nothing on this chart is within the window of a nakshatra edge: the Moon moves a minute of arc
+    # in four minutes, the lagna a degree, and both are degrees away from an edge (Jupiter 39').
+    assert all(s.time == 1.0 for s in u.nakshatras.values())
+    assert u.nakshatras["Asc"].house == 1.0 and u.nakshatras["Moon"].ayanamsa == 1.0   # Chitra under all three
+
+
 def test_dasha_boundary_in_days(run):
     u = run[0].uncertainty
     rahu = next(b for b in u.boundaries if b.system == "vimshottari" and b.lords == ["Rahu"])
