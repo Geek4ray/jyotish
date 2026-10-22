@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-22 (doc rev 93). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-10-22 (doc rev 94). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -198,7 +198,7 @@ The engine evaluates every rule against the graph and emits a list of `fired_rul
 7. Varga-specific: D9 vargottama and Pushkara, D10 Amatyakaraka placement, D7 Santana, D30 trimsamsa deities, D60 shashtiamsa deities with their benefic/malefic class.
 8. Stri Jataka (BPHS ch. 80 and Saravali's female-chart rules: Jupiter and the 8th for marital life, Mangalya), Balarishta and its cancellations (reported as indications only).
 
-Target: 300+ rules by launch, each with a text source and edition. Statuses: a cited rule starts `classical_unconfirmed` and stays in default scoring; `classical_rejected` after a powered null result in Layer 6 (shown to learners as classical, disconfirmed); `not_testable_yet` when no measured outcome maps to its themes or the test is under-powered; `experimental` for an uncited rule, excluded from default scoring; `data_confirmed` after a powered positive result.
+Target: 300+ rules by launch, each with a text source and edition. Statuses: a rule whose effect was written before its verse was read in the named edition is a draft (added 2026-10-22, when 252 placement rules were generated from the principles of BPHS 24 and Phaladeepika 8 rather than from the verses): it fires and is recorded, is narrated as a placement fact only (the planet, its lordship, its house), shows its effect line in the learner material marked as a draft, and carries no weight in scoring; it becomes classical\_unconfirmed only when a named person has read the verse in the named edition and set the source to checked, and the table records who. A cited rule starts `classical_unconfirmed` and stays in default scoring; `classical_rejected` after a powered null result in Layer 6 (shown to learners as classical, disconfirmed); `not_testable_yet` when no measured outcome maps to its themes or the test is under-powered; `experimental` for an uncited rule, excluded from default scoring; `data_confirmed` after a powered positive result.
 
 ## Layer 4 — Time engine
 
