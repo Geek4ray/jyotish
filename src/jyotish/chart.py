@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 from .argala import argala as compute_argala
 from .ashtakavarga import ashtakavarga
 from .bhava_bala import bhava_bala as compute_bhava_bala
-from .constants import GRAHAS, SEVEN, SIGNS
+from .constants import GRAHAS, NAK_ATTRIBUTES, SEVEN, SIGNS
 from .dasha import chara, vimshottari, yogini
+from .nakpoints import nakshatra_points
 from .dignity import (
     aspects, baladi_avastha, deep_exaltation_distance, dignity, functional_roles, gandanta,
     house_of, is_boundary, is_combust, lordships, marana_karaka_sthana, pushkara_bhaga,
@@ -20,7 +21,7 @@ from .dispositors import navamsa_chains, nakshatra_chains, parivartanas, sign_ch
 from .ephemeris import ayanamsa_value, compute_sky, julian_day, next_sunrise, sunrise_sunset
 from .jaimini import all_arudhas, chara_karakas, karakamsa
 from .models import (
-    ArgalaOn, Ashtakavarga, BhavaBala, Birth, Body, HouseStrength, IshtaKashta, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
+    ArgalaOn, Ashtakavarga, BhavaBala, Birth, Body, NakAttributes, HouseStrength, IshtaKashta, Chart, DashaPeriod, Dispositors, Features, Jaimini, Lagnas, Loop, Meta,
     KalaBala, PanchangaInfo, Pinda, PlanetShadbala, Shadbala, SthanaBala, TaraInfo,
     TimePosterior, Yuddha,
 )
@@ -83,7 +84,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             vargottama=is_vargottama(lon),
             marana_karaka_sthana=marana_karaka_sthana(name, house),
             gandanta=gandanta(lon), pushkara_navamsa=pushkara_navamsa(lon),
-            pushkara_bhaga=pushkara_bhaga(lon),
+            pushkara_bhaga=pushkara_bhaga(lon), nak_attributes=NakAttributes(**NAK_ATTRIBUTES[nak.index]),
         )
         if name in SEVEN:
             body.dignity = dignity(name, lon)
@@ -153,6 +154,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             positions, lagna_sign, all_arudhas(lagna_sign, positions)["AL"], nodes=meta.argala_nodes,
             ak=chara_karakas(positions, meta.karaka_scheme)["AK"],
             mercury_nature=meta.mercury_nature).items()},
+        nakshatra_points=nakshatra_points(positions, asc, bodies),
     )
 
     pinfo = None

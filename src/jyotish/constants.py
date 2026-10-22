@@ -84,6 +84,67 @@ NAKSHATRAS = [
     "UttaraBhadra", "Revati",
 ]
 NAKSHATRA_SPAN = 360.0 / 27.0  # 13°20'
+
+# --- the 27 nakshatras' attributes (SPEC Layer 2, nakshatra layer) ---------------------------
+# One row per nakshatra, Ashwini first: deity, gana, yoni (animal), nadi (dosha), tri-nadi segment,
+# gender, direction, activity. Each column's source is in NAK_ATTRIBUTE_SOURCES; none has been
+# read against its edition yet (checked: false), and where texts are known to differ the note
+# says so. Nadi and the tri-nadi segment are one classification under two names (adi = vata,
+# madhya = pitta, antya = kapha), kept as two columns because the koota tables use the first and
+# the Nadi texts the second.
+NAK_ATTRIBUTE_SOURCES = {
+    "deity": {"text": "Brihat Samhita", "edition": "M. Ramakrishna Bhat 1981", "chapter": 98, "checked": False},
+    "activity": {"text": "Brihat Samhita", "edition": "M. Ramakrishna Bhat 1981", "chapter": 98, "checked": False,
+                 "note": "the seven classes: dhruva (fixed), chara (movable), ugra (fierce), mishra (mixed), "
+                         "kshipra (swift), mridu (soft), tikshna (sharp)"},
+    "gana": {"text": "Muhurta Chintamani", "edition": "G.C. Sharma (edition to be confirmed by the reader)",
+             "chapter": 6, "checked": False, "note": "the marriage koota tables"},
+    "yoni": {"text": "Muhurta Chintamani", "edition": "G.C. Sharma (edition to be confirmed by the reader)",
+             "chapter": 6, "checked": False},
+    "nadi": {"text": "Muhurta Chintamani", "edition": "G.C. Sharma (edition to be confirmed by the reader)",
+             "chapter": 6, "checked": False},
+    "tri_nadi": {"text": "Muhurta Chintamani", "edition": "G.C. Sharma (edition to be confirmed by the reader)",
+                 "chapter": 6, "checked": False, "note": "the same three groups as nadi, by segment"},
+    "direction": {"text": "Muhurta Chintamani", "edition": "G.C. Sharma (edition to be confirmed by the reader)",
+                  "chapter": 11, "checked": False,
+                  "note": "seven nakshatras to each quarter from Krittika (east); with Abhijit the west has seven, "
+                          "without it six"},
+    "gender": {"text": "not yet located in a classical text", "edition": None, "checked": False,
+               "note": "the listing common in modern compilations; texts differ on Mrigashira, Mula and "
+                       "Shatabhisha, which some count neuter"},
+}
+_NAK_ROWS = [
+    # deity, gana, yoni, nadi, tri_nadi, gender, direction, activity
+    ("Ashwini Kumaras", "deva", "horse", "vata", "adi", "male", "north", "kshipra"),
+    ("Yama", "manushya", "elephant", "pitta", "madhya", "male", "north", "ugra"),
+    ("Agni", "rakshasa", "sheep", "kapha", "antya", "female", "east", "mishra"),
+    ("Brahma", "manushya", "serpent", "kapha", "antya", "female", "east", "dhruva"),
+    ("Soma", "deva", "serpent", "pitta", "madhya", "female", "east", "mridu"),
+    ("Rudra", "manushya", "dog", "vata", "adi", "female", "east", "tikshna"),
+    ("Aditi", "deva", "cat", "vata", "adi", "female", "east", "chara"),
+    ("Brihaspati", "deva", "sheep", "pitta", "madhya", "male", "east", "kshipra"),
+    ("Sarpas", "rakshasa", "cat", "kapha", "antya", "male", "east", "tikshna"),
+    ("Pitris", "rakshasa", "rat", "kapha", "antya", "male", "south", "ugra"),
+    ("Bhaga", "manushya", "rat", "pitta", "madhya", "female", "south", "ugra"),
+    ("Aryaman", "manushya", "cow", "vata", "adi", "male", "south", "dhruva"),
+    ("Savitar", "deva", "buffalo", "vata", "adi", "female", "south", "kshipra"),
+    ("Tvashtar", "rakshasa", "tiger", "pitta", "madhya", "female", "south", "mridu"),
+    ("Vayu", "deva", "buffalo", "kapha", "antya", "male", "south", "chara"),
+    ("Indragni", "rakshasa", "tiger", "kapha", "antya", "female", "south", "mishra"),
+    ("Mitra", "deva", "deer", "pitta", "madhya", "female", "west", "mridu"),
+    ("Indra", "rakshasa", "deer", "vata", "adi", "male", "west", "tikshna"),
+    ("Nirriti", "rakshasa", "dog", "vata", "adi", "male", "west", "tikshna"),
+    ("Apas", "manushya", "monkey", "pitta", "madhya", "male", "west", "ugra"),
+    ("Vishvedevas", "manushya", "mongoose", "kapha", "antya", "male", "west", "dhruva"),
+    ("Vishnu", "deva", "monkey", "kapha", "antya", "male", "west", "chara"),
+    ("Vasus", "rakshasa", "lion", "pitta", "madhya", "female", "north", "chara"),
+    ("Varuna", "rakshasa", "horse", "vata", "adi", "female", "north", "chara"),
+    ("Aja Ekapada", "manushya", "lion", "vata", "adi", "male", "north", "ugra"),
+    ("Ahirbudhnya", "manushya", "cow", "pitta", "madhya", "male", "north", "dhruva"),
+    ("Pushan", "deva", "elephant", "kapha", "antya", "female", "north", "mridu"),
+]
+NAK_ATTRIBUTE_KEYS = ("deity", "gana", "yoni", "nadi", "tri_nadi", "gender", "direction", "activity")
+NAK_ATTRIBUTES = [dict(zip(NAK_ATTRIBUTE_KEYS, row)) for row in _NAK_ROWS]
 PADA_SPAN = NAKSHATRA_SPAN / 4.0  # 3°20'
 
 # Vimshottari order and years; nakshatra lords repeat this cycle three times from Ashwini.

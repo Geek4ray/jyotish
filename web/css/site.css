@@ -300,3 +300,10 @@ blockquote.paragraph-quote { border-left: 3px solid var(--accent); padding: 4px 
   .dasha-tables { grid-template-columns: minmax(0, 1fr); }
   .guided-keys { display: none; }
 }
+
+/* the dispositor chains on the chart page: arrows, the loop's planets marked */
+.chain-kind { display: flex; flex-direction: column; gap: 6px; }
+.chain-list { list-style: none; margin: 0; padding: 0; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.chain-list .in-loop { color: var(--accent); font-weight: 600; }
+.loop-back { color: var(--muted); }
+.loop-chip { display: inline-block; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 1px 10px; margin-right: 4px; }

@@ -68,6 +68,18 @@ class TaraInfo(BaseModel):
     special: str | None = None
 
 
+class NakAttributes(BaseModel):
+    """The nakshatra's attributes (constants.NAK_ATTRIBUTES, sources on the table)."""
+    deity: str
+    gana: str
+    yoni: str
+    nadi: str
+    tri_nadi: str
+    gender: str
+    direction: str
+    activity: str
+
+
 class Body(BaseModel):
     lon: float
     sign: int
@@ -94,6 +106,7 @@ class Body(BaseModel):
     gandanta: bool = False
     pushkara_navamsa: bool = False
     pushkara_bhaga: bool = False
+    nak_attributes: NakAttributes | None = None     # None only on a chart stored before the table
 
 
 class Lagnas(BaseModel):
@@ -265,6 +278,44 @@ class BhavaBala(BaseModel):
     sripati: dict[int, HouseStrength]
 
 
+class SpecialPoint(BaseModel):
+    """A pada counted from a body (nakpoints.py): the 64th navamsa or the 88th pada."""
+    origin: str                    # moon | lagna
+    count: int
+    start: float                   # sidereal longitude, degrees
+    end: float
+    sign: str
+    nakshatra: str
+    pada: int
+    nakshatra_lord: str
+    navamsa_sign: str
+    navamsa_lord: str
+
+
+class AbhijitInfo(BaseModel):
+    start: float
+    end: float
+    occupants: list[str]
+
+
+class NakLagnesha(BaseModel):
+    planet: str
+    lagna_nakshatra: str
+    sign: str
+    house: int
+    nakshatra: str
+    dignity: str | None
+
+
+class NakshatraPoints(BaseModel):
+    """SPEC Layer 2's special nakshatra points, with their sources (none yet checked)."""
+    navamsa_64: dict[str, SpecialPoint]
+    pada_88: dict[str, SpecialPoint]
+    abhijit: AbhijitInfo
+    nakshatra_lagnesha: NakLagnesha
+    sources: dict[str, dict[str, Any]]
+
+
 class Features(BaseModel):
     lordship: dict[str, list[int]]
     roles: dict[str, list[str]]
@@ -278,6 +329,7 @@ class Features(BaseModel):
     ishta_kashta: dict[str, IshtaKashta] | None = None   # needs Shadbala
     argala: dict[str, ArgalaOn]                      # H1-H12 and AL (BPHS 31.2-9)
     sudarshana_h10: dict[str, list[str]]
+    nakshatra_points: NakshatraPoints | None = None   # None only on a chart stored before they were computed
 
 
 class Stability(BaseModel):
@@ -382,6 +434,26 @@ class TransitRow(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
 
+class TaraRow(BaseModel):
+    """A body in one nakshatra, read by its tara from the natal Moon (transits.tara_rows): slow
+    planets entering an adverse tara, and every Moon nakshatra span (the daily Tara bala). Tagged,
+    not yet scored."""
+    kind: Literal["tara"] = "tara"
+    body: str
+    nakshatra: str
+    tara: str
+    count: int                     # 1-27 from the natal Moon's nakshatra
+    cycle: int
+    adverse: bool
+    special: str | None = None
+    start_jd: float
+    end_jd: float
+    entered: str | None            # "direct" | "retrograde"; None when clipped at range start
+    clipped_start: bool = False
+    clipped_end: bool = False
+    tags: list[str] = Field(default_factory=list)
+
+
 class TimelineWindow(BaseModel):
     kind: str                      # sade_sati, kantaka_shani, ashtama_shani, jupiter_1_5_9_11, nodal_return, saturn_return
     start_jd: float
@@ -397,6 +469,7 @@ class Timeline(BaseModel):
     node: str
     rows: list[TransitRow]
     windows: list[TimelineWindow]
+    tara_rows: list[TaraRow] = Field(default_factory=list)
 
     def active(self, jd: float) -> list[TimelineWindow]:
         return [w for w in self.windows if w.start_jd <= jd < w.end_jd]
@@ -465,7 +538,7 @@ class TaggedTimeline(BaseModel):
     transit windows alongside."""
     start_jd: float
     end_jd: float
-    rows: list[Annotated[DashaRow | TransitRow, Field(discriminator="kind")]]
+    rows: list[Annotated[DashaRow | TransitRow | TaraRow, Field(discriminator="kind")]]
     windows: list[TimelineWindow]
 
 

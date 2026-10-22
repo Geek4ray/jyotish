@@ -25,6 +25,34 @@ function dashaTree(v) {
     <p class="muted tiny">${esc(v.note)}</p>`;
 }
 
+// The three dispositor chains as arrows; the planets of the loop each chain ends in are marked.
+function chains(d) {
+  const kinds = [["sign", "Sign"], ["nakshatra", "Nakshatra"], ["navamsa", "Navamsa (D9)"]];
+  return kinds.map(([k, label]) => {
+    const block = d[k];
+    const rows = block.rows.map((r) => {
+      const inLoop = new Set(r.loop);
+      const back = r.loop.length > 1 ? ` <span class="loop-back" title="back to ${esc(r.loop[0])}">⟲ ${esc(r.loop.join("–"))}</span>`
+        : ` <span class="loop-back" title="self-disposited">⟲ self</span>`;
+      return `<li data-planet="${esc(r.planet)}" data-kind="${k}">${r.chain.map((p) => `<span class="${inLoop.has(p) ? "in-loop" : ""}">${esc(p)}</span>`).join(" → ")}${back}</li>`;
+    }).join("");
+    const loops = block.loops.map((l) => `<span class="loop-chip">${esc(l.length > 1 ? `${l.join("–")} loop` : `${l[0]}, self-disposited`)}</span>`).join(" ");
+    return `<div class="chain-kind" data-kind="${k}"><h3>${esc(label)}</h3><p class="small">Ends in: ${loops}</p><ul class="chain-list">${rows}</ul></div>`;
+  }).join("");
+}
+
+function points(np) {
+  if (!np) return `<p class="muted small">Not computed for this chart (stored before the points were).</p>`;
+  const row = (name, p) => ({ point: name, from: p.origin, sign: p.sign, nakshatra: `${p.nakshatra} ${p.pada}`,
+    "nakshatra lord": p.nakshatra_lord, "navamsa sign": p.navamsa_sign, "navamsa lord": p.navamsa_lord });
+  const rows = [...Object.values(np.navamsa_64).map((p) => row("64th navamsa", p)), ...Object.values(np.pada_88).map((p) => row("88th pada", p))];
+  const lag = np.nakshatra_lagnesha;
+  return `${table(rows)}
+    <p class="small">Abhijit (276°40′ to 280°53′20″): ${np.abhijit.occupants.length ? esc(np.abhijit.occupants.join(", ")) : "no body or lagna in it"}.</p>
+    <p class="small">Nakshatra lagnesha (lord of the lagna's nakshatra, ${esc(lag.lagna_nakshatra)}): <strong>${esc(lag.planet)}</strong>, in ${esc(lag.sign)} (the ${esc(lag.house)}), ${esc(lag.nakshatra)}, ${esc(lag.dignity || "–")}.</p>
+    <p class="muted tiny">Sources: ${Object.entries(np.sources).map(([k, s]) => `${esc(k.replaceAll("_", " "))}: ${esc(s.text)}${s.checked ? "" : " (not yet checked)"}`).join(" · ")}.</p>`;
+}
+
 function render(t, svgText) {
   const c = t.chart;
   const av = t.ashtakavarga;
@@ -41,7 +69,11 @@ function render(t, svgText) {
     <section class="card" id="vimshottari"><h2>Vimshottari to the pratyantar</h2>${dashaTree(t.vimshottari)}</section>
     <section class="card" id="shadbala"><h2>Shadbala (${esc(t.shadbala.unit)})</h2>${table(t.shadbala.rows)}</section>
     <section class="card" id="ashtakavarga"><h2>Ashtakavarga: BAV by planet and SAV, by sign</h2>${table(bavRows)}</section>
-    <section class="card" id="bhava-bala"><h2>Bhava Bala (${esc(t.bhava_bala.unit)}, ${esc(t.bhava_bala.house_system)})</h2>${table(t.bhava_bala.rows)}</section>`;
+    <section class="card" id="bhava-bala"><h2>Bhava Bala (${esc(t.bhava_bala.unit)}, ${esc(t.bhava_bala.house_system)})</h2>${table(t.bhava_bala.rows)}</section>
+    <section class="card" id="nakshatras"><h2>Nakshatras: lords, KP sub-lords, Navatara and attributes</h2>${table(t.nakshatras.rows)}
+      <p class="muted tiny">Attribute sources: ${Object.entries(t.nakshatras.sources).map(([k, s]) => `${esc(k.replaceAll("_", " "))}: ${esc(s.text)}${s.chapter ? ` ch. ${esc(s.chapter)}` : ""}${s.checked ? "" : " (not yet checked)"}`).join(" · ")}.</p></section>
+    <section class="card" id="nakshatra-points"><h2>Special nakshatra points</h2>${points(t.nakshatra_points)}</section>
+    <section class="card" id="dispositors"><h2>Dispositor chains</h2>${chains(t.dispositors)}</section>`;
 }
 
 try {

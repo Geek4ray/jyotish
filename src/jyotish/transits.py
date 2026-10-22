@@ -9,6 +9,11 @@ Vedha spans from the Moon, and, for slow planets entering a sign, the Murthi cla
 named windows (Sade Sati with Ashtakavarga grading, Kantaka and Ashtama Shani, Jupiter over
 1/5/9/11 from the Moon, nodal and Saturn returns) are built from those rows.
 
+Tara rows (SPEC Layer 2, Navatara "transit": slow planets crossing adverse taras, the daily Tara
+bala), in `tara_rows`: Saturn, Jupiter, Rahu and Ketu entering a nakshatra whose tara from the
+natal Moon is Vipat, Pratyak or Vadha, and every Moon nakshatra span with its tara. They are
+tagged and not yet scored: the timing join leaves them out (`taras=False`).
+
 Sampling is daily, so two crossings of one boundary less than a day apart (a planet
 stationary on a sign or Kakshya edge) are not resolved; for these bodies that is rare.
 Positions follow the chart's ayanamsa and node setting."""
@@ -19,12 +24,12 @@ import swisseph as swe
 
 from .ashtakavarga import prastara
 from .constants import (
-    GOCHARA_VEDHA, GRAHAS, KAKSHYA_LORDS, MURTHI, SEVEN, SIGNS, VEDHA_EXEMPT,
+    GOCHARA_VEDHA, GRAHAS, KAKSHYA_LORDS, MURTHI, NAKSHATRAS, SEVEN, SIGNS, VEDHA_EXEMPT,
     ashtakavarga_grade,
 )
 from .dignity import house_of
 from .ephemeris import _BASE_FLAGS, AYANAMSAS, BODY_IDS
-from .models import Chart, KakshyaSpan, Timeline, TimelineWindow, TransitRow, VedhaSpan
+from .models import Chart, KakshyaSpan, TaraRow, Timeline, TimelineWindow, TransitRow, VedhaSpan
 
 TRANSIT_BODIES = ["Saturn", "Jupiter", "Rahu", "Ketu", "Mars", "Sun"]
 SLOW = {"Saturn", "Jupiter", "Rahu", "Ketu"}
@@ -55,14 +60,14 @@ def _index(lon: float, parts: int) -> int:
     return int(lon * parts / 360.0) % parts
 
 
-def crossings(sky: Sky, body: str, start: float, end: float, parts: int = 12):
+def crossings(sky: Sky, body: str, start: float, end: float, parts: int = 12, step: float = STEP):
     """(jd, index before, index after) for each change of the index in [start, end],
-    each to within half a minute."""
+    each to within half a minute. `step` must be shorter than the body's time in one index."""
     out = []
     t = start
     i0 = _index(sky.lon(body, t), parts)
     while t < end:
-        t2 = min(t + STEP, end)
+        t2 = min(t + step, end)
         i2 = _index(sky.lon(body, t2), parts)
         if i2 == i0:
             t = t2
@@ -80,12 +85,12 @@ def crossings(sky: Sky, body: str, start: float, end: float, parts: int = 12):
     return out
 
 
-def segments(sky: Sky, body: str, start: float, end: float, parts: int = 12):
+def segments(sky: Sky, body: str, start: float, end: float, parts: int = 12, step: float = STEP):
     """Constant-index spans covering [start, end]: (index, t0, t1, entered) where entered
     is "direct", "retrograde" or None for the span clipped at `start`."""
     out, t0, entered = [], start, None
     i = _index(sky.lon(body, start), parts)
-    for jd, before, after in crossings(sky, body, start, end, parts):
+    for jd, before, after in crossings(sky, body, start, end, parts, step):
         out.append((before, t0, jd, entered))
         entered = "direct" if (after - before) % parts == 1 else "retrograde"
         t0, i = jd, after
@@ -135,7 +140,30 @@ def exact_returns(sky: Sky, body: str, target: float, start: float, end: float) 
     return out
 
 
-def transit_timeline(chart: Chart, start_jd: float, end_jd: float) -> Timeline:
+TARA_SLOW = ["Saturn", "Jupiter", "Rahu", "Ketu"]
+MOON_STEP = 0.25      # days: the Moon spends at least 21 hours in a nakshatra
+
+
+def tara_rows(chart: Chart, sky: Sky, start_jd: float, end_jd: float) -> list[TaraRow]:
+    """Slow planets entering an adverse tara from the natal Moon, and the Moon's daily tara."""
+    from .nakshatra import navatara
+    moon = chart.bodies["Moon"].nak
+    out = []
+    for body, step in [(b, STEP) for b in TARA_SLOW] + [("Moon", MOON_STEP)]:
+        for k, t0, t1, entered in segments(sky, body, start_jd, end_jd, parts=27, step=step):
+            t = navatara(k, moon)
+            if body != "Moon" and (not t.adverse or entered is None):
+                continue
+            out.append(TaraRow(body=body, nakshatra=NAKSHATRAS[k], tara=t.name, count=t.count, cycle=t.cycle,
+                               adverse=t.adverse, special=t.special, start_jd=t0, end_jd=t1, entered=entered,
+                               clipped_start=entered is None, clipped_end=t1 == end_jd,
+                               tags=[f"body:{body}", f"tara:{t.name.lower()}"] + (["adverse"] if t.adverse else [])
+                                    + (["daily"] if body == "Moon" else [])))
+    out.sort(key=lambda r: (r.start_jd, r.body != "Moon"))
+    return out
+
+
+def transit_timeline(chart: Chart, start_jd: float, end_jd: float, taras: bool = True) -> Timeline:
     if end_jd <= start_jd:
         raise ValueError("end must be after start")
     sky = Sky(chart.meta.ayanamsa, chart.meta.node == "true")
@@ -180,7 +208,8 @@ def transit_timeline(chart: Chart, start_jd: float, end_jd: float) -> Timeline:
                 tags=[f"body:{body}", f"house_moon:{h_moon}"] + ([f"murthi:{murthi}"] if murthi else [])))
     rows.sort(key=lambda r: (r.start_jd, TRANSIT_BODIES.index(r.body)))
     return Timeline(start_jd=start_jd, end_jd=end_jd, ayanamsa=chart.meta.ayanamsa,
-                    node=chart.meta.node, rows=rows, windows=_windows(chart, sky, rows, start_jd, end_jd))
+                    node=chart.meta.node, rows=rows, windows=_windows(chart, sky, rows, start_jd, end_jd),
+                    tara_rows=tara_rows(chart, sky, start_jd, end_jd) if taras else [])
 
 
 SADE_SATI_PHASE = {12: "rising", 1: "peak", 2: "setting"}

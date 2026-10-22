@@ -46,12 +46,13 @@ def test_query_is_validated():
 def test_tagged_timeline_merges_dashas_and_transits(chart):
     tl = tagged_timeline(chart, A, B)
     kinds = {r.kind for r in tl.rows}
-    assert kinds == {"dasha", "transit"}
+    assert kinds == {"dasha", "transit", "tara"}                     # tara rows: tagged, not scored
     assert [r.start_jd for r in tl.rows] == sorted(r.start_jd for r in tl.rows)
     dashas = [r for r in tl.rows if r.kind == "dasha"]
     assert {(r.system, r.level) for r in dashas} == {(s, l) for s in ("vimshottari", "yogini", "chara") for l in (1, 2)}
     assert all(-1.0 <= r.quality <= 1.0 and r.tara for r in dashas)
     assert len([r for r in tl.rows if r.kind == "transit"]) == len(transit_timeline(chart, A, B).rows)
+    assert len([r for r in tl.rows if r.kind == "tara"]) == len(transit_timeline(chart, A, B).tara_rows)
     jup = next(r for r in dashas if r.system == "vimshottari" and r.lords == ["Jupiter"])
     # Nadi activation: planets in Jupiter's nakshatras (PurvaBhadra: the Sun; ...), and
     # Jupiter's own nakshatra lord (Rohini: the Moon).

@@ -115,8 +115,8 @@ def dasha_rows(chart: Chart, start_jd: float, end_jd: float) -> list[DashaRow]:
 
 def tagged_timeline(chart: Chart, start_jd: float, end_jd: float) -> TaggedTimeline:
     tl = transit_timeline(chart, start_jd, end_jd)
-    rows = dasha_rows(chart, start_jd, end_jd) + list(tl.rows)
-    rows.sort(key=lambda r: (r.start_jd, 0 if r.kind == "dasha" else 1))
+    rows = dasha_rows(chart, start_jd, end_jd) + list(tl.rows) + list(tl.tara_rows)
+    rows.sort(key=lambda r: (r.start_jd, {"dasha": 0, "transit": 1}.get(r.kind, 2)))
     return TaggedTimeline(start_jd=start_jd, end_jd=end_jd, rows=rows, windows=tl.windows)
 
 
@@ -168,7 +168,7 @@ def answer_v1(chart: Chart, query: TimingQuery) -> TimingAnswer:
     # Window edges: every antar boundary of the requested systems inside the range.
     edges = sorted({start, end} | {t for rs in antars.values() for r in rs for t in (r.start_jd, r.end_jd)
                                    if start < t < end})
-    transit = transit_timeline(chart, start, end)
+    transit = transit_timeline(chart, start, end, taras=False)     # tara rows are not scored yet
     lagna = chart.lagnas.asc_sign
     bounds = {}
     if chart.uncertainty is not None:
@@ -365,7 +365,7 @@ def answer_v2(chart: Chart, query: TimingQuery, formula: str = "v2") -> TimingAn
 
     periods = {s: [p for p in chart.dashas.get(s, []) if len(p.lords) == 2 and p.end_jd > start and p.start_jd < end]
                for s in ("vimshottari",) + tuple(x for x in query.systems if x != "vimshottari")}
-    transit = transit_timeline(chart, start, end)
+    transit = transit_timeline(chart, start, end, taras=False)     # tara rows are not scored yet
     slow_edges = {r.start_jd for r in transit.rows if r.body in SLOW_MOVERS and start < r.start_jd < end}
     mahas = [p for s in query.systems for p in chart.dashas.get(s, []) if len(p.lords) == 1]
     bounds = {}

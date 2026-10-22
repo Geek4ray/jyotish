@@ -73,14 +73,20 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
   Navatara, KP sub-lords, Sudarshana H10, Ashtakavarga (BAV incl. lagna, SAV, Trikona and
   Ekadhipatya, Sodhya Pinda, Kakshya), Shadbala (BPHS 27, all six balas with settings in
   `Meta`), Bhava Bala (whole sign and Sripati), Vimsopaka (four schemes), Ishta/Kashta and
-  Argala (Rath's reading, BPHS 31) are done. Not yet: synastry module.
+  Argala (Rath's reading, BPHS 31) are done. The nakshatra layer: every body carries
+  `nak_attributes` (deity, gana, yoni, nadi, tri-nadi, gender, direction, activity) from
+  `constants.NAK_ATTRIBUTES`, whose sources are on the table (none checked yet); `nakpoints.py` gives
+  the 64th navamsa and 88th pada from the Moon and the lagna, Abhijit and the nakshatra lagnesha
+  (`Features.nakshatra_points`); tables.json and chart.html show the nakshatra table, the points and
+  the three dispositor chains. Not yet: synastry module.
 - Phase 2 (rules and time): Vimshottari to any depth; Yogini and Chara (K.N. Rao default,
   Raman and Rath via `Meta.chara_variant`) to two levels. Rule evaluator (`rules.py`,
   schema in `rules/rule.schema.json`) and the first ten rules are done; a source is `checked: true` only
   where its verse was read in the named edition.
 
 Transits (`transits.transit_timeline`: tagged rows and named windows over a date range) are
-done. Layer 5 scoring (`scoring.py`, classical weights; rho table in
+done, with `tara_rows` (Saturn, Jupiter and the nodes entering an adverse tara from the natal Moon;
+the Moon's daily tara), tagged and not yet scored (the timing join passes `taras=False`). Layer 5 scoring (`scoring.py`, classical weights; rho table in
 `src/jyotish/data/family_rho.json`, made by `scripts/family_rho.py`; one rho and one percentile table
 per (`Meta.varga_term`, `Meta.kp_vote`), v2/v2 by default, v1 kept) is done; its open readings
 are listed in `scoring.READINGS`. The tagged timeline and `TimingQuery` (`timing.py`) are

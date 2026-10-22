@@ -165,6 +165,42 @@ def _vimshottari(chart: Chart, as_of: date) -> dict[str, Any]:
             "note": "The first maha starts before birth (start_true); its start is shown as the birth date."}
 
 
+def nakshatra_table(chart: Chart) -> list[dict[str, Any]]:
+    """Per body and the ascendant: nakshatra, pada and the pada's navamsa sign, the nakshatra lord,
+    KP sub-lord and sub-sub-lord, the Navatara from the Moon with its cycle, and the attributes."""
+    from .constants import NAK_ATTRIBUTES
+    from .nakshatra import nakshatra_of, navatara
+    moon = chart.bodies["Moon"].nak
+    asc = nakshatra_of(chart.lagnas.asc)
+    t = navatara(asc.index, moon)
+    rows = [{"planet": "Ascendant", "nakshatra": asc.name, "pada": asc.pada,
+             "pada_navamsa": SIGNS[int(chart.lagnas.asc * 108 / 360) % 12], "lord": asc.lord,
+             "sub_lord": asc.sub_lord, "sub_sub_lord": asc.sub_sub_lord, "tara": t.name, "cycle": t.cycle,
+             **NAK_ATTRIBUTES[asc.index]}]
+    for p in PLANETS:
+        b = chart.bodies[p]
+        attrs = b.nak_attributes.model_dump() if b.nak_attributes else NAK_ATTRIBUTES[b.nak]
+        rows.append({"planet": p, "nakshatra": b.nak_name, "pada": b.pada, "pada_navamsa": SIGNS[chart.vargas["D9"][p]],
+                     "lord": b.nak_lord, "sub_lord": b.sub_lord, "sub_sub_lord": b.sub_sub_lord,
+                     "tara": b.tara.name, "cycle": b.tara.cycle, **attrs})
+    return rows
+
+
+def dispositor_panel(chart: Chart) -> dict[str, Any]:
+    """The three dispositor chains of every body, each with the loop it ends in."""
+    from .chains import KINDS, _path
+    out = {}
+    for kind in KINDS:
+        rows, loops = [], []
+        for p in PLANETS:
+            path, loop = _path(chart, kind, p)
+            rows.append({"planet": p, "chain": path, "loop": loop})
+            if loop not in loops:
+                loops.append(loop)
+        out[kind] = {"rows": rows, "loops": loops}
+    return out
+
+
 def tables(chart: Chart, as_of: date | None = None) -> dict[str, Any]:
     as_of = as_of or date.today()
     asc = chart.lagnas
@@ -199,4 +235,13 @@ def tables(chart: Chart, as_of: date | None = None) -> dict[str, Any]:
         "shadbala": {"unit": "rupas (60 virupas)", "rows": shadbala},
         "ashtakavarga": {"signs": list(SIGNS), "bav": {p: list(av.BAV[p]) for p in SEVEN}, "sav": list(av.SAV)},
         "bhava_bala": {"unit": "rupas", "house_system": "whole_sign", "rows": bhava},
+        "nakshatras": {"rows": nakshatra_table(chart), "sources": _attribute_sources()},
+        "nakshatra_points": (chart.features.nakshatra_points.model_dump()
+                             if chart.features.nakshatra_points is not None else None),
+        "dispositors": dispositor_panel(chart),
     }
+
+
+def _attribute_sources() -> dict[str, Any]:
+    from .constants import NAK_ATTRIBUTE_SOURCES
+    return NAK_ATTRIBUTE_SOURCES

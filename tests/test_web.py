@@ -338,6 +338,14 @@ def test_chart_page_and_the_link_from_the_reading(page, base_url):
     assert page.locator("#shadbala tbody tr").count() == 7 and page.locator("#bhava-bala tbody tr").count() == 12
     assert page.locator("#ashtakavarga tbody tr").count() == 8                       # seven BAV rows and SAV
     assert page.locator("#planets tbody tr").count() == 10
+    # The nakshatra table, the special points and the dispositor chains as arrows, loops marked.
+    assert page.locator("#nakshatras tbody tr").count() == 10
+    assert "Tvashtar" in page.inner_text("#nakshatras") and "not yet checked" in page.inner_text("#nakshatras")
+    assert "Nakshatra lagnesha" in page.inner_text("#nakshatra-points") and "88th pada" in page.inner_text("#nakshatra-points")
+    sat = page.locator('#dispositors li[data-planet="Saturn"][data-kind="nakshatra"]')
+    assert sat.inner_text().startswith("Saturn → Sun → Jupiter → Moon → Mars → Mercury")
+    assert sat.locator(".in-loop").all_inner_texts() == ["Mars", "Mercury"]
+    assert "Mars–Mercury loop" in page.inner_text('#dispositors .chain-kind[data-kind="nakshatra"]')
 
 
 
