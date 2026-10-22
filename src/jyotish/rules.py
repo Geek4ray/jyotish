@@ -33,10 +33,12 @@ from .shadbala import natural_benefics
 # confirm it (SPEC Layer 6b).
 OUT_OF_DEFAULT = frozenset({"experimental", "practitioner_unconfirmed"})
 
-# Rule families in the library that fire and are recorded but are not yet weighed in scoring or
-# offered to narration: the placement library (SPEC Layer 6b item 4) until the rule term is
-# re-balanced for some twenty placement fires per chart.
-PENDING_FAMILIES = frozenset({"lord_in_house", "planet_in_house"})
+# The placement library (SPEC Layer 6b item 4): some twenty fires on every chart, weighed by
+# their confidence_base (0.3) in scoring and capped in narration.
+PLACEMENT_FAMILIES = frozenset({"lord_in_house", "planet_in_house"})
+# Rule families that fire and are recorded but are not yet weighed or narrated (none now; the
+# placements waited here while the rule term was re-balanced).
+PENDING_FAMILIES: frozenset[str] = frozenset()
 
 
 def in_default(status: str, family: str) -> bool:

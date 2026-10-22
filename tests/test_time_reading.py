@@ -76,7 +76,8 @@ def test_checker_rejections_are_printed_per_attempt(script, monkeypatch, capsys)
     # The fixture drafts career only, so marriage and longevity are gaps too ("no claim was
     # drafted"); in career the one rejected claim is the only gap.
     assert out["accepted"] is False and out["summary_source"] == "model"
-    career_gaps = [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")]
+    career_gaps = [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")
+                   and "no claim was drafted" not in l]                    # placements the fixture predates
     assert len(career_gaps) == 1
     assert "checker rejected vote:career.varga (attempt 1): The varga vote" in text
     assert "unsupported: a word the data does not state" in text and "evidence: not in the derivation" in text
@@ -91,7 +92,8 @@ def test_accepted_run_and_api_error_both_write_the_recording(script, monkeypatch
     out = script.live(sequential=False, depth="astrologer")
     text = capsys.readouterr().out
     assert out["error"] is None and out["summary_source"] == "model"
-    assert not [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")]
+    assert not [l for l in text.splitlines() if l.startswith("not narrated within the checks: career ")
+                and "no claim was drafted" not in l]
     assert json.loads(script.LAST.read_text())["calls"]
     replay(monkeypatch, "narration_career_opus55_r1.json", raise_on_writer=2)
     out = script.live(sequential=True, depth="astrologer")

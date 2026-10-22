@@ -7,7 +7,9 @@ S_area = sum_h w_h B_h + sum_{p in L u K} w_p D_p (beta_p / beta_req_p)
 Where SPEC leaves a quantity open, the simplest reading is taken and named here (and in
 READINGS, which the scored block carries so a reading can always say what it assumed):
 
-  weights      w_lord 3, w_occupant (house term) 2, w_karaka 2 (SPEC's 3:2:2); c 1;
+  weights      w_lord 3, w_occupant (house term) 2, w_karaka 2 (SPEC's 3:2:2); c_r the rule's
+               confidence_base (yogas 0.5-0.7, placements 0.3: a single placement never
+               outweighs a yoga, and twenty of them do not swamp the houses and lords);
                lambda 1; nu = kappa = pi = 0.5 ("small": a quarter of the karaka weight).
   bases        every house and lord term is computed from the lagna, the Moon and the Sun
                and combined 3:2:1; karakas, varga, Navatara, dispositor and panchanga terms
@@ -95,7 +97,7 @@ from .constants import EXALTATION, GRAHAS, KP_MATTER, SEVEN, SIGN_LORD, SIGNS
 from .dignity import aspected_houses, house_of, natural_relation
 from .models import AreaScore, Chart, Driver, Scored
 from .shadbala import natural_benefics
-from .rules import in_default
+from .rules import PLACEMENT_FAMILIES, in_default
 from .vargas import VARGAS
 
 WEIGHTS = {"lord": 3.0, "occupant": 2.0, "karaka": 2.0, "rule": 1.0, "varga": 1.0,
@@ -121,7 +123,8 @@ READINGS_KP = {
           "occupation in the Placidus KP houses, ownership by sign",
 }
 READINGS = [
-    "weights lord 3, occupant 2, karaka 2, rule 1, varga 1, navatara/dispositor/panchanga 0.5",
+    "weights lord 3, occupant 2, karaka 2, rule term c_r = the rule's confidence_base (placements 0.3), varga 1, "
+    "navatara/dispositor/panchanga 0.5",
     "houses and lords combined from lagna, Moon, Sun 3:2:1",
     "B_h: Bhava Bala z-score among the chart's 12 houses, clipped +-2, halved",
     "Bhavat Bhavam of each area's first house added as a house",
@@ -240,8 +243,9 @@ def _sgn(x: float, eps: float = 1e-9) -> int:
 class _View:
     """What scoring reads from one chart."""
 
-    def __init__(self, chart: Chart):
+    def __init__(self, chart: Chart, rules=()):
         self.c = chart
+        self.c_r = {r.id: r.data.get("confidence_base", 0.5) for r in rules}
         self.f = chart.features
         self.lagna = chart.lagnas.asc_sign
         self.sign = {p: b.sign for p, b in chart.bodies.items()}
@@ -431,7 +435,7 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
         if not in_default(f.status, f.family):
             continue
         theta = sum(val for th, val in f.themes.items() if name in THEME_AREAS.get(th, []))
-        rule_term += WEIGHTS["rule"] * FIRE_BASIS[f.basis] * theta
+        rule_term += WEIGHTS["rule"] * v.c_r.get(f.id, 0.5) * FIRE_BASIS[f.basis] * theta
 
     vparts, agree, varga_rows = [], [], []
     v2 = v.c.meta.varga_term == "v2"
@@ -613,14 +617,16 @@ def tier(conf: float) -> str:
 def _driver(v: _View, rules) -> Driver:
     fired: dict[str, set[str]] = {p: set() for p in SEVEN}
     for f in v.c.fired_rules:
-        if not in_default(f.status, f.family):
+        # The driver's rule share counts rules that single planets out: a placement fires for
+        # every planet by construction, so the placement families are not counted.
+        if not in_default(f.status, f.family) or f.family in PLACEMENT_FAMILIES:
             continue
         for n in f.nodes:
             if n in fired:
                 fired[n].add(f.id)
     applicable = {p: 0 for p in SEVEN}
     for r in rules:
-        if not in_default(r.data["status"], r.data["family"]):
+        if not in_default(r.data["status"], r.data["family"]) or r.data["family"] in PLACEMENT_FAMILIES:
             continue
         w = r.data["when"]
         sides = [w["pair"]["a"], w["pair"]["b"]] if "pair" in w else [w]
@@ -686,7 +692,7 @@ def score(chart: Chart, rules=None) -> Scored | None:
         return None
     from .rules import default_rules
     rules = default_rules() if rules is None else rules
-    v = _View(chart)
+    v = _View(chart, rules)
     vt, kv = chart.meta.varga_term, chart.meta.kp_vote
     rho = family_rho(vt, kv)
     raw = {name: score_area(v, name, spec) for name, spec in AREAS.items()}

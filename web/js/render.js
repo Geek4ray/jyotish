@@ -185,8 +185,8 @@ function areaCard(a, notes, depth) {
     </dl>
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
     ${a.claims.length ? (depth === "curious"
-      ? `<details class="astrologer"><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol></details>`
-      : `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>`)
+      ? `<details class="astrologer"><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
+      : `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}`)
       : (a.narration_gaps || []).length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
     ${gapsList(a.narration_gaps || [])}
     ${a.school_conflicts.map(conflict).join("")}
@@ -194,6 +194,14 @@ function areaCard(a, notes, depth) {
     ${a.astrologer_note ? astrologerNote(a.astrologer_note) : ""}
     ${a.disclaimer ? `<p class="disclaimer">${esc(a.disclaimer)}</p>` : ""}
   </section>`;
+}
+
+// Placements the engine weighed beyond the three offered to the writer (learner material).
+function otherPlacements(a) {
+  const rows = a.other_placements || [];
+  if (!rows.length) return "";
+  return `<details class="learner other-placements"><summary>Other placements the engine weighed (${num(rows.length)})</summary>
+    <div class="learner-body"><ul class="small">${rows.map((o) => `<li data-rule="${esc(o.rule_id)}"><code>${esc(o.rule_id)}</code> (${esc(o.planet)}, scale ${num(o.scale)}): ${esc(o.classical_effect)}</li>`).join("")}</ul></div></details>`;
 }
 
 // The reviewer's own words: shown apart from the checked text and labelled as not checked.

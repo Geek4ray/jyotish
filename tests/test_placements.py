@@ -135,3 +135,92 @@ def test_reference_planet_in_house_fires(ref):
 def test_about_twenty_placements_fire_on_a_chart(ref):
     n = sum(1 for f in ref.fired_rules if f.id.startswith("place."))
     assert n == len(REFERENCE_LORD_FIRES) + len(REFERENCE_PLANET_FIRES) == 21
+
+
+# --- part 3: the consequences -----------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def timed():
+    from jyotish.chart import compute
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    return compute(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+
+
+def test_rule_term_weighs_each_fire_by_its_confidence_base(timed):
+    from jyotish.scoring import FIRE_BASIS, THEME_AREAS, WEIGHTS
+    lib = {r.id: r.data.get("confidence_base", 0.5) for r in load_rules()}
+    for area in ("career", "marriage", "siblings", "longevity"):
+        expected = sum(WEIGHTS["rule"] * lib[f.id] * FIRE_BASIS[f.basis] *
+                       sum(v for th, v in f.themes.items() if area in THEME_AREAS.get(th, []))
+                       for f in timed.fired_rules if f.status != "experimental")
+        assert timed.scored.areas[area].terms["rules"] == pytest.approx(expected), area
+    assert "rule term c_r = the rule's confidence_base" in " ".join(timed.scored.readings)
+
+
+def test_a_single_placement_never_outweighs_a_yoga_theme_for_theme():
+    # At full scale, a placement's largest theme (|2| x 0.3) is below every yoga's largest
+    # theme times its own confidence_base.
+    rules = load_rules()
+    place = max(0.3 * max(abs(v) for v in r.data["themes"].values()) for r in rules if r.id.startswith("place."))
+    yogas = min(r.data.get("confidence_base", 0.5) * max(abs(v) for v in r.data["themes"].values())
+                for r in rules if r.id.startswith("yoga.") and r.data["status"] != "experimental")
+    assert place == pytest.approx(0.6) and place < yogas
+
+
+def test_driver_and_tiers_on_the_reference_chart(timed):
+    # The placements fire for every planet by construction, so the driver's rule share leaves
+    # them out; and no tier changes: a tier follows the votes' agreement with the sign of S,
+    # and no area's S changed sign or crossed its population p40 with the placements weighed.
+    sc = timed.scored
+    assert sc.driver.driver == "Venus" and sc.top == ["career", "marriage", "longevity"]
+    tiers = {n: a.tier for n, a in sc.areas.items()}
+    assert tiers == {"personality": "weak / mixed", "wealth": "moderate", "siblings": "weak / mixed",
+                     "mother_home": "weak / mixed", "children": "not emphasised", "intellect": "weak / mixed",
+                     "health": "weak / mixed", "debts_enemies": "moderate", "marriage": "moderate",
+                     "longevity": "moderate", "father": "not emphasised", "fortune": "weak / mixed",
+                     "career": "moderate", "gains": "not emphasised", "foreign": "weak / mixed",
+                     "spirituality": "weak / mixed", "mind": "weak / mixed", "reputation": "weak / mixed",
+                     "synastry": "needs two charts"}
+
+
+def test_an_area_offers_at_most_three_placements_the_strongest(timed):
+    from jyotish.narrate import PLACEMENTS_PER_AREA, _check_data, findings, other_placements
+    from jyotish.scoring import AREAS
+    for area in AREAS:
+        offered = [f for f in findings(timed, area)[0] if f.get("family") in ("lord_in_house", "planet_in_house")]
+        rest = other_placements(timed, area)
+        assert len(offered) <= PLACEMENTS_PER_AREA == 3, area
+        if rest:
+            assert len(offered) == 3 and min(f["contribution"] for f in offered) >= rest[0]["contribution"], area
+        assert all(f["classical_effect"] and _check_data(f)["classical_effect"] == f["classical_effect"]
+                   for f in offered)
+    career = {f["finding_id"] for f in findings(timed, "career")[0] if f.get("family")}
+    assert {x for x in career if x.startswith("place.")} == {"place.l2_h10@lagna", "place.l5_h10@lagna",
+                                                              "place.sun_h10@lagna"}
+    assert [r["finding_id"] for r in other_placements(timed, "career")][:2] == ["place.mercury_h10@lagna",
+                                                                                "place.l4_h10@lagna"]
+
+
+def test_curious_prompt_folds_placements_into_the_chart_facts():
+    from jyotish.narrate import system_prompt
+    p = " ".join(system_prompt("curious").split())
+    assert "a placement finding (a lord or a planet in a house, with its classical_effect) is one chart fact" in p
+    assert "never a sentence of its own" in p
+
+
+def test_other_placements_reach_the_page(tmp_path):
+    import json as _json
+    from jyotish.cli import main
+    out = tmp_path / "r"
+    args = ["read", "--date", "2001-03-12", "--time", "10:10:25", "--tz", "Asia/Kolkata", "--lat", "28.1989",
+            "--lon", "76.617", "--node", "mean", "--depth", "astrologer", "--question", "How will my career go?",
+            "--as-of", "2026-10-21", "--out", str(out),
+            "--model-fixture", str(ROOT / "tests" / "fixtures" / "narration_career_edited.json")]
+    with pytest.raises(SystemExit):
+        main(args)
+    reading = _json.loads(out.with_suffix(".json").read_text())
+    career = next(a for a in reading["areas"] if a["name"] == "career")
+    assert [o["rule_id"] for o in career["other_placements"]][:1] == ["place.mercury_h10"]
+    md = out.with_suffix(".md").read_text()
+    assert "Other placements the engine weighed (not narrated; the three strongest are above):" in md
+    assert "- `place.mercury_h10` (Mercury, scale 1):" in md

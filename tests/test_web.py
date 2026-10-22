@@ -301,7 +301,11 @@ def test_curious_reading_on_the_site(page, curious_url):
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
     assert career.locator("p.paragraph").inner_text().startswith("In your chart the Sun and Mercury sit together")
-    assert page.locator("#incomplete").count() == 0 and page.locator(".notice").count() == 0    # complete, all checked
+    # The recording predates the placement library: its placement findings are listed as gaps,
+    # every one "no claim was drafted"; nothing else is missing and every sentence was checked.
+    gaps = page.eval_on_selector_all(".gaps li", "els => els.map(e => [e.dataset.finding, e.textContent])")
+    assert gaps and all(f.startswith("place.") and "no claim was drafted" in t for f, t in gaps)
+    assert "Offline replay" not in page.inner_text("#reading")
     assert page.locator('section.area[data-area="longevity"] p.paragraph').count() == 1
     toggle = career.locator("details.astrologer")
     assert toggle.count() == 1 and toggle.get_attribute("open") is None    # the claims are one click away
@@ -395,3 +399,14 @@ def test_review_page_edit_note_and_approve(browser, review_url):
     # The note is set apart from the checked text: not inside the claims list.
     assert client.locator('section.area[data-area="career"] ol.claims .astrologer-note').count() == 0
     ctx.close()
+
+
+def test_other_placements_sit_with_the_astrologers_reading(page, curious_url):
+    submit_reference(page, curious_url, depth="curious")
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    career = page.locator('section.area[data-area="career"]')
+    other = career.locator("details.astrologer details.other-placements")
+    assert other.count() == 1 and not other.locator("li").first.is_visible()      # inside the collapsed toggle
+    career.locator("details.astrologer > summary").click()
+    other.locator("summary").click()
+    assert other.locator('li[data-rule="place.mercury_h10"]').is_visible()

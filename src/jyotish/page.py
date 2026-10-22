@@ -236,6 +236,10 @@ def render(reading: Reading, chart: Chart) -> str:
         elif not a.narration_gaps:
             offered = len(findings(chart, a.name)[0])
             L.append(f"No claims were drafted for this area ({offered} finding(s) offered).")
+        if a.other_placements:
+            L += ["", "Other placements the engine weighed (not narrated; the three strongest are above):", ""]
+            L += [f"- `{o['rule_id']}` ({o['planet']}, scale {o['scale']:.3g}): {o['classical_effect']}"
+                  for o in a.other_placements]
         if curious and a.claims:
             L += ["", "</details>"]
         if a.narration_gaps:

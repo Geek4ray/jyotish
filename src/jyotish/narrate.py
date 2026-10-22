@@ -42,7 +42,7 @@ from typing import Any, Callable
 from pydantic import BaseModel, Field
 
 from .models import Chart, Stability, TimingQuery
-from .rules import default_rules, in_default
+from .rules import PLACEMENT_FAMILIES, default_rules, in_default
 from .scoring import AREAS, THEME_AREAS
 
 
@@ -144,6 +144,7 @@ class ReadingArea(BaseModel):
     narration_gaps: list[dict[str, Any]] = Field(default_factory=list)
     paragraph: str | None = None        # curious depth: the plain-language paragraph (checked like the summary)
     paragraph_cites: list[str] = Field(default_factory=list)
+    other_placements: list[dict[str, Any]] = Field(default_factory=list)   # placements beyond the three offered
     astrologer_note: dict[str, Any] | None = None   # review step: {text, by, at}, the reviewer's words, never checked
 
 
@@ -378,6 +379,29 @@ FAMILY_SCHOOL = {"house": "parashari", "lord": "parashari", "karaka": "parashari
                  "arudha": "jaimini", "kp": "kp", "panchanga": "parashari"}
 
 
+PLACEMENTS_PER_AREA = 3
+
+
+def other_placements(chart: Chart, area: str) -> list[dict]:
+    """The area's placement fires beyond its three strongest: weighed by the engine and shown in
+    the learner material, not offered to the writer."""
+    from .rules import default_rules
+    lib = {r.id: r for r in default_rules()}
+    offered = {f["finding_id"] for f in findings(chart, area)[0]}
+    rows = []
+    for f in chart.fired_rules:
+        if f.family not in PLACEMENT_FAMILIES or f"{f.id}@{f.basis}" in offered:
+            continue
+        if f.stability is not None and f.stability.time < 0.5:
+            continue
+        contribution = sum(abs(v) for th, v in f.themes.items() if area in THEME_AREAS.get(th, []))
+        if contribution:
+            rows.append({"finding_id": f"{f.id}@{f.basis}", "rule_id": f.id, "planet": f.nodes[0],
+                         "scale": round(f.scale, 3), "contribution": round(contribution, 3),
+                         "classical_effect": lib[f.id].data.get("narration_key") if f.id in lib else None})
+    return sorted(rows, key=lambda r: (-r["contribution"], r["finding_id"]))
+
+
 def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     """(narratable, depends-on-birth-time) findings for an area, split at time-stability
     0.5. Two kinds (SPEC Layer 7 item 8): the non-experimental fired rules whose themes map
@@ -420,9 +444,20 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                            "modifiers_applied": f.applied, "modifiers_unknown": f.unknown, "details": f.details,
                            "stability": f.stability.time if f.stability else None} for f in fires],
                 "allowed_tags": tags, "stability": min(times) if times else None,
-                "confidence": min(f.scale for f in fires) * base}
+                "confidence": min(f.scale for f in fires) * base, "family": fires[0].family}
+        if fires[0].family in PLACEMENT_FAMILIES and rule:
+            # The placement's classical effect, in the engine's words: data the writer may state
+            # and the checker can verify.
+            item["classical_effect"] = rule.data.get("narration_key")
+            item["contribution"] = round(sum(abs(v) for th, v in fires[0].themes.items()
+                                             if area in THEME_AREAS.get(th, [])), 3)
         item["glossary"] = glossary_for(_check_data(item))
         (shaky if unstable else ok).append(item)
+    # SPEC Layer 6b item 4: an area offers at most its three strongest placements (by theme
+    # contribution to the area x scale); the rest stay in the learner material.
+    placed = sorted((i for i in ok if i.get("family") in PLACEMENT_FAMILIES),
+                    key=lambda i: (-i["contribution"], i["finding_id"]))
+    ok = [i for i in ok if i.get("family") not in PLACEMENT_FAMILIES or i in placed[:PLACEMENTS_PER_AREA]]
     a = chart.scored.areas.get(area)
     tally = area_votes(a) if a is not None and a.score_classical is not None else None
     if a is not None and a.score_classical is not None:
@@ -553,6 +588,8 @@ weakest point or the disagreement, named from the derivations: for example the a
 weakest by strength while its lord and the planets in it are strong; a school whose test goes the \
 other way; a test that abstains. Last, in one clause, how many of the engine's seven tests agree, \
 from the area's `tests` (say how many apply when some do not) - never a list of the tests or votes, \
+and a placement finding (a lord or a planet in a house, with its classical_effect) is one chart fact \
+among the others, folded into the sentence about where the planets are, never a sentence of its own, \
 and do not name the votes one by one anywhere in the paragraph. No degrees, rupas, strength ratios \
 or other figures beyond that count; every Sanskrit or technical term glossed once, the first time \
 it appears, from the finding's glossary entry for it: the same meaning, in plain words ("Ruchaka \
@@ -944,7 +981,7 @@ def _check_payload(f: dict) -> str:
 def _check_data(f: dict) -> dict:
     keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
             "school", "planets",
-            "themes", "fires", "derivation", "area_votes", "glossary")
+            "themes", "fires", "derivation", "area_votes", "glossary", "classical_effect")
     return {k: f[k] for k in keep if k in f}
 
 
@@ -1183,6 +1220,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             polarity=a.polarity if top3 else [], polarity_touches=a.polarity_touches if top3 else {},
             claims=claims, school_conflicts=school_conflicts(a), windows=windows, avoid_window=avoid,
             disclaimer=disclaimer, narration_gaps=gaps, paragraph=paragraph,
+            other_placements=other_placements(chart, name),
             paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")]))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3),

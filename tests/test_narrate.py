@@ -29,6 +29,21 @@ INVALID = {"summary": "Career is likely to peak soon. The Sun and Mercury togeth
                                                      "text": "The Sun and Mercury share Aquarius, which forms Budhaditya yoga."}]}]}
 
 
+PREDATES = "no claim was drafted for this finding"
+
+
+def drafted_gaps(area):
+    """The area's narration gaps other than the placement findings a recording predates: every
+    fixture was drafted before the placement library existed, so its placement findings have no
+    claim, which is an honest gap and not the test's subject."""
+    return [g for g in area.narration_gaps
+            if not (g["finding_id"].startswith("place.") and g["last_error"] == PREDATES)]
+
+
+def complete_but_placements(r):
+    return r.summary.source == "model" and all(not drafted_gaps(a) for a in r.areas)
+
+
 class StubChecker:
     """Offline stand-in for the semantic checker: supports every proposition unless a
     sentence is listed in `reject` (sentence substring -> unsupported proposition)."""
@@ -401,7 +416,7 @@ def test_recorder_saves_call_metadata(chart):
 
 def test_rule_fires_across_bases_are_one_finding(chart):
     ok, _ = findings(chart, "career")
-    ids = [f["finding_id"] for f in ok if f["kind"] == "rule"]
+    ids = [f["finding_id"] for f in ok if f["kind"] == "rule" and not f["finding_id"].startswith("place.")]
     assert ids == ["yoga.budhaditya@lagna", "yoga.kendra_trikona_raja@lagna", "yoga.ruchaka@lagna+sun"]
     r = next(f for f in ok if f["rule_id"] == "yoga.ruchaka")
     assert r["bases"] == ["lagna", "sun"] and r["planets"] == ["Mars"]
@@ -439,7 +454,7 @@ def test_summary_sentences_are_checked_against_the_findings_they_cite(chart):
                and "the yoga is oriented toward authority" in x for x in d.calls[1]["errors"])
     assert len(d.calls) == CONFIG.max_attempts
     assert r.summary.source == "engine" and r.narration_complete is False
-    assert all(not a.narration_gaps for a in r.areas) and len(r.areas[0].claims) == len(VALID["areas"][0]["claims"])
+    assert all(not drafted_gaps(a) for a in r.areas) and len(r.areas[0].claims) == len(VALID["areas"][0]["claims"])
     summary = [x for x in rec if x["kind"] == "checker" and x["finding_id"] == "summary"]
     assert len(summary) == CONFIG.max_attempts * len(sentences(VALID["summary"]))
     # Each summary sentence sees the union of its cited findings' derivations, and only those.
@@ -666,7 +681,7 @@ def test_rejected_claim_becomes_a_gap_and_the_rest_stand(chart):
     assert r.summary.text == VALID["summary"] and r.narration_complete is False
     assert "vote:career.varga" not in {c.finding_id for c in career.claims}
     assert len(career.claims) == len(VALID["areas"][0]["claims"]) - 1
-    [gap] = career.narration_gaps
+    [gap] = drafted_gaps(career)
     assert gap["finding_id"] == "vote:career.varga" and gap["kind"] == "vote" and gap["attempt"] == CONFIG.max_attempts
     assert "unsupported by the derivation of vote:career.varga" in gap["last_error"]
     assert "a word the derivation does not state" in gap["last_error"]
@@ -686,7 +701,7 @@ def test_an_earlier_accepted_version_is_kept(chart):
     claims = {c.finding_id: c.text for c in r.areas[0].claims}
     house = next(c["text"] for c in VALID["areas"][0]["claims"] if c["finding_id"] == "vote:career.house")
     assert claims["vote:career.house"] == house                                   # attempt 1's accepted text
-    assert {g["finding_id"] for g in r.areas[0].narration_gaps} == {"vote:career.varga"}
+    assert {g["finding_id"] for g in drafted_gaps(r.areas[0])} == {"vote:career.varga"}
 
 
 def test_last_attempt_checks_the_sentences_that_pass_the_validator(chart):
@@ -701,7 +716,7 @@ def test_last_attempt_checks_the_sentences_that_pass_the_validator(chart):
     n = len(VALID["areas"][0]["claims"])
     assert len(checker.calls) == len(sentences(VALID["summary"])) + n - 1          # only the last attempt
     assert len(r.areas[0].claims) == n - 1 and r.summary.source == "model"
-    assert [g["finding_id"] for g in r.areas[0].narration_gaps] == ["vote:career.lord"]
+    assert [g["finding_id"] for g in drafted_gaps(r.areas[0])] == ["vote:career.lord"]
 
 
 def test_writer_refusal_every_time_gives_the_engine_reading(chart):
@@ -763,7 +778,7 @@ def test_live_curious_recording_replays_to_its_reading(chart):
     tests"), attempt 2 accepted with every sentence checked and none rejected."""
     rec = []
     r, checker = _replay_curious(chart, rec)
-    assert r.depth == "curious" and r.attempts == 2 and r.narration_complete and not checker.unchecked
+    assert r.depth == "curious" and r.attempts == 2 and complete_but_placements(r) and not checker.unchecked
     v1 = next(e["validator_errors"] for e in rec if e["kind"] == "writer" and e["attempt"] == 1)
     assert len(v1) == 8
     assert sum(e.startswith("tier language") for e in v1) == 3 and sum(e.startswith("[rule:") for e in v1) == 2
@@ -772,7 +787,7 @@ def test_live_curious_recording_replays_to_its_reading(chart):
     assert checks and all(all(p["supported"] for p in e["result"]["propositions"]) for e in checks)
     for a in r.areas:
         assert a.paragraph == next(d["paragraph"] for d in ACCEPTED["areas"] if d["name"] == a.name)
-        assert a.claims and not a.narration_gaps                            # the astrologer's reading stays
+        assert a.claims and not drafted_gaps(a)                             # the astrologer's reading stays
     # The gloss the glossary made checkable: it is the entry's meaning, and the checker accepted it.
     longevity = next(a for a in r.areas if a.name == "longevity").paragraph
     assert "marana karaka sthana, a placement in which the texts hold a planet unable to give its good results" in longevity
@@ -793,7 +808,7 @@ def test_every_sentence_shown_was_accepted_by_the_checker(chart):
 def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fields(chart):
     rec = []
     r = _curious(chart, checker=StubChecker(), rec=rec)
-    assert r.depth == "curious" and r.narration_complete and r.attempts == 1
+    assert r.depth == "curious" and complete_but_placements(r) and r.attempts == 1
     # Every paragraph sentence went to the checker against the union of its cited derivations.
     para_checks = [e for e in rec if e["kind"] == "checker" and e["finding_id"].startswith("paragraph:")]
     n = sum(len([s_ for s_ in sentences(d["paragraph"]) if TAG.search(s_)]) for d in ACCEPTED["areas"])
@@ -909,7 +924,7 @@ def test_curious_draft_is_read_without_the_family_rule_and_astrologer_with_it(ch
                     c["text"] = "The career houses lean favourable overall [vote:career.house]."
     rec = []
     r = _curious(chart, drafts=[plain], rec=rec)
-    assert rec[0]["validator_errors"] == [] and r.narration_complete
+    assert rec[0]["validator_errors"] == [] and complete_but_placements(r)
     astro = []
     narrate(chart, CURIOUS["question"], drafter=Replay([plain]), checker=StubChecker(), as_of=AS_OF,
             areas=THREE_AREAS, recording=astro, depth="astrologer")

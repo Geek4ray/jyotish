@@ -112,4 +112,9 @@ Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/ta
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done; rules may cite `source: practitioner` with status
 `practitioner_unconfirmed`, kept out of default scoring (`rules.OUT_OF_DEFAULT`).
-Next (SPEC Layer 6b order of work): outcome capture, the placement rule library, the judge page.
+The placement rule library (`rules/place.*.yaml`, 144 lord-in-house from BPHS 24 and 108
+planet-in-house from Phaladeepika 8, every source checked: false) is generated from
+`scripts/placements.csv` by `scripts/make_placements.py` (`--check` in the suite): edit the table, not
+the files. Each fire weighs its rule's confidence_base in the rule term; an area offers narration at
+most three placements, the rest are `other_placements`.
+Next (SPEC Layer 6b order of work): outcome capture, the judge page.

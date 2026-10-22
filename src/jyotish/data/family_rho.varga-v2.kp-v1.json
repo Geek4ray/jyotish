@@ -3,7 +3,7 @@
   "n_charts": 10000,
   "seed": 20261021,
   "rows": 180000,
-  "settings": "Lahiri, true node, whole sign, default Meta (varga_term v2, kp v1); UTC 1900-2050, lat -60..60",
+  "settings": "Lahiri, true node, whole sign, default Meta (varga_term v2, kp_vote v1); UTC 1900-2050, lat -60..60",
   "rho": {
     "house": 0.01858627670866417,
     "lord": 0.07631236592886023,

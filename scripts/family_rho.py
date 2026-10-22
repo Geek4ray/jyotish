@@ -11,7 +11,8 @@ sign, default settings. Each (chart, life area) row gives every family's vote in
 families' votes over the rows where both apply; rho_f is the mean over g != f. A pair
 with no variance or no shared rows is left out of the mean.
 
-Run:  .venv/bin/python scripts/family_rho.py [n_charts] [seed]"""
+Run:  .venv/bin/python scripts/family_rho.py [n_charts] [seed] [--varga-term v1|v2] [--kp-vote v1|v2]
+(default: the Meta defaults; another pair re-scores each chart under it and writes that pair's tables)."""
 
 from __future__ import annotations
 
@@ -31,8 +32,13 @@ from jyotish.scoring import AREAS, FAMILIES, table_path
 jyotish.scoring.POPULATION_RUN = True   # votes and S only; the tables being made are not read
 
 DATA = Path(__file__).resolve().parents[1] / "src" / "jyotish" / "data"
-# The tables are per (varga_term, kp_vote): written for the Meta defaults.
-META = Meta()
+# The tables are per (varga_term, kp_vote): written for the Meta defaults unless asked otherwise.
+def _arg(name, default):
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
+
+
+META = Meta().model_copy(update={"varga_term": _arg("--varga-term", Meta().varga_term),
+                                 "kp_vote": _arg("--kp-vote", Meta().kp_vote)})
 OUT = table_path(DATA / "family_rho.json", META.varga_term, META.kp_vote)
 PCT = table_path(DATA / "area_percentiles.json", META.varga_term, META.kp_vote)
 
@@ -47,6 +53,10 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
     for i in range(n):
         utc = start + timedelta(seconds=float(rng.uniform(0, span)))
         chart = compute(utc, float(rng.uniform(-60, 60)), float(rng.uniform(-180, 180)))
+        if (META.varga_term, META.kp_vote) != (chart.meta.varga_term, chart.meta.kp_vote):
+            from jyotish.scoring import score
+            chart.meta = chart.meta.model_copy(update={"varga_term": META.varga_term, "kp_vote": META.kp_vote})
+            chart.scored = score(chart)
         for area in AREAS:
             scores[area].append(chart.scored.areas[area].score_classical)
             v = chart.scored.areas[area].votes
@@ -90,4 +100,4 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
 
 
 if __name__ == "__main__":
-    main(*(int(a) for a in sys.argv[1:3]))
+    main(*(int(a) for a in [x for x in sys.argv[1:] if x.isdigit()][:2]))
