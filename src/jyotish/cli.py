@@ -24,7 +24,11 @@ def _fmt_lon(lon: float) -> str:
     return f"{int(d):02d}°{int(m):02d}'{int(round(s)):02d}\" {SIGNS[sign]}"
 
 
-def print_chart(chart: Chart) -> None:
+def print_chart(chart: Chart, scored_from: Chart | None = None) -> None:
+    """The chart's sections; the Life areas from `scored_from` when given (the reference command
+    prints the positions the app printed and the tiers of the true-time, assessed chart: a chart
+    built from positions alone has no KP cusps but the 7th, so its KP votes are not applicable
+    rather than abstentions and its tiers are not the worked example's; review 2026-10-23, F16)."""
     print(f"Lagna: {_fmt_lon(chart.lagnas.asc)} ({chart.lagnas.asc_nak}, lord {chart.lagnas.asc_nak_lord}, tara {chart.lagnas.asc_tara})")
     print(f"{'Body':8} {'Position':22} {'Nak-pada':18} {'Lord':8} {'Sub':8} {'H':>2} {'Dignity':12} {'Avastha':8} {'Tara':9} flags")
     for name, b in chart.bodies.items():
@@ -58,7 +62,7 @@ def print_chart(chart: Chart) -> None:
     print_vimsopaka_ishta(chart)
     print_argala(chart)
     print_fired_rules(chart)
-    print_scored(chart)
+    print_scored(scored_from or chart)
     if chart.meta.jd is not None:
         print_current_transits(chart)
     if chart.panchanga:
@@ -528,13 +532,16 @@ def main(argv: list[str] | None = None) -> None:
     if args.cmd == "page":
         raise SystemExit(cmd_page(args))
     if args.cmd == "reference":
-        chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS,
-                        **reference_time_inputs())
-        print_chart(chart)
         from .reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
         from .uncertainty import assess
-        print("\n(Stability and timing are computed from the birth data at the true time, 10:10:25 IST.)")
+        chart = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS,
+                        **reference_time_inputs())
         assessed = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+        # The positions, features and fires are the app's printed chart (10:10:00); the Life areas,
+        # stability and timing are the true-time chart's (10:10:25), the worked example's engine result.
+        print_chart(chart, scored_from=assessed)
+        print("\n(The Life areas above, and the stability and timing below, are computed from the birth data at the "
+              "true time, 10:10:25 IST; the positions, features and fires are the app's printed chart at 10:10:00.)")
         print_stability(assessed)
         from .models import TimingQuery
         print_timing(assessed, TimingQuery(area="career", start="2026-01-01", end="2036-01-01",
