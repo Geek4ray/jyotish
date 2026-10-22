@@ -791,13 +791,24 @@ def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fi
 
 
 def test_curious_prompt_and_payload(chart):
-    from jyotish.narrate import SYSTEM_PROMPT, payload, system_prompt
-    p = system_prompt("curious")
-    assert p.startswith(SYSTEM_PROMPT) and "Ruchaka yoga, a Mars combination for drive and courage" in p
-    for rule in ("No degrees, no", "rupas", "ratios", "gloss"):
-        assert rule in " ".join(p.split())
+    from jyotish.narrate import FAMILY_RULE_TEXT, SYSTEM_PROMPT, payload, system_prompt
+    p = " ".join(system_prompt("curious").split())
+    assert FAMILY_RULE_TEXT in SYSTEM_PROMPT and FAMILY_RULE_TEXT not in p     # the family rule is off here
+    assert "the engine. A sentence citing a rule names the yoga." in p
+    assert "Ruchaka yoga, a Mars combination for drive and courage" in p
+    # The SPEC's paragraph shape, in order: chart, tradition, weakest point, one-clause agreement.
+    order = ["First, what the chart shows", "Then what the tradition associates it with",
+             "Then the weakest point or the disagreement", "Last, in one clause, how many of the engine's seven tests agree"]
+    assert [p.index(x) for x in order] == sorted(p.index(x) for x in order)
+    for rule in ("never a list of the tests or votes", "No degrees, rupas, strength ratios", "glossed once",
+                 "answers the question in two or three sentences about the asked area", "does not repeat the paragraph"):
+        assert rule in p, rule
     assert system_prompt("astrologer") == system_prompt("learner") == SYSTEM_PROMPT
-    assert json.loads(payload(chart, "q", ["career"], "curious")[0])["depth"] == "curious"
+    body = json.loads(payload(chart, "q", ["career"], "curious")[0])
+    assert body["depth"] == "curious"
+    assert body["areas"][0]["tests"] == {"tests": 7, "verdict": {"house": "for", "lord": "for", "karaka": "for",
+                                         "varga": "for", "arudha": "abstains", "kp": "abstains", "panchanga": "for"},
+                                         "for": 5, "against": 0, "abstains": 2, "not applicable": 0}
     with pytest.raises(ValueError):
         system_prompt("expert")
 
@@ -815,7 +826,9 @@ def test_paragraph_is_validated_like_the_summary(chart):
     r = _curious(chart, drafts=[bad], rec=rec)
     errs = rec[0]["validator_errors"]
     assert any(e.startswith("tier language ('strong') in the career paragraph") for e in errs)
-    assert any("[vote:career.house] on a sentence that does not name the house family" in e for e in errs)
+    # At curious depth the family-name rule is off: a vote tag on a sentence that does not name
+    # its family is the checker's to judge, not the validator's.
+    assert not any("does not name the house family" in e or "but does not cite" in e for e in errs)
     assert any(e.startswith("no paragraph for marriage") for e in errs)
     by = {a.name: a for a in r.areas}
     assert by["career"].paragraph is None and by["marriage"].paragraph is None and by["longevity"].paragraph
@@ -843,3 +856,49 @@ def test_timing_note_under_the_timing_line(chart):
     plain = narrate(chart, "How will my career go?", drafter=Replay([ACCEPTED]), checker=StubChecker(),
                     as_of=AS_OF, areas=THREE_AREAS, depth="curious")
     assert plain.summary.timing_line is None and plain.summary.timing_note is None
+
+
+
+def test_family_rule_is_off_at_curious_depth_only(chart):
+    # The first live curious reading wrote "the house vote and the lord vote lean favourable..."
+    # because the rule forced it; at curious depth a sentence may cite votes without naming them.
+    sentence = ("The Sun and Mercury share the house of career, and five of the seven tests agree "
+                "[vote:career.house] [vote:career.lord] [vote:career.karaka].")
+    tags = {"vote:career.house", "vote:career.lord", "vote:career.karaka"}
+    votes = {"house": "vote:career.house", "lord": "vote:career.lord", "karaka": "vote:career.karaka"}
+    assert any("does not name the house family" in e for e in validate(sentence, tags, offered_votes=votes))
+    assert validate(sentence, tags, offered_votes=votes, family_rule=False) == []
+    named = "The house vote leans for career, as does the karaka family [vote:career.house]."
+    assert any("names the karaka family but does not cite" in e for e in validate(named, tags, offered_votes=votes))
+    assert validate(named, tags, offered_votes=votes, family_rule=False) == []
+    # The rest of the validator stays on: rule names, offered tags, forbidden words.
+    assert validate("Mars gives courage [rule:yoga.ruchaka].", {"rule:yoga.ruchaka"}, family_rule=False)
+    assert validate("Career is likely [vote:career.house].", tags, family_rule=False)
+
+
+def test_curious_draft_is_read_without_the_family_rule_and_astrologer_with_it(chart):
+    plain = json.loads(json.dumps(ACCEPTED))
+    for a in plain["areas"]:
+        if a["name"] == "career":
+            a["paragraph"] = ("The Sun and Mercury sit together in the house of career, forming Budhaditya yoga, a Sun and "
+                              "Mercury combination [rule:yoga.budhaditya]. Five of the seven tests agree "
+                              "[vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] "
+                              "[vote:career.panchanga].")
+            for c in a["claims"]:
+                if c["finding_id"] == "vote:career.house":
+                    c["text"] = "The career houses lean favourable overall [vote:career.house]."
+    rec = []
+    r = _curious(chart, drafts=[plain], rec=rec)
+    assert rec[0]["validator_errors"] == [] and r.narration_complete
+    astro = []
+    narrate(chart, CURIOUS["question"], drafter=Replay([plain]), checker=StubChecker(), as_of=AS_OF,
+            areas=THREE_AREAS, recording=astro, depth="astrologer")
+    assert any("[vote:career.house] on a sentence that does not name the house family" in e
+               for e in astro[0]["validator_errors"])
+
+
+def test_vote_data_carries_the_seven_tests_for_the_checker(chart):
+    ok, _ = findings(chart, "career")
+    house = next(f for f in ok if f["finding_id"] == "vote:career.house")
+    from jyotish.narrate import _check_data
+    assert _check_data(house)["area_votes"]["for"] == 5 and _check_data(house)["area_votes"]["tests"] == 7

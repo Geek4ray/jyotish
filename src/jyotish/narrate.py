@@ -266,10 +266,11 @@ def rule_names(rule_id: str) -> list[str]:
 TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 
-def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary") -> list[str]:
+def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary",
+                     family_rule: bool = True) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
-    errors = validate(text, allowed, offered_votes=offered_votes)
+    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule)
     for sentence in sentences(text):
         m = TIER_WORDS.search(TAG.sub("", sentence))
         if m:
@@ -277,11 +278,15 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
     return errors
 
 
-def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None) -> list[str]:
+def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
+             family_rule: bool = True) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
     set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
     summary over several areas, the set of that family's vote tags) for every vote offered:
-    a sentence naming such a family must cite it (one of them)."""
+    a sentence naming such a family must cite it (one of them). `family_rule` False (the
+    curious depth, SPEC Layer 7 "Depth") drops both halves of that rule: a vote tag need not
+    be on a sentence naming its family, and naming a family need not cite it; the checker,
+    which reads every sentence against the derivations it cites, carries the guarantee."""
     offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
@@ -298,12 +303,12 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         for kind, value in found:
             if kind == "vote":
                 family = value.split(".", 1)[-1]
-                if family not in named:
+                if family_rule and family not in named:
                     errors.append(f"[vote:{value}] on a sentence that does not name the {family} family: {s!r}")
             elif kind == "rule":
                 if not any(n.lower() in bare.lower() for n in rule_names(value)):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
-        for family in sorted(named):
+        for family in sorted(named) if family_rule else ():
             want = offered_votes.get(family)
             want = {want} if isinstance(want, str) else set(want or ())
             if want and not want & tags:
@@ -413,6 +418,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                 "confidence": min(f.scale for f in fires) * base}
         (shaky if unstable else ok).append(item)
     a = chart.scored.areas.get(area)
+    tally = area_votes(a) if a is not None and a.score_classical is not None else None
     if a is not None and a.score_classical is not None:
         from .scoring import family_weights
         rho = family_rho(chart.meta.varga_term, chart.meta.kp_vote)
@@ -421,7 +427,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
             if not vote:
                 continue
             tag = f"vote:{area}.{family}"
-            item = {"finding_id": tag, "kind": "vote", "family": family, "vote": vote,
+            item = {"finding_id": tag, "kind": "vote", "family": family, "vote": vote, "area_votes": tally,
                     "direction": "for" if vote > 0 else "against", "basis": "lagna, moon, sun 3:2:1"
                     if family in ("house", "lord") else "lagna", "school": FAMILY_SCHOOL[family],
                     "derivation": a.vote_details.get(family), "term": a.terms.get(family),
@@ -430,6 +436,16 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
             st = item["stability"]
             (shaky if st is not None and st < 0.5 else ok).append(item)
     return ok, shaky
+
+
+def area_votes(a) -> dict:
+    """The engine's seven tests on an area, as the curious paragraph's closing clause counts
+    them: each family's verdict (for, against, abstains, not applicable) and the counts."""
+    from .scoring import FAMILIES
+    word = {1: "for", -1: "against", 0: "abstains", None: "not applicable"}
+    verdict = {f: word[a.votes.get(f)] for f in FAMILIES}
+    counts = {w: sum(1 for v in verdict.values() if v == w) for w in ("for", "against", "abstains", "not applicable")}
+    return {"tests": len(FAMILIES), "verdict": verdict, **counts}
 
 
 def school_conflicts(area) -> list[dict]:
@@ -478,23 +494,42 @@ this chart shows about the relationship, never what will happen to the other per
 
 DEPTHS = ("curious", "learner", "astrologer")
 
+# The family-name sentence of SYSTEM_PROMPT, dropped at curious depth (SPEC Layer 7 "Depth").
+FAMILY_RULE_TEXT = ('A sentence citing a vote names that family ("the KP vote", "the house vote"); a sentence naming a '
+                    "family's vote cites it; ")
+
 CURIOUS_PROMPT = """
 
 Depth: curious. The reader knows no astrology. For each area, besides the claims, write \
-`paragraph`: one short paragraph of three to five sentences in plain language. No degrees, no \
-rupas, no strength ratios or other numbers, and no Sanskrit or technical term without a short gloss \
-in the same sentence (for example "Ruchaka yoga, a Mars combination for drive and courage"). Each \
-sentence of the paragraph that states something ends with the tags of the findings it draws on, \
-written exactly as in the claims, and is checked against those findings' data only; a sentence \
-citing a vote still names its family ("the house vote"). Do not state the tier, the stability or any \
-timing in the paragraph: the engine states them. The claims are still written as above: they are \
-the astrologer's reading, shown under the paragraph."""
+`paragraph`: one short paragraph, plain language, in this shape. First, what the chart shows, in \
+chart terms with a gloss: where the planets are and what combination they form ("the Sun and \
+Mercury sit together in the house of career, forming Budhaditya yoga, a Sun and Mercury \
+combination"). Then what the tradition associates it with, from the finding's themes. Then the \
+weakest point or the disagreement, named from the derivations: for example the area's own house \
+weakest by strength while its lord and the planets in it are strong; a school whose test goes the \
+other way; a test that abstains. Last, in one clause, how many of the engine's seven tests agree, \
+from the area's `tests` (say how many apply when some do not) - never a list of the tests or votes, \
+and do not name the votes one by one anywhere in the paragraph. No degrees, rupas, strength ratios \
+or other figures beyond that count; every Sanskrit or technical term glossed once, the first time \
+it appears ("Ruchaka yoga, a Mars combination for drive and courage"). Each sentence that states \
+something ends with the tags of the findings it draws on, written exactly as in the claims, and \
+is checked against those findings' data only; the closing clause cites the votes it counts. Do \
+not state the tier, the stability or any timing: the engine states them.
+
+The summary, at this depth, answers the question in two or three sentences about the asked area \
+only, tagged the same way, and does not repeat the paragraph's sentences. At this depth a \
+sentence citing a vote need not name its family. The claims are still written as above: they \
+are the astrologer's reading, shown under the paragraph."""
 
 
 def system_prompt(depth: str) -> str:
     if depth not in DEPTHS:
         raise ValueError(f"depth must be one of {DEPTHS}, not {depth!r}")
-    return SYSTEM_PROMPT + (CURIOUS_PROMPT if depth == "curious" else "")
+    if depth == "curious":
+        assert FAMILY_RULE_TEXT + "a sentence citing a rule" in SYSTEM_PROMPT
+        return SYSTEM_PROMPT.replace(FAMILY_RULE_TEXT + "a sentence citing a rule", "A sentence citing a rule") \
+            + CURIOUS_PROMPT
+    return SYSTEM_PROMPT
 
 
 def timing_note(areas: list[str]) -> str:
@@ -512,7 +547,9 @@ def payload(chart: Chart, question: str, areas: list[str], depth: str = "astrolo
         ok, _ = findings(chart, name)
         for f in ok:
             allowed[f["finding_id"]] = set(f["allowed_tags"])
-        body["areas"].append({"name": name, "findings": ok})
+        a = chart.scored.areas.get(name)
+        body["areas"].append({"name": name, "findings": ok,
+                              **({"tests": area_votes(a)} if a is not None and a.score_classical is not None else {})})
     return json.dumps(body, indent=1, default=str), allowed
 
 
@@ -858,7 +895,7 @@ def _check_payload(f: dict) -> str:
 def _check_data(f: dict) -> dict:
     keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
             "school", "planets",
-            "themes", "fires", "derivation")
+            "themes", "fires", "derivation", "area_votes")
     return {k: f[k] for k in keep if k in f}
 
 
@@ -934,7 +971,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             continue
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
-        summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes)
+        summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious)
         errors = list(summary_errs)
         claim_errs: dict[tuple[str, str], list[str]] = {}
         drafted: list[tuple[str, DraftClaim]] = []
@@ -949,7 +986,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 if (da.name, c.finding_id) in claim_errs:
                     errors.append(f"two claims for {c.finding_id} in {da.name}")
                     continue
-                errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name])
+                errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name],
+                                family_rule=not curious)
                 if not TAG.search(c.text):
                     errs.append(f"claim without a tag: {c.text!r}")
                 claim_errs[(da.name, c.finding_id)] = errs
@@ -962,7 +1000,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             for name in areas:
                 text = next((d.paragraph for d in draft.areas if d.name == name), None)
                 para_errs[name] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
-                                                    where=f"{name} paragraph")
+                                                    where=f"{name} paragraph", family_rule=False)
                                    if text else [f"no paragraph for {name}: at curious depth every area has one"])
                 errors += para_errs[name]
         entry["validator_errors"] = list(errors)
