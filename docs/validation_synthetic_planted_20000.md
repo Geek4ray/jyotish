@@ -4,10 +4,10 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 
 ## Synthetic — Pre-registration hashes (test 10)
 
-- rule set `fe4a45353690525365741ebe19d5e291a49bb4fdbb09b07ea839f67ad4e15c60`
+- rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `2aefb73c4109c21e041d36cd0539616e8e62b01812b41ea5943ee0be9d5bb991` ({"salt_sha256": "b41f02ef8121a7213a6d734d2a8d039c0b2f4c63f7fdf3e6191158ac8a2bb206", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "8d54641767ed5647ddb80e5077e72bdecce3e61ee4188a3ec0352ee6aef653d9"})
-- analysis code `c8c5b0d57a30545f28152516302d2a6c15ec580306bf41055f5d690ea76296e6`
+- split definition `d3317a35d417c1933ea729172fa232d968ad7fb8993ad116b441f825c9f80335` ({"salt_sha256": "b41f02ef8121a7213a6d734d2a8d039c0b2f4c63f7fdf3e6191158ac8a2bb206", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "7095c80f5c7e2715c11ea3bc87fec92cb69af8c0b1975612bbfb7a36a0528908"})
+- analysis code `ac8c03b257b3f698b8b7ff86cca85f8860f9cf85720cfafa654df5a7d53a7017`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -36,7 +36,7 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
-| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p |
+| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p (two-sided; a fall is marked) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | wealth | 14894 | 1.000 | 8 | 104.62 | 8 | 0.0000 | 0.506 | 0.536 | 0.0000 |
 | mother_home | 14894 | 1.000 | 8 | 177.53 | 8 | 0.0000 | 0.510 | 0.555 | 0.0000 |

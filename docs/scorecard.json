@@ -1,6 +1,6 @@
 {
   "date": "2026-10-23",
-  "commit": "4699460",
+  "commit": "9ed50af",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -320,6 +320,12 @@
       "unit": "",
       "gate": false
     },
+    "synthetic.planted.2000.unplanted_areas_surviving_bh": {
+      "value": 0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
     "synthetic.null.2000.areas_surviving_bh": {
       "value": 0,
       "better": "lower",
@@ -359,6 +365,12 @@
     "synthetic.planted.20000.timing_recovered_share": {
       "value": 1.0,
       "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "synthetic.planted.20000.unplanted_areas_surviving_bh": {
+      "value": 3,
+      "better": "lower",
       "unit": "",
       "gate": false
     },

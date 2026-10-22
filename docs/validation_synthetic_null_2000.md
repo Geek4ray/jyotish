@@ -4,10 +4,10 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 
 ## Synthetic — Pre-registration hashes (test 10)
 
-- rule set `fe4a45353690525365741ebe19d5e291a49bb4fdbb09b07ea839f67ad4e15c60`
+- rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `526db8985af3c21cabe35e41591bc58722fc8dac25fb91659b926decf232656a` ({"salt_sha256": "19287501b03b53760b7a0eac16e4af0438c9bde072eec135d455423dcaaa3cb9", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "f1cd9d17698698569bf884a8d0f5faa154e2ce38b0b2e2ded2e3393c6b62bcf4"})
-- analysis code `c8c5b0d57a30545f28152516302d2a6c15ec580306bf41055f5d690ea76296e6`
+- split definition `e7a67eefa20cd4eab18df195693f2740c81b57953dd68887a7e44b0b3d2b1cac` ({"salt_sha256": "19287501b03b53760b7a0eac16e4af0438c9bde072eec135d455423dcaaa3cb9", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "7e0f7a81518bd83e41325e43f6f32fc3c5c3063d0c3df322469743e1f05a82c3"})
+- analysis code `ac8c03b257b3f698b8b7ff86cca85f8860f9cf85720cfafa654df5a7d53a7017`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -36,18 +36,18 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
-| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p |
+| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p (two-sided; a fall is marked) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| wealth | 1520 | 1.000 | 8 | 12.08 | 8 | 0.1475 | 0.495 | 0.494 | 0.8722 |
+| wealth | 1520 | 1.000 | 8 | 12.08 | 8 | 0.1475 | 0.495 | 0.494 | 0.8722 (AUC fell) |
 | mother_home | 1520 | 1.000 | 8 | 13.53 | 8 | 0.0949 | 0.492 | 0.507 | 0.1246 |
 | children | 1520 | 1.000 | 7 | 16.91 | 7 | 0.0180 | 0.489 | 0.513 | 0.0914 |
 | intellect | 1520 | 1.000 | 8 | 8.95 | 8 | 0.3462 | 0.508 | 0.524 | 0.2524 |
-| health | 1520 | 1.000 | 8 | 5.45 | 8 | 0.7083 | 0.518 | 0.502 | 0.1110 |
-| marriage | 1520 | 1.000 | 8 | 7.12 | 8 | 0.5232 | 0.504 | 0.504 | 0.9855 |
+| health | 1520 | 1.000 | 8 | 5.45 | 8 | 0.7083 | 0.518 | 0.502 | 0.1110 (AUC fell) |
+| marriage | 1520 | 1.000 | 8 | 7.12 | 8 | 0.5232 | 0.504 | 0.504 | 0.9855 (AUC fell) |
 | father | 1520 | 1.000 | 7 | 15.15 | 7 | 0.0342 | 0.495 | 0.503 | 0.6629 |
 | career | 1520 | 1.000 | 8 | 4.37 | 8 | 0.8227 | 0.483 | 0.500 | 0.2205 |
-| gains | 1520 | 1.000 | 8 | 14.64 | 8 | 0.0665 | 0.495 | 0.494 | 0.9453 |
-| foreign | 1520 | 1.000 | 7 | 5.02 | 7 | 0.6573 | 0.502 | 0.481 | 0.1991 |
+| gains | 1520 | 1.000 | 8 | 14.64 | 8 | 0.0665 | 0.495 | 0.494 | 0.9453 (AUC fell) |
+| foreign | 1520 | 1.000 | 7 | 5.02 | 7 | 0.6573 | 0.502 | 0.481 | 0.1991 (AUC fell) |
 | reputation | 1520 | 1.000 | 8 | 12.41 | 8 | 0.1340 | 0.508 | 0.528 | 0.2052 |
 
 ## Synthetic — Timing as a discrete-time hazard (test 4)

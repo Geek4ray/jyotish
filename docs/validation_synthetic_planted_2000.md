@@ -4,10 +4,10 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 
 ## Synthetic — Pre-registration hashes (test 10)
 
-- rule set `fe4a45353690525365741ebe19d5e291a49bb4fdbb09b07ea839f67ad4e15c60`
+- rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `d7dc1e9270c96d3f669428da63f3fb49c43ddc2581525cae546e7f3281e14195` ({"salt_sha256": "6295df2c9197b43b02a9ebf2563806128934891279163c3d1169f838b2803d4d", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "b3713df1a7223b50704e28d3ed8c9ca70580718a3962285629c92a7a004bffd4"})
-- analysis code `c8c5b0d57a30545f28152516302d2a6c15ec580306bf41055f5d690ea76296e6`
+- split definition `35ad4e8549f8e1c571007380a7c3052c5e4d5faa203f9664fc3caf32171ce1a1` ({"salt_sha256": "6295df2c9197b43b02a9ebf2563806128934891279163c3d1169f838b2803d4d", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "c0d6600d02b179b87d74ee194fcef4d37bb39234ec24db668327b03d4929a078"})
+- analysis code `ac8c03b257b3f698b8b7ff86cca85f8860f9cf85720cfafa654df5a7d53a7017`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -36,7 +36,7 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
-| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p |
+| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p (two-sided; a fall is marked) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | wealth | 1479 | 1.000 | 8 | 8.18 | 8 | 0.4158 | 0.485 | 0.509 | 0.0779 |
 | mother_home | 1479 | 1.000 | 8 | 20.57 | 8 | 0.0084 | 0.486 | 0.515 | 0.0605 |

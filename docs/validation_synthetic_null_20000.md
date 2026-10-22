@@ -4,10 +4,10 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 
 ## Synthetic — Pre-registration hashes (test 10)
 
-- rule set `fe4a45353690525365741ebe19d5e291a49bb4fdbb09b07ea839f67ad4e15c60`
+- rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `28e267c718ddb3f66a4c6c0ff03764d996b5c6baf6af3f5195039555613dfd29` ({"salt_sha256": "b40112f146d454146b91259ad7adc209cdce21e41cabb6406ccc8d9a7c66e9c2", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "726eb6285c2eb603e247aa0e9aeb8a681dc589b92aa56218eb9649cd32afe39c"})
-- analysis code `c8c5b0d57a30545f28152516302d2a6c15ec580306bf41055f5d690ea76296e6`
+- split definition `a6e85fe5cf061c1bae29a7bee6cf26c26efaca21c7d9d3a2ddbe678e39f58245` ({"salt_sha256": "b40112f146d454146b91259ad7adc209cdce21e41cabb6406ccc8d9a7c66e9c2", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "cbffdaf248f84e06bc54b32380fd448a4aca3396224e62b56952578f3d414101"})
+- analysis code `ac8c03b257b3f698b8b7ff86cca85f8860f9cf85720cfafa654df5a7d53a7017`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -36,13 +36,13 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
-| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p |
+| area | n | coverage | engine terms | LR | df | p (LR) | AUC covariates | AUC + engine | DeLong p (two-sided; a fall is marked) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| wealth | 15108 | 1.000 | 8 | 8.81 | 8 | 0.3589 | 0.502 | 0.501 | 0.7977 |
+| wealth | 15108 | 1.000 | 8 | 8.81 | 8 | 0.3589 | 0.502 | 0.501 | 0.7977 (AUC fell) |
 | mother_home | 15108 | 1.000 | 8 | 14.72 | 8 | 0.0648 | 0.492 | 0.506 | 0.0033 |
-| children | 15108 | 1.000 | 7 | 1.63 | 7 | 0.9774 | 0.493 | 0.492 | 0.8127 |
+| children | 15108 | 1.000 | 7 | 1.63 | 7 | 0.9774 | 0.493 | 0.492 | 0.8127 (AUC fell) |
 | intellect | 15108 | 1.000 | 8 | 18.39 | 8 | 0.0185 | 0.499 | 0.512 | 0.0140 |
-| health | 15108 | 1.000 | 8 | 5.69 | 8 | 0.6817 | 0.493 | 0.493 | 0.8653 |
+| health | 15108 | 1.000 | 8 | 5.69 | 8 | 0.6817 | 0.493 | 0.493 | 0.8653 (AUC fell) |
 | marriage | 15108 | 1.000 | 8 | 11.49 | 8 | 0.1757 | 0.493 | 0.500 | 0.0967 |
 | father | 15108 | 1.000 | 7 | 7.92 | 7 | 0.3395 | 0.500 | 0.507 | 0.0624 |
 | career | 15108 | 1.000 | 8 | 5.61 | 8 | 0.6905 | 0.490 | 0.498 | 0.0915 |
