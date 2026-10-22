@@ -28,6 +28,11 @@ from .dispositors import parivartanas
 from .models import Chart, FiredRule
 from .shadbala import natural_benefics
 
+# Statuses whose fires are recorded but kept out of default scoring and narration: an uncited
+# experimental rule, and a practitioner-confirmed pattern (source: practitioner) until outcomes
+# confirm it (SPEC Layer 6b).
+OUT_OF_DEFAULT = frozenset({"experimental", "practitioner_unconfirmed"})
+
 RULES_DIR = Path(os.environ.get("JYOTISH_RULES_PATH", Path(__file__).resolve().parents[2] / "rules"))
 SCHEMA_FILE = "rule.schema.json"
 

@@ -301,3 +301,47 @@ def test_checked_sources_name_a_verse():
         for s in r.data.get("source", []):
             if s.get("checked"):
                 assert str(s["verse"]) != "unverified", (r.id, s)
+
+
+# --- practitioner rules (SPEC Layer 6b): source: practitioner, status practitioner_unconfirmed ----
+
+PRACTITIONER = GOOD.replace(
+    "source:\n  - {text: BPHS, edition: Santhanam 1984, chapter: 1, verse: 1}\nstatus: experimental",
+    "source:\n  - {kind: practitioner, name: judge-1, seen_in: roughly 40 charts, confirmed: '2026-10-22'}\n"
+    "status: practitioner_unconfirmed")
+
+
+def test_practitioner_rule_is_accepted(libdir):
+    [r] = _load_one(libdir, PRACTITIONER)
+    assert r.data["status"] == "practitioner_unconfirmed"
+    assert r.data["source"][0] == {"kind": "practitioner", "name": "judge-1", "seen_in": "roughly 40 charts",
+                                   "confirmed": "2026-10-22"}
+
+
+@pytest.mark.parametrize("change,message", [
+    # practitioner_unconfirmed must cite a practitioner source; a text alone is not one.
+    (("  - {kind: practitioner, name: judge-1, seen_in: roughly 40 charts, confirmed: '2026-10-22'}",
+      "  - {text: BPHS, edition: Santhanam 1984, chapter: 1, verse: 1}"), "contain"),
+    (("seen_in: roughly 40 charts, ", ""), "contain|valid"),            # how often he saw it
+    (("kind: practitioner", "kind: astrologer"), "contain|valid"),
+])
+def test_practitioner_rule_needs_its_source(libdir, change, message):
+    with pytest.raises(RuleError, match=message):
+        _load_one(libdir, PRACTITIONER.replace(*change))
+
+
+def test_practitioner_rule_fires_but_stays_out_of_default_scoring(libdir):
+    from jyotish.chart import compute
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.rules import OUT_OF_DEFAULT
+    from jyotish.narrate import findings
+    text = PRACTITIONER.replace("  planet: Mars\n  house_in: [1]\n", "  planet: Mars\n  house_in: [7]\n")
+    [rule] = _load_one(libdir, text)
+    base = compute(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    plus = compute(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False,
+                   rules=list(load_rules()) + [rule])
+    fired = [f for f in plus.fired_rules if f.id == "yoga.test_rule"]
+    assert fired and fired[0].status == "practitioner_unconfirmed" and "practitioner_unconfirmed" in OUT_OF_DEFAULT
+    assert {n: a.score_classical for n, a in plus.scored.areas.items()} == \
+        {n: a.score_classical for n, a in base.scored.areas.items()}             # no weight in the score
+    assert all(f.get("rule_id") != "yoga.test_rule" for a in ("career", "personality") for f in findings(plus, a)[0])

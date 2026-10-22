@@ -95,6 +95,7 @@ from .constants import EXALTATION, GRAHAS, KP_MATTER, SEVEN, SIGN_LORD, SIGNS
 from .dignity import aspected_houses, house_of, natural_relation
 from .models import AreaScore, Chart, Driver, Scored
 from .shadbala import natural_benefics
+from .rules import OUT_OF_DEFAULT
 from .vargas import VARGAS
 
 WEIGHTS = {"lord": 3.0, "occupant": 2.0, "karaka": 2.0, "rule": 1.0, "varga": 1.0,
@@ -427,7 +428,7 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
 
     rule_term = 0.0
     for f in v.c.fired_rules:
-        if f.status == "experimental":
+        if f.status in OUT_OF_DEFAULT:
             continue
         theta = sum(val for th, val in f.themes.items() if name in THEME_AREAS.get(th, []))
         rule_term += WEIGHTS["rule"] * FIRE_BASIS[f.basis] * theta
@@ -612,14 +613,14 @@ def tier(conf: float) -> str:
 def _driver(v: _View, rules) -> Driver:
     fired: dict[str, set[str]] = {p: set() for p in SEVEN}
     for f in v.c.fired_rules:
-        if f.status == "experimental":
+        if f.status in OUT_OF_DEFAULT:
             continue
         for n in f.nodes:
             if n in fired:
                 fired[n].add(f.id)
     applicable = {p: 0 for p in SEVEN}
     for r in rules:
-        if r.data["status"] == "experimental":
+        if r.data["status"] in OUT_OF_DEFAULT:
             continue
         w = r.data["when"]
         sides = [w["pair"]["a"], w["pair"]["b"]] if "pair" in w else [w]

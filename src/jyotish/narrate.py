@@ -42,7 +42,7 @@ from typing import Any, Callable
 from pydantic import BaseModel, Field
 
 from .models import Chart, Stability, TimingQuery
-from .rules import default_rules
+from .rules import OUT_OF_DEFAULT, default_rules
 from .scoring import AREAS, THEME_AREAS
 
 
@@ -394,7 +394,7 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     ok, shaky = [], []
     groups: dict[tuple, list] = {}
     for f in chart.fired_rules:
-        if f.status == "experimental" or not any(area in THEME_AREAS.get(t, []) for t in f.themes):
+        if f.status in OUT_OF_DEFAULT or not any(area in THEME_AREAS.get(t, []) for t in f.themes):
             continue
         unstable = f.stability is not None and f.stability.time < 0.5
         planets = tuple(n for n in f.nodes if not n.startswith("H"))
@@ -1184,7 +1184,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3),
               "stability": f.stability.time if f.stability else None}
-             for f in chart.fired_rules if f.status != "experimental"]
+             for f in chart.fired_rules if f.status not in OUT_OF_DEFAULT]
     unstable = [x for x in fired if x["stability"] is not None and x["stability"] < 0.5]
     disclaimers = sorted({("third_party" if n in THIRD_PARTY_AREAS else DISCLAIMER_KEYS.get(n)) for n in areas} - {None})
     period = None

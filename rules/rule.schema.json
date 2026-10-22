@@ -33,7 +33,7 @@
         "$ref": "#/$defs/source"
       },
       "minItems": 1,
-      "description": "required unless status is experimental (an uncited rule, excluded from default scoring)"
+      "description": "required unless status is experimental (an uncited rule, excluded from default scoring); a practitioner_unconfirmed rule cites at least one practitioner source"
     },
     "status": {
       "enum": [
@@ -41,7 +41,8 @@
         "classical_rejected",
         "not_testable_yet",
         "experimental",
-        "data_confirmed"
+        "data_confirmed",
+        "practitioner_unconfirmed"
       ]
     },
     "when": {
@@ -657,6 +658,45 @@
       ]
     },
     "source": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/text_source"
+        },
+        {
+          "$ref": "#/$defs/practitioner_source"
+        }
+      ]
+    },
+    "modifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "if",
+        "scale"
+      ],
+      "properties": {
+        "if": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "$ref": "#/$defs/subject"
+            }
+          ]
+        },
+        "of": {
+          "type": "string",
+          "description": "a | b | pair (pair rules), or a planet name"
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "text_source": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -695,32 +735,34 @@
         }
       }
     },
-    "modifier": {
+    "practitioner_source": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "if",
-        "scale"
+        "kind",
+        "name",
+        "seen_in"
       ],
+      "description": "A pattern a practising astrologer confirmed from the residual review (SPEC Layer 6b), not a text",
       "properties": {
-        "if": {
-          "oneOf": [
-            {
-              "type": "string",
-              "minLength": 1
-            },
-            {
-              "$ref": "#/$defs/subject"
-            }
-          ]
+        "kind": {
+          "const": "practitioner"
         },
-        "of": {
+        "name": {
           "type": "string",
-          "description": "a | b | pair (pair rules), or a planet name"
+          "minLength": 1
         },
-        "scale": {
-          "type": "number",
-          "exclusiveMinimum": 0
+        "seen_in": {
+          "type": "string",
+          "minLength": 1,
+          "description": "e.g. 'roughly 40 charts'"
+        },
+        "confirmed": {
+          "type": "string",
+          "description": "date confirmed, YYYY-MM-DD"
+        },
+        "note": {
+          "type": "string"
         }
       }
     }
@@ -737,5 +779,28 @@
     "required": [
       "source"
     ]
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "practitioner_unconfirmed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "contains": {
+              "$ref": "#/$defs/practitioner_source"
+            }
+          }
+        }
+      }
+    }
+  ]
 }
