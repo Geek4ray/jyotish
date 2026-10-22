@@ -56,7 +56,7 @@ def test_page_sections_in_order(page):
     assert pos == sorted(pos)
     assert "10 sentence(s) on this page have no recorded checker verdict" in md
     for field in ("- Driver: Venus", "- Current period (Vimshottari): Jupiter-Mercury", "- Top areas: career, marriage, longevity",
-                  "- Birth-time window: ±2 min", "- Fired rules: 5 rules, 21 draft placements (drafts carry no weight in any score)",
+                  "- Birth-time window: ±2 min", "- Fired rules: 5 rules, 32 draft placements (drafts carry no weight in any score)",
                       "- Rules stable / unstable under that window: 5 / 0; draft placements unstable: 0",
                   "- Abstained areas: children, father, gains, synastry"):
         assert field in md
@@ -313,10 +313,10 @@ def test_curious_paragraph_gap_opens_the_claims_under_the_gap_note(tmp_path):
 def test_summary_counts_scored_rules_and_draft_placements_apart(page):
     reading, md = page
     s = reading.summary
-    assert (s.rules_fired, s.drafts_fired, s.drafts_unstable) == (5, 21, 0)
+    assert (s.rules_fired, s.drafts_fired, s.drafts_unstable) == (5, 32, 0)
     assert s.rules_fired + s.drafts_fired == len(reading.fired_rules)
     assert sum(1 for f in reading.fired_rules if f["status"] == "draft") == s.drafts_fired
-    assert "- Fired rules: 5 rules, 21 draft placements (drafts carry no weight in any score)" in md
+    assert "- Fired rules: 5 rules, 32 draft placements (drafts carry no weight in any score)" in md
     # A reading made before the split keeps its one line.
     from jyotish.page import fired_lines
     old = s.model_copy(update={"rules_fired": None, "drafts_fired": None, "drafts_unstable": None})

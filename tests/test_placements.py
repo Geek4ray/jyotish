@@ -16,6 +16,9 @@ from jyotish.rules import RULES_DIR, load_rules
 ROOT = Path(__file__).resolve().parents[1]
 TABLE = list(csv.DictReader((ROOT / "scripts" / "placements.csv").open(newline="")))
 PLACE = {r.id: r for r in load_rules() if r.id.startswith("place.")}
+# The house kinds (lord and planet in a house); the sign and nakshatra kinds are in
+# tests/test_sign_placements.py.
+HOUSE_ROWS = [r for r in TABLE if r["kind"] in ("lord", "planet")]
 PLANETS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]
 
 
@@ -49,8 +52,8 @@ def test_generator_is_idempotent(tmp_path, capsys):
 
 def test_every_row_is_a_valid_rule():
     assert set(PLACE) == {r["id"] for r in TABLE}
-    for rid, r in PLACE.items():
-        d = r.data
+    for rid in (r["id"] for r in HOUSE_ROWS):
+        d = PLACE[rid].data
         assert d["status"] == "draft" and d["confidence_base"] == 0.3 and d["school"] == "parashari"   # no verse read yet
         assert d["when"]["basis"] == ["lagna"]                         # Sudarshana stays with the yogas
         assert all(isinstance(v, int) and 1 <= abs(v) <= 2 for v in d["themes"].values()), rid
@@ -85,7 +88,7 @@ def _subject(rid):
     return when["planet"], when["house"]
 
 
-@pytest.mark.parametrize("rid", sorted(r["id"] for r in TABLE))
+@pytest.mark.parametrize("rid", sorted(r["id"] for r in HOUSE_ROWS))
 def test_each_rule_fires_where_it_should_and_not_a_house_on(rid, charts):
     planet, house = _subject(rid)
     assert rid in charts[(planet, house)]
@@ -133,8 +136,11 @@ def test_reference_planet_in_house_fires(ref):
 
 
 def test_about_twenty_placements_fire_on_a_chart(ref):
-    n = sum(1 for f in ref.fired_rules if f.id.startswith("place."))
+    n = sum(1 for f in ref.fired_rules if f.family in ("lord_in_house", "planet_in_house"))
     assert n == len(REFERENCE_LORD_FIRES) + len(REFERENCE_PLANET_FIRES) == 21
+    # The sign and nakshatra kinds add eleven: the Moon by sign and by nakshatra, the rising
+    # sign, and the other eight by sign (tests/test_sign_placements.py).
+    assert sum(1 for f in ref.fired_rules if f.id.startswith("place.")) == 32
 
 
 # --- part 3: the consequences -----------------------------------------------------------------
@@ -188,7 +194,7 @@ def test_an_area_offers_at_most_three_placements_the_strongest(timed):
     from jyotish.scoring import AREAS
     for area in AREAS:
         offered = [f for f in findings(timed, area)[0] if f.get("family") in ("lord_in_house", "planet_in_house")]
-        rest = other_placements(timed, area)
+        rest = [r for r in other_placements(timed, area) if r["family"] in ("lord_in_house", "planet_in_house")]
         assert len(offered) <= PLACEMENTS_PER_AREA == 3, area
         if rest:
             assert len(offered) == 3, area
@@ -198,10 +204,11 @@ def test_an_area_offers_at_most_three_placements_the_strongest(timed):
             assert data["status"] == "draft" and "classical_effect" not in data and "themes" not in data
             assert "contribution" not in f and set(data["placement"]) >= {"planet", "house"}
     career = {f["finding_id"] for f in findings(timed, "career")[0] if f.get("family")}
-    assert {x for x in career if x.startswith("place.")} == {"place.l2_h10@lagna", "place.l5_h10@lagna",
-                                                              "place.sun_h10@lagna"}
+    assert {x for x in career if x.startswith("place.") and "_in_" not in x} == {
+        "place.l2_h10@lagna", "place.l5_h10@lagna", "place.sun_h10@lagna"}
     assert [r["finding_id"] for r in other_placements(timed, "career")][:2] == ["place.mercury_h10@lagna",
                                                                                 "place.l4_h10@lagna"]
+    assert {x for x in career if x.startswith("place.") and "_in_" in x} == {"place.sun_in_aquarius@lagna"}
 
 
 def test_curious_prompt_folds_placements_into_the_chart_facts():
@@ -247,7 +254,7 @@ def test_a_draft_fire_never_changes_a_score(timed):
     from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
     yogas = [r for r in load_rules() if not r.id.startswith("place.")]
     bare = compute(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False, rules=yogas)
-    assert sum(1 for f in timed.fired_rules if f.status == "draft") == 21          # they fire and are recorded
+    assert sum(1 for f in timed.fired_rules if f.status == "draft") == 32          # they fire and are recorded
     for n, a in timed.scored.areas.items():
         b = bare.scored.areas[n]
         assert (a.score_classical, a.tier, a.terms) == (b.score_classical, b.tier, b.terms), n
@@ -289,7 +296,7 @@ def test_a_promoted_row_becomes_a_scored_rule(tmp_path, timed):
     assert rule.data["status"] == "classical_unconfirmed"
     assert rule.data["source"][0] | {} == {"text": "BPHS", "edition": "Santhanam 1984", "chapter": 24, "verse": "24.79",
                                          "checked": True, "read_by": "Test Reader", "read_on": "2026-10-22"}
-    assert sum(r.data["status"] == "draft" for r in rules if r.id.startswith("place.")) == 251
+    assert sum(r.data["status"] == "draft" for r in rules if r.id.startswith("place.")) == 398
     c = compute(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False, rules=rules)
     fire = next(f for f in c.fired_rules if f.id == "place.l7_h7")
     # It now weighs in the rule term: marriage gains exactly 0.3 x its relationships/commerce themes.

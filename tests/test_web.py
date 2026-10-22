@@ -391,7 +391,7 @@ def test_fired_chip_counts_rules_and_drafts_apart(page, base_url):
     submit_reference(page, base_url)
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     chips = page.inner_text(".summary .chips")
-    assert "Fired: 5 rules, 21 draft placements" in chips and "Rules stable / unstable: 5 / 0" in chips
+    assert "Fired: 5 rules, 32 draft placements" in chips and "Rules stable / unstable: 5 / 0" in chips
     # The example reading predates the split and keeps its one chip.
     page.goto(f"{base_url}/reading.html?src=/examples/reference_reading.json")
     page.wait_for_selector("#reading[data-state=done]")

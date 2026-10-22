@@ -346,6 +346,93 @@
         },
         "aspected_by_benefic": {
           "type": "boolean"
+        },
+        "nakshatra": {
+          "enum": [
+            "Ashwini",
+            "Bharani",
+            "Krittika",
+            "Rohini",
+            "Mrigashira",
+            "Ardra",
+            "Punarvasu",
+            "Pushya",
+            "Ashlesha",
+            "Magha",
+            "PurvaPhalguni",
+            "UttaraPhalguni",
+            "Hasta",
+            "Chitra",
+            "Swati",
+            "Vishakha",
+            "Anuradha",
+            "Jyestha",
+            "Mula",
+            "PurvaAshadha",
+            "UttaraAshadha",
+            "Shravana",
+            "Dhanishtha",
+            "Shatabhisha",
+            "PurvaBhadra",
+            "UttaraBhadra",
+            "Revati"
+          ]
+        },
+        "nakshatra_in": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Ashwini",
+              "Bharani",
+              "Krittika",
+              "Rohini",
+              "Mrigashira",
+              "Ardra",
+              "Punarvasu",
+              "Pushya",
+              "Ashlesha",
+              "Magha",
+              "PurvaPhalguni",
+              "UttaraPhalguni",
+              "Hasta",
+              "Chitra",
+              "Swati",
+              "Vishakha",
+              "Anuradha",
+              "Jyestha",
+              "Mula",
+              "PurvaAshadha",
+              "UttaraAshadha",
+              "Shravana",
+              "Dhanishtha",
+              "Shatabhisha",
+              "PurvaBhadra",
+              "UttaraBhadra",
+              "Revati"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "paksha": {
+          "enum": [
+            "shukla",
+            "krishna"
+          ]
+        },
+        "lagna_sign": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "lagna_sign_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11
+          },
+          "minItems": 1
         }
       }
     },
@@ -638,6 +725,93 @@
         },
         "aspected_by_benefic": {
           "type": "boolean"
+        },
+        "nakshatra": {
+          "enum": [
+            "Ashwini",
+            "Bharani",
+            "Krittika",
+            "Rohini",
+            "Mrigashira",
+            "Ardra",
+            "Punarvasu",
+            "Pushya",
+            "Ashlesha",
+            "Magha",
+            "PurvaPhalguni",
+            "UttaraPhalguni",
+            "Hasta",
+            "Chitra",
+            "Swati",
+            "Vishakha",
+            "Anuradha",
+            "Jyestha",
+            "Mula",
+            "PurvaAshadha",
+            "UttaraAshadha",
+            "Shravana",
+            "Dhanishtha",
+            "Shatabhisha",
+            "PurvaBhadra",
+            "UttaraBhadra",
+            "Revati"
+          ]
+        },
+        "nakshatra_in": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Ashwini",
+              "Bharani",
+              "Krittika",
+              "Rohini",
+              "Mrigashira",
+              "Ardra",
+              "Punarvasu",
+              "Pushya",
+              "Ashlesha",
+              "Magha",
+              "PurvaPhalguni",
+              "UttaraPhalguni",
+              "Hasta",
+              "Chitra",
+              "Swati",
+              "Vishakha",
+              "Anuradha",
+              "Jyestha",
+              "Mula",
+              "PurvaAshadha",
+              "UttaraAshadha",
+              "Shravana",
+              "Dhanishtha",
+              "Shatabhisha",
+              "PurvaBhadra",
+              "UttaraBhadra",
+              "Revati"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "paksha": {
+          "enum": [
+            "shukla",
+            "krishna"
+          ]
+        },
+        "lagna_sign": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "lagna_sign_in": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 11
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false,

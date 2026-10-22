@@ -148,6 +148,12 @@ def _joined(xs: list[str]) -> str:
 
 def _rule_facts(f: dict) -> list[str]:
     pl = f.get("placement")
+    if pl and "lagna_sign" in pl:
+        return [f"{pl['lagna_sign']} rising, its lord {pl['lagna_lord']}"]
+    if pl and "nakshatra" in pl:
+        return [f"{pl['planet']} in {pl['nakshatra']}"]
+    if pl and "sign" in pl:
+        return [f"{pl['planet']} in {pl['sign']}"]
     if pl:
         lord = f", lord of the {_joined([_o(h) for h in pl['lord_of']])}," if pl.get("lord_of") else ""
         return [f"{pl['planet']}{lord} in the {_o(pl['house'])}"]

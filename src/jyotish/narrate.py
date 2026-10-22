@@ -42,7 +42,7 @@ from typing import Any, Callable
 from pydantic import BaseModel, Field
 
 from .models import Chart, Stability, TimingQuery
-from .rules import PLACEMENT_FAMILIES, default_rules, in_default
+from .rules import HOUSE_PLACEMENTS, NAKSHATRA_PLACEMENTS, PLACEMENT_FAMILIES, default_rules, in_default
 from .scoring import AREAS, THEME_AREAS
 
 
@@ -400,7 +400,27 @@ FAMILY_SCHOOL = {"house": "parashari", "lord": "parashari", "karaka": "parashari
                  "arudha": "jaimini", "kp": "kp", "panchanga": "parashari"}
 
 
-PLACEMENTS_PER_AREA = 3
+PLACEMENTS_PER_AREA = 3          # house placements (lord or planet in a house)
+SIGN_ROWS_PER_AREA = 1           # one sign row (the Moon, a planet or the rising sign by sign)
+NAKSHATRA_ROWS_PER_AREA = 1      # one nakshatra row (the Moon by nakshatra)
+
+
+def placement_fact(family: str, fires: list, when: dict) -> dict:
+    """What a placement finding offers the writer: the fact only (SPEC Layer 3, draft status)."""
+    from .constants import SIGNS
+    if family == "lagna_sign":
+        return {"lagna_sign": SIGNS[when["lagna_sign"]], "lagna_lord": fires[0].nodes[0]}
+    if family == "moon_nakshatra":
+        return {"planet": "Moon", "nakshatra": when["nakshatra"]}
+    if family in ("moon_sign", "planet_sign"):
+        return {"planet": when["planet"], "sign": SIGNS[when["sign"]]}
+    return {"planet": fires[0].nodes[0], "house": when["house"], **({"lord_of": when["lord_of"]} if "lord_of" in when else {})}
+
+
+def _quota(family: str) -> int:
+    from .rules import NAKSHATRA_PLACEMENTS, SIGN_PLACEMENTS
+    return (SIGN_ROWS_PER_AREA if family in SIGN_PLACEMENTS else
+            NAKSHATRA_ROWS_PER_AREA if family in NAKSHATRA_PLACEMENTS else PLACEMENTS_PER_AREA)
 _ORD = {1: "1st", 2: "2nd", 3: "3rd"} | {n: f"{n}th" for n in range(4, 13)}
 # "the 10th, a career house": the area as an adjective, where its name is not one.
 AREA_LABEL = {"personality": "self", "siblings": "sibling", "mother_home": "home and mother", "children": "children's",
@@ -462,7 +482,8 @@ def other_placements(chart: Chart, area: str) -> list[dict]:
             continue
         contribution = sum(abs(v) for th, v in f.themes.items() if area in THEME_AREAS.get(th, []))
         if contribution:
-            rows.append({"finding_id": f"{f.id}@{f.basis}", "rule_id": f.id, "planet": f.nodes[0],
+            rows.append({"finding_id": f"{f.id}@{f.basis}", "rule_id": f.id, "family": f.family,
+                         "planet": "Lagna" if f.family == "lagna_sign" else f.nodes[0],
                          "scale": round(f.scale, 3), "contribution": round(contribution, 3),
                          "classical_effect": lib[f.id].data.get("narration_key") if f.id in lib else None,
                          "effect_status": effect_status(lib.get(f.id))})
@@ -516,9 +537,7 @@ def findings(chart: Chart, area: str, as_of: date | None = None) -> tuple[list[d
                 "allowed_tags": tags, "stability": min(times) if times else None,
                 "confidence": min(f.scale for f in fires) * base, "family": fires[0].family}
         if fires[0].family in PLACEMENT_FAMILIES and rule:
-            when = rule.data["when"]
-            item["placement"] = {"planet": fires[0].nodes[0], "house": when["house"],
-                                 **({"lord_of": when["lord_of"]} if "lord_of" in when else {})}
+            item["placement"] = placement_fact(fires[0].family, fires, rule.data["when"])
             item["contribution"] = round(sum(abs(v) for th, v in fires[0].themes.items()
                                              if area in THEME_AREAS.get(th, [])), 3)
             if fires[0].status == "draft":
@@ -533,11 +552,18 @@ def findings(chart: Chart, area: str, as_of: date | None = None) -> tuple[list[d
         item["area_houses"] = houses_involved(item, area)
         item["glossary"] = glossary_for(_check_data(item))
         (shaky if unstable else ok).append(item)
-    # SPEC Layer 6b item 4: an area offers at most its three strongest placements (by theme
-    # contribution to the area x scale); the rest stay in the learner material.
+    # SPEC Layer 6b item 4: an area offers at most its three strongest house placements, one sign
+    # row and one nakshatra row (by theme contribution to the area); the rest stay in the learner
+    # material (other_placements).
     placed = sorted((i for i in ok if i.get("family") in PLACEMENT_FAMILIES),
                     key=lambda i: (-i["contribution"], i["finding_id"]))
-    ok = [i for i in ok if i.get("family") not in PLACEMENT_FAMILIES or i in placed[:PLACEMENTS_PER_AREA]]
+    chosen, used = set(), {}
+    for i in placed:
+        group = _quota(i["family"]), i["family"] in HOUSE_PLACEMENTS, i["family"] in NAKSHATRA_PLACEMENTS
+        if used.get(group, 0) < group[0]:
+            used[group] = used.get(group, 0) + 1
+            chosen.add(i["finding_id"])
+    ok = [i for i in ok if i.get("family") not in PLACEMENT_FAMILIES or i["finding_id"] in chosen]
     for i in ok:
         i.pop("contribution", None)            # used to choose the three; not the writer's to state
     a = chart.scored.areas.get(area)
@@ -670,8 +696,9 @@ states and attach each detail to the thing it belongs to: a cusp's star is the c
 sub-lord's. Never write about death or its timing, medical conditions, or buying and selling \
 investments. For relationships (mother, father, partner, children, siblings), describe only what \
 this chart shows about the relationship, never what will happen to the other person. A finding with \
-status draft is a placement fact only: say where the planet is and which house it rules, and nothing \
-it is said to mean, since its effect has not been read in the text. A house is called by its area \
+status draft is a placement fact only: say where the planet is and which house it rules (or which \
+sign or nakshatra it is in, or which sign rises), and nothing it is said to mean, since its effect \
+has not been read in the text. A house is called by its area \
 ("the house of career", "a career house") only where the finding's area_houses words it so ("the \
 10th, a career house"); say "the 10th" otherwise."""
 

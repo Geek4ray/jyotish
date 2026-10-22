@@ -185,6 +185,10 @@ THEME_AREAS = {
     "authority": ["career", "reputation"], "discipline": ["career"], "endurance": ["longevity"],
     "wealth": ["wealth", "gains"], "rise_after_struggle": ["career"], "career": ["career"],
     "fortune": ["fortune", "wealth"], "house_linkage": [],
+    # The sign and nakshatra draft families' themes (scripts/make_placements.py). Drafts carry no
+    # weight, so these route narration only until a row is promoted.
+    "temperament": ["personality", "mind"], "emotional_life": ["mind"], "ambition": ["career"],
+    "detachment": ["spirituality"],
 }
 
 

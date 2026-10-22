@@ -44,6 +44,33 @@ any score. Your reading of the verse is what makes a rule the text's.
 Work in any order; half an hour on one house's twelve lords is a good session. Rows you have
 filled are kept when the sheet is regenerated.
 
+## The sign and nakshatra rows (added 2026-10-22)
+
+The sheet now has 147 more rows of four new kinds. They are drafts like the house rows, and they
+carry no weight in any score until promoted. A reading may say where the Moon or the planet is
+(or which sign rises), but nothing about what it means.
+
+| kind | rows | what to read | the row's placement reads |
+| --- | --- | --- | --- |
+| the Moon in each sign | 12 | *Brihat Jataka*, tr. N. Chidambaram Iyer (1885), chapter 17 | "the Moon in Libra" |
+| the Moon in each nakshatra | 27 | *Brihat Jataka*, Iyer (1885), chapter 16 | "the Moon in Chitra" |
+| the planets in each sign (Sun, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu) | 96 | *Brihat Jataka*, Iyer (1885), chapter 18, with *Saravali* (Santhanam 1983) as the second source | "Saturn in Taurus" |
+| the rising sign | 12 | *Saravali* (Santhanam 1983), the chapter on the twelve rising signs: its number is not yet located, so the first reader names it | "Taurus rising" |
+
+The draft effect lines here were written from the sign's nature and its lord, the planet's
+dignity in the sign, and the nakshatra's deity and class. Read them the same way as the house
+rows: find the verse, compare, fill the four columns. A few things are particular to these kinds:
+
+- *Brihat Jataka* is terse; where Iyer's notes or another commentary carry the reading, say so in
+  `practitioner_note`.
+- On the nodes in signs the texts differ, and the draft lines say only that a node takes on its
+  sign's colour. Note which text you follow.
+- The Moon's rows are reduced when the Moon is waning and when its Paksha bala is low, and when it
+  is debilitated. The planet rows are reduced by combustion and marked up when retrograde. If the
+  verse attaches another condition, put it in `practitioner_note`.
+- A reading offers at most one sign row and one nakshatra row per area (the strongest by theme).
+  The rest stay in the learner material, so a rough row costs little while it is a draft.
+
 ## What happens next
 
 The engineer merges the sheet into the table and regenerates the rules:
