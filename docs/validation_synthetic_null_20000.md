@@ -6,8 +6,9 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 
 - rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `a6e85fe5cf061c1bae29a7bee6cf26c26efaca21c7d9d3a2ddbe678e39f58245` ({"salt_sha256": "b40112f146d454146b91259ad7adc209cdce21e41cabb6406ccc8d9a7c66e9c2", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "cbffdaf248f84e06bc54b32380fd448a4aca3396224e62b56952578f3d414101"})
-- analysis code `ac8c03b257b3f698b8b7ff86cca85f8860f9cf85720cfafa654df5a7d53a7017`
+- (the analysis code is validate.py with jyotish.cohort, jyotish.outcomes and the outcome map; the lift interval resamples households)
+- split definition `024abbabbfaffa7891729a57f3f5b25894cd82d4c048ff8033c28062590ed663` ({"salt_sha256": "b40112f146d454146b91259ad7adc209cdce21e41cabb6406ccc8d9a7c66e9c2", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "301efeba29df656e76c75461f04c64c8b8c01179b78df502970800d24e024c6f"})
+- analysis code `71981ef003ab58d3631f50b7af420aea26a11b97d66d798f6a59bec29fcfe47d`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -16,23 +17,23 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 | area | n | coverage | base rate | lift | 95% CI | p (permutation) | BH p | survives | power (5 pt, α 0.01) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | personality | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| wealth | 15108 | 1.000 | 0.299 | 1.003 | 0.970–1.035 | 0.4456 | 0.8168 | no | 1.000 |
+| wealth | 15108 | 1.000 | 0.299 | 1.003 | 0.972–1.033 | 0.4456 | 0.8535 | no | 1.000 |
 | siblings | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| mother_home | 15108 | 1.000 | 0.506 | 1.008 | 0.984–1.033 | 0.2408 | 0.8168 | no | 0.999 |
-| children | 15108 | 1.000 | 0.307 | 0.976 | 0.937–1.016 | 0.8691 | 0.8831 | no | 0.999 |
-| intellect | 15108 | 1.000 | 0.299 | 0.984 | 0.947–1.023 | 0.7782 | 0.8831 | no | 1.000 |
-| health | 15108 | 1.000 | 0.508 | 1.008 | 0.990–1.027 | 0.1698 | 0.8168 | no | 1.000 |
+| mother_home | 15108 | 1.000 | 0.506 | 1.008 | 0.984–1.033 | 0.2418 | 0.8535 | no | 0.999 |
+| children | 15108 | 1.000 | 0.307 | 0.976 | 0.937–1.016 | 0.8661 | 0.8721 | no | 0.999 |
+| intellect | 15108 | 1.000 | 0.299 | 0.984 | 0.949–1.019 | 0.7702 | 0.8721 | no | 1.000 |
+| health | 15108 | 1.000 | 0.508 | 1.008 | 0.991–1.027 | 0.1798 | 0.8535 | no | 1.000 |
 | debts_enemies | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| marriage | 15108 | 1.000 | 0.299 | 0.994 | 0.956–1.035 | 0.6633 | 0.8831 | no | 0.999 |
+| marriage | 15108 | 1.000 | 0.299 | 0.994 | 0.955–1.034 | 0.6264 | 0.8613 | no | 0.999 |
 | longevity | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| father | 15108 | 1.000 | 0.299 | 0.981 | 0.947–1.014 | 0.8831 | 0.8831 | no | 1.000 |
+| father | 15108 | 1.000 | 0.299 | 0.981 | 0.951–1.013 | 0.8721 | 0.8721 | no | 1.000 |
 | fortune | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| career | 15108 | 1.000 | 0.507 | 1.004 | 0.980–1.028 | 0.4236 | 0.8168 | no | 0.999 |
-| gains | 15108 | 1.000 | 0.299 | 0.997 | 0.964–1.032 | 0.5664 | 0.8831 | no | 1.000 |
-| foreign | 15108 | 1.000 | 0.302 | 1.002 | 0.972–1.034 | 0.4356 | 0.8168 | no | 1.000 |
+| career | 15108 | 1.000 | 0.507 | 1.004 | 0.980–1.027 | 0.3706 | 0.8535 | no | 0.999 |
+| gains | 15108 | 1.000 | 0.299 | 0.997 | 0.965–1.029 | 0.5514 | 0.8613 | no | 1.000 |
+| foreign | 15108 | 1.000 | 0.302 | 1.002 | 0.972–1.033 | 0.4655 | 0.8535 | no | 1.000 |
 | spirituality | 0 | – | – | – | – | – | – | not_testable_yet | – |
 | mind | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| reputation | 15108 | 1.000 | 0.299 | 1.011 | 0.972–1.047 | 0.2617 | 0.8168 | no | 1.000 |
+| reputation | 15108 | 1.000 | 0.299 | 1.011 | 0.976–1.048 | 0.2438 | 0.8535 | no | 1.000 |
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
@@ -56,17 +57,17 @@ Activation: the year mostly inside one of the engine's own windows, the timing j
 
 | area | n | coverage | person-years | events | active share | rate ratio | p (random windows) | log-odds (95% CI) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| wealth | 15108 | 1.000 | 735477 | 4522 | 0.285 | 1.030 | 0.6866 | 0.030 (-0.035, 0.094) |
-| mother_home | 15108 | 1.000 | 634107 | 7652 | 0.287 | 0.980 | 0.9851 | -0.020 (-0.070, 0.030) |
-| children | 15108 | 1.000 | 731937 | 4642 | 0.282 | 1.035 | 0.4478 | 0.035 (-0.029, 0.099) |
-| intellect | 15108 | 1.000 | 734563 | 4516 | 0.287 | 1.039 | 0.7214 | 0.038 (-0.026, 0.102) |
-| health | 15108 | 1.000 | 636303 | 7676 | 0.290 | 1.037 | 0.4726 | 0.037 (-0.012, 0.086) |
-| marriage | 15108 | 1.000 | 735052 | 4512 | 0.286 | 0.974 | 0.9950 | -0.027 (-0.092, 0.038) |
-| father | 15108 | 1.000 | 734180 | 4522 | 0.286 | 0.988 | 0.9602 | -0.012 (-0.077, 0.053) |
-| career | 15108 | 1.000 | 633685 | 7666 | 0.289 | 1.026 | 0.7015 | 0.026 (-0.024, 0.075) |
-| gains | 15108 | 1.000 | 735477 | 4522 | 0.284 | 1.079 | 0.0896 | 0.076 (0.013, 0.140) |
+| wealth | 15108 | 1.000 | 735477 | 4522 | 0.285 | 1.030 | 0.6269 | 0.030 (-0.035, 0.094) |
+| mother_home | 15108 | 1.000 | 634107 | 7652 | 0.287 | 0.980 | 0.9801 | -0.020 (-0.070, 0.030) |
+| children | 15108 | 1.000 | 731937 | 4642 | 0.282 | 1.035 | 0.5771 | 0.035 (-0.029, 0.099) |
+| intellect | 15108 | 1.000 | 734563 | 4516 | 0.287 | 1.039 | 0.6667 | 0.038 (-0.026, 0.102) |
+| health | 15108 | 1.000 | 636303 | 7676 | 0.290 | 1.037 | 0.4328 | 0.037 (-0.012, 0.086) |
+| marriage | 15108 | 1.000 | 735052 | 4512 | 0.286 | 0.974 | 0.9900 | -0.027 (-0.092, 0.038) |
+| father | 15108 | 1.000 | 734180 | 4522 | 0.286 | 0.988 | 0.9701 | -0.012 (-0.077, 0.053) |
+| career | 15108 | 1.000 | 633685 | 7666 | 0.289 | 1.026 | 0.7114 | 0.026 (-0.024, 0.075) |
+| gains | 15108 | 1.000 | 735477 | 4522 | 0.284 | 1.079 | 0.0945 | 0.076 (0.013, 0.140) |
 | foreign | 15108 | 1.000 | 734176 | 4570 | 0.287 | 0.978 | 0.9950 | -0.023 (-0.087, 0.042) |
-| reputation | 15108 | 1.000 | 734563 | 4516 | 0.287 | 1.075 | 0.2786 | 0.072 (0.009, 0.136) |
+| reputation | 15108 | 1.000 | 734563 | 4516 | 0.287 | 1.075 | 0.2736 | 0.072 (0.009, 0.136) |
 
 ## Synthetic — Calibration (test 7)
 

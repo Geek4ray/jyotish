@@ -6,8 +6,9 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 
 - rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
-- split definition `d3317a35d417c1933ea729172fa232d968ad7fb8993ad116b441f825c9f80335` ({"salt_sha256": "b41f02ef8121a7213a6d734d2a8d039c0b2f4c63f7fdf3e6191158ac8a2bb206", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "7095c80f5c7e2715c11ea3bc87fec92cb69af8c0b1975612bbfb7a36a0528908"})
-- analysis code `ac8c03b257b3f698b8b7ff86cca85f8860f9cf85720cfafa654df5a7d53a7017`
+- (the analysis code is validate.py with jyotish.cohort, jyotish.outcomes and the outcome map; the lift interval resamples households)
+- split definition `a26487fa893f8258665f38ac8483f8bea6620f1c4601b99776f42d4b475e8577` ({"salt_sha256": "b41f02ef8121a7213a6d734d2a8d039c0b2f4c63f7fdf3e6191158ac8a2bb206", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "d48ede0e5ec108b90815c1c4ce585fb0bb863dcb200d716bc8a638e0569f97fc"})
+- analysis code `71981ef003ab58d3631f50b7af420aea26a11b97d66d798f6a59bec29fcfe47d`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
@@ -16,23 +17,23 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 | area | n | coverage | base rate | lift | 95% CI | p (permutation) | BH p | survives | power (5 pt, α 0.01) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | personality | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| wealth | 14894 | 1.000 | 0.298 | 1.062 | 1.030–1.094 | 0.0010 | 0.0014 | yes | 1.000 |
+| wealth | 14894 | 1.000 | 0.298 | 1.062 | 1.029–1.092 | 0.0010 | 0.0011 | yes | 1.000 |
 | siblings | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| mother_home | 14894 | 1.000 | 0.508 | 1.089 | 1.066–1.115 | 0.0010 | 0.0014 | yes | 0.999 |
-| children | 14894 | 1.000 | 0.302 | 1.089 | 1.051–1.129 | 0.0010 | 0.0014 | yes | 0.999 |
-| intellect | 14894 | 1.000 | 0.303 | 1.139 | 1.101–1.176 | 0.0010 | 0.0014 | yes | 1.000 |
-| health | 14894 | 1.000 | 0.510 | 1.067 | 1.047–1.084 | 0.0010 | 0.0014 | yes | 1.000 |
+| mother_home | 14894 | 1.000 | 0.508 | 1.089 | 1.066–1.114 | 0.0010 | 0.0011 | yes | 0.999 |
+| children | 14894 | 1.000 | 0.302 | 1.089 | 1.047–1.129 | 0.0010 | 0.0011 | yes | 0.999 |
+| intellect | 14894 | 1.000 | 0.303 | 1.139 | 1.104–1.175 | 0.0010 | 0.0011 | yes | 1.000 |
+| health | 14894 | 1.000 | 0.510 | 1.067 | 1.050–1.086 | 0.0010 | 0.0011 | yes | 1.000 |
 | debts_enemies | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| marriage | 14894 | 1.000 | 0.299 | 1.071 | 1.030–1.112 | 0.0020 | 0.0024 | yes | 1.000 |
+| marriage | 14894 | 1.000 | 0.299 | 1.071 | 1.030–1.112 | 0.0010 | 0.0011 | yes | 1.000 |
 | longevity | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| father | 14894 | 1.000 | 0.299 | 1.051 | 1.018–1.084 | 0.0040 | 0.0044 | yes | 1.000 |
+| father | 14894 | 1.000 | 0.299 | 1.051 | 1.017–1.085 | 0.0010 | 0.0011 | yes | 1.000 |
 | fortune | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| career | 14894 | 1.000 | 0.517 | 1.059 | 1.034–1.083 | 0.0010 | 0.0014 | yes | 0.999 |
-| gains | 14894 | 1.000 | 0.298 | 1.075 | 1.041–1.111 | 0.0010 | 0.0014 | yes | 1.000 |
-| foreign | 14894 | 1.000 | 0.300 | 1.085 | 1.051–1.114 | 0.0010 | 0.0014 | yes | 1.000 |
+| career | 14894 | 1.000 | 0.517 | 1.059 | 1.035–1.082 | 0.0010 | 0.0011 | yes | 0.999 |
+| gains | 14894 | 1.000 | 0.298 | 1.075 | 1.043–1.109 | 0.0010 | 0.0011 | yes | 1.000 |
+| foreign | 14894 | 1.000 | 0.300 | 1.085 | 1.053–1.117 | 0.0010 | 0.0011 | yes | 1.000 |
 | spirituality | 0 | – | – | – | – | – | – | not_testable_yet | – |
 | mind | 0 | – | – | – | – | – | – | not_testable_yet | – |
-| reputation | 14894 | 1.000 | 0.303 | 1.043 | 1.004–1.080 | 0.0150 | 0.0150 | yes | 1.000 |
+| reputation | 14894 | 1.000 | 0.303 | 1.043 | 1.008–1.079 | 0.0110 | 0.0110 | yes | 1.000 |
 
 ## Synthetic — Incremental validity: nested models (test 3)
 
