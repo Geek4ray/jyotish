@@ -398,7 +398,8 @@ def other_placements(chart: Chart, area: str) -> list[dict]:
         if contribution:
             rows.append({"finding_id": f"{f.id}@{f.basis}", "rule_id": f.id, "planet": f.nodes[0],
                          "scale": round(f.scale, 3), "contribution": round(contribution, 3),
-                         "classical_effect": lib[f.id].data.get("narration_key") if f.id in lib else None})
+                         "classical_effect": lib[f.id].data.get("narration_key") if f.id in lib else None,
+                         "effect_status": effect_status(lib.get(f.id))})
     return sorted(rows, key=lambda r: (-r["contribution"], r["finding_id"]))
 
 
@@ -439,18 +440,27 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
                 "school": fires[0].school, "planets": list(planets),
                 "themes": {k: round(v, 2) for k, v in fires[0].themes.items()},
                 "fires": [{"basis": f.basis, "sudarshana": f.basis != "lagna",
-                           "cited_to": "rule" if f.basis != "lagna" else "rule and text",
+                           "cited_to": "rule and text" if f.basis == "lagna" and texts else "rule",
                            "nodes": f.nodes, "scale": round(f.scale, 3),
                            "modifiers_applied": f.applied, "modifiers_unknown": f.unknown, "details": f.details,
                            "stability": f.stability.time if f.stability else None} for f in fires],
                 "allowed_tags": tags, "stability": min(times) if times else None,
                 "confidence": min(f.scale for f in fires) * base, "family": fires[0].family}
         if fires[0].family in PLACEMENT_FAMILIES and rule:
-            # The placement's classical effect, in the engine's words: data the writer may state
-            # and the checker can verify.
-            item["classical_effect"] = rule.data.get("narration_key")
+            when = rule.data["when"]
+            item["placement"] = {"planet": fires[0].nodes[0], "house": when["house"],
+                                 **({"lord_of": when["lord_of"]} if "lord_of" in when else {})}
             item["contribution"] = round(sum(abs(v) for th, v in fires[0].themes.items()
                                              if area in THEME_AREAS.get(th, [])), 3)
+            if fires[0].status == "draft":
+                # SPEC Layer 3: an effect written before its verse was read is not the text's.
+                # The writer and the checker get the placement fact only; the effect line is in
+                # the learner material, marked as a draft.
+                item["status"] = "draft"
+                item.pop("themes", None)
+            else:
+                # A promoted placement's classical effect, read in the named edition.
+                item["classical_effect"] = rule.data.get("narration_key")
         item["glossary"] = glossary_for(_check_data(item))
         (shaky if unstable else ok).append(item)
     # SPEC Layer 6b item 4: an area offers at most its three strongest placements (by theme
@@ -458,6 +468,8 @@ def findings(chart: Chart, area: str) -> tuple[list[dict], list[dict]]:
     placed = sorted((i for i in ok if i.get("family") in PLACEMENT_FAMILIES),
                     key=lambda i: (-i["contribution"], i["finding_id"]))
     ok = [i for i in ok if i.get("family") not in PLACEMENT_FAMILIES or i in placed[:PLACEMENTS_PER_AREA]]
+    for i in ok:
+        i.pop("contribution", None)            # used to choose the three; not the writer's to state
     a = chart.scored.areas.get(area)
     tally = area_votes(a) if a is not None and a.score_classical is not None else None
     if a is not None and a.score_classical is not None:
@@ -568,7 +580,9 @@ family's vote cites it; a sentence citing a rule names the yoga. Say exactly wha
 states and attach each detail to the thing it belongs to: a cusp's star is the cusp's, not its \
 sub-lord's. Never write about death or its timing, medical conditions, or buying and selling \
 investments. For relationships (mother, father, partner, children, siblings), describe only what \
-this chart shows about the relationship, never what will happen to the other person."""
+this chart shows about the relationship, never what will happen to the other person. A finding with \
+status draft is a placement fact only: say where the planet is and which house it rules, and nothing \
+it is said to mean, since its effect has not been read in the text."""
 
 
 DEPTHS = ("curious", "learner", "astrologer")
@@ -588,7 +602,7 @@ weakest point or the disagreement, named from the derivations: for example the a
 weakest by strength while its lord and the planets in it are strong; a school whose test goes the \
 other way; a test that abstains. Last, in one clause, how many of the engine's seven tests agree, \
 from the area's `tests` (say how many apply when some do not) - never a list of the tests or votes, \
-and a placement finding (a lord or a planet in a house, with its classical_effect) is one chart fact \
+and a placement finding (a lord or a planet in a house, with its classical_effect when it has one) is one chart fact \
 among the others, folded into the sentence about where the planets are, never a sentence of its own, \
 and do not name the votes one by one anywhere in the paragraph. No degrees, rupas, strength ratios \
 or other figures beyond that count; every Sanskrit or technical term glossed once, the first time \
@@ -872,6 +886,20 @@ SUDARSHANA_NOTE = ("is the engine's Sudarshana reading (counting from that body 
                    "cited to the rule only.")
 
 
+DRAFT_EFFECT = "draft effect, verse not yet read"
+
+
+def effect_status(rule) -> str | None:
+    """How a placement's effect line stands: a draft, or read in the named edition (by whom)."""
+    if rule is None or rule.data.get("family") not in PLACEMENT_FAMILIES:
+        return None
+    if rule.data["status"] == "draft":
+        return DRAFT_EFFECT
+    src = next((s for s in rule.data.get("source", []) if s.get("checked")), {})
+    who = f" by {src['read_by']} on {src['read_on']}" if src.get("read_by") else ""
+    return f"verse read{who}"
+
+
 def learner_data(f: dict) -> dict[str, Any]:
     """What a claim rests on, as data the page and the website render (never the model): for a
     rule, the rule block, each modifier with where it applied, and each basis's fire with the
@@ -889,7 +917,10 @@ def learner_data(f: dict) -> dict[str, Any]:
         mods.append({"modifier": text, "scale": m["scale"], "applied": {
             x["basis"]: ("applied" if f"{text} -> x{m['scale']}" in x["modifiers_applied"]
                          else "unknown" if text in x["modifiers_unknown"] else "not applied") for x in f["fires"]}})
-    return {"kind": "rule", "rule": {"id": rule.id, "school": rule.data["school"], "status": rule.data["status"],
+    effect = ({"effect": rule.data.get("narration_key"), "effect_status": effect_status(rule)}
+              if rule.data.get("family") in PLACEMENT_FAMILIES else {})
+    return {"kind": "rule", **effect,
+            "rule": {"id": rule.id, "school": rule.data["school"], "status": rule.data["status"],
                                      "confidence_base": rule.data.get("confidence_base", 0.5),
                                      "when": rule.data["when"]},
             "modifiers": mods,
@@ -981,7 +1012,7 @@ def _check_payload(f: dict) -> str:
 def _check_data(f: dict) -> dict:
     keep = ("finding_id", "kind", "rule_id", "family", "direction", "basis", "bases", "sudarshana_bases",
             "school", "planets",
-            "themes", "fires", "derivation", "area_votes", "glossary", "classical_effect")
+            "themes", "fires", "derivation", "area_votes", "glossary", "classical_effect", "status", "placement")
     return {k: f[k] for k in keep if k in f}
 
 
@@ -1223,7 +1254,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             other_placements=other_placements(chart, name),
             paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")]))
 
-    fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3),
+    fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3), "status": f.status,
               "stability": f.stability.time if f.stability else None}
              for f in chart.fired_rules if in_default(f.status, f.family)]
     unstable = [x for x in fired if x["stability"] is not None and x["stability"] < 0.5]

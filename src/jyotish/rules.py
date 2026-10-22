@@ -41,9 +41,20 @@ PLACEMENT_FAMILIES = frozenset({"lord_in_house", "planet_in_house"})
 PENDING_FAMILIES: frozenset[str] = frozenset()
 
 
+# A draft rule's effect line was written before its verse was read in the named edition (SPEC
+# Layer 3): it fires and is recorded and is narrated as a placement fact only, but carries no
+# weight in scoring or in the driver until a named reader promotes it.
+UNWEIGHED = OUT_OF_DEFAULT | {"draft"}
+
+
 def in_default(status: str, family: str) -> bool:
-    """Whether a rule's fires enter default scoring and narration."""
+    """Whether a rule's fires are recorded in the reading and offered to narration."""
     return status not in OUT_OF_DEFAULT and family not in PENDING_FAMILIES
+
+
+def weighed(status: str, family: str) -> bool:
+    """Whether a rule's fires carry weight in scoring and the driver (a draft does not)."""
+    return status not in UNWEIGHED and family not in PENDING_FAMILIES
 
 RULES_DIR = Path(os.environ.get("JYOTISH_RULES_PATH", Path(__file__).resolve().parents[2] / "rules"))
 SCHEMA_FILE = "rule.schema.json"

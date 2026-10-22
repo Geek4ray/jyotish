@@ -139,6 +139,7 @@ export function learnerPanel(learner) {
     const r = learner.rule;
     const bases = learner.fires.map((f) => f.basis);
     body = `<p>Rule block <code>${esc(r.id)}</code>, school ${esc(r.school)}, status ${esc(r.status)}, confidence base ${num(r.confidence_base)}.</p>
+      ${learner.effect ? `<p class="effect-line${learner.effect_status && learner.effect_status.startsWith("draft") ? " draft" : ""}"><span class="label">${esc(learner.effect_status)}</span> ${esc(learner.effect)}</p>` : ""}
       ${table(Object.entries(r.when).map(([k, v]) => ({ condition: k, value: JSON.stringify(v) })))}
       <h3>Modifiers, and where each applied</h3>
       ${table(learner.modifiers.map((m) => ({ modifier: m.modifier, scale: `×${num(m.scale)}`, ...Object.fromEntries(bases.map((b) => [`from ${b}`, m.applied[b]])) })))}
@@ -201,7 +202,7 @@ function otherPlacements(a) {
   const rows = a.other_placements || [];
   if (!rows.length) return "";
   return `<details class="learner other-placements"><summary>Other placements the engine weighed (${num(rows.length)})</summary>
-    <div class="learner-body"><ul class="small">${rows.map((o) => `<li data-rule="${esc(o.rule_id)}"><code>${esc(o.rule_id)}</code> (${esc(o.planet)}, scale ${num(o.scale)}): ${esc(o.classical_effect)}</li>`).join("")}</ul></div></details>`;
+    <div class="learner-body"><ul class="small">${rows.map((o) => `<li data-rule="${esc(o.rule_id)}"><code>${esc(o.rule_id)}</code> (${esc(o.planet)}, scale ${num(o.scale)}): ${esc(o.classical_effect)}${o.effect_status ? ` <span class="effect-status">(${esc(o.effect_status)})</span>` : ""}</li>`).join("")}</ul></div></details>`;
 }
 
 // The reviewer's own words: shown apart from the checked text and labelled as not checked.

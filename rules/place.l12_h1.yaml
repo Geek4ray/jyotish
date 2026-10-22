@@ -5,7 +5,7 @@ school: parashari
 names: [12th lord, lord of the 12th, ruler of the 12th]
 source:
 - {text: BPHS, edition: Santhanam 1984, chapter: 24, verse: not yet located, checked: false}
-status: classical_unconfirmed
+status: draft
 when:
   lord_of: [12]
   house: 1

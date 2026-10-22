@@ -134,6 +134,8 @@ def _rule_learner(d: dict) -> list[str]:
     r = d["rule"]
     out = [f"Rule block (`{r['id']}`, school {r['school']}, status {r['status']}, "
            f"confidence base {r['confidence_base']}):", ""]
+    if d.get("effect"):
+        out += [f"Effect line ({d['effect_status']}): {d['effect']}", ""]
     out += _table([{"condition": k, "value": json.dumps(v, default=str)} for k, v in r["when"].items()])
     out += ["", "Modifiers, and where each applied:", ""]
     out += _table([{"modifier": m["modifier"], "scale": f"×{m['scale']}",
@@ -238,8 +240,8 @@ def render(reading: Reading, chart: Chart) -> str:
             L.append(f"No claims were drafted for this area ({offered} finding(s) offered).")
         if a.other_placements:
             L += ["", "Other placements the engine weighed (not narrated; the three strongest are above):", ""]
-            L += [f"- `{o['rule_id']}` ({o['planet']}, scale {o['scale']:.3g}): {o['classical_effect']}"
-                  for o in a.other_placements]
+            L += [f"- `{o['rule_id']}` ({o['planet']}, scale {o['scale']:.3g}; {o.get('effect_status') or 'effect'}): "
+                  f"{o['classical_effect']}" for o in a.other_placements]
         if curious and a.claims:
             L += ["", "</details>"]
         if a.narration_gaps:

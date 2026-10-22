@@ -42,8 +42,10 @@
         "not_testable_yet",
         "experimental",
         "data_confirmed",
-        "practitioner_unconfirmed"
-      ]
+        "practitioner_unconfirmed",
+        "draft"
+      ],
+      "description": "draft: the effect line was written before its verse was read in the named edition; it fires and is recorded, is narrated as a placement fact only, and carries no weight in scoring"
     },
     "when": {
       "$ref": "#/$defs/when"
@@ -738,6 +740,16 @@
         },
         "note": {
           "type": "string"
+        },
+        "read_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "who read the verse in the named edition"
+        },
+        "read_on": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "when, YYYY-MM-DD"
         }
       }
     },

@@ -5,7 +5,7 @@ school: parashari
 names: [4th lord, lord of the 4th, ruler of the 4th]
 source:
 - {text: BPHS, edition: Santhanam 1984, chapter: 24, verse: not yet located, checked: false}
-status: classical_unconfirmed
+status: draft
 when:
   lord_of: [4]
   house: 8

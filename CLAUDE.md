@@ -113,7 +113,11 @@ Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/ta
 the `reviews` and `exclusions` tables) are done; rules may cite `source: practitioner` with status
 `practitioner_unconfirmed`, kept out of default scoring (`rules.OUT_OF_DEFAULT`).
 The placement rule library (`rules/place.*.yaml`, 144 lord-in-house from BPHS 24 and 108
-planet-in-house from Phaladeepika 8, every source checked: false) is generated from
+planet-in-house from Phaladeepika 8) are `draft`: drafted from principles, not the verses, they fire
+and are recorded, are narrated as a placement fact only and carry no weight. A row is promoted to
+classical_unconfirmed (source checked: true, read_by, read_on) only when the table records who read the
+verse, when, and effect_confirmed yes or changed; the astrologer works in `scripts/placements_triage.csv`
+(`docs/triage.md`). The library is generated from
 `scripts/placements.csv` by `scripts/make_placements.py` (`--check` in the suite): edit the table, not
 the files. Each fire weighs its rule's confidence_base in the rule term; an area offers narration at
 most three placements, the rest are `other_placements`.

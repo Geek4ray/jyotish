@@ -264,7 +264,8 @@ def test_unstable_findings_go_to_their_own_section(chart):
                                                      if c["finding_id"] != "yoga.budhaditya@lagna"]}]}
     r = narrate(shaky, QUESTION, drafter=Replay([draft]), checker=StubChecker(), as_of=AS_OF)
     assert {"area": "career", "rule": "yoga.budhaditya", "basis": "lagna", "stability": 0.3} in r.depends_on_birth_time
-    assert r.unstable == [{"id": "yoga.budhaditya", "basis": "lagna", "scale": 0.9, "stability": 0.3}]
+    assert r.unstable == [{"id": "yoga.budhaditya", "basis": "lagna", "scale": 0.9, "status": "classical_unconfirmed",
+                           "stability": 0.3}]
 
 
 def test_routing():

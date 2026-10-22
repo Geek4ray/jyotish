@@ -5,7 +5,7 @@ school: parashari
 names: [3rd lord, lord of the 3rd, ruler of the 3rd]
 source:
 - {text: BPHS, edition: Santhanam 1984, chapter: 24, verse: not yet located, checked: false}
-status: classical_unconfirmed
+status: draft
 when:
   lord_of: [3]
   house: 7

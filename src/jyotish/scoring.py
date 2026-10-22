@@ -97,7 +97,7 @@ from .constants import EXALTATION, GRAHAS, KP_MATTER, SEVEN, SIGN_LORD, SIGNS
 from .dignity import aspected_houses, house_of, natural_relation
 from .models import AreaScore, Chart, Driver, Scored
 from .shadbala import natural_benefics
-from .rules import PLACEMENT_FAMILIES, in_default
+from .rules import PLACEMENT_FAMILIES, weighed
 from .vargas import VARGAS
 
 WEIGHTS = {"lord": 3.0, "occupant": 2.0, "karaka": 2.0, "rule": 1.0, "varga": 1.0,
@@ -432,7 +432,7 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
 
     rule_term = 0.0
     for f in v.c.fired_rules:
-        if not in_default(f.status, f.family):
+        if not weighed(f.status, f.family):                 # a draft fire carries no weight
             continue
         theta = sum(val for th, val in f.themes.items() if name in THEME_AREAS.get(th, []))
         rule_term += WEIGHTS["rule"] * v.c_r.get(f.id, 0.5) * FIRE_BASIS[f.basis] * theta
@@ -619,14 +619,14 @@ def _driver(v: _View, rules) -> Driver:
     for f in v.c.fired_rules:
         # The driver's rule share counts rules that single planets out: a placement fires for
         # every planet by construction, so the placement families are not counted.
-        if not in_default(f.status, f.family) or f.family in PLACEMENT_FAMILIES:
+        if not weighed(f.status, f.family) or f.family in PLACEMENT_FAMILIES:
             continue
         for n in f.nodes:
             if n in fired:
                 fired[n].add(f.id)
     applicable = {p: 0 for p in SEVEN}
     for r in rules:
-        if not in_default(r.data["status"], r.data["family"]) or r.data["family"] in PLACEMENT_FAMILIES:
+        if not weighed(r.data["status"], r.data["family"]) or r.data["family"] in PLACEMENT_FAMILIES:
             continue
         w = r.data["when"]
         sides = [w["pair"]["a"], w["pair"]["b"]] if "pair" in w else [w]

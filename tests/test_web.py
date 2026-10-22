@@ -409,4 +409,5 @@ def test_other_placements_sit_with_the_astrologers_reading(page, curious_url):
     assert other.count() == 1 and not other.locator("li").first.is_visible()      # inside the collapsed toggle
     career.locator("details.astrologer > summary").click()
     other.locator("summary").click()
-    assert other.locator('li[data-rule="place.mercury_h10"]').is_visible()
+    li = other.locator('li[data-rule="place.mercury_h10"]')
+    assert li.is_visible() and "(draft effect, verse not yet read)" in li.inner_text()

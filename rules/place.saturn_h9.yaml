@@ -5,7 +5,7 @@ school: parashari
 names: [Saturn]
 source:
 - {text: Phaladeepika, edition: Sastri 1937, chapter: 8, verse: not yet located, checked: false}
-status: classical_unconfirmed
+status: draft
 when:
   planet: Saturn
   house: 9

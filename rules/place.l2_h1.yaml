@@ -5,7 +5,7 @@ school: parashari
 names: [2nd lord, lord of the 2nd, ruler of the 2nd]
 source:
 - {text: BPHS, edition: Santhanam 1984, chapter: 24, verse: not yet located, checked: false}
-status: classical_unconfirmed
+status: draft
 when:
   lord_of: [2]
   house: 1

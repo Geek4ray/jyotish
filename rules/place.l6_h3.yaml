@@ -5,7 +5,7 @@ school: parashari
 names: [6th lord, lord of the 6th, ruler of the 6th]
 source:
 - {text: BPHS, edition: Santhanam 1984, chapter: 24, verse: not yet located, checked: false}
-status: classical_unconfirmed
+status: draft
 when:
   lord_of: [6]
   house: 3
