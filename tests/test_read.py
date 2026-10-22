@@ -270,8 +270,7 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
     assert e.value.code == 0
     reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
     assert reading.depth == "curious" and reading.chart["depth"] == "curious" and "--depth curious" in reading.chart["command"]
-    assert reading.attempts == 3 and reading.unchecked_sentences == 0                                # live verdicts
-    assert not reading.narration_complete and [g["finding_id"] for a in reading.areas for g in a.narration_gaps] == ["paragraph"]
+    assert reading.attempts == 2 and reading.unchecked_sentences == 0 and reading.narration_complete   # live verdicts
     md = out.with_suffix(".md").read_text()
     career = md[md.index("## Career"):md.index("## Marriage")]
     assert career.index("In your chart the Sun and Mercury sit together in the 10th house") < \

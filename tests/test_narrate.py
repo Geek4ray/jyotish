@@ -735,11 +735,10 @@ def test_tier_words_are_rejected_in_the_summary():
 
 # --- the curious depth (SPEC Layer 7 prompt contract, item 1) --------------------------------
 
-# The live curious reading of the reference chart under the SPEC's paragraph shape
-# (claude-opus-5-5, writer medium, checker high; three drafts, 75 calls). It ends with one
-# gap: the longevity paragraph, whose gloss of marana karaka sthana the checker rejected on
-# attempts 2 and 3 (a gloss is a definition; the derivation held none, which is why the
-# glossary exists).
+# The live curious reading of the reference chart with the glossary in the payload
+# (claude-opus-5-5, writer medium, checker high; two drafts, 37 calls). Attempt 1 was refused
+# by the validator, attempt 2 accepted with no checker rejection: the marana karaka sthana
+# gloss that was rejected before the glossary now matches its entry.
 CURIOUS = json.loads((FIXTURES / "narration_curious.json").read_text())
 ACCEPTED = CURIOUS["drafts"][-1]
 
@@ -759,31 +758,24 @@ def _replay_curious(chart, rec):
 
 
 def test_live_curious_recording_replays_to_its_reading(chart):
-    """Writer drafts and checker verdicts replayed from the live run. Attempt 1: the
-    validator (rule names missing, "the engine's seven tests", tier words); attempt 2: the
-    checker (two summary sentences, one claim, three paragraph sentences); attempt 3: all
-    accepted but the longevity paragraph's gloss, which stays a gap."""
+    """Writer drafts and checker verdicts replayed from the live run: attempt 1 refused by the
+    validator (tier words, yoga names missing from a tagged sentence, "the engine's seven
+    tests"), attempt 2 accepted with every sentence checked and none rejected."""
     rec = []
     r, checker = _replay_curious(chart, rec)
-    assert r.depth == "curious" and r.attempts == 3 and not checker.unchecked
-    assert r.narration_complete is False and r.summary.source == "model"
+    assert r.depth == "curious" and r.attempts == 2 and r.narration_complete and not checker.unchecked
     v1 = next(e["validator_errors"] for e in rec if e["kind"] == "writer" and e["attempt"] == 1)
-    assert len(v1) == 11
-    assert sum(e.startswith("[rule:") for e in v1) == 5 and sum(e.startswith("timing language ('engine')") for e in v1) == 2
-    assert sum(e.startswith("tier language ('strong')") for e in v1) == 4
-    rejected2 = {e["finding_id"] for e in rec if e["kind"] == "checker" and e["attempt"] == 2
-                 and not all(p["supported"] for p in e["result"]["propositions"])}
-    assert rejected2 == {"summary", "vote:longevity.arudha", "paragraph:career", "paragraph:marriage",
-                         "paragraph:longevity"}
-    by = {a.name: a for a in r.areas}
-    for name in ("career", "marriage"):
-        assert by[name].paragraph == next(d["paragraph"] for d in ACCEPTED["areas"] if d["name"] == name)
-        assert not by[name].narration_gaps
-    assert by["longevity"].paragraph is None
-    [gap] = by["longevity"].narration_gaps
-    assert gap["finding_id"] == "paragraph" and gap["attempt"] == 3
-    assert "Marana karaka sthana is a category of planetary placement" in gap["last_error"]
-    assert all(a.claims for a in r.areas)                                   # the astrologer's reading stays
+    assert len(v1) == 8
+    assert sum(e.startswith("tier language") for e in v1) == 3 and sum(e.startswith("[rule:") for e in v1) == 2
+    assert sum(e.startswith("timing language ('engine')") for e in v1) == 3
+    checks = [e for e in rec if e["kind"] == "checker"]
+    assert checks and all(all(p["supported"] for p in e["result"]["propositions"]) for e in checks)
+    for a in r.areas:
+        assert a.paragraph == next(d["paragraph"] for d in ACCEPTED["areas"] if d["name"] == a.name)
+        assert a.claims and not a.narration_gaps                            # the astrologer's reading stays
+    # The gloss the glossary made checkable: it is the entry's meaning, and the checker accepted it.
+    longevity = next(a for a in r.areas if a.name == "longevity").paragraph
+    assert "marana karaka sthana, a placement in which the texts hold a planet unable to give its good results" in longevity
 
 
 def test_every_sentence_shown_was_accepted_by_the_checker(chart):
@@ -805,7 +797,7 @@ def test_curious_reading_has_a_checked_paragraph_per_area_and_the_same_engine_fi
     # Every paragraph sentence went to the checker against the union of its cited derivations.
     para_checks = [e for e in rec if e["kind"] == "checker" and e["finding_id"].startswith("paragraph:")]
     n = sum(len([s_ for s_ in sentences(d["paragraph"]) if TAG.search(s_)]) for d in ACCEPTED["areas"])
-    assert len(para_checks) == n == 13                                   # career 5, marriage 4, longevity 4
+    assert len(para_checks) == n == 11                                   # career 5, marriage 3, longevity 3
     career = [e["findings"] for e in para_checks if e["finding_id"] == "paragraph:career"]
     assert career[0] == ["yoga.budhaditya@lagna", "yoga.kendra_trikona_raja@lagna"]
     assert ["vote:career.house", "vote:career.lord", "vote:career.karaka"] in career
@@ -866,7 +858,7 @@ def test_paragraph_is_validated_like_the_summary(chart):
 
 
 def test_rejected_paragraph_sentence_keeps_the_claims(chart):
-    checker = StubChecker(reject={"a Jaimini method using image points": "outward appearance is not in the data"})
+    checker = StubChecker(reject={"which reads image points": "outward appearance is not in the data"})
     r = _curious(chart, checker=checker)
     marriage = next(a for a in r.areas if a.name == "marriage")
     assert marriage.paragraph is None and len(marriage.claims) == 7
