@@ -1,0 +1,237 @@
+{
+  "date": "2026-10-22",
+  "commit": "c71f59c",
+  "numbers": {
+    "reference.passed": {
+      "value": 25,
+      "better": "higher",
+      "unit": ""
+    },
+    "reference.failed": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "crosscheck.max.longitude Sun": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Sun": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Moon": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Moon": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Mars": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Mars": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Mercury": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Mercury": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Jupiter": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Jupiter": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Venus": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Venus": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Saturn": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Saturn": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Rahu": {
+      "value": 0.000133611,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Rahu": {
+      "value": 1.8051e-05,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Ketu": {
+      "value": 0.000133611,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Ketu": {
+      "value": 1.8051e-05,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.longitude Asc": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.mean.longitude Asc": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "arc-seconds"
+    },
+    "crosscheck.max.mahadasha start (days)": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "days"
+    },
+    "crosscheck.mean.mahadasha start (days)": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "days"
+    },
+    "crosscheck.beyond_gate": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "crosscheck.listed_at_edges": {
+      "value": 0,
+      "better": null,
+      "unit": ""
+    },
+    "crosscheck.births": {
+      "value": 1000,
+      "better": null,
+      "unit": ""
+    },
+    "metamorphic.passed": {
+      "value": 17,
+      "better": "higher",
+      "unit": ""
+    },
+    "metamorphic.failed": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "metamorphic.seed_agreement.reference": {
+      "value": 0.9912,
+      "better": "higher",
+      "unit": ""
+    },
+    "metamorphic.changed_at_one_minute.reference": {
+      "value": 2,
+      "better": null,
+      "unit": ""
+    },
+    "metamorphic.seed_agreement.synthetic-1": {
+      "value": 0.9956,
+      "better": "higher",
+      "unit": ""
+    },
+    "metamorphic.changed_at_one_minute.synthetic-1": {
+      "value": 5,
+      "better": null,
+      "unit": ""
+    },
+    "metamorphic.seed_agreement.synthetic-2": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "metamorphic.changed_at_one_minute.synthetic-2": {
+      "value": 4,
+      "better": null,
+      "unit": ""
+    },
+    "metamorphic.seed_agreement.synthetic-3": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "metamorphic.changed_at_one_minute.synthetic-3": {
+      "value": 2,
+      "better": null,
+      "unit": ""
+    },
+    "checker.validator.precision": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "checker.validator.recall": {
+      "value": 0.2162,
+      "better": "higher",
+      "unit": ""
+    },
+    "checker.validator.f1": {
+      "value": 0.3556,
+      "better": "higher",
+      "unit": ""
+    },
+    "checker.validator.wording_caught_share": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": ""
+    },
+    "checker.validator.false_rejects": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "checker.bench_rows": {
+      "value": 119,
+      "better": null,
+      "unit": ""
+    },
+    "checker.tests_failed": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    },
+    "placements.files_differing_from_table": {
+      "value": 0,
+      "better": "lower",
+      "unit": ""
+    }
+  },
+  "skips": [
+    "metamorphic: tests/test_metamorphic.py:165: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
+    "metamorphic: tests/test_metamorphic.py:182: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
+    "checker benchmark: tests/test_checker_bench.py:93: set JYOTISH_LIVE_NARRATION=1 to call the API",
+    "checker benchmark, validator + live checker: no Anthropic credentials here; the live run (JYOTISH_LIVE_NARRATION=1, marked live) writes its numbers to docs/checker_scorecard.md"
+  ]
+}

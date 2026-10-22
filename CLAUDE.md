@@ -140,4 +140,14 @@ most three placements, the rest are `other_placements`. Dispositor chains are fi
 loops, mutual exchanges and Nadi activation at the reading date, and the chart's final dispositors in
 personality, tagged `[chain:<area>.<lord|karaka|chart>]` (the sentence names the planet and the chain),
 checked against their `facts`; `findings(chart, area, as_of)` takes the reading date for them.
+Evaluation harness v1 (2026-10-22): `scripts/crosscheck.py` is the Phase 0 cross-check against
+PyJHora, which is AGPL and dev-only (extra `crosscheck`, never imported by src/); 1,000 births pass
+the 1″ gate, see docs/crosscheck.md. `tests/test_metamorphic.py` holds the label-free invariants on
+the reference chart and three synthetic births (`tests/fixtures/births.json`).
+`tests/fixtures/checker_bench.jsonl` is built and scored by `scripts/checker_bench.py`; the live
+checker run is marked live. `jyotish export-reviews` writes the judgements to data/preferences/
+(gitignored client data; judgements, not outcomes). `scripts/evaluate.py` writes
+docs/scorecard.{md,json}, and `.github/workflows/ci.yml` runs pytest and then fails when any
+scorecard number is worse than the committed one. Re-run `scripts/evaluate.py` and commit the
+scorecard when a change is meant to move a number.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

@@ -1,0 +1,35 @@
+# The suite on every push, then the evaluation harness, which fails when any number in the new
+# scorecard is worse than in the committed docs/scorecard.json (scripts/evaluate.py --compare).
+name: ci
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: "Install the engine and the dev tools (a venv, since the system setuptools breaks pyswisseph)"
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[dev]"
+          .venv/bin/playwright install --with-deps chromium
+      # Its own step: a PyJHora install failure fails only this step. The cross-check test then
+      # skips, and the harness reports the cross-check as skipped rather than worse.
+      - name: Install the cross-check extra (PyJHora, AGPL, development only)
+        continue-on-error: true
+        run: .venv/bin/pip install -e ".[crosscheck]"
+      - name: pytest
+        run: .venv/bin/pytest -q
+      - name: Evaluation harness against the committed scorecard
+        run: .venv/bin/python scripts/evaluate.py --out "$RUNNER_TEMP/scorecard" --compare docs/scorecard.json
+      - name: Keep the scorecard of this run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorecard
+          path: ${{ runner.temp }}/scorecard.*
