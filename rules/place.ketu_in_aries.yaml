@@ -4,8 +4,7 @@ family: planet_sign
 school: parashari
 names: [Aries]
 source:
-- {text: Brihat Jataka, edition: N. Chidambaram Iyer 1885, chapter: 18, verse: not yet located, checked: false}
-- {text: Saravali, edition: Santhanam 1983, chapter: not yet located, verse: not yet located, checked: false}
+- {text: not yet located, edition: not yet located, chapter: not yet located, verse: not yet located, checked: false}
 status: draft
 when:
   planet: Ketu

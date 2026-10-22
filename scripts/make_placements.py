@@ -37,9 +37,10 @@ sentence must contain), themes (theme:signed value;... on the existing theme nam
 most 2), outcomes (|-separated), modifiers (|-separated codes: debilitated x0.5, enemy x0.8,
 combust x0.5, mks (marana karaka sthana) x0.6; retrograde is not reduced on a house row: the
 texts read a retrograde planet as strong in motion, and on a sign row `retro` marks it x1.2; the
-Moon's rows carry `waning` x0.8 (krishna paksha) and `paksha_bala` x0.8 (Paksha bala under 30
-of 60 virupas), with its dignity), text, edition, chapter, verse, second (an optional second
-source, text/edition/chapter, |-separated), narration_key
+Moon's rows carry `paksha_bala` x0.8 (Paksha bala under 30 of 60 virupas: the Moon's brightness
+measured, which is what "waning" means; a second phase code stacked with it until 2026-10-23), with
+its dignity), text, edition, chapter, verse, second (an optional second source,
+text/edition/chapter, |-separated), narration_key
 (the classical effect in the engine's own words, one line; no translation is quoted),
 verse_read_by, verse_read_on (YYYY-MM-DD), effect_confirmed (yes | no | changed), practitioner_note.
 
@@ -74,7 +75,6 @@ MODIFIERS = {
     "combust": {"if": "combust", "scale": 0.5},
     "mks": {"if": "marana_karaka_sthana", "scale": 0.6},
     "retro": {"if": "retro", "scale": 1.2},
-    "waning": {"if": {"paksha": "krishna"}, "scale": 0.8},
     "paksha_bala": {"if": "paksha_bala < 30", "scale": 0.8},
 }
 FAMILY = {"lord": "lord_in_house", "planet": "planet_in_house", "moon_sign": "moon_sign",
@@ -121,6 +121,8 @@ def verse_reference(row: dict) -> str:
     where = f", verse {v}" if v and v != "not yet located" else f", {placement_words(row)} (verse not yet located)"
     chapter = row["chapter"].strip() or "chapter not yet located"
     chapter = f"chapter {chapter}" if chapter[0].isdigit() else chapter
+    if row["text"].strip() == "not yet located":                 # an uncited row (the node rows): no text named yet
+        return f"no text named yet, {placement_words(row)} (the sheet's text column is empty until one is found)"
     return f"{row['text']} ({row['edition']}), {chapter}{where}"
 
 
@@ -151,8 +153,8 @@ def rule(row: dict) -> dict:
             raise ValueError(f"{row['id']}: theme {name} {v} beyond the +-2 cap")
         themes[name] = v
     up = promoted(row)
-    src = {"text": row["text"], "edition": row["edition"], "chapter": _chapter(row["chapter"]), "verse": row["verse"],
-           "checked": up}
+    src = {"text": row["text"], "edition": row["edition"].strip() or "not yet located",      # the schema wants a word
+           "chapter": _chapter(row["chapter"]), "verse": row["verse"], "checked": up}
     if up:
         src |= {"read_by": row["verse_read_by"].strip(), "read_on": row["verse_read_on"].strip()}
     if row.get("practitioner_note", "").strip():

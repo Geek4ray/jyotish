@@ -63,11 +63,13 @@ rows: find the verse, compare, fill the four columns. A few things are particula
 
 - *Brihat Jataka* is terse; where Iyer's notes or another commentary carry the reading, say so in
   `practitioner_note`.
-- On the nodes in signs the texts differ, and the draft lines say only that a node takes on its
-  sign's colour. Note which text you follow.
-- The Moon's rows are reduced when the Moon is waning and when its Paksha bala is low, and when it
-  is debilitated. The planet rows are reduced by combustion and marked up when retrograde. If the
-  verse attaches another condition, put it in `practitioner_note`.
+- The node rows name no text: Brihat Jataka 18 and Saravali treat the seven planets in the signs,
+  not Rahu and Ketu, so their source is "not yet located" and the draft lines say only that a node
+  takes on its sign's colour. Name the text you follow when you find one.
+- The Moon's rows are reduced when its Paksha bala is low (under 30 of 60 virupas, the measured
+  brightness; a waning Moon is a dim one) and when it is debilitated. The planet rows are reduced
+  by combustion and marked up when retrograde. If the verse attaches another condition, put it in
+  `practitioner_note`.
 - A reading offers at most one sign row and one nakshatra row per area (the strongest by theme).
   The rest stay in the learner material, so a rough row costs little while it is a draft.
 

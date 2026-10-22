@@ -36,15 +36,22 @@ def test_the_four_kinds_are_whole_drafts():
         src = d["source"][0]
         assert src["checked"] is False and src["verse"] == "not yet located"
         assert all(not row[c] for c in ("verse_read_by", "verse_read_on", "effect_confirmed", "practitioner_note"))
+        node = row["planet"] in ("Rahu", "Ketu")
         if row["kind"] == "lagna_sign":
             assert (src["text"], src["chapter"]) == ("Saravali", "not yet located")
+        elif node:
+            # Brihat Jataka 18 and Saravali treat the seven planets in the signs, not the nodes: no text
+            # is named until one is found (review 2026-10-23, F13).
+            assert (src["text"], src["edition"], src["chapter"]) == ("not yet located", "not yet located", "not yet located")
+            assert len(d["source"]) == 1
         else:
             chapter = {"moon_nakshatra": 16, "moon_sign": 17, "planet_sign": 18}[row["kind"]]
             assert (src["text"], src["edition"], src["chapter"]) == ("Brihat Jataka", "N. Chidambaram Iyer 1885", chapter)
-        if row["kind"] == "planet_sign":
+        if row["kind"] == "planet_sign" and not node:
             assert d["source"][1]["text"] == "Saravali"                          # the second edition
     moon = RULES["place.moon_in_libra"].data
-    assert [m["if"] for m in moon["modifiers"]] == [{"paksha": "krishna"}, "paksha_bala < 30", {"dignity": "debilitated"}]
+    # The Moon's phase once: its Paksha bala under 30 of 60, not a second "waning" code stacked on it.
+    assert [m["if"] for m in moon["modifiers"]] == ["paksha_bala < 30", {"dignity": "debilitated"}]
     assert [m["if"] for m in RULES["place.saturn_in_taurus"].data["modifiers"]] == ["retro", "combust"]
     assert "modifiers" not in RULES["place.sun_in_leo"].data and "modifiers" not in RULES["place.rahu_in_gemini"].data
     assert {"temperament", "emotional_life"} == set(moon["themes"])                # personality and mind
@@ -63,7 +70,7 @@ def test_they_fire_on_the_reference_chart(ref):
                           "place.venus_in_pisces", "place.saturn_in_taurus", "place.rahu_in_gemini",
                           "place.ketu_in_sagittarius"}
     assert "place.moon_in_taurus" not in fires and "place.moon_in_rohini" not in fires and "place.lagna_aries" not in fires
-    assert fires["place.moon_in_libra"].applied == ["paksha: krishna -> x0.8"]       # a waning Moon
+    assert fires["place.moon_in_libra"].applied == []     # Krishna 3, Paksha bala 48.8 of 60: a bright Moon, not reduced
     assert fires["place.venus_in_pisces"].applied == ["retro -> x1.2"]
     assert fires["place.lagna_taurus"].nodes[0] == "Venus"                          # the rule binds the lagna lord
 

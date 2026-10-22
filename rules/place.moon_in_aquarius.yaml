@@ -11,8 +11,6 @@ when:
   sign: 10
   basis: [lagna]
 modifiers:
-- if: {paksha: krishna}
-  scale: 0.8
 - {if: paksha_bala < 30, scale: 0.8}
 - if: {dignity: debilitated}
   scale: 0.5
