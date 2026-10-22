@@ -1,0 +1,33 @@
+{
+  "note": "Births for the metamorphic tests (tests/test_metamorphic.py). The first is the reference chart (SPEC worked example, used with the owner's consent). The other three are synthetic: drawn by scripts/crosscheck.draw_births(3, seed=2026), uniform over 1900-2050, any longitude, latitude 60 S to 60 N. They are no one's birth data. No other births existed in the fixtures before these.",
+  "births": [
+    {
+      "name": "reference",
+      "utc": "2001-03-12T04:40:25+00:00",
+      "lat": 28.1989,
+      "lon": 76.617,
+      "synthetic": false
+    },
+    {
+      "name": "synthetic-1",
+      "utc": "1927-01-08T14:42:29+00:00",
+      "lat": 16.7896,
+      "lon": -11.7834,
+      "synthetic": true
+    },
+    {
+      "name": "synthetic-2",
+      "utc": "1955-12-12T20:16:54+00:00",
+      "lat": -17.4099,
+      "lon": 104.5866,
+      "synthetic": true
+    },
+    {
+      "name": "synthetic-3",
+      "utc": "2036-09-04T11:49:44+00:00",
+      "lat": -38.7176,
+      "lon": 55.0025,
+      "synthetic": true
+    }
+  ]
+}
