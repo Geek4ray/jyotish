@@ -58,6 +58,19 @@ def test_the_check_catches_a_convention_difference(xc, sample):
     assert r.failed and all(("Rahu" in x or "Ketu" in x) for x in r.failed)
 
 
+def test_varga_methods_are_chosen_by_label_and_the_check_catches_another(xc, sample):
+    # Every method is PyJHora's "Traditional Parasara" one by its own docstring: 1 everywhere but the
+    # hora, whose 2 it is. A control: the Raman hora (its method 3) must fail the varga gate.
+    _, j, births = sample
+    assert set(j.methods) == set(xc.SHODASAVARGA) - {1}
+    assert all(xc.PARASHARI_LABEL.lower() in label.lower() for _, label in j.methods.values())
+    assert j.methods[2][0] == 2 and all(n == 1 for k, (n, _) in j.methods.items() if k != 2)
+    ours = [xc.engine_side(b) for b in births[:10]]
+    theirs = [xc.pyjhora_side(j, b, methods={**j.methods, 2: (3, "Raman Method")}) for b in births[:10]]
+    r = xc.compare(births[:10], ours, theirs)
+    assert r.failed and all("D2" in x and "rule difference" in x for x in r.failed)
+
+
 def test_edges_are_listed_not_failed(xc):
     assert xc.edge_distance(30.0 + 10 / 3, 9) < 1e-6                         # a navamsa edge
     assert xc.edge_distance(5.0, 30) < 1e-6 and xc.edge_distance(30 + 12.0, 30) < 1e-6   # odd and even trimsamsa

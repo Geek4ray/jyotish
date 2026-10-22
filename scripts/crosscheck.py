@@ -18,8 +18,12 @@ What is compared, against the SPEC gate:
 PyJHora is set to the engine's conventions before anything is computed: Lahiri, the mean node,
 apparent positions (aberration, light deflection and nutation on; its default is true geometric
 positions without nutation), and the engine's dasha year of 365.25 days (its default is the mean
-sidereal year, 365.256364). Its varga methods are the Parashari ones (chart_method 1, and 2 for the
-hora, where 1 is Raman's), which match the engine's on every longitude away from an edge.
+sidereal year, 365.256364). Its varga method for each chart is chosen by PyJHora's own label, the
+lowest-numbered method its docstring calls "Traditional Parasara" (method 1 everywhere but the
+hora, whose 2 it is; its 1 is Uma Shambu's parivritti hora), never by agreement with the engine,
+so the varga comparison tests the engine's arithmetic against PyJHora's reading of Parashara
+(review 2026-10-23, F11); the report prints every label chosen, and a control with the Raman hora
+must fail.
 
 Both programs call the same Swiss Ephemeris (pyswisseph), so agreement on positions shows that the
 two use it the same way (flags, ayanamsa, node, ascendant), not that two ephemerides agree; an
@@ -29,9 +33,11 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import inspect
 import io
 import math
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -52,7 +58,7 @@ from jyotish.vargas import VARGAS  # noqa: E402
 
 ARCSEC = 1.0 / 3600.0
 SHODASAVARGA = [1, 2, 3, 4, 7, 9, 10, 12, 16, 20, 24, 27, 30, 40, 45, 60]
-PYJHORA_METHOD = {2: 2}              # the hora: PyJHora's 2 is the traditional Parashari; 1 elsewhere
+PARASHARI_LABEL = "Traditional Parasara"      # the words PyJHora's docstrings use for Parashara's method
 BODIES = GRAHAS + ["Asc"]
 DOC = ROOT / "docs" / "crosscheck.md"
 
@@ -67,6 +73,25 @@ class Jhora:
     vimsottari: object
     const: object
     defaults: dict = field(default_factory=dict)
+    methods: dict = field(default_factory=dict)       # varga -> (chart_method, PyJHora's label), by label
+
+
+def parashari_methods(charts) -> dict[int, tuple[int, str]]:
+    """PyJHora's chart_method for each varga, chosen by its own label: the lowest-numbered method
+    whose docstring line says "Traditional Parasara". Chosen by name, never by agreement with the
+    engine, so that the varga comparison is a test and not a fit."""
+    out = {}
+    for k in SHODASAVARGA:
+        if k == 1:
+            continue
+        fn = getattr(charts, charts.divisional_chart_functions[k])
+        lines = [(int(m.group(1)), m.group(2).strip()) for m in
+                 (re.match(r"\s*(\d+)\s*=>\s*(.*)$", line) for line in (inspect.getdoc(fn) or "").splitlines()) if m]
+        hits = [(n, label) for n, label in lines if PARASHARI_LABEL.lower() in label.lower()]
+        if not hits:
+            raise RuntimeError(f"PyJHora names no {PARASHARI_LABEL!r} method for D{k}: {lines}")
+        out[k] = min(hits)
+    return out
 
 
 def load_pyjhora() -> Jhora:
@@ -95,7 +120,7 @@ def load_pyjhora() -> Jhora:
     # PyJHora's import points Swiss Ephemeris at its own folder; give the engine's back.
     if os.environ.get("JYOTISH_EPHE_PATH"):
         swe.set_ephe_path(os.environ["JYOTISH_EPHE_PATH"])
-    return Jhora(version("PyJHora"), drik, charts, vimsottari, const, defaults)
+    return Jhora(version("PyJHora"), drik, charts, vimsottari, const, defaults, parashari_methods(charts))
 
 
 def ephemeris_mode() -> str:
@@ -134,7 +159,9 @@ def engine_side(b: dict) -> dict:
     return {"lon": lon, "nak": nak, "vargas": vargas, "maha": maha}
 
 
-def pyjhora_side(j: Jhora, b: dict) -> dict:
+def pyjhora_side(j: Jhora, b: dict, methods: dict | None = None) -> dict:
+    """`methods` overrides the label-chosen varga methods (the control test passes Raman's hora)."""
+    methods = methods or j.methods
     jd = _jd(b["utc"])
     place = j.drik.Place("x", b["lat"], b["lon"], 0.0)          # timezone 0: jd is UTC
     with contextlib.redirect_stdout(io.StringIO()):
@@ -151,7 +178,7 @@ def pyjhora_side(j: Jhora, b: dict) -> dict:
             if k == 1:
                 vargas[k] = {p: int(v // 30) for p, v in lon.items()}
                 continue
-            got = j.charts.divisional_positions_from_rasi_positions(rasi, k, chart_method=PYJHORA_METHOD.get(k, 1))
+            got = j.charts.divisional_positions_from_rasi_positions(rasi, k, chart_method=methods[k][0])
             vargas[k] = {p: got[i][1][0] for i, p in enumerate(lon)}
         md = j.vimsottari.vimsottari_mahadasa(jd, place)
     maha = [(GRAHAS[lord], start) for lord, start in md.items()]
@@ -265,7 +292,10 @@ def report(r: Result, j: Jhora, n: int, seed: int, seconds: float) -> str:
         "PyJHora set to the same conventions before anything was computed. Its own defaults, any of which would "
         f"show here as a disagreement: ayanamsa {d['ayanamsa']}, true nodes {d['true_nodes']}, true (geometric) "
         f"positions {d['true_positions']}, nutation {d['nutation']}, light deflection {d['deflection']}, dasha year "
-        f"{d['dasha_year']} days. Varga methods: PyJHora's chart_method 1 (Parashari), 2 for the hora.", "",
+        f"{d['dasha_year']} days.", "",
+        "Varga methods, chosen by PyJHora's own labels (the lowest-numbered method its docstring calls "
+        f"\"{PARASHARI_LABEL}\"), never by agreement with the engine: "
+        + "; ".join(f"D{k} method {n} ({label})" for k, (n, label) in sorted(j.methods.items())) + ".", "",
         "## Errors per quantity", "",
         "Longitudes in arc-seconds; mahadasha starts in days.", "",
         "| quantity | max | mean |", "| --- | --- | --- |", rows, "",
