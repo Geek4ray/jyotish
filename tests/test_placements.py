@@ -116,3 +116,22 @@ def test_reference_lord_in_house_fires(ref):
     assert fires["place.l10_h1"].scale == pytest.approx(0.6) and fires["place.l7_h7"].scale == pytest.approx(0.6)
     assert fires["place.l8_h1"].scale == pytest.approx(0.8) and fires["place.l4_h10"].scale == pytest.approx(0.8)
     assert fires["place.l1_h11"].scale == 1.0                  # Venus exalted: no reduction
+
+
+REFERENCE_PLANET_FIRES = {"place.saturn_h1", "place.jupiter_h1", "place.rahu_h2", "place.moon_h6", "place.mars_h7",
+                          "place.ketu_h8", "place.sun_h10", "place.mercury_h10", "place.venus_h11"}
+
+
+def test_reference_planet_in_house_fires(ref):
+    fires = {f.id: f for f in ref.fired_rules if f.family == "planet_in_house"}
+    assert set(fires) == REFERENCE_PLANET_FIRES                  # every graha exactly once
+    assert fires["place.mars_h7"].scale == pytest.approx(0.6)     # marana karaka sthana
+    assert fires["place.saturn_h1"].scale == pytest.approx(0.6)
+    assert fires["place.venus_h11"].scale == 1.0 and fires["place.ketu_h8"].scale == 1.0
+    assert fires["place.sun_h10"].themes["career"] > 0             # a malefic in an upachaya
+    assert fires["place.rahu_h2"].themes["wealth"] < 0             # a malefic in the 2nd
+
+
+def test_about_twenty_placements_fire_on_a_chart(ref):
+    n = sum(1 for f in ref.fired_rules if f.id.startswith("place."))
+    assert n == len(REFERENCE_LORD_FIRES) + len(REFERENCE_PLANET_FIRES) == 21
