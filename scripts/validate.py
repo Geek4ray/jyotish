@@ -113,15 +113,17 @@ def _hash_unit(salt: str, sid: str) -> float:
     return int(hashlib.sha256(f"{salt}:{sid}".encode()).hexdigest(), 16) / 2 ** 256
 
 
-def sequester(ids: list[str], path: Path = SEQUESTERED) -> tuple[set[str], dict]:
-    """The sequestered ids, frozen in `path` (created on first use, appended for new subjects)."""
+def sequester(ids: list[str], path: Path = SEQUESTERED, salt: str | None = None) -> tuple[set[str], dict]:
+    """The sequestered ids, frozen in `path` (created on first use, appended for new subjects). A
+    real cohort's salt is random and lives only in that file; `salt` fixes it for a synthetic run,
+    so the harness's numbers are reproducible."""
     if path.exists():
         lines = path.read_text().splitlines()
         meta = dict(x[2:].split(": ", 1) for x in lines if x.startswith("# ") and ": " in x)
         assign = dict(x.split(" ", 1) for x in lines if x and not x.startswith("#"))
         salt = meta["salt"]
     else:
-        salt, assign, meta = secrets.token_hex(16), {}, {}
+        salt, assign, meta = salt or secrets.token_hex(16), {}, {}
         meta = {"salt": salt, "fraction": str(FRACTION), "created": datetime.now(timezone.utc).isoformat()}
     new = [i for i in ids if i not in assign]
     for i in new:
@@ -459,11 +461,13 @@ def hashes(seq_meta: dict) -> dict:
 
 
 def run(cohort: Cohort, sequestered_file: Path = SEQUESTERED, score_sequestered: bool = False, seed: int = 0,
-        permutations: int = PERMUTATIONS, bootstrap: int = BOOTSTRAP, shifts: int = SHIFTS) -> dict:
+        permutations: int = PERMUTATIONS, bootstrap: int = BOOTSTRAP, shifts: int = SHIFTS, salt: str | None = None) -> dict:
     from jyotish.outcomes import area_events, outcome_map, rule_testability
     rng = np.random.default_rng(seed)
     ids = [s["id"] for s in cohort.subjects]
-    seq, seq_meta = sequester(ids, sequestered_file)
+    if salt is not None and not cohort.synthetic:
+        raise ValueError("a fixed salt is for synthetic cohorts only")
+    seq, seq_meta = sequester(ids, sequestered_file, salt)
     dev_subjects = [s for s in cohort.subjects if s["id"] not in seq]
     dev = {s["id"] for s in dev_subjects}
     fold_of = dict(zip([s["id"] for s in dev_subjects], folds(dev_subjects, seed))) if len(dev_subjects) >= K else {}

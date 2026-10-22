@@ -32,7 +32,7 @@ def _run(mods, tmp_path, mode, n, **kw):
     url = f"sqlite:///{tmp_path / f'{mode}.db'}"
     feats, truth = SC.make(n, mode, url, seed=5, **kw)
     res = V.run(V.load_cohort(url, features=feats, synthetic=True), tmp_path / f"seq_{mode}.txt",
-                score_sequestered=True, permutations=400, bootstrap=200, shifts=60)
+                score_sequestered=True, permutations=400, bootstrap=200, shifts=60, salt="synthetic-test")
     return V, SC, truth, res
 
 
@@ -58,6 +58,18 @@ def test_a_null_cohort_has_no_area_surviving_bh(mods, tmp_path):
     assert c["areas_surviving_bh"] == 0
     assert c["rules_with_effect"] <= 2                                          # BH across rules at q 0.01
     assert all(abs(t["planted_points"]) < 1e-9 for t in truth["areas"].values())
+
+
+def test_a_fixed_salt_makes_a_synthetic_run_reproducible_and_is_refused_for_a_real_cohort(mods, tmp_path):
+    V, SC = mods
+    url = f"sqlite:///{tmp_path / 'r.db'}"
+    feats, _ = SC.make(120, "null", url, seed=9)
+    runs = [V.run(V.load_cohort(url, features=feats, synthetic=True), tmp_path / f"s{i}.txt", permutations=50,
+                  bootstrap=20, shifts=5, salt="fixed") for i in range(2)]
+    assert runs[0]["n_sequestered"] == runs[1]["n_sequestered"]
+    assert runs[0]["areas"]["marriage"]["lift"] == runs[1]["areas"]["marriage"]["lift"]
+    with pytest.raises(ValueError):
+        V.run(V.load_cohort(url, features=feats), tmp_path / "s9.txt", salt="fixed")
 
 
 def test_synthetic_runs_never_touch_the_real_split(mods, tmp_path):

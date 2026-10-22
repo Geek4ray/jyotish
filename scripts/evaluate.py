@@ -191,7 +191,7 @@ def synthetic(card: Card, sizes=SYNTHETIC_SIZES):
                 url = f"sqlite:///{Path(d) / 'cohort.db'}"
                 feats, truth = SC.make(n, mode, url, seed=0)
                 res = V.run(V.load_cohort(url, features=feats, synthetic=True), Path(d) / "sequestered.txt",
-                            score_sequestered=True)
+                            score_sequestered=True, salt=f"synthetic-{n}-{mode}")
             c = SC.compare(truth, res)
             (DOCS / f"validation_synthetic_{mode}_{n}.md").write_text(
                 V.report(res, label=f"{mode}, N = {n:,}, odds ratio {truth['odds_ratio_per_sd']} per SD"))
