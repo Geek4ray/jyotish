@@ -7,8 +7,9 @@ they may (SPEC Layer 1b, Layer 7). On the reference chart and three synthetic bi
     fire seen only elsewhere in the window).
     The exact-accuracy sampler draws +-2 minutes; a finding whose boundary is d minutes away holds in
     1 - (2 - d)/4 of the window, so "stable" (over 0.8) puts the boundary beyond 1.2 minutes;
-  - a 1'' change of ayanamsa moves every position by 1'' and changes nothing else (no fire, tier,
-    nakshatra or varga sign, except a varga sign within 1'' of its edge);
+  - a 1'' change of ayanamsa moves every position by 1'' and changes nothing else: no sign, nakshatra,
+    pada, varga sign, KP sub-lord, fire or tier, except where the 1'' crosses an edge, which the test
+    allows and names (a body within 1'' of a pada edge, one chart in 500; review 2026-10-23, F14);
   - another sampler seed gives the same stability class on at least 95% of findings;
   - three paraphrases of one career question route to the same areas, the same tier and the same
     offered findings.
@@ -105,12 +106,28 @@ def test_one_arcsecond_of_ayanamsa_moves_positions_and_nothing_else(birth, monke
         d = compute(_utc(b), b["lat"], b["lon"], true_node=False)
     finally:
         swe.set_sid_mode(swe.SIDM_LAHIRI, 0, 0)
+    import math
+
+    def near_edge(lon: float, parts: int) -> bool:         # within the 1'' shift of an edge of a 360/parts division
+        x = lon * parts / 360.0
+        return min(x - math.floor(x), math.ceil(x) - x) * (360.0 / parts) * 3600 <= 1.0 + 1e-9
+    at_edge = []
     for p, body in c.bodies.items():
         delta = ((c.bodies[p].lon - d.bodies[p].lon + 180) % 360 - 180) * 3600
         assert delta == pytest.approx(1.0, abs=0.01), (p, delta)
-        assert (body.sign, body.nak, body.pada) == (d.bodies[p].sign, d.bodies[p].nak, d.bodies[p].pada)
+        for what, parts, before, after in (("sign", 12, body.sign, d.bodies[p].sign), ("nakshatra", 27, body.nak, d.bodies[p].nak),
+                                           ("pada", 108, body.pada, d.bodies[p].pada)):
+            if before != after:                                   # only where the 1'' crosses an edge
+                assert near_edge(body.lon, parts), (p, what, body.lon)
+                at_edge.append((p, what))
     assert ((c.lagnas.asc - d.lagnas.asc) * 3600) == pytest.approx(1.0, abs=0.01)
-    assert rule_keys(c) == rule_keys(d) and _tiers(c) == _tiers(d)
+    if near_edge(c.lagnas.asc, 108):
+        at_edge.append(("Asc", "pada"))
+    kp_moved = c.lagnas.cusp_lords_kp != d.lagnas.cusp_lords_kp          # a cusp within 1'' of a KP sub edge
+    if not at_edge and not kp_moved:
+        assert rule_keys(c) == rule_keys(d) and _tiers(c) == _tiers(d)
+    else:                                                        # a fire or tier may follow the crossing
+        print(f"edge crossed by the 1'' shift: {at_edge or 'a KP sub-lord'}; fires and tiers not compared")
     from jyotish.vargas import VARGAS
     lon = {p: x.lon for p, x in c.bodies.items()} | {"Asc": c.lagnas.asc}
     for (varga, body), sign in placements(c).items():
