@@ -244,7 +244,7 @@ class ReadingRequest(BirthInput):
 class EditRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     target: str
-    text: str
+    text: str = Field(max_length=2000)  # one or two sentences
     keep_tags: bool = False             # a rewrite in plain words carries the old sentence's tags
 
 
@@ -286,7 +286,7 @@ class OutcomeRows(BaseModel):
 class NoteRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     area: str
-    text: str
+    text: str = Field(max_length=4000)  # the same bound as a comment
 
 
 def reviewers_from_env(var: str = "JYOTISH_REVIEWERS") -> dict[str, str]:
@@ -513,12 +513,18 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status,
                     "reading": redact(row.document, shown), **guided}
         rows = list(s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id))
+        # What changed the reading (opens, edits, notes, approvals) is everyone's history. Another
+        # reviewer's answers, verdicts and words are their judgement, given blind to this one's, and
+        # are not shown here (SPEC Layer 6b; review 2026-10-23, F10): the export (jyotish
+        # export-reviews) is where the judgements meet.
+        shown = [r for r in rows if r.reviewer_id == who or r.action in ("open", "edit", "note", "approve")]
         history = [{"action": r.action, "target": r.target, "reviewer": r.reviewer_id, "accepted": r.accepted,
                     "before": r.before, "after": r.after, "errors": r.errors, "area": r.area, "verdict": r.verdict,
                     "reason": r.reason, "step": r.step, "answer": r.answer, "mode": r.mode, "comment": r.comment,
-                    "at": r.created_at.isoformat()} for r in rows]
+                    "at": r.created_at.isoformat()} for r in shown]
         verdicts = {r.area: {"verdict": r.verdict, "reason": r.reason, "by": r.reviewer_id, "at": r.created_at.isoformat()}
-                    for r in rows if r.action == "verdict" or (r.action == "answer" and r.step == "match")}  # the latest per area
+                    for r in rows if r.reviewer_id == who
+                    and (r.action == "verdict" or (r.action == "answer" and r.step == "match"))}   # the latest per area, this reviewer's
         return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status, "verdicts": verdicts,
                 "reading": row.document, "page": row.page, "history": history, **guided}
 

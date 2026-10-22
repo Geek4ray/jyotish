@@ -121,7 +121,8 @@ every answer logged by POST /readings/{id}/review/answer (step, area, answer, mo
 `comment` in the reviewer's own words beside every question but the note), a last question on the
 reading as a whole (step `whole`), a summary of one line per question, labels in
 `web/js/strings.js`, no engine vocabulary on the page; answers and comments are never shown to the
-client and never checked. `?mode=blind` (the judge page's shell)
+client and never checked, and another reviewer's answers and comments are not shown to a reviewer
+either (the export is where judgements meet). `?mode=blind` (the judge page's shell)
 withholds an area's reading on the server until it is answered from the chart alone; rules may cite `source: practitioner` with status
 `practitioner_unconfirmed`, kept out of default scoring (`rules.OUT_OF_DEFAULT`).
 The placement rule library (`rules/place.*.yaml`, 144 lord-in-house from BPHS 24, 108

@@ -239,6 +239,8 @@ def plain(text: str) -> str:
 # --- the guided review's answers --------------------------------------------------------------
 
 MODES = ("review", "blind")
+TEXT_MAX = 4000       # a note, the reading as a whole, a comment: the reviewer's own words
+LINE_MAX = 400        # the one line of what is off
 OFF = ("missing_combination", "weight", "timing", "wording", "other")
 PERIOD = ("yes", "earlier", "later", "different")
 OWN_READING = ("promising", "mixed", "difficult")
@@ -276,11 +278,12 @@ def check_answer(step: str, answer: Any) -> None:
         ok = True
     elif step == "off":
         ok = (isinstance(answer, dict) and isinstance(answer.get("reasons"), list) and answer["reasons"]
-              and set(answer["reasons"]) <= set(OFF) and isinstance(answer.get("line", ""), str))
+              and set(answer["reasons"]) <= set(OFF) and isinstance(answer.get("line", ""), str)
+              and len(answer.get("line", "")) <= LINE_MAX)
     elif step == "sentences":
         ok = isinstance(answer, dict) and all(v in ("keep", "rewritten") for v in answer.get("decisions", {}).values())
     elif step in ("note", "whole"):
-        ok = isinstance(answer, dict) and isinstance(answer.get("text"), str)
+        ok = isinstance(answer, dict) and isinstance(answer.get("text"), str) and len(answer["text"]) <= TEXT_MAX
     else:                                                                   # period
         ok = isinstance(answer, dict) and answer.get("choice") in PERIOD
         if ok and answer["choice"] != "yes":

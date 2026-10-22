@@ -116,6 +116,33 @@ def test_an_edit_that_fails_a_check_is_refused_and_logged(setup, target, text, n
         assert row.accepted is False and row.after == text and row.errors
 
 
+def test_texts_are_bounded(guided):
+    _, c, rid = guided
+    post = lambda body: c.post(f"/readings/{rid}/review/answer", headers=J1, json=body)
+    assert post({"step": "whole", "answer": {"text": "x" * 4000}}).status_code == 200
+    assert post({"step": "whole", "answer": {"text": "x" * 4001}}).status_code == 422
+    assert post({"step": "note", "area": "career", "answer": {"text": "x" * 4001}}).status_code == 422
+    assert post({"step": "off", "area": "career", "answer": {"reasons": ["wording"], "line": "x" * 401}}).status_code == 422
+    assert c.post(f"/readings/{rid}/review/note", headers=J1, json={"area": "career", "text": "x" * 4001}).status_code == 422
+    assert c.post(f"/readings/{rid}/review/edit", headers=J1,
+                  json={"target": "claim:career:yoga.budhaditya@lagna", "text": "x" * 2001}).status_code == 422
+
+
+def test_another_reviewers_judgements_are_not_in_the_view(guided):
+    # Judge 2 answers and comments; judge 1's view carries judge 2's opens, edits, notes and approvals
+    # (what changed the reading) but none of judge 2's answers, verdicts or words.
+    _, c, rid = guided
+    r = c.post(f"/readings/{rid}/review/answer", headers=J2,
+               json={"step": "match", "area": "career", "answer": "disagree", "comment": "judge two's private words"})
+    assert r.status_code == 200
+    v = c.get(f"/readings/{rid}/review", headers=J1).json()
+    assert all(h["reviewer"] == "judge-1" or h["action"] in ("open", "edit", "note", "approve") for h in v["history"])
+    assert "judge two's private words" not in json.dumps(v) and v["verdicts"].get("career", {}).get("by", "judge-1") == "judge-1"
+    assert all(a["mode"] for a in v["answers"]) and not any(a.get("comment") == "judge two's private words" for a in v["answers"])
+    mine = c.get(f"/readings/{rid}/review", headers=J2).json()
+    assert mine["verdicts"]["career"]["verdict"] == "disagree" and any(h.get("comment") == "judge two's private words" for h in mine["history"])
+
+
 def test_a_reference_to_another_sentence_has_its_own_plain_reason():
     from jyotish.narrate import validate
     from jyotish.review import plain_reasons
