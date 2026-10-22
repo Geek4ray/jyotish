@@ -19,6 +19,11 @@ dependencies = [
 [project.optional-dependencies]
 api = ["fastapi>=0.110", "sqlalchemy>=2", "uvicorn>=0.29"]
 dev = ["pytest>=8", "httpx>=0.27", "fastapi>=0.110", "sqlalchemy>=2", "uvicorn>=0.29", "playwright>=1.44"]
+# The Phase 0 cross-check's reference implementation (scripts/crosscheck.py). PyJHora is AGPL and a
+# development-time reference only: never imported by src/. It declares no dependencies of its own;
+# these are the ones its core imports (pyIslam, for its Hijri calendar, is not on PyPI and not needed).
+crosscheck = ["PyJHora==4.8.7", "python-dateutil", "ephem", "geocoder", "geopy", "hijridate", "pytz",
+              "requests", "timezonefinder", "certifi"]
 
 [project.scripts]
 jyotish = "jyotish.cli:main"
@@ -32,3 +37,7 @@ jyotish = ["data/*.json", "data/*.tsv.gz", "data/*.yaml"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "crosscheck: the Phase 0 cross-check against PyJHora (skips when PyJHora is absent)",
+    "live: calls the Anthropic API (skips unless JYOTISH_LIVE_NARRATION=1)",
+]
