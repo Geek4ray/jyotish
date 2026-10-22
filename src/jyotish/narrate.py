@@ -98,6 +98,7 @@ class ReadingClaim(BaseModel):
     stability_label: str | None = None  # the sampler's word for `stability` (uncertainty.label)
     confidence: float                   # rule: scale x confidence_base; vote: min(1, 1 - rho) x |vote|
     learner: dict[str, Any] | None = None   # the finding's derivation, by the engine (learner_data)
+    edited: dict[str, Any] | None = None    # review step: {by, at} when a reviewer's edit replaced the text (checked)
 
 
 class ReadingWindow(BaseModel):
@@ -143,6 +144,7 @@ class ReadingArea(BaseModel):
     narration_gaps: list[dict[str, Any]] = Field(default_factory=list)
     paragraph: str | None = None        # curious depth: the plain-language paragraph (checked like the summary)
     paragraph_cites: list[str] = Field(default_factory=list)
+    astrologer_note: dict[str, Any] | None = None   # review step: {text, by, at}, the reviewer's words, never checked
 
 
 class ReadingSummary(BaseModel):
@@ -173,6 +175,7 @@ class Reading(BaseModel):
     unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
     narration_complete: bool = True     # false when some finding or the summary was not narrated within the checks
     depth: str = "astrologer"           # curious | learner | astrologer (SPEC Layer 7 prompt contract, item 1)
+    review: dict[str, Any] = Field(default_factory=lambda: {"status": "draft"})   # draft | reviewed (SPEC Layer 6b)
     summary: ReadingSummary
     areas: list[ReadingArea]
     fired_rules: list[dict[str, Any]]

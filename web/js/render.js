@@ -191,8 +191,16 @@ function areaCard(a, notes, depth) {
     ${gapsList(a.narration_gaps || [])}
     ${a.school_conflicts.map(conflict).join("")}
     ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
+    ${a.astrologer_note ? astrologerNote(a.astrologer_note) : ""}
     ${a.disclaimer ? `<p class="disclaimer">${esc(a.disclaimer)}</p>` : ""}
   </section>`;
+}
+
+// The reviewer's own words: shown apart from the checked text and labelled as not checked.
+function astrologerNote(n) {
+  return `<aside class="astrologer-note"><span class="label">The astrologer's note</span>
+    <p>${esc(n.text).replaceAll("\n", "<br>")}</p>
+    <p class="tiny">Written by ${esc(n.by)} on ${esc(n.at.slice(0, 10))}; not checked by the engine.</p></aside>`;
 }
 
 function dependsSection(items) {
@@ -224,6 +232,7 @@ export function renderReading(r) {
     <span class="kicker">Your question</span>
     <h1 class="question">${esc(r.question)}</h1>
     <p class="header-line">${headerLine(r.chart)}</p>
+    ${r.review && r.review.status === "reviewed" ? `<p class="reviewed-by">Reviewed by <strong>${esc(r.review.reviewed_by)}</strong> on ${esc(r.review.reviewed_at.slice(0, 10))}. Edited sentences passed the same checks as the writer's; the astrologer's notes are the reviewer's own words.</p>` : ""}
     <p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)} · model ${esc(r.model)} · ${num(r.attempts)} attempt(s) · narration ${esc(r.narration_source)}</p>
   </section>
   ${r.narration_complete === false ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}

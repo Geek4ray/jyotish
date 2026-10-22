@@ -108,4 +108,8 @@ with Playwright (`.venv/bin/playwright install chromium`). The offline suite rep
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.
-Next: Layer 6 (validation), the retrieval corpus for Layer 7, and the synastry module.
+Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
+`/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
+the `reviews` and `exclusions` tables) are done; rules may cite `source: practitioner` with status
+`practitioner_unconfirmed`, kept out of default scoring (`rules.OUT_OF_DEFAULT`).
+Next (SPEC Layer 6b order of work): outcome capture, the placement rule library, the judge page.

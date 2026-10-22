@@ -180,6 +180,10 @@ def render(reading: Reading, chart: Chart) -> str:
     L = [f"# Reading: {reading.question}", "",
          f"As of {reading.as_of} · engine {reading.engine} · weights {reading.weights} · model {reading.model} "
          f"· {reading.attempts} attempt(s) · narration {reading.narration_source}", ""] + _header(reading.chart)
+    rv = reading.review or {}
+    if rv.get("status") == "reviewed":                    # only a reviewed reading says so
+        L += [f"**Reviewed by {rv['reviewed_by']}** on {rv['reviewed_at'][:10]}. Edited sentences passed the same "
+              "validator and checker as the writer's; the astrologer's notes are the reviewer's own words.", ""]
     if reading.unchecked_sentences:
         L += [f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
                   "checker verdict and were not semantically checked; the code validator ran on all of them.", ""]
@@ -238,6 +242,10 @@ def render(reading: Reading, chart: Chart) -> str:
             L += ["", "Not narrated within the checks:", ""]
             L += [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
                   for g in a.narration_gaps]
+        if a.astrologer_note:
+            n = a.astrologer_note
+            L += ["", f"> **The astrologer's note** ({n['by']}, {n['at'][:10]}; not checked by the engine)", ">"]
+            L += [f"> {line}" if line else ">" for line in n["text"].splitlines()]
         L.append("")
         for sc in a.school_conflicts:
             other = next(x for x in sc["schools"] if x != "parashari")

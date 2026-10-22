@@ -17,10 +17,10 @@ EXAMPLE = json.loads((ROOT / "examples" / "reference_reading.json").read_text())
 EDITED = str(ROOT / "tests" / "fixtures" / "narration_career_edited.json")
 
 
-def _serve(db, fixture):
+def _serve(db, fixture, **app_kw):
     import uvicorn
     from jyotish.api import create_app
-    app = create_app(f"sqlite:///{db}", model_fixture=fixture)
+    app = create_app(f"sqlite:///{db}", model_fixture=fixture, **app_kw)
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
@@ -334,3 +334,64 @@ def test_chart_page_and_the_link_from_the_reading(page, base_url):
     assert page.locator("#shadbala tbody tr").count() == 7 and page.locator("#bhava-bala tbody tr").count() == 12
     assert page.locator("#ashtakavarga tbody tr").count() == 8                       # seven BAV rows and SAV
     assert page.locator("#planets tbody tr").count() == 10
+
+
+
+@pytest.fixture(scope="module")
+def review_url(tmp_path_factory):
+    from jyotish.narrate import CheckResult, Proposition
+
+    def checker(sentence, data):
+        ok = "REJECTED" not in sentence
+        return CheckResult(propositions=[Proposition(text=sentence, supported=ok, evidence="stub")])
+    server, thread, url = _serve(tmp_path_factory.mktemp("review") / "r.db", EDITED,
+                                 reviewers={"web-token": "judge-1"}, review_checker=checker)
+    yield url
+    server.should_exit = True
+    thread.join(5)
+
+
+def test_review_page_edit_note_and_approve(browser, review_url):
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+    client = ctx.new_page()
+    submit_reference(client, review_url)
+    client.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    rid = client.url.split("id=")[1]
+    assert client.locator(".reviewed-by").count() == 0 and client.locator(".astrologer-note").count() == 0
+    rev = ctx.new_page()
+    rev.goto(f"{review_url}/review/{rid}")
+    rev.wait_for_selector("#token-form:not([hidden])")
+    rev.fill("#token", "wrong")
+    rev.click("#token-form button[type=submit]")
+    rev.wait_for_selector("#token-error:has-text('not accepted')")
+    rev.fill("#token", "web-token")
+    rev.click("#token-form button[type=submit]")
+    rev.wait_for_selector("#review[data-state=draft]")
+    unit = rev.locator('.review-unit[data-target="claim:career:vote:career.house"]')
+    # A refused edit says why and changes nothing.
+    unit.locator("textarea").fill("The house vote is for career.")
+    unit.locator(".save").click()
+    rev.wait_for_selector('.review-unit[data-target="claim:career:vote:career.house"] .result.bad')
+    assert "claim without a tag" in unit.locator(".result").inner_text()
+    # An accepted one replaces the sentence.
+    new = "The house vote is for career, though the 10th house is the lowest in strength [vote:career.house]."
+    unit.locator("textarea").fill(new)
+    unit.locator(".save").click()
+    rev.wait_for_selector('.review-unit[data-target="claim:career:vote:career.house"] .result.ok')
+    note = rev.locator('.note[data-area="career"]')
+    note.locator("textarea").fill("Seen often in my practice: recognition comes late.")
+    note.locator(".save-note").click()
+    rev.wait_for_function("document.querySelector('#history').textContent.includes('note')")
+    rev.click("#approve")
+    rev.wait_for_selector("#review[data-state=reviewed]")
+    assert "approve" in rev.inner_text("#history") and "accepted" in rev.inner_text("#history")
+    client.reload()
+    client.wait_for_selector("#reading[data-state=done]")
+    assert "Reviewed by judge-1" in client.inner_text(".reviewed-by")
+    aside = client.locator('section.area[data-area="career"] .astrologer-note')
+    assert "Seen often in my practice" in aside.inner_text() and "not checked by the engine" in aside.inner_text()
+    claim = client.locator('section.area[data-area="career"] li.claim[data-finding="vote:career.house"] .claim-text')
+    assert claim.inner_text().startswith("The house vote is for career, though the 10th house is the lowest in strength")
+    # The note is set apart from the checked text: not inside the claims list.
+    assert client.locator('section.area[data-area="career"] ol.claims .astrologer-note').count() == 0
+    ctx.close()

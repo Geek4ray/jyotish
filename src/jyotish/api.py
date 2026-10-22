@@ -19,6 +19,13 @@ connection-string change.
 The website (web/: plain HTML, CSS and JavaScript modules, no build step) is served at /, and
 examples/ (the reference reading) at /examples, after the API routes.
 
+The review step (SPEC Layer 6b): GET /review/{id} is the reviewer's page; the reviewer API under
+/readings/{id}/review needs a reviewer token (`Authorization: Bearer <token>`), mapped to a
+reviewer id by JYOTISH_REVIEWERS="judge-1:<token>,judge-2:<token>" in the server's environment.
+Every open, edit, note and approval is logged in `reviews` with chart id, reviewer id and time;
+the chart goes into `exclusions`, which the Layer 6b learning set respects. A reading's review
+status is draft until approved; the client-facing page says "reviewed by" only after.
+
 Run:  .venv/bin/uvicorn jyotish.api:app      then open http://127.0.0.1:8000/"""
 
 from __future__ import annotations
@@ -36,7 +43,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, create_engine
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -75,8 +82,56 @@ class ReadingRow(Base):
     document: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
     page: Mapped[str | None] = mapped_column(Text, nullable=True)
     error: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
+    review_status: Mapped[str] = mapped_column(String(16), default="draft", server_default="draft")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+
+class ReviewRow(Base):
+    """One reviewer action on a reading: open, edit (accepted or not, with the checks' errors),
+    note, approve. The judgement data of the review step."""
+    __tablename__ = "reviews"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"))
+    chart_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    reviewer_id: Mapped[str] = mapped_column(String(64))
+    action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve
+    target: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    before: Mapped[str | None] = mapped_column(Text, nullable=True)
+    after: Mapped[str | None] = mapped_column(Text, nullable=True)
+    accepted: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    errors: Mapped[list | None] = mapped_column(DOCUMENT, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class ExclusionRow(Base):
+    """A chart whose reading a judge has seen: excluded from the blind learning set for good."""
+    __tablename__ = "exclusions"
+    chart_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    reason: Mapped[str] = mapped_column(String(64))
+    reviewer_id: Mapped[str] = mapped_column(String(64))
+    reading_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+def excluded_charts(session) -> set[str]:
+    """The chart ids the Layer 6b learning set must leave out (their readings were seen)."""
+    return {r.chart_id for r in session.query(ExclusionRow).all()}
+
+
+def _add_missing_columns(engine) -> None:
+    """create_all makes new tables but never alters old ones: add columns a newer model has."""
+    insp = inspect(engine)
+    for table in Base.metadata.sorted_tables:
+        if not insp.has_table(table.name):
+            continue
+        have = {c["name"] for c in insp.get_columns(table.name)}
+        for col in table.columns:
+            if col.name not in have:
+                default = f" DEFAULT '{col.server_default.arg}'" if col.server_default is not None else ""
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {col.name} "
+                                      f"{col.type.compile(engine.dialect)}{default}"))
 
 
 class ReadingRequest(BirthInput):
@@ -85,6 +140,29 @@ class ReadingRequest(BirthInput):
     question: str
     as_of: str | None = None
     depth: Literal["curious", "learner", "astrologer"] = "curious"
+
+
+class EditRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target: str
+    text: str
+
+
+class NoteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    area: str
+    text: str
+
+
+def reviewers_from_env() -> dict[str, str]:
+    """token -> reviewer id, from JYOTISH_REVIEWERS="judge-1:<token>,judge-2:<token>"."""
+    out = {}
+    for pair in os.environ.get("JYOTISH_REVIEWERS", "").split(","):
+        if ":" in pair:
+            rid, tok = pair.split(":", 1)
+            if rid.strip() and tok.strip():
+                out[tok.strip()] = rid.strip()
+    return out
 
 
 class Accepted(BaseModel):
@@ -104,20 +182,26 @@ class ReadingStatus(BaseModel):
     reading: dict[str, Any] | None = None
     page: str | None = None
     error: dict[str, Any] | None = None
+    review_status: str | None = None
 
 
 REPO = Path(__file__).resolve().parents[2]
 
 
 def create_app(database_url: str | None = None, *, model_fixture: str | None = None, workers: int = 2,
-               web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples") -> FastAPI:
+               web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
+               reviewers: dict[str, str] | None = None, review_checker=None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
-    mounted when their directories exist (a source checkout)."""
+    mounted when their directories exist (a source checkout). `reviewers` (token -> reviewer
+    id) defaults to JYOTISH_REVIEWERS; `review_checker` checks edited sentences (default the
+    live AnthropicChecker; tests pass a stub)."""
     url = database_url or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
     engine = create_engine(url, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {})
     Base.metadata.create_all(engine)
+    _add_missing_columns(engine)
     Session = sessionmaker(engine, expire_on_commit=False)
+    tokens = reviewers if reviewers is not None else reviewers_from_env()
     pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="reading")
 
     @asynccontextmanager
@@ -221,6 +305,115 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD")
         return tables(chart_of(chart_id), day)
 
+    # --- the review step ----------------------------------------------------------------
+
+    def reviewer(request: Request) -> str:
+        auth = request.headers.get("authorization", "")
+        tok = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+        if not tok or tok not in tokens:
+            raise HTTPException(status_code=401, detail="a reviewer token is required",
+                                headers={"WWW-Authenticate": "Bearer"})
+        return tokens[tok]
+
+    def done_reading(s, reading_id: str):
+        from .narrate import Reading
+        row = s.get(ReadingRow, reading_id)
+        if row is None:
+            raise HTTPException(status_code=404, detail="no such reading")
+        if row.status != "done" or row.document is None:
+            raise HTTPException(status_code=409, detail=f"the reading is {row.status}, not done")
+        return row, Reading(**row.document)
+
+    def log(s, row, who: str, action: str, **fields) -> None:
+        s.add(ReviewRow(reading_id=row.id, chart_id=row.chart_id, reviewer_id=who, action=action, **fields))
+        if row.chart_id and s.get(ExclusionRow, row.chart_id) is None:
+            s.add(ExclusionRow(chart_id=row.chart_id, reason="reading seen in review", reviewer_id=who,
+                               reading_id=row.id))
+
+    def save(s, row, reading) -> None:
+        from .page import render
+        row.document = reading.model_dump(mode="json")
+        row.page = render(reading, chart_of(row.chart_id))
+
+    def review_view(s, row, reading) -> dict:
+        from .review import units
+        history = [{"action": r.action, "target": r.target, "reviewer": r.reviewer_id, "accepted": r.accepted,
+                    "before": r.before, "after": r.after, "errors": r.errors, "at": r.created_at.isoformat()}
+                   for r in s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id)]
+        return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status, "reading": row.document,
+                "page": row.page, "units": units(reading), "history": history}
+
+    @app.get("/review/{reading_id}", include_in_schema=False)
+    def review_page(reading_id: str):
+        from fastapi.responses import FileResponse
+        if web_dir is None or not (Path(web_dir) / "review.html").exists():
+            raise HTTPException(status_code=404, detail="no review page")
+        return FileResponse(Path(web_dir) / "review.html")
+
+    @app.get("/readings/{reading_id}/review")
+    def get_review(reading_id: str, request: Request) -> dict:
+        """The reading as the reviewer sees it, every sentence with its target; opening it logs
+        the reviewer and excludes the chart from the blind learning set."""
+        who = reviewer(request)
+        with Session.begin() as s:
+            row, reading = done_reading(s, reading_id)
+            log(s, row, who, "open")
+            s.flush()
+            return review_view(s, row, reading)
+
+    @app.post("/readings/{reading_id}/review/edit")
+    def post_edit(reading_id: str, req: EditRequest, request: Request) -> dict:
+        """An edited sentence: accepted only if it passes the validator and the checker."""
+        from .review import apply_edit, check_edit, units
+        who = reviewer(request)
+        with Session.begin() as s:
+            row, reading = done_reading(s, reading_id)
+            before = next((u["text"] for u in units(reading) if u["target"] == req.target), None)
+            if before is None:
+                raise HTTPException(status_code=404, detail=f"no sentence {req.target!r} in this reading")
+            checker = review_checker or app.state.__dict__.setdefault("live_checker", _live_checker())
+            try:
+                result = check_edit(reading, chart_of(row.chart_id), req.target, req.text, checker)
+            except ValueError as e:
+                raise HTTPException(status_code=422, detail=str(e))
+            log(s, row, who, "edit", target=req.target, before=before, after=req.text.strip(),
+                accepted=result["accepted"], errors=result["errors"])
+            if result["accepted"]:
+                reading = apply_edit(reading, req.target, req.text, who)
+                save(s, row, reading)
+            s.flush()
+            return dict(result, review=review_view(s, row, reading))
+
+    @app.post("/readings/{reading_id}/review/note")
+    def post_note(reading_id: str, req: NoteRequest, request: Request) -> dict:
+        """The astrologer's note on an area: the reviewer's words, stored and shown apart, never checked."""
+        from .review import add_note
+        who = reviewer(request)
+        with Session.begin() as s:
+            row, reading = done_reading(s, reading_id)
+            try:
+                reading = add_note(reading, req.area, req.text, who)
+            except ValueError as e:
+                raise HTTPException(status_code=422, detail=str(e))
+            log(s, row, who, "note", target=f"note:{req.area}", after=req.text.strip())
+            save(s, row, reading)
+            s.flush()
+            return review_view(s, row, reading)
+
+    @app.post("/readings/{reading_id}/review/approve")
+    def post_approve(reading_id: str, request: Request) -> dict:
+        """Mark the reading reviewed: the client-facing page then says by whom."""
+        from .review import approve
+        who = reviewer(request)
+        with Session.begin() as s:
+            row, reading = done_reading(s, reading_id)
+            reading = approve(reading, who)
+            row.review_status = "reviewed"
+            log(s, row, who, "approve")
+            save(s, row, reading)
+            s.flush()
+            return review_view(s, row, reading)
+
     @app.get("/places")
     def get_places(q: str, limit: int = 10) -> list[dict]:
         """Places for the birth form's Place field (GeoNames cities15000, CC BY 4.0)."""
@@ -235,7 +428,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 raise HTTPException(status_code=404, detail="no such reading")
             return ReadingStatus(id=row.id, status=row.status, progress=row.progress, chart_id=row.chart_id,
                                  question=row.question, created_at=row.created_at, updated_at=row.updated_at,
-                                 reading=row.document, page=row.page, error=row.error)
+                                 reading=row.document, page=row.page, error=row.error,
+                                 review_status=row.review_status if row.status == "done" else None)
 
     # Static files last, so /readings is never shadowed.
     if examples_dir is not None and Path(examples_dir).is_dir():
@@ -243,6 +437,11 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     if web_dir is not None and Path(web_dir).is_dir():
         app.mount("/", StaticFiles(directory=web_dir, html=True), name="web")
     return app
+
+
+def _live_checker():
+    from .narrate import CONFIG, AnthropicChecker
+    return AnthropicChecker(CONFIG)
 
 
 def __getattr__(name: str):
