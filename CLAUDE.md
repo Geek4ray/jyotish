@@ -115,23 +115,34 @@ with Playwright (`.venv/bin/playwright install chromium`). The offline suite rep
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.
-Depth full (2026-10-23; docs/spec_notes_2026-10-23.md, not yet in SPEC.md): the writer gets the whole chart
-(`fullchart.payload`: every table, vote derivation, dasha to the pratyantar and ten years of transits,
-under stable paths; 356,177 characters on the reference chart, held by `tests/test_fullchart.py`), cites
-any field as `[fact:<path>]` (the validator resolves the path, the checker gets the value, the reading
-keeps `facts_cited`), thinks adaptively at `CONFIG.full_effort` (max) with `full_max_tokens` streamed,
-and writes per area an `analysis` (assessment, timing, not_said), each section checked like the summary
-and accepted whole; a sentence on two or more findings or facts goes to the checker marked `synthesis`.
-`--writer-model`/`--writer-effort` (and `writer_model`/`writer_effort` on POST /readings) move the writer
-only; `CONFIG.checker_model` and `checker_effort` stay; the reading records `writer`, `checker`, `usage`.
-`[tradition:<text> <chapter>]` (analysis only, `narrate.TRADITION_TEXTS`) is never checked: it is shown
-apart as unverified, refused if it states a numeral, date, period or anything the engine computes, and
-a live reading appends it to `data/candidate_rules.jsonl` (JYOTISH_CANDIDATE_RULES; gitignored; triage
-in docs/triage.md). `scripts/compare_readings.py` runs two (model, effort, depth) settings and writes
-docs/comparison_<date>.md; `/compare/{a}/{b}` shows the two blind to a reviewer, one question, logged
-(`reviews` action `compare`, exported with the judgements), settings revealed after the answer. The
-live comparison on the reference chart has not been run yet (it needs the API key): the command is in
-the spec notes.
+Depth full (2026-10-23; SPEC rev 117-118, and the second depth-full heading of docs/spec_notes_2026-10-23.md):
+the writer gets the whole chart (`fullchart.payload`: every table, vote derivation, dasha to the pratyantar
+and ten years of transits, under stable paths; 402,380 characters on the reference chart, held by
+`tests/test_fullchart.py`), cites any field as `[fact:<path>]` (the validator resolves the path, the checker
+gets the value, the reading keeps `facts_cited`), thinks adaptively at `CONFIG.full_effort` (max) with
+`full_max_tokens` streamed, and writes per area an `analysis` (assessment, timing, not_said). The payload
+states what the engine knows: varga rows carry `varga_dignity_label`, a stability is `{time, ayanamsa, house,
+label, ayanamsas: "holds under n of 3 ayanamsas", house_systems}`, the arudha derivation `rests_on` and
+`why`, plus `constants`, `houses.<lagna|moon|sun>.<n>`, `not_computed`, and per area `contributions` (the
+families ranked by term x weight; "the strongest support" must cite it). Analysis sentences are checked
+(each proposition), syntheses (two or more items: the conclusion must follow) or judgements ("I weigh …",
+"I give … weight", "I read … as", "I resolve …": premises checked, the weighing shown as "the reading's
+weighing" and never checked); "the 10th sign" is refused for "the 10th house from the lagna"
+(houses.lagna.10). Section retries (`CONFIG.section_retries`, depth full only): every unit passing the
+validator is checked in its attempt and held once it passes, and a retry asks only for the failed units
+with their reasons (`retry_instruction`); `scripts/section_retries.py` replays a recording under both
+policies. `--writer-model`/`--writer-effort` (and `writer_model`/`writer_effort` on POST /readings) move
+the writer only; `CONFIG.checker_model` and `checker_effort` stay; the reading records `writer`, `checker`,
+`usage`. `[tradition:<text> <chapter>]` (analysis only, `narrate.TRADITION_TEXTS`) is never checked: shown
+apart as unverified, refused if it states a numeral, date, period or anything the engine computes, and a
+live reading appends it to `data/candidate_rules.jsonl` (JYOTISH_CANDIDATE_RULES; gitignored; triage in
+docs/triage.md). `scripts/compare_readings.py` runs two (model, effort, depth) settings and writes
+docs/comparison_<date>.md (`--out` for a second run on one day: the first comparison's files are inputs to
+the checker benchmark and the replay); `/compare/{a}/{b}` shows the two blind to a reviewer, one question,
+logged (`reviews` action `compare`, exported with the judgements), settings revealed after the answer.
+The first live comparison is docs/comparison_2026-10-23.md; its engine-fault refusals are the `b-` rows of
+`tests/fixtures/checker_bench.jsonl`. The re-run after the fixes is Ray's to run: the command is at the end
+of the spec notes' second depth-full heading.
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

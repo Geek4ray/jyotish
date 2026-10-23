@@ -36,10 +36,10 @@ def test_the_file_has_its_schema(cb, rows):
     assert len(ids) == len(set(ids))
     for r in rows:
         assert keys <= set(r), r["id"]
-        assert r["label"] in ("accept", "reject") and r["where"] in ("claim", "summary", "paragraph")
+        assert r["label"] in ("accept", "reject") and r["where"] in ("claim", "summary", "paragraph", "analysis")
         assert r["tags"] == [f"{k}:{v}" for k, v in TAG.findall(r["sentence"])]
         assert isinstance(json.loads(r["facts"]), dict)                   # what the checker is given
-        assert set(r["validator"]) == {"allowed", "offered_votes", "chains", "family_rule"}
+        assert set(r["validator"]) - {"full"} == {"allowed", "offered_votes", "chains", "family_rule"}
         assert (r["category"] == "accepted") == (r["label"] == "accept")
     cats = {r["category"] for r in rows}
     assert set(cb.CONSTRUCTED) <= cats
@@ -52,6 +52,7 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
     expected = sentences(reading["summary"]["text"])
     for a in reading["areas"]:
         expected += [c["text"] for c in a["claims"]] + sentences(a["paragraph"] or "")
+    rows = [r for r in rows if not r["id"].startswith("b-")]                # the comparison's rows: their own test
     accepted = [r for r in rows if r["label"] == "accept"]
     assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 45
     assert all(r["audit"] and "CONTRADICTED" not in r["audit"] for r in accepted)
@@ -114,3 +115,37 @@ def test_live_validator_and_checker(cb, rows):
     pred, usage = cb.run_live(rows)
     cb.SCORECARD.write_text(cb.report(rows, cb.run_validator(rows), (pred, usage, time.time() - t)))
     assert set(pred) == {r["id"] for r in rows} and usage["calls"] > 0
+
+
+
+def test_the_comparisons_refusals_carry_the_lesson(cb, rows):
+    """Every refusal of reading B (docs/comparison_2026-10-23) that was the engine's fault is a row, with
+    the label the engine now makes it earn: verbatim from B's recording unless built from one of them
+    by the change its origin names, accepted rows audited, rejected ones refused by the validator when
+    they are wording errors and left to the checker when they are not."""
+    b = {r["id"]: r for r in rows if r["id"].startswith("b-")}
+    assert len(b) == 20 and all(r["origin"].startswith("comparison 2026-10-23, reading B: ") for r in b.values())
+    kinds = {"varga label": ["b-varga-career", "b-varga-marriage", "b-varga-longevity"],
+             "stability label": ["b-stability-career", "b-stability-marriage", "b-stability-longevity"],
+             "ranking": ["b-ranking-career", "b-ranking-longevity"], "houses": ["b-nth-sign"], "arudha": ["b-arudha"],
+             "not computed": ["b-synastry"], "judgement": ["b-judgement-marriage"],
+             "validator": ["b-chain-navamsa", "b-tradition-family", "b-hyphen", "b-votes-fact"]}
+    assert set(sum(kinds.values(), [])) | {k for k in b if k.endswith("-fixed")} == set(b)
+    rec = json.loads(cb.COMPARISON.read_text())
+    said = json.dumps(rec)
+    for rid, r in b.items():
+        if not rid.endswith("-fixed") and rid != "b-arudha-fixed":
+            assert json.dumps(r["sentence"])[1:-1] in said, rid                # B's own words
+        assert r["validator"]["full"] == cb.FULL and isinstance(json.loads(r["facts"]), dict)
+        if r["label"] == "accept":
+            assert r["audit"] and r["category"] == "accepted"
+    pred = cb.run_validator(list(b.values()))
+    for rid, r in b.items():
+        if r["label"] == "accept":
+            assert not pred[rid][0], (rid, pred[rid][1])
+        elif r["category"] in cb.WORDING:
+            assert pred[rid][0], rid
+    assert all(not pred[k][0] for k in ("b-arudha", "b-synastry", "b-votes-fact"))   # the checker's to catch
+    facts = json.loads(b["b-varga-career"]["facts"])                 # a claim citing no fact: its finding's data
+    assert {x["varga_dignity_label"] for x in facts["derivation"]} >= {"exalted", "own"}
+    assert json.loads(b["b-judgement-marriage"]["facts"])["judgement"] is True

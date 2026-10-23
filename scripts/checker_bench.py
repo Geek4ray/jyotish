@@ -52,8 +52,14 @@ CONSTRUCTED = ["planet_swapped", "house_changed", "sign_changed", "dignity_chang
 # Categories that are tag or wording errors: the validator alone must reject every one of them. A
 # reference to another claim ("again", an opening "The same") joined them on 2026-10-23 (review, F9):
 # the checker sees one claim and cannot resolve it, the validator can read the word.
-WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited", "refers_to_another_claim"}
-SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity"}
+WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited", "refers_to_another_claim",
+           "ranking_not_cited", "nth_sign"}
+# The depth-full comparison's rows (comparison_rows) add three semantic kinds: a sentence citing a field
+# narrower than its claim, a judgement whose premise is false, and a clause no field states.
+SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", "cites_too_narrowly",
+                                         "judgement_premise", "unstated_claim"}
+COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
+FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
 LIVE_HEADING = "## Validator + semantic checker (live)"
 
 
@@ -245,6 +251,139 @@ def build() -> list[dict]:
         row["tags"] = _tags(row["sentence"])
         row["validator"] = inputs(row["where"], row["area"] or "career", row["finding_id"])
         row["facts"] = facts(row["where"], row["sentence"], row["finding_id"])
+    return out + comparison_rows()
+
+
+# --- the depth-full comparison's refusals that were the engine's fault ----------------------------
+
+def _b_sentence(prefix: str) -> str:
+    """The sentence of reading B (its recording: checked sentences and drafts) that starts so."""
+    rec = json.loads(COMPARISON.read_text())
+    found = [c["sentence"] for c in rec["calls"] if c["kind"] == "checker"]
+    for c in rec["calls"]:
+        for a in (c.get("draft") or {}).get("areas", []):
+            found += [x for cl in a["claims"] for x in sentences(cl["text"])]
+            found += [x for t in (a.get("analysis") or {}).values() if t for x in sentences(t)]
+    hits = sorted({x for x in found if x.startswith(prefix)})
+    assert len(hits) == 1, (prefix, hits)
+    return hits[0]
+
+
+@__import__("functools").lru_cache(maxsize=1)
+def full_inputs():
+    """(chart, as_of, whole-chart payload, finding data) for B's reading: the reference chart, mean node."""
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    chart = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    as_of = date.fromisoformat(FULL["as_of"])
+    whole = payload(chart, as_of, *full_range(as_of), FULL["areas"])
+    data = {f["finding_id"]: f for n in FULL["areas"] for f in findings(chart, n, as_of)[0]}
+    return chart, as_of, whole, data
+
+
+def comparison_rows() -> list[dict]:
+    """B's refusals (docs/comparison_2026-10-23, depth full) that were the engine's fault, each with
+    the label the engine now makes it earn, and beside a still-refused one the form that now passes.
+    Every sentence is B's verbatim except a `fixed` one, built from B's by the change its origin names;
+    every accepted row was read against the facts below by hand (its audit)."""
+    from jyotish.narrate import TRADITION, _cited_facts
+    chart, as_of, whole, data = full_inputs()
+    votes, chains = offered_votes(chart, FULL["areas"]), offered_chains(chart, FULL["areas"])
+    area_tags = {n: sorted(set().union(*(set(f["allowed_tags"]) for f in findings(chart, n, as_of)[0])))
+                 for n in FULL["areas"]}
+    fault = "the engine's fault on 2026-10-23"
+    rows = [
+        # (id, where, area, section or finding, sentence, label, category, origin / audit)
+        ("b-varga-career", "claim", "career", "vote:career.varga", _b_sentence("The varga vote is for career"),
+         "accept", "accepted", f"{fault}: the D10 rows gave varga_dignity 2.0 and 1.0 with no word; varga_dignity_label "
+         "now says exalted (Mars) and own (Saturn). Every planet, sign and score read against the seven D10 rows."),
+        ("b-varga-marriage", "claim", "marriage", "vote:marriage.varga", _b_sentence("The varga vote is for marriage"),
+         "accept", "accepted", f"{fault}: Saturn's D9 row gave 1.0 with no word; now own. The six D9 rows read."),
+        ("b-varga-longevity", "claim", "longevity", "vote:longevity.varga", _b_sentence("The varga vote is for longevity"),
+         "accept", "accepted", f"{fault}: Saturn's D9 row gave 1.0 with no word; now own. The Moon vargottama at 1.0, "
+         "Jupiter in Virgo at -0.25 in D30 and the other D30 scores (0 or 0.25) read against the rows."),
+        ("b-stability-career", "analysis", "career", "not_said", _b_sentence("The D10 lagna holds in 0.795"),
+         "accept", "accepted", f"{fault}: the stability triple was unlabelled; each now says 'holds under 2 of 3 "
+         "ayanamsas'. The D10 lagna's 0.795 and the varga vote's use of the three D10 rows read."),
+        ("b-stability-marriage", "analysis", "marriage", "not_said", _b_sentence("The D9 lagna holds in 0.78"),
+         "accept", "accepted", f"{fault}: as above for the D9 signs of Mars and Saturn (2 of 3) and the D9 lagna (0.78)."),
+        ("b-stability-longevity", "analysis", "longevity", "not_said", _b_sentence("The trimsamsa signs of Jupiter"),
+         "accept", "accepted", f"{fault}: as above for the D30 signs of Jupiter, Mars and Venus (2 of 3), all three D30 "
+         "rows of the varga vote."),
+        ("b-ranking-career", "analysis", "career", "assessment", _b_sentence("The strongest support is in the lords, as "
+         "the lord vote shows: Venus, lord of the 6th"), "reject", "ranking_not_cited",
+         f"{fault}: no field ranked the families, so the ranking could only be the writer's; it now must cite the "
+         "engine's (areas.career.contributions), and as written it does not"),
+        ("b-ranking-career-fixed", "analysis", "career", "assessment", None, "accept", "accepted",
+         "fixed from b-ranking-career by citing [fact:areas.career.contributions], which names the lord family the "
+         "strongest. Venus, 6th lord, exalted in the 11th at 1.33; Mars, 7th lord and 10th from the Sun, own sign, "
+         "1.3; Mercury, 2nd lord in the 10th, 1.19: read against the lord rows."),
+        ("b-ranking-longevity", "analysis", "longevity", "assessment", _b_sentence("The least support is Saturn"),
+         "reject", "ranking_not_cited", f"{fault}: as above; the engine's weakest for longevity is the varga family"),
+        ("b-nth-sign", "analysis", "career", "timing", _b_sentence("The timing join's full targets for career"),
+         "reject", "nth_sign", f"{fault}: no field gave the houses from the lagna, so 'the 10th sign' (the zodiac's "
+         "Capricorn, or the 10th house's Aquarius) could not be pinned; houses.lagna.10 now does"),
+        ("b-nth-sign-fixed", "analysis", "career", "timing", None, "accept", "accepted",
+         "fixed from b-nth-sign: 'the 10th house from the lagna' citing [fact:houses.lagna.10] (Aquarius) for the "
+         "lagna's sign. Targets Aquarius and Taurus, A10 in Taurus: read."),
+        ("b-arudha", "analysis", "career", "not_said", _b_sentence("The arudha vote is 0, so the A10"), "reject",
+         "cites_too_narrowly", f"{fault}: no field named the arudha the vote rests on; the derivation now does "
+         "(rests_on A10), but this sentence cites the bare vote, which does not state it"),
+        ("b-arudha-fixed", "analysis", "career", "not_said",
+         "The arudha vote rests on the A10 and abstains, the benefics and malefics in it balancing "
+         "[fact:areas.career.votes.arudha.derivation].", "accept", "accepted",
+         "fixed from b-arudha: cites the derivation, whose rests_on (A10) and why (the benefics and malefics balance) "
+         "state it; A10 is Taurus with Jupiter and Saturn."),
+        ("b-synastry", "analysis", "marriage", "not_said", _b_sentence("This chart says nothing about a partner"),
+         "reject", "cites_too_narrowly", f"{fault}: nothing said what the engine does not do; not_computed.synastry now "
+         "does, but this sentence cites only the synastry tier"),
+        ("b-synastry-fixed", "analysis", "marriage", "not_said", None, "accept", "accepted",
+         "fixed from b-synastry by also citing [fact:not_computed.synastry], which says the engine says nothing of "
+         "another person's own chart or life; the tier 'needs two charts' read."),
+        ("b-judgement-marriage", "analysis", "marriage", "assessment", _b_sentence("I give the six agreeing families"),
+         "reject", "judgement_premise", f"{fault} that a weighing could never pass; as a judgement only its premises "
+         "are checked, and one is false: the lord vote is weighed over fifteen rows (lagna, Moon, Sun), it does not "
+         "rest on the 7th lord's placement alone"),
+        ("b-chain-navamsa", "claim", "career", "chain:career.lord", _b_sentence("In its navamsa chain Saturn is in its "
+         "own sign Capricorn, the 12th from the D9 lagna, and is its own final dispositor"), "accept", "accepted", f"{fault}: the validator read 'navamsa' in a chain sentence as "
+         "naming the varga family. Capricorn, 12th from the D9 lagna, own; its own final navamsa dispositor; in "
+         "neither current period's activation set: read against the chain's facts."),
+        ("b-tradition-family", "analysis", "marriage", "assessment", _b_sentence("BPHS reads marriage through the "
+         "Upapada"), "accept", "accepted", f"{fault}: a [tradition:] sentence may carry no tag, yet the family rule "
+         "asked it to cite the arudha vote. Never checked by design: the validator alone reads it."),
+        ("b-hyphen", "analysis", "marriage", "assessment", _b_sentence("A second tension sits in Mars itself: its place in the 7th"), "accept",
+         "accepted", f"{fault}: 'lord-of-the-7th' did not match the rule's name 'lord of the 7th'. Both placements "
+         "scaled to 0.6 by marana karaka sthana, Mars in it, its ratio 1.3: read; the last clause says no fact decides "
+         "the net, which is so."),
+        ("b-votes-fact", "analysis", "longevity", "not_said", _b_sentence("The votes for this area weigh houses"),
+         "reject", "unstated_claim", f"{fault}: the family rule refused it although it cites the area's votes; the "
+         "validator now passes it, and its last clause (the reading draws no medical statement) is stated by no field"),
+    ]
+    by_id = {r[0]: r for r in rows}
+    fixes = {"b-ranking-career-fixed": lambda: by_id["b-ranking-career"][4][:-1] + " [fact:areas.career.contributions].",
+             "b-nth-sign-fixed": lambda: by_id["b-nth-sign"][4].replace("the 10th sign", "the 10th house from the lagna")
+             .replace("[fact:lagnas.asc.sign]", "[fact:houses.lagna.10]"),
+             "b-synastry-fixed": lambda: by_id["b-synastry"][4][:-1] + " [fact:not_computed.synastry]."}
+    out = []
+    for rid, where, area, unit, sentence, label, cat, note in rows:
+        sentence = sentence or fixes[rid]()
+        row = {"id": rid, "where": where, "area": area, "finding_id": unit if where == "claim" else None,
+               "section": unit if where == "analysis" else None, "sentence": sentence, "label": label, "category": cat,
+               "origin": f"comparison 2026-10-23, reading B: {note}", "tags": _tags(sentence),
+               "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else area_tags[area],
+                             "offered_votes": votes[area], "chains": chains[area], "family_rule": True, "full": FULL}}
+        if label == "accept":
+            row["audit"] = note
+        if TRADITION.search(sentence):
+            row["facts"] = json.dumps({"never_checked": "a [tradition:] sentence"})
+        elif where == "claim":
+            row["facts"] = _check_payload(data[unit], sentence, whole)
+        else:
+            row["facts"] = _summary_checks(sentence, data, whole)[0][2]
+        assert row["tags"] or TRADITION.search(sentence), rid
+        out.append(row)
     return out
 
 
@@ -312,6 +451,15 @@ def validator_errors(row: dict) -> list[str]:
         v = dict(v, family_rule=True)
     allowed = set(v["allowed"])
     ov = {k: (set(x) if isinstance(x, list) else x) for k, x in v["offered_votes"].items()}
+    if v.get("full"):                                   # depth full: fact tags resolve against the whole chart
+        whole = full_inputs()[2]
+        if row["where"] == "analysis":
+            return validate_summary(row["sentence"], allowed, offered_votes=ov, where=f"{row['area']} {row['section']}",
+                                    family_rule=v["family_rule"], chains=v["chains"], facts=whole, traditions=True,
+                                    judgements=True)
+        errs = validate(row["sentence"], allowed, offered_votes=ov, family_rule=v["family_rule"], chains=v["chains"],
+                        facts=whole)
+        return errs + ([] if TAG.search(row["sentence"]) else [f"claim without a tag: {row['sentence']!r}"])
     if row["where"] == "claim":
         errs = validate(row["sentence"], allowed, offered_votes=ov, family_rule=v["family_rule"], chains=v["chains"])
         if not TAG.search(row["sentence"]):
@@ -343,7 +491,7 @@ def run_live(rows, config=None) -> tuple[dict[str, tuple[bool, str]], dict]:
     v = run_validator(rows)
     out, usage, todo = {}, {"input_tokens": 0, "output_tokens": 0, "calls": 0}, []
     for row in rows:
-        if v[row["id"]][0]:
+        if v[row["id"]][0] or "[tradition:" in row["sentence"]:      # a [tradition:] sentence is never checked
             out[row["id"]] = v[row["id"]]
         else:
             todo.append(row)

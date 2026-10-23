@@ -1,29 +1,34 @@
 # Checker benchmark
 
-Run 2026-10-23 at commit `23c7a2c` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (119 rows: 45 accept, 74 reject). The positive class is reject.
+Run 2026-10-23 at commit `87fec27` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (139 rows: 58 accept, 81 reject). The positive class is reject.
 
 ## The code validator alone
 
 | category | n | caught / false rejects | precision | recall | F1 |
 | --- | --- | --- | --- | --- | --- |
-| overall | 119 | 18 of 74 | 1.000 | 0.243 | 0.391 |
-| accepted | 45 | 0 false rejects | 1.000 | 1.000 | 1.000 |
+| overall | 139 | 22 of 81 | 1.000 | 0.272 | 0.427 |
+| accepted | 58 | 0 false rejects | 1.000 | 1.000 | 1.000 |
+| cites_too_narrowly | 2 | 0 of 2 | 1.000 | 0.000 | 0.000 |
 | dasha_lord_changed | 6 | 0 of 6 | 1.000 | 0.000 | 0.000 |
 | dignity_changed | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | family_not_cited | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | forbidden_word | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | house_changed | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
+| judgement_premise | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | negated | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
+| nth_sign | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | planet_swapped | 9 | 1 of 9 | 1.000 | 0.111 | 0.200 |
+| ranking_not_cited | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | refers_to_another_claim | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | sign_changed | 5 | 0 of 5 | 1.000 | 0.000 | 0.000 |
 | tag_not_offered | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | tier_word | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
+| unstated_claim | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 | unsupported_clause | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | untagged | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | wrong_dignity | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 
-The validator reads tags and words, not meaning: it is meant to catch the tag and wording categories (family_not_cited, forbidden_word, refers_to_another_claim, tag_not_offered, tier_word, untagged) and to leave the semantic ones to the checker.
+The validator reads tags and words, not meaning: it is meant to catch the tag and wording categories (family_not_cited, forbidden_word, nth_sign, ranking_not_cited, refers_to_another_claim, tag_not_offered, tier_word, untagged) and to leave the semantic ones to the checker.
 
 Misses and false rejects (validator alone):
 
@@ -138,6 +143,12 @@ Misses and false rejects (validator alone):
 - `dasha_lord_changed-6` (dasha_lord_changed, missed): Ketu, the Moon's south node, sits in the 8th, while Saturn and Jupiter share the 1st and Venus, ruler of the 1st, sits exalted, in the sign where the texts hold a planet at its peak, in the 11th, and the current major period of Rahu activates Venus through its nakshatra [rule:place.ketu_h8] [vote:longevity.karaka] [vote:longevity.lord] [chain:longevity.lord].  
   reason: (none given)
 - `known_bad-4` (wrong_dignity, missed): The varga vote leans narrowly for career in the D10: Saturn, Mars and Venus score well there, while Jupiter and the Sun score poorly and Mercury and the Moon are neutral [vote:career.varga].  
+  reason: (none given)
+- `b-arudha` (cites_too_narrowly, missed): The arudha vote is 0, so the A10 gives no verdict on how the career appears [fact:areas.career.votes.arudha.vote].  
+  reason: (none given)
+- `b-synastry` (cites_too_narrowly, missed): This chart says nothing about a partner's own chart or life, and the engine's synastry area needs two charts [fact:areas.synastry.tier].  
+  reason: (none given)
+- `b-votes-fact` (unstated_claim, missed): The votes for this area weigh houses, lords, karakas, vargas, the arudha and the panchanga, and this reading draws no medical statement from them [fact:areas.longevity.votes].  
   reason: (none given)
 
 ## Validator + semantic checker (live)

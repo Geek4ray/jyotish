@@ -342,3 +342,41 @@ analysis sections); the saving in units asked for is three-fifths. The gaps cann
 the replayed writer returns what B returned, written to the old prompt, so the effect on gaps waits
 for the re-run. B's attempt 1 cost more than both retries together (1,024 s and all 128,000 output
 tokens of thinking, no draft); section retries do nothing for that (see the end of this heading).
+
+**The benchmark carries the lesson.** Every refusal of B that was the engine's fault is a row of
+`tests/fixtures/checker_bench.jsonl` (ids `b-…`, 20 rows, built by `scripts/checker_bench.py` from B's
+recording, so `--build` reproduces them), each with the label the engine now makes it earn and the
+facts the checker now gets. Accepted, each read against those facts by hand: the three varga claims
+(now labelled exalted and own), the three "hold under two of the three ayanamsas" sentences (now
+"holds under 2 of 3 ayanamsas"), the navamsa chain sentence, the tradition sentence and the
+hyphenated rule name that the validator had refused. Still refused, now for a reason the engine can
+state: the two rankings without the contributions ("strongest support is in the lords", "least
+support is Saturn": validator), "the 10th sign" (validator), the arudha and synastry sentences
+that cite a field too narrow for what they say (the checker's to catch), B's marriage judgement
+(its premise that the lord and KP votes rest on the 7th lord's placement alone is false; the
+validator also refuses its uncited "7th"), and the sentence citing the area's votes whose last
+clause no field states. Beside four of the refused, the form that now passes (citing the
+contributions, houses.lagna.10, the arudha derivation, not_computed.synastry). The benchmark is
+139 rows (58 accept, 81 reject); the validator alone: precision 1.000, recall 0.272, every wording
+row caught, no false rejects. The new wording kinds are `ranking_not_cited` and `nth_sign`, the new
+semantic kinds `cites_too_narrowly`, `judgement_premise` and `unstated_claim`. A [tradition:] row is
+never sent to the live checker.
+
+**The re-run.** The same two settings, written beside the first comparison rather than over it
+(the first comparison's files are inputs to the benchmark and the replay), and both readings stored
+for the blind page. For Ray to run, with the API key set:
+
+    .venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer \
+        --b claude-opus-5-5,max,full --as-of 2026-10-21 --database sqlite:///jyotish.db \
+        --out docs/comparison_2026-10-23_r2.md
+
+Its numbers belong here when it has run. What to read first: B's analysis gaps (9 of 9 the first
+time), its checker rejections by kind, and whether attempt 1 again returns no draft.
+
+**Open: B's attempt 1.** B's first writer call thought for all 128,000 output tokens and returned
+no draft (stop reason max_tokens; 1,024 s, about USD 2.56 of output at the cached price), more than
+the two retries together; nothing in the five parts above addresses it, and section retries cannot,
+since there is no draft to hold. The models this depth uses take no thinking budget (adaptive only),
+so the levers are the effort (xhigh rather than max at depth full), a task budget (beta), or a
+smaller payload. Not changed here: it is a cost-and-quality decision for Ray, and the re-run will
+show whether it recurs.
