@@ -221,3 +221,18 @@ def test_the_report_counts_judgements_on_their_own_row():
     m = cr.metrics(reading, [], None)
     assert m["judgement_sentences"] == 1 and m["sentences_checked_shown"] == 3     # two summary + one analysis
     assert any(name.startswith("Judgement sentences") for name, _ in cr.ROWS)
+
+
+def test_the_replay_check_reads_a_legacy_not_said_as_the_astrologers_list():
+    """scripts/replay_accepted.py: a reading made before the two lists compares its one not_said with
+    the astrologer's list, so a replay through today's engine shows no difference for it."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import replay_accepted as ra
+    then = {"areas": [{"name": "career", "claims": [{"text": "B."}, {"text": "A."}],
+                       "analysis": {"timing": "T.", "not_said": "N."}, "judgements": [], "traditions": []}]}
+    now = {"areas": [{"name": "career", "claims": [{"text": "A."}, {"text": "B."}],
+                      "analysis": {"timing": "T.", "not_said_astrologer": "N.", "not_said_client": "C."},
+                      "judgements": [], "traditions": []}]}
+    o, n = ra.accepted(then), ra.accepted(now)
+    assert [k for k in sorted(set(o) | set(n)) if o.get(k) != n.get(k)] == ["career.not_said_client"]
+    assert (ROOT / "docs" / "replay_2026-10-24.md").read_text().count("differences: 0") == 2

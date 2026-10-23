@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `client` (depth full's client's layer), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -154,6 +154,23 @@ docs/comparison_2026-10-23.md; its engine-fault refusals are the `b-` rows of
 checker. docs/review_2026-10-23_depth_full.md is the independent review; F1-F13 are fixed (the third
 depth-full heading of the spec notes). The re-run after the fixes is Ray's to run: the command closes that
 heading.
+Depth full for the client (2026-10-24, the heading "Layer 7, depth full — readable by the client" of the spec
+notes): the payload's vargas table gives each of the seven planets its sign and dignity per varga
+(`scoring.varga_dignity_word`, the varga vote's words) and every transit window and tara row its
+`areas_touched` (houses from the Moon and the lagna, the areas by scoring.AREAS; a mapping, not an effect).
+The analysis's "what the chart does not say" is two lists, `not_said_client` (the client's words) and
+`not_said_astrologer`. Once claims and sections are accepted, a second writer call (`jyotish.client`, at
+`CONFIG.client_effort`) writes each area's plain paragraph and the summary from accepted text and the facts
+it cites only: the answer first, then for, against, the timing in dates; every sentence tagged from the
+accepted text, no engine vocabulary (`client.CLIENT_WORDS`), no "I", a weighing as "in the reading's view"
+(a judgement); validated and checked like the summary, held and retried per unit. The first call writes no
+summary at depth full. Recordings keep `client_drafts`; one made before has paragraph gaps on replay, and a
+recorded single `not_said` is the astrologer's list. The page and the site show per area the paragraph,
+the client's list, the tier line, then "The astrologer's analysis" and the findings under toggles; a gap's
+error is never on the client's page (one line counts the gaps), only in the JSON, on the review page and in
+the comparison report. The suite stubs the client's writer (`tests/conftest.py`, EchoClient).
+`scripts/replay_accepted.py` replays a comparison's recordings and diffs accepted text against the committed
+readings (docs/replay_2026-10-24.md: none for r2). The live re-run is Ray's (docs/comparison_2026-10-23_r3.md).
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

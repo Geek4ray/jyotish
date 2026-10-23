@@ -642,3 +642,29 @@ website say "One part of this area could not be written within the checks" (or "
 error text stays in the reading's JSON, on the review page (under the area's quoted reading, each gap
 with its last error, for the reviewer only) and in the comparison report, which now lists each
 reading's gaps from its JSON.
+
+**The replay, and the live run (part 4).** `scripts/replay_accepted.py` replays a comparison's
+recordings through the current engine (drafts and checker verdicts as recorded, no API call) and diffs
+what is accepted against the committed readings. On the re-run's recordings (docs/replay_2026-10-24.md):
+A (medium, astrologer) 37 claims then and now, no gaps, the summary the model's, 0 differences over 9
+units; B (xhigh, full) 37 claims then and now, every accepted section, judgement and tradition the same,
+0 differences over 16 units. B's two gaps stand in the replay, because the checker's verdicts are the
+recorded ones: what the new fields make possible is measured live. B gains six gaps by design, a
+paragraph and a client's list per area, which no recording made before the client's layer holds, and its
+summary is the engine's (the first call's summary is not the reading's at depth full). The comparison
+report replayed (scripts/compare_readings.py --replay-a/--replay-b) gives B 92 checked sentences and 41
+syntheses against the committed 95 and 44: the three summary sentences. The writer changed (its prompt,
+its payload, the second call), so it is measured again (definition of done, item 7); the live run is
+Ray's, with the API key in the environment:
+
+    .venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer \
+        --b claude-opus-5-5,xhigh,full --as-of 2026-10-21 --database sqlite:///jyotish.db \
+        --out docs/comparison_2026-10-23_r3.md
+
+It writes the report and docs/comparison_2026-10-23_r3/ (both recordings, now with `client_drafts`, and
+both readings), stores the pair for /compare, and lists each reading's gaps with their errors under the
+table, since the pages no longer show them. What to read in it: B's two old gaps (career assessment,
+marriage timing) against the new fields; B's paragraphs and summary from the client's layer (attempts,
+calls and paragraphs shown are a row of the table); and its cost, now with the second call. Then
+`scripts/replay_accepted.py docs/comparison_2026-10-23_r3` checks the new recordings replay to the same
+accepted text.
