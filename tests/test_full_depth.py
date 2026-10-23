@@ -19,7 +19,7 @@ from jyotish.uncertainty import assess
 AS_OF = date(2026, 10, 21)
 QUESTION = "How will my career go?"
 
-ASSESSMENT = ("The strongest support is the lord family [fact:areas.career.contributions.strongest]. "
+ASSESSMENT = ("The strongest support is the varga family [fact:areas.career.contributions.strongest]. "
               "Mars is in its own sign in the 7th, so Mars is dignified in a kendra "
               "[fact:planets.Mars.dignity] [fact:planets.Mars.house].")
 TIMING = "The current Vimshottari period is Jupiter-Mercury-Mercury [fact:vimshottari.current]."
@@ -222,7 +222,7 @@ def test_the_page_shows_the_analysis_and_the_writers_settings(chart):
     for heading in ("### Assessment", "### Timing", "### What the chart does not say"):
         assert heading in career
     assert career.index("### Assessment") < career.index("### Timing") < career.index("### What the chart does not say")
-    assert "The strongest support is the lord family[^" in career
+    assert "The strongest support is the varga family[^" in career
 
 
 def test_the_command_reproduces_the_writers_settings(tmp_path):
@@ -358,7 +358,9 @@ def test_a_ranking_must_cite_the_engines_contributions(chart, sentence):
 
 
 def test_the_prompt_sends_the_ranking_to_the_contributions():
-    assert "[fact:areas.<area>.contributions] and never a ranking of your own" in system_prompt("full")
+    p = system_prompt("full")
+    assert "cites [fact:areas.<area>.contributions] (its percentile) and never a ranking of your own" in p
+    assert "the largest term is not a finding" in p and "percentile against 10,000 random charts" in p
 
 
 def test_a_votes_or_contributions_fact_stands_for_the_vote_tags_it_states(chart):
@@ -378,8 +380,8 @@ def test_a_votes_or_contributions_fact_stands_for_the_vote_tags_it_states(chart)
 
 # --- part 3 of the second heading: the judgement sentence kind --------------------------------------
 
-JUDGE = ("I give the lord family more weight than the arudha vote, since the lord family ranks first "
-         "[fact:areas.career.contributions.strongest] [fact:areas.career.votes.arudha.vote].")
+JUDGE = ("I give the lord family more weight than the arudha vote, since the lord family's term is the largest "
+         "[fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote].")
 
 
 @pytest.mark.parametrize("sentence,weighs", [
@@ -400,7 +402,7 @@ def test_a_judgement_goes_to_the_checker_marked_and_with_its_facts(chart):
     r = run(chart, draft(assessment=ASSESSMENT + " " + JUDGE), checker=stub)
     data = dict(stub.calls)[JUDGE]
     assert data["judgement"] is True and "synthesis" not in data            # never checked as a conclusion
-    assert set(data["facts"]) == {"areas.career.contributions.strongest", "areas.career.votes.arudha.vote"}
+    assert set(data["facts"]) == {"areas.career.contributions.largest_term", "areas.career.votes.arudha.vote"}
     a = r.areas[0]
     assert a.analysis["assessment"].endswith(JUDGE) and a.judgements == [{"section": "assessment", "sentence": JUDGE}]
     assert r.judgement_sentences == 1 and r.synthesis_sentences == 1        # the kendra sentence only
@@ -616,8 +618,8 @@ def test_a_judgement_states_no_chart_proposition_its_facts_do_not(whole, sentenc
 
 
 def test_a_judgement_within_its_limits_passes(whole):
-    ok = ("I give the lord family more weight than the arudha vote, since the lord family ranks first "
-          "[fact:areas.career.contributions.strongest] [fact:areas.career.votes.arudha.vote].")
+    ok = ("I give the lord family more weight than the arudha vote, since the lord family's term is the largest "
+          "[fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote].")
     assert _section_errors(ok, whole) == []
     exalted = "I weigh Venus, exalted in Pisces, above Saturn [fact:planets.Venus.dignity] [fact:planets.Venus.sign]."
     assert _section_errors(exalted, whole) == []                   # the dignity word is the cited fact's
@@ -671,12 +673,12 @@ def test_the_checker_lists_every_proposition_of_a_judgement():
 
 
 def test_a_contributions_fact_stands_only_for_the_families_it_names(whole):
-    """F13: `contributions.strongest` ("lord") stood for every family's vote tag."""
+    """F13: a part of the contributions (`largest_term`, "lord") stood for every family's vote tag."""
     from jyotish.narrate import validate
     votes = {"kp": "vote:career.kp", "lord": "vote:career.lord"}
-    kp = "The KP vote is against career [fact:areas.career.contributions.strongest]."
+    kp = "The KP vote is against career [fact:areas.career.contributions.largest_term]."
     assert any("does not cite [vote:career.kp]" in e for e in validate(kp, set(), offered_votes=votes, facts=whole))
-    lord = "The lord vote ranks first [fact:areas.career.contributions.strongest]."
+    lord = "The lord vote's term is the largest [fact:areas.career.contributions.largest_term]."
     assert not any("does not cite" in e for e in validate(lord, set(), offered_votes=votes, facts=whole))
 
 

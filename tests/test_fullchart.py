@@ -22,9 +22,9 @@ SECTIONS = ["chart", "constants", "houses", "not_computed", "planets", "nakshatr
 # The compact payload on the reference chart (as of 2026-10-21, three areas, ten years of transits)
 # measured 356,177 characters on 2026-10-23 at first, and 402,380 once what the engine knows was
 # labelled (the stability objects, the constants, houses and not_computed blocks), 423,836 once each
-# family's term said what it holds (the review's F13; docs/spec_notes_2026-10-23.md).
+# family's term said what it holds (the review's F13), 425,120 with the percentiles (F4; docs/spec_notes_2026-10-23.md).
 # The bound is there so that growth is noticed and the recorded size updated.
-MEASURED_CHARS = 423_836
+MEASURED_CHARS = 425_120
 
 
 @pytest.fixture(scope="module")
@@ -277,25 +277,63 @@ def test_bhava_bala_ranks_the_twelve_houses(chart, whole):
 
 # --- the families ranked by the engine --------------------------------------------------------
 
-def test_contributions_rank_the_families_by_term_times_weight(chart, whole):
-    from jyotish.scoring import family_rho, family_weights
+def test_contributions_rank_by_term_and_name_the_unusual_by_percentile(chart, whole):
+    """F4: the ranking was term x confluence weight, which S does not contain; it is now each family's
+    term as it enters S, with its percentile against the population run's 10,000 charts, and the
+    strongest and the weakest are by percentile."""
+    from jyotish.scoring import family_quantiles, term_percentile
     a = chart.scored.areas["career"]
-    w = family_weights(a, family_rho(chart.meta.varga_term, chart.meta.kp_vote))
     c = resolve(whole, "areas.career.contributions")
     by = {r["family"]: r for r in c["ranked"]}
     assert set(by) == {"house", "lord", "karaka", "varga", "panchanga"}
-    assert by["lord"]["term"] == round(a.terms["lord"] + a.terms["dispositor"], 3)    # the lord vote reads both
+    assert by["lord"]["term"] == round(a.terms["lord"] + a.terms["dispositor"], 3) and "weight" not in by["lord"]
+    assert [r["term"] for r in c["ranked"]] == sorted((r["term"] for r in c["ranked"]), reverse=True)
+    assert [r["rank_by_term"] for r in c["ranked"]] == [1, 2, 3, 4, 5] and c["largest_term"] == "lord"
+    q = family_quantiles("v2", "v2")["career"]
     for fam, r in by.items():
-        assert abs(r["contribution"] - r["term"] * r["weight"]) < 0.002 and r["weight"] == round(w[fam], 3)
-    assert [r["contribution"] for r in c["ranked"]] == sorted((r["contribution"] for r in c["ranked"]), reverse=True)
-    assert [r["rank"] for r in c["ranked"]] == [1, 2, 3, 4, 5]
-    assert c["strongest"] == c["ranked"][0]["family"] == "lord" and c["weakest"] == c["ranked"][-1]["family"]
-    applicable = {f for f, v in a.votes.items() if v is not None}
-    shares = [r["share_of_applicable_weight"] for r in c["ranked"] + c["vote_only"]]
-    assert abs(sum(shares) - 1.0) < 0.01 and {r["family"] for r in c["vote_only"]} == applicable & {"arudha", "kp"}
-    assert c["abstaining"] == ["arudha", "kp"] and c["against"] == []
+        # from the unrounded term: within a tenth of the rounded one's
+        assert abs(r["percentile"] - term_percentile(q[fam], r["term"])) <= 0.2 and 0 <= r["percentile"] <= 100
+    top = max(c["ranked"], key=lambda r: r["percentile"])
+    low = min(c["ranked"], key=lambda r: r["percentile"])
+    assert (c["strongest"], c["strongest_percentile"]) == (top["family"], top["percentile"]) == ("varga", 90.0)
+    assert (c["weakest"], c["weakest_percentile"]) == (low["family"], low["percentile"])
+    assert "largest on most charts by construction" in c["basis"] and "percentile" in c["basis"]
+    assert {r["family"] for r in c["vote_only"]} == {"arudha", "kp"} and c["abstaining"] == ["arudha", "kp"]
     assert resolve(whole, "areas.marriage.contributions.against") == ["arudha"]
     assert "contributions" not in whole["areas"]["synastry"]
+
+
+def test_term_percentile_interpolates_and_centres_ties():
+    from jyotish.scoring import term_percentile
+    q = [float(i) for i in range(101)]                       # the 101 percentiles of a uniform 0..100
+    assert term_percentile(q, 37.5) == 37.5 and term_percentile(q, -1) == 0.0 and term_percentile(q, 200) == 100.0
+    zeros = [0.0] * 61 + [float(i) for i in range(1, 41)]   # a term that is 0 on 60% of charts
+    assert term_percentile(zeros, 0.0) == 30.0               # the middle of the zeros, not their top
+
+
+def test_family_rho_writes_the_family_percentiles(tmp_path, monkeypatch):
+    import importlib.util
+    import json
+    from pathlib import Path
+    import jyotish.scoring
+    # The script sets scoring.POPULATION_RUN on import (a missing table then reads as empty); the
+    # rest of the suite needs it off.
+    monkeypatch.setattr(jyotish.scoring, "POPULATION_RUN", jyotish.scoring.POPULATION_RUN)
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("family_rho", root / "scripts" / "family_rho.py")
+    fr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fr)
+    fr.main(25, 7, data=tmp_path)
+    table = json.loads((tmp_path / "family_percentiles.varga-v2.kp-v2.json").read_text())
+    assert table["n_charts"] == 25 and table["terms"]["lord"] == ["lord", "dispositor"]
+    for area, fams in table["quantiles"].items():
+        for fam, qs in fams.items():
+            assert len(qs) == 101 and qs == sorted(qs), (area, fam)
+    for name in ("family_rho.varga-v2.kp-v2.json", "area_percentiles.varga-v2.kp-v2.json"):
+        assert (tmp_path / name).exists()
+    for pair in (("v1", "v1"), ("v2", "v1"), ("v2", "v2")):          # every pair the engine keeps tables for
+        from jyotish.scoring import FAM_PCT_FILE, table_path
+        assert table_path(FAM_PCT_FILE, *pair).exists(), pair
 
 
 

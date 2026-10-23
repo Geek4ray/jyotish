@@ -363,7 +363,7 @@ def _areas(chart: Chart) -> dict:
                                      "derivation": _r(a.vote_details.get(fam))}
                                for fam, v in a.votes.items()}}
         if a.score_classical is not None:
-            out[name]["contributions"] = contributions(a, weights)
+            out[name]["contributions"] = contributions(a, name, chart)
     return out
 
 
@@ -382,33 +382,40 @@ def family_term(a, fam: str) -> dict:
     return {"term": round(sum(a.terms.get(t, 0.0) for t in parts), 3), "term_holds": list(parts)}
 
 
-def contributions(a, weights: dict[str, float]) -> dict:
-    """The families ranked by what each adds: its term in S times its confluence weight, signed,
-    with its share of the applicable weight (the weight of every family that voted or abstained),
-    and the strongest and weakest named, so "the strongest support" is the engine's ranking, not
-    the writer's. Arudha and KP vote only (they count toward the tier by their weight and add no
-    term) and are listed apart; the rules and Navatara terms of S are not families."""
-    applicable = {f: weights[f] for f, v in a.votes.items() if v is not None and f in weights}
-    total = sum(applicable.values()) or 1.0
+def contributions(a, area: str, chart: Chart) -> dict:
+    """The families of an area by what each is on this chart. `ranked`: each family's term as it
+    enters S (no confluence weight, which enters only the tier's agreement: review F4), in order.
+    The terms are on different scales (the lord term sums fifteen lord rows at WEIGHTS["lord"] and
+    the dispositor term), so the largest is the lord family's on most charts by construction; each
+    family therefore also carries its `percentile`, where this chart's term falls among 10,000
+    random charts' (scripts/family_rho.py), and `strongest` and `weakest` are by percentile: what is
+    unusual on this chart. Arudha and KP vote without a term and are listed apart; the rules and
+    Navatara terms of S are not families."""
+    from .scoring import family_quantiles, term_percentile
+    q = family_quantiles(chart.meta.varga_term, chart.meta.kp_vote).get(area, {})
     ranked = []
     for fam, parts in FAMILY_TERMS.items():
-        if fam not in applicable:
+        if a.votes.get(fam) is None:
             continue
         term = sum(a.terms.get(t, 0.0) for t in parts)
-        ranked.append({"family": fam, "term": round(term, 3), "weight": round(applicable[fam], 3),
-                       "contribution": round(term * applicable[fam], 3), "vote": a.votes[fam],
-                       "share_of_applicable_weight": round(applicable[fam] / total, 3)})
-    ranked.sort(key=lambda r: -r["contribution"])
+        row = {"family": fam, "term": round(term, 3), "term_holds": list(parts), "vote": a.votes[fam]}
+        if fam in q:
+            row["percentile"] = term_percentile(q[fam], term)
+        ranked.append(row)
+    ranked.sort(key=lambda r: -r["term"])
     for i, r in enumerate(ranked, 1):
-        r["rank"] = i
-    vote_only = [{"family": f, "vote": a.votes[f], "weight": round(applicable[f], 3),
-                  "share_of_applicable_weight": round(applicable[f] / total, 3)}
-                 for f in ("arudha", "kp") if f in applicable]
-    return {"basis": "each family's term in the area score times its confluence weight; arudha and KP vote "
-                     "without a term and are listed apart",
-            "ranked": ranked, "vote_only": vote_only,
-            "strongest": ranked[0]["family"] if ranked else None,
-            "weakest": ranked[-1]["family"] if ranked else None,
+        r["rank_by_term"] = i
+    by_pct = sorted((r for r in ranked if "percentile" in r), key=lambda r: -r["percentile"])
+    return {"basis": "each family's term as it enters the area score, largest first; the terms are on different "
+                     "scales and the lord term is the largest on most charts by construction, so the strongest and "
+                     "the weakest are by percentile against 10,000 random charts: what is unusual on this chart",
+            "ranked": ranked,
+            "vote_only": [{"family": f, "vote": a.votes[f]} for f in ("arudha", "kp") if a.votes.get(f) is not None],
+            "largest_term": ranked[0]["family"] if ranked else None,
+            "strongest": by_pct[0]["family"] if by_pct else None,
+            "strongest_percentile": by_pct[0]["percentile"] if by_pct else None,
+            "weakest": by_pct[-1]["family"] if by_pct else None,
+            "weakest_percentile": by_pct[-1]["percentile"] if by_pct else None,
             "against": [f for f, v in a.votes.items() if v == -1],
             "abstaining": [f for f, v in a.votes.items() if v == 0],
             "other_terms": {t: round(a.terms.get(t, 0.0), 3) for t in ("rules", "navatara")}}

@@ -111,6 +111,7 @@ FAMILIES = ["house", "lord", "karaka", "varga", "arudha", "kp", "panchanga"]
 POLARITY = {"Saturn": "delay", "Mars": "intensity", "Rahu": "volatility", "Ketu": "detachment"}
 RHO_FILE = Path(__file__).with_name("data") / "family_rho.json"
 PCT_FILE = Path(__file__).with_name("data") / "area_percentiles.json"
+FAM_PCT_FILE = Path(__file__).with_name("data") / "family_percentiles.json"
 EMPHASIS_PERCENTILE = "p40"
 
 READINGS_VARGA = {
@@ -215,6 +216,27 @@ def _table(base: Path, varga_term: str, kp_vote: str) -> dict:
         raise FileNotFoundError(f"{path.name} has not been made for varga_term={varga_term}, kp_vote={kp_vote}: "
                                 "run scripts/family_rho.py with those settings")
     return json.loads(path.read_text())
+
+
+@lru_cache(maxsize=None)
+def family_quantiles(varga_term: str = "v2", kp_vote: str = "v2") -> dict[str, dict[str, list[float]]]:
+    """area -> family -> the 101 percentiles of the family's term in S over the population run."""
+    return _table(FAM_PCT_FILE, varga_term, kp_vote)["quantiles"]
+
+
+def term_percentile(quantiles: list[float], x: float) -> float:
+    """Where `x` falls in a distribution given as its 101 percentiles: 0-100, interpolated, ties at
+    the middle of their run (a term that is 0 on most charts is at the middle of the zeros)."""
+    import bisect
+    lo, hi = bisect.bisect_left(quantiles, x), bisect.bisect_right(quantiles, x)
+    if lo != hi:
+        return round((lo + hi - 1) / 2, 1)
+    if lo == 0:
+        return 0.0
+    if lo >= len(quantiles):
+        return 100.0
+    a, b = quantiles[lo - 1], quantiles[lo]
+    return round(lo - 1 + (x - a) / (b - a), 1)
 
 
 @lru_cache(maxsize=None)

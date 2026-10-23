@@ -418,3 +418,22 @@ is computed, not written True. A fact under an area's contributions now stands i
 only for the families its value names (`contributions.strongest`, "lord", stood for every family),
 and under section retries every error reaches the writer: one no unit names, such as "two claims
 for X", goes under "the draft". The payload measures 423,836 characters on the reference chart.
+
+**The ranking (F4).** The contributions ranked each family by its term times its confluence weight,
+a product S does not contain (S is the plain sum of the terms; the weights enter only the tier's
+agreement). They now give each family's term as it enters S (`ranked`, largest first, with
+`rank_by_term` and `term_holds`) and beside it the term's `percentile` against the population run's
+10,000 charts (`scripts/family_rho.py` now also writes `src/jyotish/data/family_percentiles.json`,
+the 101 percentiles of each family's term in each area, for each vote pair the engine keeps tables
+for; the run reproduced the committed rho and area tables byte for byte, so the family table comes
+from the same population). The strongest and the weakest are named by percentile, what is unusual
+on this chart, and `largest_term` names the largest term, which the basis line says is the lord
+family's on most charts by construction (it sums fifteen lord rows at weight 3 and the dispositor
+term). On the reference chart the strongest by percentile is the varga family for career (90th) and
+the house family for marriage (90.6th), the lord family for longevity (88.8th); across the eighteen
+scored areas, lord 6, house 5, varga 4, karaka 3, where the raw term named the lord family in 15.
+The prompt says "the strongest support" cites the percentile, and that the largest term is not a
+finding. B's "the strongest support is in the lords" for career, accepted in the benchmark once it
+cited the contributions, now contradicts them and is relabelled (`contradicts_its_fact`); beside
+it, the form that states the engine's ranking.
+The payload measures 425,120 characters on the reference chart.

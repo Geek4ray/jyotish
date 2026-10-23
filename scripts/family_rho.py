@@ -2,7 +2,10 @@
 with the other families (SPEC Layer 5, "weighted by 1 - rho"), written to
 src/jyotish/data/family_rho.json, and (2) each life area's distribution of S, written as
 percentiles to src/jyotish/data/area_percentiles.json (an area is "not emphasised" below
-its 40th percentile).
+its 40th percentile), and (3) each family's term in each area's S, as its 101 percentiles (p0 to
+p100), written to src/jyotish/data/family_percentiles.json: the payload's contributions rank the
+families by where this chart's term falls in that distribution (fullchart.contributions; the
+terms are on different scales, so a raw ranking would name the lord family on most charts).
 
 Charts are real moments and places: UTC uniform over 1900-2050, latitude uniform in
 [-60, 60] (sunrise exists), longitude uniform in [-180, 180], Lahiri, true node, whole
@@ -39,11 +42,12 @@ def _arg(name, default):
 
 META = Meta().model_copy(update={"varga_term": _arg("--varga-term", Meta().varga_term),
                                  "kp_vote": _arg("--kp-vote", Meta().kp_vote)})
-OUT = table_path(DATA / "family_rho.json", META.varga_term, META.kp_vote)
-PCT = table_path(DATA / "area_percentiles.json", META.varga_term, META.kp_vote)
-
-
-def main(n: int = 10_000, seed: int = 20261021) -> None:
+def main(n: int = 10_000, seed: int = 20261021, data: Path = DATA) -> None:
+    from jyotish.fullchart import FAMILY_TERMS
+    out = table_path(data / "family_rho.json", META.varga_term, META.kp_vote)
+    pct = table_path(data / "area_percentiles.json", META.varga_term, META.kp_vote)
+    fam = table_path(data / "family_percentiles.json", META.varga_term, META.kp_vote)
+    terms = {a: {f: [] for f in FAMILY_TERMS} for a in AREAS}
     rng = np.random.default_rng(seed)
     start = datetime(1900, 1, 1, tzinfo=timezone.utc)
     span = (datetime(2050, 1, 1, tzinfo=timezone.utc) - start).total_seconds()
@@ -59,6 +63,9 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
             chart.scored = score(chart)
         for area in AREAS:
             scores[area].append(chart.scored.areas[area].score_classical)
+            t = chart.scored.areas[area].terms
+            for f, parts in FAMILY_TERMS.items():
+                terms[area][f].append(sum(t.get(x, 0.0) for x in parts))
             v = chart.scored.areas[area].votes
             rows.append([np.nan if v[f] is None else v[f] for f in FAMILIES])
         if (i + 1) % 1000 == 0:
@@ -79,7 +86,7 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
         vals = [r for k, r in pair.items() if f in k.split("|")]
         rho[f] = float(np.mean(vals)) if vals else 0.0
     applicable = {f: float((~np.isnan(X[:, i])).mean()) for i, f in enumerate(FAMILIES)}
-    OUT.write_text(json.dumps({
+    out.write_text(json.dumps({
         "description": "Mean correlation of each Layer 5 signal family with the others "
                        "(scripts/family_rho.py). Confluence weights are 1 - rho.",
         "n_charts": n, "seed": seed, "rows": int(X.shape[0]),
@@ -87,7 +94,7 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
                     "UTC 1900-2050, lat -60..60",
         "rho": rho, "pairwise": pair, "applicable_share": applicable,
     }, indent=2) + "\n")
-    PCT.write_text(json.dumps({
+    pct.write_text(json.dumps({
         "description": "Percentiles of each life area's S_area over the population run "
                        "(scripts/family_rho.py). Not emphasised: S below p40.",
         "n_charts": n, "seed": seed,
@@ -96,6 +103,16 @@ def main(n: int = 10_000, seed: int = 20261021) -> None:
         "percentiles": {a: {f"p{q}": float(np.percentile(v, q)) for q in (10, 25, 40, 50, 75, 90)}
                         for a, v in scores.items()},
     }, indent=2) + "\n")
+    fam.write_text(json.dumps({
+        "description": "Each family's term in each life area's S over the population run, as its 101 percentiles "
+                       "p0..p100 (scripts/family_rho.py): where a chart's term falls is what is unusual on it.",
+        "n_charts": n, "seed": seed,
+        "settings": f"Lahiri, true node, whole sign, default Meta (varga_term {META.varga_term}, kp_vote {META.kp_vote}); "
+                    "UTC 1900-2050, lat -60..60",
+        "terms": {f: list(parts) for f, parts in FAMILY_TERMS.items()},
+        "quantiles": {a: {f: [round(float(x), 6) for x in np.percentile(v, range(101))] for f, v in fs.items()}
+                      for a, fs in terms.items()},
+    }, indent=1) + "\n")
     print(json.dumps(rho, indent=2))
 
 

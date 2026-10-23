@@ -773,7 +773,7 @@ def test_full_depth_reading_on_the_site(page, full_url):
     sections = career.locator(".analysis-section")
     assert sections.evaluate_all("els => els.map(e => e.dataset.section)") == ["assessment", "timing", "not_said"]
     assert career.locator('.analysis-section[data-section="assessment"] p').inner_text().startswith(
-        "The strongest support is the lord family")
+        "The strongest support is the varga family")
     marriage = page.locator('section.area[data-area="marriage"] .analysis-section[data-section="timing"]')
     assert "Not narrated within the checks" in marriage.inner_text()
     note = page.locator('#footnotes li[data-tag="fact:planets.Mars.dignity"]')

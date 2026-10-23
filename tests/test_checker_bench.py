@@ -124,17 +124,17 @@ def test_the_comparisons_refusals_carry_the_lesson(cb, rows):
     by the change its origin names, accepted rows audited, rejected ones refused by the validator when
     they are wording errors and left to the checker when they are not."""
     b = {r["id"]: r for r in rows if r["id"].startswith("b-")}
-    assert len(b) == 20 and all(r["origin"].startswith("comparison 2026-10-23, reading B: ") for r in b.values())
+    assert len(b) == 21 and all(r["origin"].startswith("comparison 2026-10-23, reading B: ") for r in b.values())
     kinds = {"varga label": ["b-varga-career", "b-varga-marriage", "b-varga-longevity"],
              "stability label": ["b-stability-career", "b-stability-marriage", "b-stability-longevity"],
              "ranking": ["b-ranking-career", "b-ranking-longevity"], "houses": ["b-nth-sign"], "arudha": ["b-arudha"],
              "not computed": ["b-synastry"], "judgement": ["b-judgement-marriage"],
              "validator": ["b-chain-navamsa", "b-tradition-family", "b-hyphen", "b-votes-fact"]}
-    assert set(sum(kinds.values(), [])) | {k for k in b if k.endswith("-fixed")} == set(b)
+    assert set(sum(kinds.values(), [])) | {k for k in b if k.endswith(("-fixed", "-percentile"))} == set(b)
     rec = json.loads(cb.COMPARISON.read_text())
     said = json.dumps(rec)
     for rid, r in b.items():
-        if not rid.endswith("-fixed") and rid != "b-arudha-fixed":
+        if not rid.endswith(("-fixed", "-percentile")):
             assert json.dumps(r["sentence"])[1:-1] in said, rid                # B's own words
         assert r["validator"]["full"] == cb.FULL and isinstance(json.loads(r["facts"]), dict)
         if r["label"] == "accept":

@@ -57,7 +57,7 @@ WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family
 # The depth-full comparison's rows (comparison_rows) add three semantic kinds: a sentence citing a field
 # narrower than its claim, a judgement whose premise is false, and a clause no field states.
 SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", "cites_too_narrowly",
-                                         "judgement_premise", "unstated_claim"}
+                                         "judgement_premise", "unstated_claim", "contradicts_its_fact"}
 COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
 FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
 LIVE_HEADING = "## Validator + semantic checker (live)"
@@ -316,12 +316,18 @@ def comparison_rows() -> list[dict]:
          "the lord vote shows: Venus, lord of the 6th"), "reject", "ranking_not_cited",
          f"{fault}: no field ranked the families, so the ranking could only be the writer's; it now must cite the "
          "engine's (areas.career.contributions), and as written it does not"),
-        ("b-ranking-career-fixed", "analysis", "career", "assessment", None, "accept", "accepted",
-         "fixed from b-ranking-career by citing [fact:areas.career.contributions], which names the lord family the "
-         "strongest. Venus, 6th lord, exalted in the 11th at 1.33; Mars, 7th lord and 10th from the Sun, own sign, "
-         "1.3; Mercury, 2nd lord in the 10th, 1.19: read against the lord rows."),
+        ("b-ranking-career-fixed", "analysis", "career", "assessment", None, "reject", "contradicts_its_fact",
+         "fixed from b-ranking-career by citing [fact:areas.career.contributions]; since the review's F4 that field "
+         "ranks by percentile against 10,000 charts and names the varga family the strongest (90th), the lord family's "
+         "term being the largest on most charts by construction, so the sentence now contradicts the fact it cites"),
+        ("b-ranking-career-percentile", "analysis", "career", "assessment",
+         "The strongest support is the varga family, at the 90th percentile of 10,000 charts "
+         "[fact:areas.career.contributions].", "accept", "accepted",
+         "written from b-ranking-career for what the engine's ranking now states: strongest varga, "
+         "strongest_percentile 90.0, against 10,000 random charts (contributions.basis)."),
         ("b-ranking-longevity", "analysis", "longevity", "assessment", _b_sentence("The least support is Saturn"),
-         "reject", "ranking_not_cited", f"{fault}: as above; the engine's weakest for longevity is the varga family"),
+         "reject", "ranking_not_cited", f"{fault}: as above; the engine's weakest for longevity is the panchanga "
+         "family by percentile"),
         ("b-nth-sign", "analysis", "career", "timing", _b_sentence("The timing join's full targets for career"),
          "reject", "nth_sign", f"{fault}: no field gave the houses from the lagna, so 'the 10th sign' (the zodiac's "
          "Capricorn, or the 10th house's Aquarius) could not be pinned; houses.lagna.10 now does"),

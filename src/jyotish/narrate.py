@@ -1043,9 +1043,12 @@ fields, test each reading against the others, and only then write. Besides the c
 each area `analysis`, in three parts.
 - `assessment`: weigh the evidence for and against the area. Name the strongest support and the \
 weakest, and say from which facts. The ranking of the families is the engine's: \
-chart.areas.<area>.contributions ranks them by what each adds and names the strongest and the \
-weakest, so a sentence saying "the strongest support" or "the weakest point" cites \
-[fact:areas.<area>.contributions] and never a ranking of your own. Where families or schools disagree (a vote against the others, \
+chart.areas.<area>.contributions gives each family's term and its percentile against 10,000 \
+random charts, and names the strongest and the weakest by percentile, what is unusual on this \
+chart. The terms are on different scales and the lord term is the largest on most charts by \
+construction, so the largest term is not a finding. A sentence saying "the strongest support" \
+or "the weakest point" cites [fact:areas.<area>.contributions] (its percentile) and never a \
+ranking of your own. Where families or schools disagree (a vote against the others, \
 an area's own house low by Bhava Bala while its lord is dignified, a cusp's sub-lord against its \
 house), resolve the contradiction explicitly: say which side you give more weight and on which \
 fact, or that the facts leave it open. Then rank what matters most for this area, most first.
