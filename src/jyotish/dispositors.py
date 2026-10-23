@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .constants import SEVEN, SIGN_LORD
+from .constants import GRAHAS, SEVEN, SIGN_LORD
 from .dignity import DUSTHANAS, house_of, lordships
 from .nakshatra import nakshatra_of
 from .vargas import d9
@@ -34,6 +34,15 @@ class ChainResult:
     final: list[str] = field(default_factory=list)
 
 
+def canonical(loop: list[str]) -> list[str]:
+    """A loop read from the planet earliest in graha order, the cycle's direction kept, so one
+    loop has one name everywhere: here, in chains.py's findings and on the chart page (the
+    reference chart's sign loop is Jupiter–Venus; SPEC's worked example wrote it from the Sun's
+    chain as Venus–Jupiter; review 2026-10-23)."""
+    i = min(range(len(loop)), key=lambda k: GRAHAS.index(loop[k]) if loop[k] in GRAHAS else len(GRAHAS))
+    return loop[i:] + loop[:i]
+
+
 def _run(next_of: dict[str, str]) -> ChainResult:
     res = ChainResult()
     for p in next_of:
@@ -42,7 +51,7 @@ def _run(next_of: dict[str, str]) -> ChainResult:
         if loop:
             key = sorted(loop)
             if key not in [sorted(l) for l in res.loops]:
-                res.loops.append(loop)
+                res.loops.append(canonical(loop))
     finals: set[str] = set()
     for loop in res.loops:
         finals.update(loop)

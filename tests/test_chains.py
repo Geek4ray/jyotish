@@ -84,6 +84,10 @@ def test_the_charts_final_dispositors(chart):
     assert nak["ends"][1] == {"loop": ["Rahu"], "bodies": ["Rahu"]}
     assert "Every body but Rahu ends in the Mars–Mercury nakshatra loop" in f["facts"]
     assert "Every body but Mars ends in the Jupiter–Venus sign loop" in f["facts"]
+    # One name everywhere: the chart object's loop, the finding's and the chart page's read the loop
+    # from the planet earliest in graha order.
+    assert [l.planets for l in chart.features.dispositors.loops if len(l.planets) > 1] == [["Jupiter", "Venus"]]
+    assert chart.features.dispositors.loops[0].houses == [1, 11]              # Jupiter in the 1st, Venus in the 11th
     assert {(x["kind"], tuple(x["planets"])) for x in f["derivation"]["exchanges"]} == {
         ("sign", ("Jupiter", "Venus")), ("nakshatra", ("Mars", "Mercury")), ("navamsa", ("Jupiter", "Mars"))}
     assert all("chain:personality.chart" not in [x["finding_id"] for x in area_chain_findings(chart, a)]
