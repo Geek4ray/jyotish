@@ -20,6 +20,7 @@ from .rules import default_rules
 from .uncertainty import label
 
 SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where it is read
+ANALYSIS_HEADINGS = {"assessment": "Assessment", "timing": "Timing", "not_said": "What the chart does not say"}
 
 
 class _Notes:
@@ -217,8 +218,11 @@ def fired_lines(s) -> list[str]:
 def render(reading: Reading, chart: Chart) -> str:
     notes = _Notes(chart, reading.facts_cited)
     s = reading.summary
+    w = reading.writer
+    model = (f"writer {w['model']} at effort {w['effort']}" + (f", thinking {w['thinking']}" if w.get("thinking") else "")
+             if w else f"model {reading.model}")
     L = [f"# Reading: {reading.question}", "",
-         f"As of {reading.as_of} · engine {reading.engine} · weights {reading.weights} · model {reading.model} "
+         f"As of {reading.as_of} · engine {reading.engine} · weights {reading.weights} · {model} "
          f"· {reading.attempts} attempt(s) · narration {reading.narration_source}", ""] + _header(reading.chart)
     rv = reading.review or {}
     if rv.get("status") == "reviewed":                    # only a reviewed reading says so
@@ -267,6 +271,15 @@ def render(reading: Reading, chart: Chart) -> str:
         para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
         if curious and a.paragraph:
             L += [notes.render(a.paragraph), ""]
+        if reading.depth == "full":
+            # The analysis: three checked sections, each the writer's argument over the cited facts;
+            # the tier above is the engine's.
+            for sec, heading in ANALYSIS_HEADINGS.items():
+                text = (a.analysis or {}).get(sec)
+                L += [f"### {heading}", "", notes.render(text) if text else
+                      "*Not narrated within the checks (listed below).*", ""]
+            if a.claims:
+                L += ["### The findings, one by one", ""]
         gaps = (["Not narrated within the checks:", ""] +
                 [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
                  for g in a.narration_gaps]) if a.narration_gaps else []

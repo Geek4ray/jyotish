@@ -752,3 +752,29 @@ def test_every_label_comes_from_the_strings_file():
     # The labels speak as an astrologer would.
     values = re.findall(r'^\s+"[\w.]+": "(.*)",$', strings, re.M)
     assert values and not any(ENGINE_WORDS.search(v) for v in values)
+
+
+@pytest.fixture(scope="module")
+def full_url(tmp_path_factory):
+    server, thread, url = _serve(tmp_path_factory.mktemp("full") / "f.db",
+                                 str(ROOT / "tests" / "fixtures" / "narration_full_handmade.json"))
+    yield url
+    server.should_exit = True
+    thread.join(5)
+
+
+def test_full_depth_reading_on_the_site(page, full_url):
+    """Depth full on the site, from a hand-written fixture: the three sections of the analysis in
+    order, a section that did not pass shown as not narrated, and a fact's footnote with its value."""
+    submit_reference(page, full_url, question="How will my career go?", depth="full")
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    career = page.locator('section.area[data-area="career"]')
+    sections = career.locator(".analysis-section")
+    assert sections.evaluate_all("els => els.map(e => e.dataset.section)") == ["assessment", "timing", "not_said"]
+    assert career.locator('.analysis-section[data-section="assessment"] p').inner_text().startswith(
+        "The strongest support is Mars in its own sign")
+    marriage = page.locator('section.area[data-area="marriage"] .analysis-section[data-section="timing"]')
+    assert "Not narrated within the checks" in marriage.inner_text()
+    note = page.locator('#footnotes li[data-tag="fact:planets.Mars.dignity"]')
+    assert note.inner_text().endswith('computed by the engine: "own".')
+    assert "not semantically checked" in page.inner_text("#reading")          # no verdicts were recorded

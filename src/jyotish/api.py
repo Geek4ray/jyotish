@@ -235,11 +235,23 @@ def _backfill_birth_keys(engine) -> None:
 
 
 class ReadingRequest(BirthInput):
-    """Birth data, the question, and optionally the date the reading is for."""
+    """Birth data, the question, and optionally the date the reading is for, the depth and the
+    writer's model and effort (narrate.WRITER_MODELS, narrate.EFFORTS; the checker's never change)."""
     model_config = ConfigDict(extra="forbid")
     question: str
     as_of: str | None = None
     depth: Literal["curious", "learner", "astrologer", "full"] = "curious"
+    writer_model: str | None = None
+    writer_effort: str | None = None
+
+    @model_validator(mode="after")
+    def _writer(self):
+        from .narrate import EFFORTS, WRITER_MODELS
+        if self.writer_model is not None and self.writer_model not in WRITER_MODELS:
+            raise ValueError(f"writer_model must be one of {', '.join(WRITER_MODELS)}")
+        if self.writer_effort is not None and self.writer_effort not in EFFORTS:
+            raise ValueError(f"writer_effort must be one of {', '.join(EFFORTS)}")
+        return self
 
 
 class EditRequest(BaseModel):
@@ -385,14 +397,16 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                    document=chart.model_dump(mode="json")))
             update(reading_id, chart_id=chart_id, birth_key=bkey)
             keep = {"chart": chart_line(chart, birth),
-                    "header": reading_header(birth, req.question, chart, req.as_of, model_fixture, req.depth)}
+                    "header": reading_header(birth, req.question, chart, req.as_of, model_fixture, req.depth,
+                                             req.writer_model, req.writer_effort)}
             stage(reading_id, log, "score", keep, chart_source=source,
                   tiers={n: a.tier for n, a in chart.scored.areas.items()} if chart.scored else None)
 
             def on(event: str, info: dict) -> None:
                 stage(reading_id, log, f"{event} {info['attempt']}", keep, **info)
             reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of, depth=req.depth,
-                                         model_fixture=model_fixture, progress=on)
+                                         model_fixture=model_fixture, progress=on, writer_model=req.writer_model,
+                                         writer_effort=req.writer_effort)
             log.append("done")
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,
                    progress={"stage": "done", "attempts": reading.attempts, "narration_complete": reading.narration_complete,

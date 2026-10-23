@@ -207,6 +207,7 @@ function areaCard(a, notes, depth) {
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
+    ${depth === "full" ? analysisBlock(a, notes) : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
     ${a.claims.length ? (depth === "curious"
       ? `<details class="astrologer"${paraGap ? " open" : ""}><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
@@ -218,6 +219,18 @@ function areaCard(a, notes, depth) {
     ${a.astrologer_note ? astrologerNote(a.astrologer_note) : ""}
     ${a.disclaimer ? `<p class="disclaimer">${esc(a.disclaimer)}</p>` : ""}
   </section>`;
+}
+
+// Depth full: the three checked sections, each the writer's argument over the facts it cites (the
+// tier above is the engine's); a section that did not pass the checks says so and is listed as a gap.
+const ANALYSIS_HEADINGS = { assessment: "Assessment", timing: "Timing", not_said: "What the chart does not say" };
+function analysisBlock(a, notes) {
+  const sections = Object.entries(ANALYSIS_HEADINGS).map(([sec, heading]) => {
+    const text = (a.analysis || {})[sec];
+    return `<div class="analysis-section" data-section="${sec}"><h3 class="small">${heading}</h3>${text
+      ? `<p>${notes.text(text)}</p>` : `<p class="muted">Not narrated within the checks (listed below).</p>`}</div>`;
+  }).join("");
+  return `<div class="analysis">${sections}</div>${a.claims.length ? `<h3 class="small">The findings, one by one</h3>` : ""}`;
 }
 
 // Placements the engine weighed beyond the three offered to the writer (learner material).

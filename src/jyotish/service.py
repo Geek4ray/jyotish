@@ -76,7 +76,7 @@ DEPTH_DEFAULT = "curious"          # SPEC Layer 7: the request's depth, curious 
 
 
 def read_command(birth: BirthInput, question: str, as_of: str | None, model_fixture: str | None,
-                 depth: str = DEPTH_DEFAULT) -> str:
+                 depth: str = DEPTH_DEFAULT, writer_model: str | None = None, writer_effort: str | None = None) -> str:
     """The `jyotish read` invocation that reproduces a reading (output path left out)."""
     parts = ["jyotish", "read", "--date", birth.date, "--time", birth.time, "--tz", birth.tz,
              "--lat", repr(birth.lat), "--lon", repr(birth.lon), "--accuracy", birth.accuracy, "--node", birth.node,
@@ -85,6 +85,10 @@ def read_command(birth: BirthInput, question: str, as_of: str | None, model_fixt
         parts += ["--place", birth.place]
     if as_of:
         parts += ["--as-of", as_of]
+    if writer_model:
+        parts += ["--writer-model", writer_model]
+    if writer_effort:
+        parts += ["--writer-effort", writer_effort]
     if model_fixture:
         parts += ["--model-fixture", model_fixture]
     return shlex.join(parts)
@@ -112,21 +116,25 @@ def chart_line(chart: Chart, birth: BirthInput | None = None) -> dict:
 
 
 def reading_header(birth: BirthInput, question: str, chart: Chart, as_of: str | None = None,
-                   model_fixture: str | None = None, depth: str = DEPTH_DEFAULT) -> dict:
+                   model_fixture: str | None = None, depth: str = DEPTH_DEFAULT, writer_model: str | None = None,
+                   writer_effort: str | None = None) -> dict:
     """The reading's Chart header (narrate.chart_header plus the local inputs and the command
     that reproduces it); known as soon as the chart is, so a failed job can still show it."""
     from .narrate import chart_header
     return dict(chart_header(chart), local_date=birth.date, local_time=birth.time, tz_input=birth.tz,
                 place=birth.place, seed=birth.seed, depth=depth,
-                command=read_command(birth, question, as_of, model_fixture, depth))
+                command=read_command(birth, question, as_of, model_fixture, depth, writer_model, writer_effort))
 
 
 def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str | None = None,
                  model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None,
-                 depth: str = DEPTH_DEFAULT):
+                 depth: str = DEPTH_DEFAULT, writer_model: str | None = None, writer_effort: str | None = None,
+                 recording: list | None = None):
     """(reading, page). The areas are the question's, then the chart's top three. With
     `model_fixture` the model is replayed from that recording (offline) and sentences with no
-    recorded checker verdict are counted as unchecked. NarrationError propagates."""
+    recorded checker verdict are counted as unchecked. `writer_model` and `writer_effort` override
+    the writer's settings (narrate.writer_config); `recording` collects every call. NarrationError
+    propagates."""
     from .narrate import FixtureChecker, FixtureDrafter, TAG, narrate, route, sentences
     from .page import render
     if chart.scored is None:
@@ -136,14 +144,16 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     day = date.fromisoformat(as_of) if as_of else date.today()
     drafter = checker = None
     if model_fixture:
-        recording = json.loads(Path(model_fixture).read_text())
-        drafter, checker = FixtureDrafter(recording), FixtureChecker(recording)
+        replayed = json.loads(Path(model_fixture).read_text())
+        drafter, checker = FixtureDrafter(replayed), FixtureChecker(replayed)
     reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress,
-                      depth=depth)
-    update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth)}
+                      depth=depth, writer_model=writer_model, writer_effort=writer_effort, recording=recording)
+    update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth, writer_model,
+                                            writer_effort)}
     if model_fixture:
         said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
-               [c.text for a in reading.areas for c in a.claims]
+               [c.text for a in reading.areas for c in a.claims] + \
+               [x for a in reading.areas for t in (a.analysis or {}).values() for x in sentences(t) if TAG.search(x)]
         update |= {"narration_source": f"fixture:{model_fixture}",
                    "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)}
     reading = reading.model_copy(update=update)

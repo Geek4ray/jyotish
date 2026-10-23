@@ -1,0 +1,22 @@
+{
+ "note": "Hand-written for the website's rendering test at depth full (tests/test_web.py): not a model's draft. No checker verdicts are recorded, so a reading replayed from it says its sentences were not semantically checked. Each sentence states only what its cited fields hold on the reference chart.",
+ "question": "How will my career go?",
+ "drafts": [
+  {
+   "summary": "Mars is in its own sign [fact:planets.Mars.dignity].",
+   "areas": [
+    {
+     "name": "career",
+     "claims": [],
+     "paragraph": null,
+     "analysis": {
+      "assessment": "The strongest support is Mars in its own sign [fact:planets.Mars.dignity]. Mars is in its own sign in the 7th, so Mars is dignified in a kendra [fact:planets.Mars.dignity] [fact:planets.Mars.house].",
+      "timing": "Mars's own major period is laid out by the engine [fact:vimshottari.periods.Mars].",
+      "not_said": "The KP family abstains on career [fact:areas.career.votes.kp.vote]."
+     }
+    }
+   ]
+  }
+ ],
+ "calls": []
+}

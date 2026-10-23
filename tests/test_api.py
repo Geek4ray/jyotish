@@ -74,7 +74,10 @@ def test_same_reading_as_the_cli(done, tmp_path):
     with pytest.raises(SystemExit) as e:
         main(args)
     assert e.value.code == 0
-    assert Reading(**done["reading"]) == Reading(**json.loads(out.with_suffix(".json").read_text()))
+    api, cli = Reading(**done["reading"]), Reading(**json.loads(out.with_suffix(".json").read_text()))
+    # `usage` holds measured seconds, which no two runs share; its call counts are the same.
+    assert api.model_dump(exclude={"usage"}) == cli.model_dump(exclude={"usage"})
+    assert [api.usage[k]["calls"] for k in ("writer", "checker")] == [cli.usage[k]["calls"] for k in ("writer", "checker")]
     assert done["page"] == out.with_suffix(".md").read_text()
 
 

@@ -50,28 +50,49 @@ from .scoring import AREAS, THEME_AREAS
 
 @dataclass(frozen=True)
 class NarrationConfig:
-    model: str = "claude-opus-5-5"
+    model: str = "claude-opus-5-5"            # the writer (jyotish read --writer-model)
     max_tokens: int = 16000
     effort: str = "medium"                    # the writer; Opus 5.5's default, set explicitly
+    checker_model: str = "claude-opus-5-5"    # the gate stays fixed when the writer's model is changed
     checker_effort: str = "high"              # the checker is the gate (SPEC Layer 7 item 10)
     fallbacks: str = "default"                # server-side refusal fallback, routed by category
     betas: tuple[str, ...] = ("server-side-fallback-2026-07-01",)
     max_attempts: int = 3                     # draft + regenerations on validator failure
     checker_concurrency: int = 16             # checker calls of one attempt in flight at once; 1 = one after another
     timing_years: int = 10                    # window for a "when" question with no dates; at depth full, the range always
-    # Depth full (SPEC Layer 7, depth full): room for the whole chart's analysis. A max_tokens
-    # above STREAM_ABOVE is sent as a stream (the SDK refuses a long request otherwise).
+    thinking: str | None = None               # the writer's `thinking` type; None sends none (Opus 5.5 thinks adaptively anyway)
+    thinking_display: str = "summarized"      # a summary of the writer's reasoning, kept in the recording only
+    # Depth full (SPEC Layer 7, depth full): extended thinking on, the highest effort the API
+    # offers (EFFORTS) and room for the reasoning and the analysis. A max_tokens above
+    # STREAM_ABOVE is sent as a stream (the SDK refuses a long request otherwise).
+    full_thinking: str = "adaptive"
+    full_effort: str = "max"
     full_max_tokens: int = 128000
 
 
 CONFIG = NarrationConfig()
 STREAM_ABOVE = 16000
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+# The writers a request may name (POST /readings, --writer-model): each takes adaptive thinking,
+# the five efforts and the server-side fallback.
+WRITER_MODELS = ("claude-opus-5-5", "claude-fable-5-1", "claude-opus-5", "claude-sonnet-5-5")
 
 
-def writer_config(config: NarrationConfig, depth: str) -> NarrationConfig:
-    """The writer's settings for a depth: at full, `full_max_tokens`."""
+def writer_config(config: NarrationConfig, depth: str, model: str | None = None,
+                  effort: str | None = None) -> NarrationConfig:
+    """The writer's settings for a depth: at full, extended thinking (`full_thinking`), the highest
+    effort (`full_effort`) and `full_max_tokens`; `model` and `effort` override at any depth (the
+    --writer-model and --writer-effort flags). The checker's model and effort are not touched."""
     from dataclasses import replace
-    return replace(config, max_tokens=config.full_max_tokens) if depth == "full" else config
+    if model is not None and model not in WRITER_MODELS:
+        raise ValueError(f"writer model must be one of {WRITER_MODELS}, not {model!r}")
+    if effort is not None and effort not in EFFORTS:
+        raise ValueError(f"writer effort must be one of {EFFORTS}, not {effort!r}")
+    full = depth == "full"
+    return replace(config, model=model or config.model,
+                   effort=effort or (config.full_effort if full else config.effort),
+                   thinking=config.full_thinking if full else config.thinking,
+                   max_tokens=config.full_max_tokens if full else config.max_tokens)
 
 
 # --- what the model returns ------------------------------------------------------------
@@ -82,12 +103,25 @@ class DraftClaim(BaseModel):
                                   "e.g. 'Mars in its own sign in the 7th forms Ruchaka yoga [rule:yoga.ruchaka].'")
 
 
+class DraftAnalysis(BaseModel):
+    assessment: str = Field(description=(
+        "The evidence for and against the area weighed: the strongest and the weakest support, every "
+        "contradiction between families resolved explicitly, and what matters most ranked. Every sentence "
+        "ends with the tags of the findings and facts it rests on."))
+    timing: str = Field(description="The area's periods, windows and transits, every date and period cited to its fact.")
+    not_said: str = Field(description="What this chart does not say about the area, each statement cited.")
+
+
+ANALYSIS_SECTIONS = ("assessment", "timing", "not_said")
+
+
 class DraftArea(BaseModel):
     name: str
     claims: list[DraftClaim]
     paragraph: str | None = Field(default=None, description=(
         "Curious depth only: one short plain-language paragraph about the area, every sentence ending "
         "with the tags of the findings it draws on. Null at the other depths."))
+    analysis: DraftAnalysis | None = Field(default=None, description="Full depth only; null at the other depths.")
 
 
 class ReadingDraft(BaseModel):
@@ -156,6 +190,10 @@ class ReadingArea(BaseModel):
     paragraph_cites: list[str] = Field(default_factory=list)
     other_placements: list[dict[str, Any]] = Field(default_factory=list)   # placements beyond the three offered
     astrologer_note: dict[str, Any] | None = None   # review step: {text, by, at}, the reviewer's words, never checked
+    # Depth full: the checked sections (assessment, timing, not_said -> text), each accepted whole,
+    # the latest version in which every sentence passed; a section that never did is a narration gap.
+    analysis: dict[str, str] | None = None
+    analysis_cites: list[str] = Field(default_factory=list)
 
 
 class ReadingSummary(BaseModel):
@@ -192,6 +230,13 @@ class Reading(BaseModel):
     narration_complete: bool = True     # false when some finding or the summary was not narrated within the checks
     depth: str = "astrologer"           # curious | learner | astrologer | full (SPEC Layer 7 prompt contract, item 1)
     facts_cited: dict[str, Any] = Field(default_factory=dict)   # depth full: path -> the chart's value, for every [fact:] shown
+    # The writer's and the checker's settings as run ({model, effort, thinking, max_tokens}; {model,
+    # effort}), the token usage of each side and the narration's wall time; empty on readings made
+    # before them.
+    writer: dict[str, Any] = Field(default_factory=dict)
+    checker: dict[str, Any] = Field(default_factory=dict)
+    usage: dict[str, Any] = Field(default_factory=dict)
+    synthesis_sentences: int = 0        # depth full: sentences shown that rest on two or more findings or facts
     review: dict[str, Any] = Field(default_factory=lambda: {"status": "draft"})   # draft | reviewed (SPEC Layer 6b)
     summary: ReadingSummary
     areas: list[ReadingArea]
@@ -791,7 +836,33 @@ A sentence citing a fact is checked against that field's value and nothing else 
 cite, so cite the field that states what the sentence says, as narrowly as it is stated \
 (planets.Mars.dignity, not planets.Mars); a path that does not exist is refused. A claim may \
 cite facts besides its finding's tags. Dates, periods and transits come only from the cited \
-fields: a sentence that names one cites the field that states it."""
+fields: a sentence that names one cites the field that states it.
+
+Think the chart through before you write: for each area, read its findings and the chart's own \
+fields, test each reading against the others, and only then write. Besides the claims, write for \
+each area `analysis`, in three parts.
+- `assessment`: weigh the evidence for and against the area. Name the strongest support and the \
+weakest, and say from which facts. Where families or schools disagree (a vote against the others, \
+an area's own house low by Bhava Bala while its lord is dignified, a cusp's sub-lord against its \
+house), resolve the contradiction explicitly: say which side you give more weight and on which \
+fact, or that the facts leave it open. Then rank what matters most for this area, most first.
+- `timing`: the area's time over chart.transits.range: the running Vimshottari, Yogini and Chara \
+periods, the timing join's windows in chart.timing.<area> with their reasons, and the transit \
+windows. Every date and period cites the field that states it. The engine sets and states each \
+window's score and confidence; argue which reasons weigh, never a score of your own.
+- `not_said`: what this chart does not say about the area: what the engine does not compute for \
+it, which families abstain or do not apply, what depends on the exact birth time (a stability \
+under 0.5, cited), and what no fact here decides.
+
+A synthesis sentence combines several findings and facts into one conclusion. It ends with every \
+tag it rests on and is checked as a whole: it passes when each cited fact is true and the \
+conclusion follows from them together, and it is refused when its conclusion follows from none of \
+them. Cite every premise; conclude only what the premises carry together. Each section is accepted \
+whole, so one sentence the checker refuses sends the section back.
+
+The tier stays the engine's: the analysis and the summary use none of the words strong, moderate, \
+weak or mixed ("the strongest support", "below its required strength" say it without them), and \
+no confidence or probability words. The engine places the tier beside your analysis."""
 
 
 def system_prompt(depth: str) -> str:
@@ -879,7 +950,12 @@ chain is supported when its facts or rows state it. A house called by its area (
 when the data's area_houses lists that house in those words, and unsupported otherwise. The data \
 may carry `facts`: each a path in the chart and the engine's value there, cited by the sentence; a \
 proposition a cited fact states is supported, and a date, period or figure no cited fact or \
-finding states is not. Ignore the bracketed citation tags."""
+finding states is not. When the data has `synthesis` true, the sentence combines its cited \
+findings and facts into one conclusion: list each premise it takes from them as a proposition and \
+its conclusion as one more. The synthesis is supported when each of its cited facts is true and the \
+conclusion follows from them together; reject the conclusion when it does not follow from them \
+together, and always when none of its cited findings or facts supports it. Ignore the bracketed \
+citation tags."""
 
 
 def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
@@ -923,12 +999,18 @@ class AnthropicDrafter:
         kwargs = dict(model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
                       output_config={"effort": cfg.effort}, system=system, messages=self.messages,
                       output_format=ReadingDraft)
+        if cfg.thinking:
+            kwargs["thinking"] = {"type": cfg.thinking, "display": cfg.thinking_display}
         if cfg.max_tokens > STREAM_ABOVE:
             with self.client.beta.messages.stream(**kwargs) as stream:
                 response = stream.get_final_message()
         else:
             response = self.client.beta.messages.parse(**kwargs)
         self.last_meta = _meta(response, "writer", cfg.effort, started)
+        thought = "\n".join(b.thinking for b in getattr(response, "content", None) or []
+                             if getattr(b, "type", None) == "thinking" and getattr(b, "thinking", ""))
+        if thought:                                   # the summarised reasoning, for the recording only
+            self.last_meta["thinking"] = thought
         if response.stop_reason == "refusal":
             raise NarrationError("the model declined the request", [str(getattr(response, "stop_details", ""))])
         self.messages.append({"role": "assistant", "content": response.content})
@@ -955,7 +1037,8 @@ class AnthropicChecker:
 
     def _kwargs(self, sentence: str, derivation: str) -> dict:
         cfg = self.config
-        return dict(model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
+        return dict(model=cfg.checker_model, max_tokens=min(cfg.max_tokens, STREAM_ABOVE), betas=list(cfg.betas),
+                    fallbacks=cfg.fallbacks,
                     output_config={"effort": cfg.checker_effort}, system=CHECKER_PROMPT,
                     messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
                     output_format=CheckResult)
@@ -1212,10 +1295,11 @@ def timing_line(area: str, windows: list[ReadingWindow], avoid: ReadingWindow | 
 
 def _check_payload(f: dict, text: str = "", facts: dict | None = None) -> str:
     """What the checker sees for one claim: its finding's derivation and, at depth full, the
-    value of every field the claim cites as a fact; nothing else."""
+    value of every field the claim cites as a fact (a claim citing one is a synthesis of its
+    finding and the fact); nothing else."""
     data = _check_data(f)
     cited = _cited_facts(text, facts)
-    return json.dumps({"finding": data, "facts": cited} if cited else data, indent=1, default=str)
+    return json.dumps({"finding": data, "facts": cited, "synthesis": True} if cited else data, indent=1, default=str)
 
 
 def _cited_facts(text: str, facts: dict | None) -> dict[str, Any]:
@@ -1253,21 +1337,47 @@ def _summary_checks(summary: str, finding_data: dict[str, dict],
         data: dict[str, Any] = {"findings": [_check_data(finding_data[i]) for i in ids]}
         if cited := _cited_facts(s, facts):
             data["facts"] = cited
+        if facts is not None and len(ids) + len(cited) > 1:
+            data["synthesis"] = True
         out.append((s, ids, json.dumps(data, indent=1, default=str)))
+    return out
+
+
+def is_synthesis(sentence: str, finding_data: dict[str, dict], facts: dict | None) -> bool:
+    """Depth full: a sentence resting on two or more findings or facts (checked as a synthesis)."""
+    tags = {f"{k}:{v}" for k, v in TAG.findall(sentence)}
+    ids = [fid for fid, f in finding_data.items() if tags & set(f["allowed_tags"])]
+    return facts is not None and len(ids) + len(_cited_facts(sentence, facts)) > 1
+
+
+def _usage(metas: list[dict | None]) -> dict[str, Any]:
+    """The calls of one side and their token usage, summed (a replayed call has none)."""
+    keys = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
+    out: dict[str, Any] = {"calls": len(metas)} | {k: 0 for k in keys}
+    for m in metas:
+        for k in keys:
+            out[k] += int(((m or {}).get("usage") or {}).get(k) or 0)
+    out["seconds"] = round(sum(float((m or {}).get("seconds") or 0) for m in metas), 3)
     return out
 
 
 def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, checker: Checker | None = None,
             as_of: date | None = None, config: NarrationConfig = CONFIG,
             recording: list | None = None, areas: list[str] | None = None,
-            progress: Callable[[str, dict], None] | None = None, depth: str = "astrologer") -> Reading:
+            progress: Callable[[str, dict], None] | None = None, depth: str = "astrologer",
+            writer_model: str | None = None, writer_effort: str | None = None) -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
     "curious" adds a plain-language paragraph per area, validated and checked like the
     summary; "full" hands the writer the whole chart (fullchart.payload over `full_range`), whose
-    fields a sentence cites as [fact:<path>]; the claims and every engine field are the same at
-    every depth."""
+    fields a sentence cites as [fact:<path>], with the writer thinking at the highest effort
+    (writer_config) and an analysis per area (assessment, timing, not_said), each section checked
+    like the summary, its synthesis sentences as syntheses; the claims and every engine field are
+    the same at every depth. `writer_model` and `writer_effort` override the writer's settings
+    (the checker's never change); the reading records both sides' settings and usage."""
+    import time
+    started = time.perf_counter()
     progress = progress or (lambda stage, info: None)
     if chart.scored is None:
         raise ValueError("narration needs a scored chart (birth moment, Shadbala, Bhava Bala)")
@@ -1284,7 +1394,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     user, allowed = payload(chart, question, areas, depth, as_of, facts)
     area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name, as_of)[0])) for name in areas}
     all_tags = set().union(*allowed.values()) if allowed else set()
-    drafter = drafter or AnthropicDrafter(writer_config(config, depth))
+    wcfg = writer_config(config, depth, writer_model, writer_effort)
+    drafter = drafter or AnthropicDrafter(wcfg)
+    writer_metas: list[dict | None] = []
+    checker_metas: list[dict | None] = []
     checker = checker or AnthropicChecker(config)
     votes_offered = offered_votes(chart, areas)
     chains_offered = offered_chains(chart, areas)
@@ -1305,12 +1418,15 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     kept_summary, summary_error = None, None
     kept_para: dict[str, str] = {}
     para_error: dict[str, tuple[str, int]] = {}
+    kept_ana: dict[tuple[str, str], str] = {}           # (area, section) -> latest accepted text (depth full)
+    ana_error: dict[tuple[str, str], tuple[str, int]] = {}
     draft, errors, attempts, clean = None, [], 0, False
     for attempts in range(1, config.max_attempts + 1):
         progress("draft", {"attempt": attempts})
         try:
             draft = drafter(system, user, errors)
         except NarrationError as e:                        # a refusal or no structured output
+            writer_metas.append(getattr(drafter, "last_meta", None))
             errors = [str(e)] + list(e.errors)
             if recording is not None:
                 recording.append(dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
@@ -1318,9 +1434,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             summary_error = (errors[0], attempts)
             for name in areas:
                 para_error[name] = (errors[0], attempts)
+                for sec in ANALYSIS_SECTIONS:
+                    ana_error[(name, sec)] = (errors[0], attempts)
                 for f in findings(chart, name, as_of)[0]:
                     last_error[(name, f["finding_id"])] = (errors[0], attempts)
             continue
+        writer_metas.append(getattr(drafter, "last_meta", None))
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
         summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious,
@@ -1357,12 +1476,31 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                                                     chains=chains_offered[name])
                                    if text else [f"no paragraph for {name}: at curious depth every area has one"])
                 errors += para_errs[name]
+        ana_errs: dict[tuple[str, str], list[str]] = {}
+        sections: dict[tuple[str, str], str] = {}
+        if full:
+            # Each section of each area's analysis is read like the summary: the area's tags and any
+            # fact, families named and cited, and no tier word (the engine states the tier).
+            for name in areas:
+                an = next((d.analysis for d in draft.areas if d.name == name), None)
+                for sec in ANALYSIS_SECTIONS:
+                    text = getattr(an, sec, None) if an is not None else None
+                    if text:
+                        sections[(name, sec)] = text
+                    ana_errs[(name, sec)] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
+                                                              where=f"{name} {sec}", chains=chains_offered[name],
+                                                              facts=facts)
+                                             if text else [f"no {sec} for {name}: at full depth every area has one"])
+                    errors += ana_errs[(name, sec)]
         entry["validator_errors"] = list(errors)
         if recording is not None:
             recording.append(entry)
         for name, errs in para_errs.items():
             if errs:
                 para_error[name] = (errs[0], attempts)
+        for key, errs in ana_errs.items():
+            if errs:
+                ana_error[key] = (errs[0], attempts)
         for key, errs in claim_errs.items():
             if errs:
                 last_error[key] = (errs[0], attempts)
@@ -1386,6 +1524,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             if not errs:
                 checks += [(s_, ids, data, f"paragraph:{name}", name)
                            for s_, ids, data in _summary_checks(paragraphs[name], finding_data)]
+        for (name, sec), errs in ana_errs.items():
+            if not errs:
+                checks += [(s_, ids, data, f"analysis:{name}:{sec}", name)
+                           for s_, ids, data in _summary_checks(sections[(name, sec)], finding_data, facts)]
         progress("check", {"attempt": attempts, "calls": len(checks)})
         # The checks of one attempt are independent: a checker with `check_many` runs them
         # concurrently (AnthropicChecker); any other checker is called one by one.
@@ -1394,21 +1536,23 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         else:
             outcomes = [(checker(sentence, data), getattr(checker, "last_meta", None))
                         for sentence, _, data, _, _ in checks]
+        checker_metas += [meta for _, meta in outcomes]
         rejected: dict[tuple[str, str] | str, str] = {}
         for (sentence, ids, data, label, name), (result, meta) in zip(checks, outcomes):
             if recording is not None:
                 recording.append(dict(meta or {"kind": "checker"},
                                       attempt=attempts, finding_id=label, findings=ids, sentence=sentence,
                                       result=result.model_dump()))
+            whole = label == "summary" or label.startswith(("paragraph:", "analysis:"))
             where = (f"the derivations of {', '.join(ids)} (summary)" if label == "summary"
                      else f"the derivations of {', '.join(ids)} ({label})" if label.startswith("paragraph:")
+                     else f"the derivations and facts it cites ({label})" if label.startswith("analysis:")
                      else f"the derivation of {label}")
             for prop in result.propositions:
                 if not prop.supported:
                     msg = f"unsupported by {where}: {prop.text!r} ({prop.evidence}) in {sentence!r}"
                     errors.append(msg)
-                    rejected.setdefault(label if label == "summary" or label.startswith("paragraph:")
-                                        else (name, label), msg)
+                    rejected.setdefault(label if whole else (name, label), msg)
         for name, c in drafted:
             key = (name, c.finding_id)
             if claim_errs[key]:
@@ -1423,6 +1567,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     para_error[name] = (rejected[f"paragraph:{name}"], attempts)
                 else:
                     kept_para[name] = paragraphs[name]
+        for (name, sec), errs in ana_errs.items():
+            if not errs:
+                if f"analysis:{name}:{sec}" in rejected:
+                    ana_error[(name, sec)] = (rejected[f"analysis:{name}:{sec}"], attempts)
+                else:
+                    kept_ana[(name, sec)] = sections[(name, sec)]
         if not summary_errs:
             if "summary" in rejected:
                 summary_error = (rejected["summary"], attempts)
@@ -1436,6 +1586,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         kept = {(name, c.finding_id): c for name, c in drafted}
         kept_summary = draft.summary
         kept_para = {d.name: d.paragraph for d in draft.areas if d.paragraph} if curious else {}
+        kept_ana = dict(sections)
 
     by_finding = {f["finding_id"]: f for name in areas for f in findings(chart, name, as_of)[0]}
     reading_areas, depends = [], []
@@ -1482,6 +1633,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         if curious and paragraph is None:
             err, at = para_error.get(name, ("no paragraph was drafted for this area", attempts))
             gaps.append({"finding_id": "paragraph", "kind": "paragraph", "last_error": err, "attempt": at})
+        analysis = {sec: kept_ana[(name, sec)] for sec in ANALYSIS_SECTIONS if (name, sec) in kept_ana} if full else None
+        for sec in ANALYSIS_SECTIONS if full else ():
+            if sec not in analysis:
+                err, at = ana_error.get((name, sec), (f"no {sec} was drafted for this area", attempts))
+                gaps.append({"finding_id": f"analysis.{sec}", "kind": "analysis", "last_error": err, "attempt": at})
         disclaimer = DISCLAIMERS["third_party"] if name in THIRD_PARTY_AREAS else (
             DISCLAIMERS[DISCLAIMER_KEYS[name]] if name in DISCLAIMER_KEYS else None)
         reading_areas.append(ReadingArea(
@@ -1491,7 +1647,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             claims=claims, school_conflicts=school_conflicts(a), windows=windows, avoid_window=avoid,
             disclaimer=disclaimer, narration_gaps=gaps, paragraph=paragraph,
             other_placements=other_placements(chart, name),
-            paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")]))
+            paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")],
+            analysis=analysis, analysis_cites=list(dict.fromkeys(
+                f"{k}:{v}" for t in (analysis or {}).values() for k, v in TAG.findall(t)))))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3), "status": f.status,
               "stability": f.stability.time if f.stability else None}
@@ -1526,10 +1684,18 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         rules_fired=len(scored), drafts_fired=len(drafts), drafts_unstable=unstable_of(drafts),
         abstained_areas=[n for n, x in sc.areas.items() if x.tier in ("not emphasised", "cannot be assessed",
                                                                    "needs two charts")])
-    shown = [text] + [c.text for a in reading_areas for c in a.claims]
+    shown = [text] + [c.text for a in reading_areas for c in a.claims] + \
+        [t for a in reading_areas for t in (a.analysis or {}).values()]
+    synthesis = sum(1 for t in shown for x in sentences(t) if is_synthesis(x, finding_data, facts))
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
                    chart=chart_header(chart), facts_cited={k: v for t in shown for k, v in _cited_facts(t, facts).items()},
-                   model=config.model, attempts=attempts, summary=summary, areas=reading_areas,
+                   writer={"model": wcfg.model, "effort": wcfg.effort, "thinking": wcfg.thinking,
+                           "max_tokens": wcfg.max_tokens},
+                   checker={"model": config.checker_model, "effort": config.checker_effort},
+                   usage={"writer": _usage(writer_metas), "checker": _usage(checker_metas),
+                          "wall_seconds": round(time.perf_counter() - started, 3)},
+                   synthesis_sentences=synthesis,
+                   model=wcfg.model, attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    depth=depth,
                    fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)

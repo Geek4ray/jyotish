@@ -97,11 +97,11 @@ commit that did it, for Ray to port. Line numbers are SPEC.md's at rev 101.
 - The facts shown beside a sentence are stored with the edit (`reviews.facts`) and the export reads
   them, recomputing (and saying so) only for rows from before.
 
-## Layer 7 (Depth, after line 374) — a fourth depth, full
+## Layer 7 (Depth, after line 373 at rev 116) — a fourth depth, full
 
 A fourth depth whose aim is the best analysis the engine's facts allow: the depth of a frontier
 model reasoning at its highest effort, with every sentence still tied to an exact fact and checked.
-Proposed text for the living doc, by part, each with the commit that built it.
+Proposed text for the living doc, by part; part 1 is f59467f, the others follow it on main.
 
 **The whole chart to the writer.** At depth full the user message carries, besides the findings,
 `chart`: everything the engine computes, serialised compactly under stable paths
@@ -149,3 +149,38 @@ other section is under 5,000. No API key was available when it was measured, so 
 estimate, about 130,000 for the whole message at 3.5 characters a token; the live comparison
 (part 4) records the exact input tokens from the API's usage. `tests/test_fullchart.py` holds the
 measured size and fails when the payload moves by more than a tenth, so this number is kept true.
+
+**Reasoning before writing.** At depth full the writer runs with extended thinking on
+(`CONFIG.full_thinking`, adaptive: the only thinking mode the current models take; a thinking
+budget is refused) and at the highest effort the API offers (`CONFIG.full_effort`, max; the
+efforts are low, medium, high, xhigh, max). `jyotish read --writer-model --writer-effort` and the
+`writer_model` and `writer_effort` fields of POST /readings override the writer at any depth, from
+the models that take these settings (`narrate.WRITER_MODELS`: Opus 5.5, Fable 5.1, Opus 5, Sonnet
+5.5); the checker's model and effort (`checker_model`, `checker_effort`, high) never change with
+the writer's, so a comparison between writers is judged by one gate. The reading records both
+(`writer`: model, effort, thinking, max_tokens; `checker`: model, effort), the token usage of each
+side and the narration's wall time (`usage`); the reproduce command carries the two flags. The
+writer's summarised reasoning is kept in the recording only, never in the reading.
+
+The prompt asks, per area, besides the claims, for an `analysis` in three sections. The
+assessment weighs the evidence for and against, names the strongest and the weakest support,
+resolves each contradiction between families or schools explicitly (which side weighs more and on
+which fact, or that the facts leave it open) and ranks what matters most. The timing covers the
+running periods, the timing join's windows for the area and the transit windows over the range,
+every date and period cited to its fact; the engine sets and states each window's score and
+confidence, the writer argues which reasons weigh. The third, what the chart does not say: what the
+engine does not compute, the families that abstain or do not apply, what depends on the exact birth
+time, what no fact decides. Each section is validated like the summary (the area's tags and any
+fact, item 11's family rule, no tier word) and checked sentence by sentence, and is accepted whole,
+the latest version in which every sentence passed; a section that never passed is a narration gap
+(`analysis.<section>`), the other sections standing.
+
+A synthesis sentence combines several findings and facts and carries every tag it rests on. The
+checker's data marks it (`synthesis: true`) whenever it rests on two or more findings or facts, and
+the checker's prompt says: list each premise and the conclusion; the synthesis is supported when
+each cited fact is true and the conclusion follows from them together; reject the conclusion when
+it does not, and always when none of its cited findings or facts supports it. A claim citing a fact
+beside its finding is a synthesis too. The reading counts the synthesis sentences it shows. The
+tier stays the engine's: the analysis may not use the tier words either, and the engine places the
+tier beside it, as now. The page and the website show the three sections under the area's tier,
+then "The findings, one by one".

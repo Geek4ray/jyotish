@@ -155,7 +155,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sequential", action="store_true", help="checker calls one after another (the old way)")
     ap.add_argument("--from-recording", help="estimate from a recording instead of calling the model")
-    ap.add_argument("--depth", default="curious", choices=["curious", "learner", "astrologer"])
+    ap.add_argument("--depth", default="curious", choices=["curious", "learner", "astrologer", "full"])
     args = ap.parse_args()
     out = estimate(args.from_recording) if args.from_recording else live(args.sequential, args.depth)
     print(json.dumps(out, indent=1))

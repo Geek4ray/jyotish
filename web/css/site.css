@@ -201,6 +201,8 @@ table.windows td:nth-child(-n+6), table.windows th { white-space: nowrap; }
 .place-status-ok { color: var(--positive); }
 
 .paragraph { margin: 0; font-size: 16px; line-height: 1.65; }
+.analysis { display: grid; gap: 12px; margin: 4px 0 12px; }
+.analysis-section p { margin: 4px 0 0; line-height: 1.6; }
 details.astrologer > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; min-height: 44px; display: flex; align-items: center; }
 details.astrologer[open] > summary { margin-bottom: 8px; }
 .timing-note { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; font-style: italic; }

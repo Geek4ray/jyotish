@@ -392,12 +392,13 @@ def cmd_read(args) -> int:
     """assess -> score -> route -> narrate -> <out>.json and <out>.md. Returns the exit code."""
     import sys
     from pathlib import Path
-    from .narrate import CONFIG, NarrationError
+    from .narrate import NarrationError
     from .service import make_reading
     chart = _assess(args)
     try:
         reading, page = make_reading(_birth(args), args.question, chart=chart, as_of=args.as_of,
-                                     model_fixture=args.model_fixture, depth=args.depth)
+                                     model_fixture=args.model_fixture, depth=args.depth,
+                                     writer_model=args.writer_model, writer_effort=args.writer_effort)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
@@ -411,7 +412,8 @@ def cmd_read(args) -> int:
     out.with_suffix(".json").write_text(json.dumps(reading.model_dump(), indent=1, ensure_ascii=False, default=str) + "\n")
     out.with_suffix(".md").write_text(page)
     print(f"wrote {out.with_suffix('.json')} and {out.with_suffix('.md')} ({', '.join(a.name for a in reading.areas)}; "
-          f"model {CONFIG.model if not args.model_fixture else 'replayed'}, {reading.attempts} attempt(s))")
+          f"writer {reading.writer['model'] + ' at ' + reading.writer['effort'] if not args.model_fixture else 'replayed'}, "
+          f"{reading.attempts} attempt(s))")
     if not reading.narration_complete:
         gaps = [g["finding_id"] for a in reading.areas for g in a.narration_gaps]
         print(f"narration incomplete: {len(gaps)} finding(s) not narrated within the checks"
@@ -471,6 +473,11 @@ def main(argv: list[str] | None = None) -> None:
                     help="curious (default): a plain-language paragraph per area above the claims; "
                          "learner and astrologer: the claims and learner panels; full: the whole chart to the "
                          "writer, every field citable as [fact:<path>]")
+    from .narrate import EFFORTS, WRITER_MODELS
+    rd.add_argument("--writer-model", choices=WRITER_MODELS,
+                    help="the writer's model (default narrate.CONFIG.model); the checker's never changes")
+    rd.add_argument("--writer-effort", choices=EFFORTS,
+                    help="the writer's effort (default: max at depth full, narrate.CONFIG.effort otherwise)")
     rd.add_argument("--as-of", help="date the reading is for, YYYY-MM-DD (default today)")
     rd.add_argument("--out", default="reading", help="output path without extension: writes .json and .md")
     rd.add_argument("--model-fixture", help="replay a recorded narration (tests/fixtures/*.json) instead of "
