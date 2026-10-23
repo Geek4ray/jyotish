@@ -565,3 +565,15 @@ commands print the database they wrote to (`postgresql at …`, never the passwo
 in the wrong one shows at once. Managed Postgres backs up on its own; the same script makes a copy on
 the app's volume on demand. The guide also covers one Linux host of one's own with the compose
 `host` profile.
+
+**The smoke test.** CI's `image` job now runs the built image on SQLite with JYOTISH_MODEL_FIXTURE
+pointing at the edited career recording (mounted read-only; the service then replays it and calls no
+model, warns in its log at start, and /health says `"narration": "fixture"`), takes a reviewer token
+from `jyotish reviewer add smoke` inside the container, and runs `scripts/smoke.py`: /health at the
+head revision and replaying, a reading of the reference chart posted and done, its review page opened
+in Chromium (Playwright), the token entered, the three intro screens passed, the career question
+answered "agree", and that answer read back from GET /readings/{id}/review. The same script runs in
+the suite against the app served from the checkout (tests/test_web.py), so a change that breaks it
+fails before the image is built. What it does not cover: Postgres under the browser (the compose
+step checks /health and the backup only), HTTPS through Caddy, and Fly itself; the first deploy by the
+guide is the test of those.

@@ -60,7 +60,8 @@ jobs:
           path: ${{ runner.temp }}/scorecard.*
 
   # The deployable image (docs/deploy.md): it builds, starts on SQLite, and starts against Postgres
-  # through docker-compose.yml, each reporting a healthy engine and a migrated database at /health.
+  # through docker-compose.yml, each reporting a healthy engine and a migrated database at /health;
+  # on SQLite it also passes the smoke test (scripts/smoke.py).
   image:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -75,6 +76,24 @@ jobs:
           cat health.json
           python3 -c "import json; h = json.load(open('health.json')); assert h['status'] == 'ok' and h['database']['dialect'] == 'sqlite' and h['database']['revision'] == h['database']['head'], h"
           docker rm -f app
+      # The smoke test: the image on SQLite replaying a recorded narration (no model key, no model
+      # call), a reviewer token from the CLI inside the container, then scripts/smoke.py posts a
+      # reading, opens its review page in Chromium and answers one step.
+      - name: Install the smoke test's browser
+        run: |
+          python3 -m venv smoke-venv
+          smoke-venv/bin/pip install -q httpx playwright
+          smoke-venv/bin/playwright install --with-deps chromium
+      - name: Smoke test (a reading replayed, its review page, one answer)
+        run: |
+          docker run -d --name app -p 8000:8000 -v "$PWD/tests/fixtures:/fixtures:ro" \
+            -e JYOTISH_MODEL_FIXTURE=/fixtures/narration_career_edited.json jyotish:ci
+          for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/health > /dev/null && break; sleep 2; done
+          TOKEN=$(docker exec app jyotish reviewer add smoke | tail -1)
+          smoke-venv/bin/python scripts/smoke.py --url http://127.0.0.1:8000 --token "$TOKEN"
+      - name: The smoke container's log
+        if: always()
+        run: docker logs app 2>&1 | tail -40; docker rm -f app || true
       - name: Start it on Postgres with docker compose and check /health
         env:
           POSTGRES_PASSWORD: ci-only

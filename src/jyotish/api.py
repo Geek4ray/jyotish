@@ -250,6 +250,11 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     from . import logs
     from .db import migrate
     logs.setup()
+    if model_fixture is None and os.environ.get("JYOTISH_MODEL_FIXTURE"):
+        # The CI smoke test's replay (scripts/smoke.py): never set on a real deployment, and loud when it is.
+        model_fixture = os.environ["JYOTISH_MODEL_FIXTURE"]
+        logs.event("narration.fixture", logging.WARNING, note="JYOTISH_MODEL_FIXTURE is set: every reading replays "
+                   "a recording and calls no model; /health says narration fixture")
     engine = migrate(database_url)                # JYOTISH_DATABASE_URL when none is named
     Session = sessionmaker(engine, expire_on_commit=False)
     tokens = reviewers if reviewers is not None else reviewers_from_env()

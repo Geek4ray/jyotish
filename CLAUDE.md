@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -212,4 +212,15 @@ life, the best third by joint, `jyotish.cohort`); test 8 compares the schools' v
 standing in without it; docs/validation.md. Chart features for cohorts come from `jyotish.cohort`. `scripts/synthetic_cohort.py` makes planted and null cohorts;
 the suite runs them at small N, and the harness at 2,000 and 20,000, writing
 docs/validation_synthetic_*.md (every heading says synthetic).
+Deployable service (2026-10-23, docs/deploy.md): a Dockerfile (python:3.12-slim-trixie, the checkout installed
+editable, /data a volume), docker-compose.yml (Postgres 16; Caddy and the nightly `scripts/pg_backup.sh` under the
+`host` profile), fly.toml, configuration from the environment only. Every table is in `jyotish.db` and migrated by
+Alembic (`src/jyotish/migrations`; `migrate()` on every open, a create_all database adopted and stamped); a new
+table needs a revision and `tests/test_db.py` fails on drift. Reviewer, clerk and owner tokens are rows in
+`credentials` (`jyotish reviewer|clerk|owner add|revoke|list`; the token printed once, its hash kept);
+JYOTISH_REVIEWERS / JYOTISH_CLERKS still work locally and are logged as such. POST /readings is rate-limited; every
+finished reading gets a `ledger` row (GET /costs/daily, owner token); GET /health reports the engine hash and the
+database revision; /source is the AGPL offer (JYOTISH_SOURCE_URL). JYOTISH_MODEL_FIXTURE replays a recording, for
+the CI smoke test only (`scripts/smoke.py`: a reading, its review page in Playwright, one answer; the image job
+runs it in the container, tests/test_web.py against the checkout).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

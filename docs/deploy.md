@@ -18,6 +18,7 @@ the rest.
 | `JYOTISH_CACHE_DIR` | The chart cache (assessed charts by birth data, conventions and engine hash). Safe to lose. | `/data/cache` |
 | `JYOTISH_SOURCE_URL` | Where users can get the source of the running version (the licence section below). | none: `/source` answers 404 |
 | `PORT` | The port to listen on, when the host sets one. | 8000 |
+| `JYOTISH_MODEL_FIXTURE` | Test only: every reading replays this recorded narration and calls no model (CI's smoke test). Never set it on a deployment; the log warns at start and `/health` says `"narration": "fixture"`. | none |
 
 Everything the service writes outside the database goes under `/data`, a volume.
 
@@ -45,6 +46,14 @@ curl -s http://127.0.0.1:8000/health
 `/health` answers 200 with the engine's version and hash, the database's dialect, its revision and the
 head, and `"narration": "live"` once a key is set; it answers 503 when the database cannot be reached.
 The website is at <http://127.0.0.1:8000/>.
+
+The smoke test CI runs on every push (`scripts/smoke.py`) can be run against this too: it needs a
+reviewer token and a service replaying a recording, so it is for a throwaway database, not the real one.
+In CI: the image on SQLite with `JYOTISH_MODEL_FIXTURE=/fixtures/narration_career_edited.json`, a token from
+`docker exec app jyotish reviewer add smoke`, then `python scripts/smoke.py --url http://127.0.0.1:8000
+--token <token>`: `/health`, a reading of the reference chart posted and done, its review page opened in
+Chromium, the token taken, the three intro screens and the career question answered, the answer read
+back from the server.
 
 ## The licence position
 

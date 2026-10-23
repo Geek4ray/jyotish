@@ -833,3 +833,28 @@ def test_blind_comparison_page(page, compare_url):
     assert "You chose reading A (judge-1)." in reveal and "A says what the 10th lord does" in reveal
     assert "effort medium" in reveal and "effort max" in reveal
     assert page.locator("#compare-form").is_hidden()
+
+
+def test_the_ci_smoke_script_passes_against_a_served_app(tmp_path, monkeypatch):
+    """scripts/smoke.py, which CI runs against the built image, run here against the same app served
+    from the checkout: the recording comes from JYOTISH_MODEL_FIXTURE (as in the container), the
+    reviewer's token from `jyotish reviewer add`, and one guided-review step is answered."""
+    import subprocess
+    import sys
+    monkeypatch.delenv("JYOTISH_REVIEWERS", raising=False)
+    monkeypatch.setenv("JYOTISH_MODEL_FIXTURE", EDITED)
+    db = tmp_path / "smoke.db"
+    out = subprocess.run([str(Path(sys.executable).parent / "jyotish"), "reviewer", "add", "smoke",
+                          "--database", f"sqlite:///{db}"], capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    token = out.stdout.strip().splitlines()[-1]
+    server, thread, url = _serve(db, None)
+    try:
+        # Its own process, as in CI (and a second sync Playwright cannot start beside this module's).
+        run = subprocess.run([sys.executable, str(ROOT / "scripts" / "smoke.py"), "--url", url, "--token", token,
+                              "--timeout", "120"], capture_output=True, text=True, timeout=300)
+        assert run.returncode == 0, run.stdout + run.stderr
+        assert run.stdout.splitlines()[-1] == "smoke test passed" and "ok    the server holds the answer" in run.stdout
+    finally:
+        server.should_exit = True
+        thread.join(timeout=10)
