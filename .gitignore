@@ -11,5 +11,7 @@ scripts/last_recording.json
 # Client data: the review step's judgements (jyotish export-reviews) and, apart, any outcome log
 data/preferences/
 data/outcomes/
+# Candidate rules from depth-full readings ([tradition:] sentences with the chart hash), for triage
+data/candidate_rules.jsonl
 # The frozen sequestered split of a real cohort: it names subject ids and lives with the database
 data/sequestered.txt

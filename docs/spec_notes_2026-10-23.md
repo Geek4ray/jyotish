@@ -184,3 +184,26 @@ beside its finding is a synthesis too. The reading counts the synthesis sentence
 tier stays the engine's: the analysis may not use the tier words either, and the engine places the
 tier beside it, as now. The page and the website show the three sections under the area's tier,
 then "The findings, one by one".
+
+**Knowledge beyond the engine.** At depth full a sentence of the analysis may say what a classical
+text holds that no finding or fact holds, ending `[tradition:<text> <chapter>]` (chapter, optionally
+`.verse`), from the classical texts of the retrieval corpus only (BPHS, Phaladeepika, Saravali,
+Brihat Jataka, Jataka Parijata, Uttara Kalamrita, Jaimini Sutras, Tajaka Neelakanthi). Such a
+sentence is never sent to the checker and never counted as checked or as a synthesis. It is taken
+out of its section into the area's `traditions` (section, sentence, citation, text, chapter, verse,
+`checked: false`) and shown on the page and the website under "From the texts, not computed on this
+chart", set apart from the checked text, with the engine's line: "Unverified: the engine has not
+checked this against the chart or against the verse, and it weighs nothing in any score." A live
+reading appends each to `data/candidate_rules.jsonl` (JYOTISH_CANDIDATE_RULES; gitignored) with the
+chart hash (the chart id, as the export's), the area, the sentence and the citation, no birth data,
+for the astrologer to triage into a draft rule (docs/triage.md); a replay appends nothing.
+
+The validator holds such a sentence to its limits: in the analysis at depth full only (in a claim or
+the summary it is refused); one citation in the form `<text> <chapter>` naming one of the texts
+above; no other tag (a fact it rests on goes in a sentence of its own, which is checked); and nothing
+the engine computes: no numeral (so "the tenth", not "the 10th"), no degree, no date, no dasha,
+period or transit, no strength, score, vote, cusp or sub-lord, and nothing about this chart ("this
+chart", "your", "here"). Item 6's forbidden content and the tier words apply to it as to any
+sentence. "May" is not read as the month: as a verb it is far commoner in a paraphrase. What the
+validator cannot do is know whether the chapter says it; that is what the triage is for, and the
+prompt tells the writer to leave out a sentence whose chapter it is not sure of.

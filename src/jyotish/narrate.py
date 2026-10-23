@@ -194,6 +194,10 @@ class ReadingArea(BaseModel):
     # the latest version in which every sentence passed; a section that never did is a narration gap.
     analysis: dict[str, str] | None = None
     analysis_cites: list[str] = Field(default_factory=list)
+    # Depth full: the [tradition:] sentences, taken out of the sections they were written in:
+    # {section, sentence, citation, text, chapter, verse, checked: false, note}. Never checked, shown
+    # apart under "from the texts, not computed on this chart", recorded as candidate rules.
+    traditions: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ReadingSummary(BaseModel):
@@ -257,6 +261,67 @@ class NarrationError(RuntimeError):
 # --- the validator ---------------------------------------------------------------------
 
 TAG = re.compile(r"\[(rule|text|vote|chain|fact):([^\]\s]+)\]")
+# Depth full: a classical text the rule library does not hold, as [tradition:<text> <chapter>]. Never
+# checked, never counted as checked, shown apart and recorded as a candidate rule (SPEC Layer 7, depth full).
+TRADITION = re.compile(r"\[tradition:([^\]]*)\]")
+TRADITION_TEXTS = {"bphs": "BPHS", "brihat parashara hora shastra": "BPHS", "phaladeepika": "Phaladeepika",
+                   "saravali": "Saravali", "brihat jataka": "Brihat Jataka", "jataka parijata": "Jataka Parijata",
+                   "uttara kalamrita": "Uttara Kalamrita", "jaimini sutras": "Jaimini Sutras",
+                   "tajaka neelakanthi": "Tajaka Neelakanthi"}      # the classical texts of the SPEC's corpus
+CITATION = re.compile(r"^(?P<text>[A-Za-z][A-Za-z ]*?)\s+(?P<chapter>\d{1,3})(?:[.:](?P<verse>\d{1,3}(?:-\d{1,3})?))?$")
+TRADITION_NOTE = ("Unverified: the engine has not checked this against the chart or against the verse, and it "
+                  "weighs nothing in any score.")
+# What a [tradition:] sentence may not state: anything the engine computes, which must cite a fact.
+TRADITION_LIMITS = {
+    "numeral": re.compile(r"\d"),
+    "degree": re.compile(r"°|\bdegrees?\b", re.I),
+    # "may" is left out: the month is far rarer in a classical paraphrase than the verb.
+    "date": re.compile(r"\b(january|february|march|april|june|july|august|september|october|november|december|"
+                       r"years?|months?|weeks?|aged?)\b", re.I),
+    "dasha, period or transit": re.compile(r"\b(dashas?|mahadashas?|antardashas?|bhuktis?|pratyantar\w*|periods?|"
+                                           r"sub-periods?|transits?|transiting|gochara|sade sati|windows?|timing)\b", re.I),
+    "figure the engine computes": re.compile(r"\b(shadbala|bhava bala|rupas?|virupas?|bindus?|ashtakavarga|sav|bav|"
+                                             r"scores?|tiers?|votes?|stability|ratios?|vimsopaka|ishta|kashta|"
+                                             r"sub-lords?|cusps?)\b", re.I),
+    "statement about this chart": re.compile(r"\b(this|your|the) (chart|horoscope|nativity|reading)\b|"
+                                             r"\byou(r|rs)?\b|\bhere\b", re.I),
+}
+
+
+def tradition_citation(value: str) -> dict | None:
+    """'Phaladeepika 10' -> {text, chapter, verse} (the text's name as the engine writes it), or None."""
+    m = CITATION.match(value.strip())
+    if m is None or m["text"].strip().lower() not in TRADITION_TEXTS:
+        return None
+    return {"text": TRADITION_TEXTS[m["text"].strip().lower()], "chapter": m["chapter"], "verse": m["verse"]}
+
+
+def tradition_errors(sentence: str, allowed: bool) -> list[str]:
+    """A [tradition:] sentence's limits: in the analysis at depth full only, one citation of a
+    classical text by chapter, no other tag, and nothing the engine computes (TRADITION_LIMITS)."""
+    cites = TRADITION.findall(sentence)
+    if not cites:
+        return []
+    if not allowed:
+        return [f"a [tradition:] sentence belongs in the analysis at depth full: {sentence!r}"]
+    errors = []
+    if TAG.search(sentence):
+        errors.append(f"a [tradition:] sentence carries no other tag: it is never checked, so a fact it rests on "
+                      f"goes in a sentence of its own: {sentence!r}")
+    for c in cites:
+        m = CITATION.match(c.strip())
+        if m is None:
+            errors.append(f"a [tradition:] citation is '<text> <chapter>' (a chapter number, optionally .verse), "
+                          f"not {c!r}: {sentence!r}")
+        elif m["text"].strip().lower() not in TRADITION_TEXTS:
+            errors.append(f"{m['text'].strip()!r} is not a classical text the engine names "
+                          f"({', '.join(sorted(set(TRADITION_TEXTS.values())))}): {sentence!r}")
+    bare = TRADITION.sub("", sentence)
+    for what, rx in TRADITION_LIMITS.items():
+        if (m := rx.search(bare)):
+            errors.append(f"a [tradition:] sentence states no {what} ({m.group(0)!r}): that is the engine's, "
+                          f"said in a sentence citing a fact: {sentence!r}")
+    return errors
 CLAIM_VERBS = re.compile(
     r"\b(is|are|was|were|has|have|gives|give|shows|show|indicates|indicate|suggests|suggest|"
     r"brings|bring|forms|form|makes|make|supports|support|favours|favors|promises|denotes|"
@@ -335,13 +400,13 @@ TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary",
                      family_rule: bool = True, chains: dict[str, list[str]] | None = None,
-                     facts: dict | None = None) -> list[str]:
+                     facts: dict | None = None, traditions: bool = False) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
     errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=False,
-                      facts=facts)
+                      facts=facts, traditions=traditions)
     for sentence in sentences(text):
-        m = TIER_WORDS.search(TAG.sub("", sentence))
+        m = TIER_WORDS.search(TRADITION.sub("", TAG.sub("", sentence)))
         if m:
             errors.append(f"tier language ({m.group(0)!r}) in the {where}; the engine states the tier: {sentence!r}")
     return errors
@@ -357,7 +422,7 @@ CROSS_REFERENCE = re.compile(r"\b(again|likewise|aforementioned)\b|\bas (above|n
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
              family_rule: bool = True, chains: dict[str, list[str]] | None = None, standalone: bool = True,
-             facts: dict | None = None) -> list[str]:
+             facts: dict | None = None, traditions: bool = False) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
     set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
     summary over several areas, the set of that family's vote tags) for every vote offered:
@@ -373,17 +438,21 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
     or a paragraph is read whole and may. `facts` (depth full: the whole chart, fullchart.payload)
     offers a [fact:<path>] tag for every path it has; a path it lacks is refused, and with no
     `facts` a fact tag is not offered at all. A sentence citing a fact may state timing, since
-    its dates and periods are the cited field's, checked against it."""
+    its dates and periods are the cited field's, checked against it. `traditions` (the analysis at
+    depth full) admits a [tradition:<text> <chapter>] sentence within its limits (tradition_errors);
+    anywhere else such a sentence is refused."""
     from .fullchart import resolve
     offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
-        bare = TAG.sub("", s)
+        bare = TRADITION.sub("", TAG.sub("", s))
         found = TAG.findall(s)
         tags = {f"{k}:{v}" for k, v in found}
         fact_tags = {t for t in tags if t.startswith("fact:")}
-        if CLAIM_VERBS.search(bare) and not tags:
+        tradition = bool(TRADITION.search(s))
+        if CLAIM_VERBS.search(bare) and not tags and not tradition:
             errors.append(f"untagged claim: {s!r}")
+        errors += tradition_errors(s, traditions)
         if standalone and (m := CROSS_REFERENCE.search(bare)):
             errors.append(f"refers to another claim ({m.group(0).strip()!r}): a claim stands alone and is checked "
                           f"against its finding only: {s!r}")
@@ -394,7 +463,7 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
                 resolve(facts, t[5:])
             except KeyError:
                 errors.append(f"no field at path {t[5:]!r} in the chart: [{t}] in {s!r}")
-        if tags and not re.search(r"\]\s*[.!?]?\s*$", s):
+        if (tags or tradition) and not re.search(r"\]\s*[.!?]?\s*$", s):
             errors.append(f"tags must end the sentence: {s!r}")
         named = families_named(s)
         if any(k == "chain" for k, _ in found) and "panchanga" in named and \
@@ -862,7 +931,18 @@ whole, so one sentence the checker refuses sends the section back.
 
 The tier stays the engine's: the analysis and the summary use none of the words strong, moderate, \
 weak or mixed ("the strongest support", "below its required strength" say it without them), and \
-no confidence or probability words. The engine places the tier beside your analysis."""
+no confidence or probability words. The engine places the tier beside your analysis.
+
+Knowledge beyond the engine. In the analysis you may state what a classical text says that no \
+finding or fact here holds, in a sentence of its own ending [tradition:<text> <chapter>], for \
+example [tradition:Phaladeepika 10] or [tradition:Saravali 30.2], from these texts only: BPHS, \
+Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata, Uttara Kalamrita, Jaimini Sutras, Tajaka \
+Neelakanthi. Such a sentence is never checked: it is shown apart, marked unverified, and recorded \
+for the astrologer to read in the text. So it carries no other tag and states only the text's \
+general principle: no numeral, date, degree, period, dasha or transit, no strength, score or vote, \
+and nothing about this chart ("this chart", "your", "here"); a fact of this chart goes in a \
+sentence of its own citing it. Write the house as a word ("the tenth"). Cite a chapter only where \
+you know the text says it there; leave the sentence out otherwise."""
 
 
 def system_prompt(depth: str) -> str:
@@ -1331,7 +1411,7 @@ def _summary_checks(summary: str, finding_data: dict[str, dict],
     out = []
     for s in sentences(summary):
         tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
-        if not tags:
+        if not tags or TRADITION.search(s):              # a [tradition:] sentence is never checked
             continue
         ids = [fid for fid, f in finding_data.items() if tags & set(f["allowed_tags"])]
         data: dict[str, Any] = {"findings": [_check_data(finding_data[i]) for i in ids]}
@@ -1341,6 +1421,25 @@ def _summary_checks(summary: str, finding_data: dict[str, dict],
             data["synthesis"] = True
         out.append((s, ids, json.dumps(data, indent=1, default=str)))
     return out
+
+
+def split_traditions(sections: dict[str, str]) -> tuple[dict[str, str], list[dict[str, Any]]]:
+    """The analysis's sections with their [tradition:] sentences taken out, and those sentences,
+    each with its citation, unchecked and carrying TRADITION_NOTE."""
+    kept, out = {}, []
+    for sec, text in sections.items():
+        rest = []
+        for s in sentences(text):
+            cite = TRADITION.search(s)
+            if cite is None:
+                rest.append(s)
+                continue
+            c = tradition_citation(cite.group(1)) or {"text": None, "chapter": None, "verse": None}
+            out.append({"section": sec, "sentence": s, "citation": cite.group(1).strip(), **c, "checked": False,
+                        "note": TRADITION_NOTE})
+        if rest:
+            kept[sec] = " ".join(rest)
+    return kept, out
 
 
 def is_synthesis(sentence: str, finding_data: dict[str, dict], facts: dict | None) -> bool:
@@ -1489,7 +1588,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                         sections[(name, sec)] = text
                     ana_errs[(name, sec)] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
                                                               where=f"{name} {sec}", chains=chains_offered[name],
-                                                              facts=facts)
+                                                              facts=facts, traditions=True)
                                              if text else [f"no {sec} for {name}: at full depth every area has one"])
                     errors += ana_errs[(name, sec)]
         entry["validator_errors"] = list(errors)
@@ -1633,7 +1732,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         if curious and paragraph is None:
             err, at = para_error.get(name, ("no paragraph was drafted for this area", attempts))
             gaps.append({"finding_id": "paragraph", "kind": "paragraph", "last_error": err, "attempt": at})
-        analysis = {sec: kept_ana[(name, sec)] for sec in ANALYSIS_SECTIONS if (name, sec) in kept_ana} if full else None
+        analysis, traditions = (split_traditions({sec: kept_ana[(name, sec)] for sec in ANALYSIS_SECTIONS
+                                                  if (name, sec) in kept_ana}) if full else (None, []))
         for sec in ANALYSIS_SECTIONS if full else ():
             if sec not in analysis:
                 err, at = ana_error.get((name, sec), (f"no {sec} was drafted for this area", attempts))
@@ -1649,7 +1749,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             other_placements=other_placements(chart, name),
             paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")],
             analysis=analysis, analysis_cites=list(dict.fromkeys(
-                f"{k}:{v}" for t in (analysis or {}).values() for k, v in TAG.findall(t)))))
+                f"{k}:{v}" for t in (analysis or {}).values() for k, v in TAG.findall(t))), traditions=traditions))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3), "status": f.status,
               "stability": f.stability.time if f.stability else None}

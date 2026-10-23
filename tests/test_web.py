@@ -765,7 +765,8 @@ def full_url(tmp_path_factory):
 
 def test_full_depth_reading_on_the_site(page, full_url):
     """Depth full on the site, from a hand-written fixture: the three sections of the analysis in
-    order, a section that did not pass shown as not narrated, and a fact's footnote with its value."""
+    order, a section that did not pass shown as not narrated, a fact's footnote with its value, and
+    the [tradition:] sentence set apart from the checked text."""
     submit_reference(page, full_url, question="How will my career go?", depth="full")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
@@ -778,3 +779,10 @@ def test_full_depth_reading_on_the_site(page, full_url):
     note = page.locator('#footnotes li[data-tag="fact:planets.Mars.dignity"]')
     assert note.inner_text().endswith('computed by the engine: "own".')
     assert "not semantically checked" in page.inner_text("#reading")          # no verdicts were recorded
+    # The [tradition:] sentence is out of the checked section and set apart, with the engine's line.
+    assert "Phaladeepika holds" not in career.locator('.analysis-section[data-section="assessment"]').inner_text()
+    trad = career.locator("aside.traditions")
+    assert trad.locator("h3").inner_text() == "From the texts, not computed on this chart"
+    assert trad.locator("li").inner_text().startswith("Phaladeepika holds that a lord of the tenth")
+    assert "(Phaladeepika 10; unverified)" in trad.locator("li").inner_text()
+    assert "has not checked this" in trad.locator(".tradition-note").inner_text()

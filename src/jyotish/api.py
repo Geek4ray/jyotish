@@ -406,7 +406,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 stage(reading_id, log, f"{event} {info['attempt']}", keep, **info)
             reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of, depth=req.depth,
                                          model_fixture=model_fixture, progress=on, writer_model=req.writer_model,
-                                         writer_effort=req.writer_effort)
+                                         writer_effort=req.writer_effort, chart_id=chart_id)
             log.append("done")
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,
                    progress={"stage": "done", "attempts": reading.attempts, "narration_complete": reading.narration_complete,

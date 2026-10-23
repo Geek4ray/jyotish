@@ -15,7 +15,8 @@ from datetime import date
 from typing import Any
 
 from .models import Chart
-from .narrate import DISCLAIMERS, SUDARSHANA_NOTE, TAG, Reading, ReadingWindow, findings, learner_data, timing_line
+from .narrate import (DISCLAIMERS, SUDARSHANA_NOTE, TAG, TRADITION, TRADITION_NOTE, Reading, ReadingWindow, findings,
+                      learner_data, timing_line)
 from .rules import default_rules
 from .uncertainty import label
 
@@ -278,6 +279,12 @@ def render(reading: Reading, chart: Chart) -> str:
                 text = (a.analysis or {}).get(sec)
                 L += [f"### {heading}", "", notes.render(text) if text else
                       "*Not narrated within the checks (listed below).*", ""]
+            if a.traditions:
+                # Never checked: set apart from the checked text, each with the engine's line.
+                L += ["#### From the texts, not computed on this chart", "", f"> *{TRADITION_NOTE}*", ">"]
+                L += [f"> - {TRADITION.sub('', x['sentence']).replace(' .', '.').strip()} ({x['citation']}; "
+                      f"unverified, from the {ANALYSIS_HEADINGS[x['section']].lower()})" for x in a.traditions]
+                L.append("")
             if a.claims:
                 L += ["### The findings, one by one", ""]
         gaps = (["Not narrated within the checks:", ""] +

@@ -1,6 +1,7 @@
-"""Depth full, part 2: the writer's settings (extended thinking, the highest effort, the model and
-effort recorded), the per-area analysis (assessment, timing, what the chart does not say) and the
-synthesis rule in the checker. Offline: the writer is replayed and the checker stubbed."""
+"""Depth full, parts 2 and 3: the writer's settings (extended thinking, the highest effort, the
+model and effort recorded), the per-area analysis (assessment, timing, what the chart does not
+say), the synthesis rule in the checker, and the [tradition:] tag's limits. Offline: the writer is
+replayed and the checker stubbed."""
 
 import json
 from datetime import date
@@ -268,3 +269,72 @@ def test_post_readings_takes_the_writers_settings_and_records_them(tmp_path):
     # The replayed astrologer drafts have no analysis: each section is an honest gap.
     assert {g["finding_id"] for g in r["areas"][0]["narration_gaps"]} >= {"analysis.assessment", "analysis.timing",
                                                                           "analysis.not_said"}
+
+
+# --- part 3: knowledge beyond the engine, [tradition:<text> <chapter>] ----------------------------
+
+TRADITION = ("Phaladeepika holds that a lord of the tenth in its own sign in a kendra gives a career of authority "
+             "[tradition:Phaladeepika 10].")
+
+
+@pytest.mark.parametrize("sentence,needle", [
+    ("Phaladeepika holds that the tenth lord in the 7th gives authority [tradition:Phaladeepika 10].", "numeral"),
+    ("Saravali says Mars at 18 degrees of Scorpio gives courage [tradition:Saravali 22].", "numeral"),
+    ("Saravali says Mars near the end of a sign in March gives courage [tradition:Saravali 22].", "date"),
+    ("BPHS says the dasha of the tenth lord raises the native [tradition:BPHS 25].", "dasha"),
+    ("BPHS says the Shadbala of the tenth lord decides the career [tradition:BPHS 27].", "computes"),
+    ("BPHS says that in this chart Mars rules the career [tradition:BPHS 24].", "this chart"),
+    ("BPHS says your Mars gives courage [tradition:BPHS 24].", "this chart"),
+    ("Mars in its own sign gives courage [tradition:BPHS 24] [fact:planets.Mars.dignity].", "no other tag"),
+    ("The Hora Makaranda says Mars gives courage [tradition:Hora Makaranda 4].", "not a classical text"),
+    ("Saravali says Mars gives courage [tradition:Saravali].", "chapter"),
+    ("Saravali says Mars gives courage [tradition:Saravali chapter four].", "chapter"),
+])
+def test_tradition_sentence_limits(sentence, needle):
+    from jyotish.narrate import validate
+    errs = validate(sentence, set(), facts={"planets": {"Mars": {"dignity": "own"}}}, traditions=True)
+    assert any(needle in e for e in errs), errs
+
+
+def test_tradition_sentence_within_its_limits_passes_and_belongs_to_the_analysis():
+    from jyotish.narrate import validate
+    assert validate(TRADITION, set(), facts={}, traditions=True) == []
+    assert validate("Saravali holds that Mars in its own sign gives courage [tradition:Saravali 30.2].", set(),
+                    facts={}, traditions=True) == []
+    errs = validate(TRADITION, set(), facts={})                       # a claim or the summary
+    assert any("belongs in the analysis" in e for e in errs)
+
+
+def test_tradition_sentences_are_shown_apart_unchecked_and_recorded(chart, tmp_path, monkeypatch):
+    from jyotish.narrate import TRADITION_NOTE
+    from jyotish.page import render
+    from jyotish.service import record_candidates
+    stub = SynthesisStub({"Mars is dignified in a kendra": True})
+    r = run(chart, draft(assessment=ASSESSMENT + " " + TRADITION), checker=stub)
+    a = r.areas[0]
+    assert TRADITION not in [s for s, _ in stub.calls]                    # never checked
+    assert a.analysis["assessment"] == ASSESSMENT                         # taken out of the checked text
+    assert a.traditions == [{"section": "assessment", "sentence": TRADITION, "citation": "Phaladeepika 10",
+                             "text": "Phaladeepika", "chapter": "10", "verse": None, "checked": False,
+                             "note": TRADITION_NOTE}]
+    page = render(r, chart)
+    block = page[page.index("From the texts, not computed on this chart"):]
+    assert TRADITION.replace(" [tradition:Phaladeepika 10]", "") in block and TRADITION_NOTE in block
+    assert page.index("From the texts") > page.index(ASSESSMENT.split(" [")[0])
+    out = tmp_path / "candidate_rules.jsonl"
+    monkeypatch.setenv("JYOTISH_CANDIDATE_RULES", str(out))
+    assert record_candidates(r, chart, chart_id="abc123") == 1
+    row = json.loads(out.read_text().splitlines()[0])
+    assert row["chart_hash"] == "abc123" and row["sentence"] == TRADITION and row["citation"] == "Phaladeepika 10"
+    assert row["area"] == "career" and row["status"] == "candidate" and "birth" not in json.dumps(row)
+
+
+def test_tradition_sentences_are_counted_in_neither_checked_text_nor_synthesis(chart):
+    r = run(chart, draft(assessment=ASSESSMENT + " " + TRADITION))
+    assert r.synthesis_sentences == 1 and len(r.areas[0].traditions) == 1
+    assert not any(c.startswith("tradition:") for c in r.areas[0].analysis_cites)
+
+
+def test_the_prompt_offers_the_tradition_tag_at_full_depth_only():
+    assert "[tradition:<text> <chapter>]" in system_prompt("full")
+    assert "[tradition:" not in system_prompt("astrologer") and "[tradition:" not in system_prompt("curious")

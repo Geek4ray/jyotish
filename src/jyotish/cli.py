@@ -323,15 +323,15 @@ def _birth_input(args, BirthInput):
                       accuracy=args.accuracy, node=args.node, place=args.place, seed=args.seed)
 
 
-def _assess(args):
-    """The assessed chart, from the cache when this birth data, these conventions and this
-    seed have been run before (jyotish.cache)."""
+def _assess(args, with_id: bool = False):
+    """The assessed chart (and, `with_id`, its id: the cache key), from the cache when this birth
+    data, these conventions and this seed have been run before (jyotish.cache)."""
     import sys
     from .service import assess_birth
-    chart, source, _ = assess_birth(_birth(args))
+    chart, source, chart_id = assess_birth(_birth(args))
     print(f"chart: {source}" + (" (cached run of the 200-sample assess)" if source != "computed" else ""),
           file=sys.stderr)
-    return chart
+    return (chart, chart_id) if with_id else chart
 
 
 def _birth_flags(p) -> None:
@@ -394,11 +394,12 @@ def cmd_read(args) -> int:
     from pathlib import Path
     from .narrate import NarrationError
     from .service import make_reading
-    chart = _assess(args)
+    chart, chart_id = _assess(args, with_id=True)
     try:
         reading, page = make_reading(_birth(args), args.question, chart=chart, as_of=args.as_of,
                                      model_fixture=args.model_fixture, depth=args.depth,
-                                     writer_model=args.writer_model, writer_effort=args.writer_effort)
+                                     writer_model=args.writer_model, writer_effort=args.writer_effort,
+                                     chart_id=chart_id)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2

@@ -230,7 +230,11 @@ function analysisBlock(a, notes) {
     return `<div class="analysis-section" data-section="${sec}"><h3 class="small">${heading}</h3>${text
       ? `<p>${notes.text(text)}</p>` : `<p class="muted">Not narrated within the checks (listed below).</p>`}</div>`;
   }).join("");
-  return `<div class="analysis">${sections}</div>${a.claims.length ? `<h3 class="small">The findings, one by one</h3>` : ""}`;
+  // Never checked: set apart from the checked sections, each with the engine's own line.
+  const trad = (a.traditions || []).length ? `<aside class="traditions"><h3 class="small">From the texts, not computed on this chart</h3>
+    <p class="muted small tradition-note">${esc(a.traditions[0].note)}</p>
+    <ul>${a.traditions.map((x) => `<li data-citation="${esc(x.citation)}">${esc(x.sentence.replace(/\s*\[tradition:[^\]]*\]/, ""))} <span class="muted small">(${esc(x.citation)}; unverified)</span></li>`).join("")}</ul></aside>` : "";
+  return `<div class="analysis">${sections}${trad}</div>${a.claims.length ? `<h3 class="small">The findings, one by one</h3>` : ""}`;
 }
 
 // Placements the engine weighed beyond the three offered to the writer (learner material).

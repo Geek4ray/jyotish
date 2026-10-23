@@ -72,6 +72,31 @@ def birth_key_of(birth: BirthInput) -> str:
     return birth_key(utc, birth.lat, birth.lon)
 
 
+CANDIDATES = Path("data") / "candidate_rules.jsonl"     # JYOTISH_CANDIDATE_RULES overrides
+
+
+def record_candidates(reading, chart: Chart, chart_id: str | None = None, path: str | Path | None = None) -> int:
+    """Append the reading's [tradition:] sentences to data/candidate_rules.jsonl (or
+    JYOTISH_CANDIDATE_RULES) for the astrologer to triage into draft rules (docs/triage.md): the
+    chart hash (the chart id when known, else fullchart.chart_hash), the area, the sentence, the
+    citation and its text and chapter, the reading's date and writer. No birth data. Returns the
+    number of rows written."""
+    import os
+    from .fullchart import chart_hash
+    rows = [{"status": "candidate", "chart_hash": chart_id or chart_hash(chart), "area": a.name, "section": x["section"],
+             "sentence": x["sentence"], "citation": x["citation"], "text": x["text"], "chapter": x["chapter"],
+             "verse": x["verse"], "as_of": reading.as_of, "engine": reading.engine, "writer": reading.writer,
+             "recorded_at": datetime.now(timezone.utc).isoformat()}
+            for a in reading.areas for x in a.traditions]
+    if not rows:
+        return 0
+    out = Path(path or os.environ.get("JYOTISH_CANDIDATE_RULES") or CANDIDATES)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("a") as f:
+        f.writelines(json.dumps(r, ensure_ascii=False, default=str) + "\n" for r in rows)
+    return len(rows)
+
+
 DEPTH_DEFAULT = "curious"          # SPEC Layer 7: the request's depth, curious unless asked otherwise
 
 
@@ -129,11 +154,13 @@ def reading_header(birth: BirthInput, question: str, chart: Chart, as_of: str | 
 def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str | None = None,
                  model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None,
                  depth: str = DEPTH_DEFAULT, writer_model: str | None = None, writer_effort: str | None = None,
-                 recording: list | None = None):
+                 recording: list | None = None, chart_id: str | None = None):
     """(reading, page). The areas are the question's, then the chart's top three. With
     `model_fixture` the model is replayed from that recording (offline) and sentences with no
     recorded checker verdict are counted as unchecked. `writer_model` and `writer_effort` override
-    the writer's settings (narrate.writer_config); `recording` collects every call. NarrationError
+    the writer's settings (narrate.writer_config); `recording` collects every call. A live reading's
+    [tradition:] sentences are recorded as candidate rules under `chart_id` (record_candidates); a
+    replay records none, since its sentences were recorded when it was made. NarrationError
     propagates."""
     from .narrate import FixtureChecker, FixtureDrafter, TAG, narrate, route, sentences
     from .page import render
@@ -157,4 +184,6 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
         update |= {"narration_source": f"fixture:{model_fixture}",
                    "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)}
     reading = reading.model_copy(update=update)
+    if not model_fixture:
+        record_candidates(reading, chart, chart_id)
     return reading, render(reading, chart)

@@ -203,6 +203,8 @@ table.windows td:nth-child(-n+6), table.windows th { white-space: nowrap; }
 .paragraph { margin: 0; font-size: 16px; line-height: 1.65; }
 .analysis { display: grid; gap: 12px; margin: 4px 0 12px; }
 .analysis-section p { margin: 4px 0 0; line-height: 1.6; }
+.traditions { border: 1px dashed var(--muted); border-radius: 6px; padding: 8px 12px; }
+.traditions ul { margin: 6px 0 0; padding-left: 18px; }
 details.astrologer > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; min-height: 44px; display: flex; align-items: center; }
 details.astrologer[open] > summary { margin-bottom: 8px; }
 .timing-note { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; font-style: italic; }

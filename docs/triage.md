@@ -85,3 +85,15 @@ the date: from then on it carries weight in scoring (as a placement, at a third 
 confidence), and a reading may state its effect. The rule still has to earn
 `data_confirmed` against dated outcomes (SPEC Layer 6); your reading confirms what the text
 says, not that it is true.
+
+## Candidate rules from depth-full readings
+
+A reading at depth full may say what a classical text holds beyond the rule library, in a sentence
+ending `[tradition:<text> <chapter>]`. The engine never checks such a sentence: the client sees it
+set apart, marked unverified. Each one is also appended to `data/candidate_rules.jsonl`, one JSON
+row per sentence: the sentence, the citation (text and chapter), the area, the chart hash and the
+reading's date and writer, with no birth data. Read the chapter it names. Where the text says what
+the sentence says, the row can become a draft rule (`scripts/placements.csv` for a placement, a rule
+file for anything else), with your name and the date as for the placements above. Where it does
+not, tell the engineer which row: the writer's prompt can be told to stop making that kind of
+claim. A candidate is a lead for you to read, never a rule until you have.
