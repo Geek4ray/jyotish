@@ -172,7 +172,7 @@ def nakshatra_table(chart: Chart) -> list[dict[str, Any]]:
     from .nakshatra import nakshatra_of, navatara
     moon = chart.bodies["Moon"].nak
     asc = nakshatra_of(chart.lagnas.asc)
-    t = navatara(asc.index, moon)
+    t = navatara(asc.index, moon, chart.meta.special_taras)
     rows = [{"planet": "Ascendant", "nakshatra": asc.name, "pada": asc.pada,
              "pada_navamsa": SIGNS[int(chart.lagnas.asc * 108 / 360) % 12], "lord": asc.lord,
              "sub_lord": asc.sub_lord, "sub_sub_lord": asc.sub_sub_lord, "tara": t.name, "cycle": t.cycle,

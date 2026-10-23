@@ -151,7 +151,7 @@ def tara_rows(chart: Chart, sky: Sky, start_jd: float, end_jd: float) -> list[Ta
     out = []
     for body, step in [(b, STEP) for b in TARA_SLOW] + [("Moon", MOON_STEP)]:
         for k, t0, t1, entered in segments(sky, body, start_jd, end_jd, parts=27, step=step):
-            t = navatara(k, moon)
+            t = navatara(k, moon, chart.meta.special_taras)
             if body != "Moon" and (not t.adverse or entered is None):
                 continue
             out.append(TaraRow(body=body, nakshatra=NAKSHATRAS[k], tara=t.name, count=t.count, cycle=t.cycle,

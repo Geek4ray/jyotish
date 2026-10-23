@@ -167,10 +167,19 @@ def nakshatra_lord(idx: int) -> str:
 # Navatara: the nine-fold cycle counted from the Moon's nakshatra (Janma = 1).
 TARA_NAMES = ["Janma", "Sampat", "Vipat", "Kshema", "Pratyak", "Sadhaka", "Vadha", "Mitra", "Atimitra"]
 TARA_ADVERSE = {"Vipat", "Pratyak", "Vadha"}
-# Special taras by absolute count from Janma. Sources differ on Jati/Desha at 26/27;
-# this follows the Brihat Samhita ordering and is a setting.
-SPECIAL_TARAS = {1: "janma", 10: "karma", 16: "sanghatika", 18: "samudaya", 19: "adhana",
-                 23: "vinasha", 25: "manasa", 26: "jati", 27: "desha"}
+# Special taras by absolute count from Janma, a setting (Meta.special_taras): the lists differ on
+# where Jati and Desha fall. "desha_27" is the common modern list (Jagannatha Hora's among them):
+# Jati 26, Desha 27. "desha_12" is SPEC rev 101's worked example: Desha 12, Jati 27. Neither is read
+# in a named edition yet (review 2026-10-23); the engine's default is the first, the reference app's
+# family, and the SPEC's reading is kept as the second so that nothing it says is lost.
+SPECIAL_TARA_SCHEMES = {
+    "desha_27": {1: "janma", 10: "karma", 16: "sanghatika", 18: "samudaya", 19: "adhana", 23: "vinasha",
+                 25: "manasa", 26: "jati", 27: "desha"},
+    "desha_12": {1: "janma", 10: "karma", 12: "desha", 16: "sanghatika", 18: "samudaya", 19: "adhana",
+                 23: "vinasha", 25: "manasa", 27: "jati"},
+}
+DEFAULT_SPECIAL_TARAS = "desha_27"
+SPECIAL_TARAS = SPECIAL_TARA_SCHEMES[DEFAULT_SPECIAL_TARAS]
 
 # Baladi avastha spans (BPHS 45.3-4): forward in odd signs, reversed in even signs.
 BALADI = ["Bala", "Kumara", "Yuva", "Vriddha", "Mrita"]

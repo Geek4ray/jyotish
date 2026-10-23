@@ -36,8 +36,8 @@ from .vargas import PRODUCTION_VARGAS, VARGAS, is_vargottama
 ACCURACY_HALF_WIDTH_MIN = {"exact": 2.0, "within_15": 15.0, "approximate": 60.0, "unknown": 720.0}
 
 
-def _tara_info(nak_index: int, moon_nak: int) -> TaraInfo:
-    t = navatara(nak_index, moon_nak)
+def _tara_info(nak_index: int, moon_nak: int, scheme: str = "desha_27") -> TaraInfo:
+    t = navatara(nak_index, moon_nak, scheme)
     return TaraInfo(name=t.name, count=t.count, cycle=t.cycle, adverse=t.adverse, special=t.special)
 
 
@@ -78,7 +78,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
             lon=lon, sign=sign, sign_name=SIGNS[sign], deg=lon % 30,
             nak=nak.index, nak_name=nak.name, pada=nak.pada, nak_lord=nak.lord,
             sub_lord=nak.sub_lord, sub_sub_lord=nak.sub_sub_lord,
-            tara=_tara_info(nak.index, moon_nak), house=house, speed=speed, retro=retro,
+            tara=_tara_info(nak.index, moon_nak, meta.special_taras), house=house, speed=speed, retro=retro,
             combust=is_combust(name, lon, sun_lon, retro) if name != "Sun" else False,
             boundary=is_boundary(lon), avastha_baladi=baladi_avastha(lon),
             vargottama=is_vargottama(lon),
@@ -104,7 +104,7 @@ def analyse(positions: dict[str, float], asc: float, *, speeds: dict[str, float]
         cusp_lords[7] = {"star": n7.lord, "sub": n7.sub_lord, "sub_sub": n7.sub_sub_lord}
     lagnas = Lagnas(
         asc=asc, asc_sign=lagna_sign, asc_sign_name=SIGNS[lagna_sign], asc_nak=asc_nak.name,
-        asc_nak_lord=asc_nak.lord, asc_tara=navatara(asc_nak.index, moon_nak).name, mc=mc,
+        asc_nak_lord=asc_nak.lord, asc_tara=navatara(asc_nak.index, moon_nak, meta.special_taras).name, mc=mc,
         cusps_placidus=cusps_map, cusp_lords_kp=cusp_lords, bhava_madhya_sripati=madhyas,
     )
 

@@ -42,6 +42,7 @@ class Meta(BaseModel):
     ayana_obliquity: str = "bphs"          # bphs (24°) | true (mean obliquity of date)
     ayana_sun_double: bool = True
     chesta_luminaries: str = "bphs"        # bphs (Sun = ayana, Moon = paksha) | zero
+    special_taras: str = "desha_27"        # desha_27 (Jati 26, Desha 27: the common list) | desha_12 (SPEC rev 101: Desha 12, Jati 27)
     time_accuracy: str = "exact"
 
 

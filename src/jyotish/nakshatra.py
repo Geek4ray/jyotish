@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .constants import (
-    NAKSHATRA_SPAN, NAKSHATRAS, PADA_SPAN, SPECIAL_TARAS, TARA_ADVERSE, TARA_NAMES,
+    DEFAULT_SPECIAL_TARAS, NAKSHATRA_SPAN, NAKSHATRAS, PADA_SPAN, SPECIAL_TARA_SCHEMES, TARA_ADVERSE, TARA_NAMES,
     VIMSHOTTARI_ORDER, VIMSHOTTARI_TOTAL, VIMSHOTTARI_YEARS, nakshatra_lord,
 )
 
@@ -74,12 +74,14 @@ class Tara:
     special: str | None
 
 
-def navatara(nak_index: int, moon_nak_index: int) -> Tara:
+def navatara(nak_index: int, moon_nak_index: int, scheme: str = DEFAULT_SPECIAL_TARAS) -> Tara:
+    """The nine-fold tara from the Moon's nakshatra, and the special tara the `scheme`
+    (constants.SPECIAL_TARA_SCHEMES, Meta.special_taras) gives the absolute count."""
     count = (nak_index - moon_nak_index) % 27 + 1
     cycle = (count - 1) // 9 + 1
     index = (count - 1) % 9 + 1
     name = TARA_NAMES[index - 1]
-    return Tara(count, cycle, index, name, name in TARA_ADVERSE, SPECIAL_TARAS.get(count))
+    return Tara(count, cycle, index, name, name in TARA_ADVERSE, SPECIAL_TARA_SCHEMES[scheme].get(count))
 
 
 def vimshottari_balance(moon_lon: float, year_days: float = 365.25) -> tuple[str, float]:

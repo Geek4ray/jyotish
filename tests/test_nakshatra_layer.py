@@ -11,7 +11,8 @@ from jyotish.constants import NAK_ATTRIBUTE_KEYS, NAK_ATTRIBUTE_SOURCES, NAK_ATT
 from jyotish.display import tables
 from jyotish.nakpoints import ABHIJIT, counted_drekkana, counted_pada, in_abhijit
 from jyotish.nakshatra import navatara
-from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+from jyotish.reference import (REFERENCE_ASC, REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, REFERENCE_POSITIONS,
+                               REFERENCE_SPEEDS, reference_time_inputs)
 from jyotish.transits import Sky, transit_timeline
 from jyotish.uncertainty import assess
 
@@ -102,6 +103,23 @@ def test_the_special_nakshatra_points(chart, t):
     assert set(np.sources) == {"navamsa_64", "drekkana_22", "abhijit", "nakshatra_lagnesha"}
     assert all(s["checked"] is False for s in np.sources.values())
     assert t["nakshatra_points"]["nakshatra_lagnesha"]["planet"] == "Sun"
+
+
+def test_the_special_taras_are_a_setting(chart):
+    # The lists differ on Jati and Desha. The default ("desha_27": Jati 26, Desha 27, the common modern
+    # list) gives the Sun, 12th from Chitra, no special tara; SPEC rev 101's reading ("desha_12") calls
+    # the 12th Desha and the 27th Jati. Karma 10 and Samudaya 18 are the same in both.
+    from jyotish.chart import analyse
+    moon, sun = chart.bodies["Moon"].nak, chart.bodies["Sun"]
+    assert chart.meta.special_taras == "desha_27" and sun.tara.count == 12 and sun.tara.special is None
+    assert navatara(sun.nak, moon, "desha_12").special == "desha"
+    assert navatara((moon + 26) % 27, moon).special == "desha" and navatara((moon + 25) % 27, moon).special == "jati"
+    assert navatara((moon + 26) % 27, moon, "desha_12").special == "jati" and navatara((moon + 25) % 27, moon, "desha_12").special is None
+    inputs = reference_time_inputs()
+    inputs["meta"] = inputs["meta"].model_copy(update={"special_taras": "desha_12"})
+    alt = analyse(REFERENCE_POSITIONS, REFERENCE_ASC, speeds=REFERENCE_SPEEDS, **inputs)
+    assert alt.bodies["Sun"].tara.special == "desha" and alt.bodies["Mercury"].tara.special == "karma"
+    assert alt.bodies["Jupiter"].tara.special == "samudaya" == chart.bodies["Jupiter"].tara.special
 
 
 def test_pada_and_abhijit_boundaries():
