@@ -3,7 +3,8 @@
 # ANTHROPIC_API_KEY, JYOTISH_CANDIDATE_RULES, JYOTISH_CACHE_DIR, JYOTISH_SOURCE_URL. No key is
 # baked in. Swiss Ephemeris is AGPL-3.0: a deployment offers its users the source (docs/deploy.md).
 
-FROM python:3.12-slim AS build
+# Debian 13 (trixie), pinned: its postgresql-client is PostgreSQL 17, whose pg_dump backs up a 16 server.
+FROM python:3.12-slim-trixie AS build
 # pyswisseph builds from source: a compiler in this stage only.
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -12,11 +13,14 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip wheel --no-cache-dir --wheel-dir /wheels ".[api]"
 
-FROM python:3.12-slim
+FROM python:3.12-slim-trixie
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
     JYOTISH_DATABASE_URL=sqlite:////data/jyotish.db \
     JYOTISH_CACHE_DIR=/data/cache \
     JYOTISH_CANDIDATE_RULES=/data/candidate_rules.jsonl
+# pg_dump for scripts/pg_backup.sh (the nightly backup runs from this image too).
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
 RUN useradd --create-home --uid 1000 jyotish && mkdir -p /data && chown jyotish /data
 WORKDIR /app
 COPY --from=build /wheels /wheels
@@ -28,6 +32,7 @@ COPY src ./src
 COPY rules ./rules
 COPY web ./web
 COPY examples ./examples
+COPY scripts/pg_backup.sh ./scripts/pg_backup.sh
 RUN pip install --no-cache-dir --no-deps -e . && chown -R jyotish /app
 USER jyotish
 VOLUME /data

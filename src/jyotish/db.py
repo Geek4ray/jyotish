@@ -24,14 +24,36 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 MIGRATIONS = Path(__file__).with_name("migrations")
 
 
+def _service_environment(name: str, path: str = "/proc/1/environ") -> str | None:
+    """A variable of the container's main process (the service), for a command run beside it in a
+    shell that was not given the app's secrets (`fly ssh console -C "jyotish reviewer add …"`)."""
+    try:
+        for item in Path(path).read_bytes().split(b"\0"):
+            if item.startswith(name.encode() + b"="):
+                return item.split(b"=", 1)[1].decode()
+    except OSError:
+        pass
+    return None
+
+
 def database_url(url: str | None = None) -> str:
-    """The database to open: the one named, else JYOTISH_DATABASE_URL, else sqlite:///jyotish.db
-    (a local run). A postgres:// or postgresql:// URL (what hosts hand out) is given the psycopg driver."""
-    url = url or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
+    """The database to open: the one named, else JYOTISH_DATABASE_URL, else the service process's
+    own (inside its container), else sqlite:///jyotish.db (a local run). A postgres:// or
+    postgresql:// URL (what hosts hand out) is given the psycopg driver."""
+    url = url or os.environ.get("JYOTISH_DATABASE_URL") or _service_environment("JYOTISH_DATABASE_URL") \
+        or "sqlite:///jyotish.db"
     for prefix in ("postgres://", "postgresql://"):
         if url.startswith(prefix):
             return "postgresql+psycopg://" + url[len(prefix):]
     return url
+
+
+def describe(url: str | None = None) -> str:
+    """The database in words, without its password: "postgresql at db:5432/jyotish", "sqlite at jyotish.db"."""
+    from sqlalchemy.engine import make_url
+    u = make_url(database_url(url))
+    where = f"{u.host}:{u.port or ''}/{u.database}" if u.host else (u.database or "memory")
+    return f"{u.get_backend_name()} at {where}"
 
 
 def engine_for(url: str | None = None):

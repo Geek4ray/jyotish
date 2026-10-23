@@ -9,5 +9,6 @@ reading.json
 reading.md
 tests/
 scripts/
+!scripts/pg_backup.sh
 docs/
 design/

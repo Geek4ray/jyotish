@@ -74,3 +74,161 @@ extra is not built). Astro-Databank data is not used by the service.
 
 This is the project's reading of the licences, not legal advice; a commercial launch is the moment to
 have it read by someone who gives it.
+
+## From an empty Fly.io account to a working /review link
+
+Fly.io, because every step is one documented command (Railway's CLI documents no flag for an empty
+service, a volume's mount path or a command run in the container, so those steps would be clicks).
+Region `sin` (Singapore): Fly has no region in India, and Singapore is the nearest with Managed
+Postgres. Run everything from the repository's folder on your Mac, in Terminal. Where a line says
+`<…>`, put in what it names.
+
+**1. Install the Fly command and sign up.**
+
+```bash
+brew install flyctl
+```
+
+```bash
+fly auth signup
+```
+
+A browser opens; sign up (Fly asks for a card before it runs anything). If you already have an account,
+`fly auth login` instead.
+
+**2. Name the app.** The name becomes the address, `https://<name>.fly.dev`, and must be free across all of
+Fly. Pick one and keep it in your Terminal session (repeat this line in any new Terminal window):
+
+```bash
+export APP=jyotish-ray
+```
+
+```bash
+fly apps create "$APP"
+```
+
+If the name is taken, choose another, run `export APP=…` again and repeat.
+
+**3. A volume for the service's files** (the chart cache and the candidate rules; 1 GB):
+
+```bash
+fly volumes create jyotish_data --region sin --size 1 -a "$APP" -y
+```
+
+**4. The database.** Create a Managed Postgres cluster (Postgres 16, the Basic plan; Fly shows the price
+before it creates anything):
+
+```bash
+fly mpg create --name jyotish-db --region sin --plan Basic --pg-major-version 16
+```
+
+It prints the cluster's ID when it is ready (a few minutes). If you lose it:
+
+```bash
+fly mpg list
+```
+
+Attach it to the app under the variable the service reads:
+
+```bash
+fly mpg attach <CLUSTER ID> -a "$APP" --variable-name JYOTISH_DATABASE_URL
+```
+
+**5. The secrets.** Your Anthropic API key, and where the source is offered (the licence section above;
+the repository is public, so its address is enough):
+
+```bash
+fly secrets set ANTHROPIC_API_KEY=<your key> JYOTISH_SOURCE_URL=https://github.com/Geek4ray/jyotish -a "$APP" --stage
+```
+
+**6. Deploy.** Fly builds the image from the Dockerfile on its own builders (about five minutes the first
+time) and starts the machine with `fly.toml`:
+
+```bash
+fly deploy -a "$APP"
+```
+
+**7. Check it.**
+
+```bash
+curl -s https://$APP.fly.dev/health
+```
+
+You want `"status": "ok"`, `"dialect": "postgresql"`, the same value for `"revision"` and `"head"`, and
+`"narration": "live"`. Open `https://<your app>.fly.dev/` in a browser: the site.
+
+**8. Tokens.** One for each reviewer, and one for you as the owner (it reads the costs). Each prints once;
+send the reviewer's to the reviewer privately, keep yours in your password manager:
+
+```bash
+fly ssh console -a "$APP" -C "jyotish reviewer add judge-1"
+```
+
+```bash
+fly ssh console -a "$APP" -C "jyotish owner add ray"
+```
+
+Each first prints the database it writes to: it must say `database: postgresql at …`. If it says
+`sqlite`, the token went to a file the service does not read: stop, and check step 4's attach. A clerk
+entering outcomes gets `jyotish clerk add <name>` the same way.
+
+**9. A reading to review.** Make one on the site (the form at `https://<your app>.fly.dev/`), or from Terminal:
+
+```bash
+curl -s -X POST https://$APP.fly.dev/readings -H 'Content-Type: application/json' -d '{"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": 28.1989, "lon": 76.617, "node": "mean", "place": "Rewari, Haryana", "question": "How will my career go, and when is the best time for a job change?", "depth": "astrologer"}'
+```
+
+It answers with an `id`. When the reading is done (a few minutes; the site shows it, or
+`curl -s https://$APP.fly.dev/readings/<id>` says `"status": "done"`), the reviewer's link is:
+
+```
+https://<your app>.fly.dev/review/<id>
+```
+
+The page asks for the token once per browser tab. The judge page is the same link with `?mode=blind`.
+
+**10. A blind comparison.** Two readings of the same birth data and question at different settings: post
+the reading above twice, once with `"writer_effort": "medium"` and `"depth": "astrologer"`, once with
+`"depth": "full"`, and send the reviewer
+
+```
+https://<your app>.fly.dev/compare/<first id>/<second id>
+```
+
+**Day to day.**
+
+- What it has cost: `curl -s -H "Authorization: Bearer <your owner token>" https://$APP.fly.dev/costs/daily`
+- Revoke a reviewer: `fly ssh console -a "$APP" -C "jyotish reviewer revoke judge-1"` (then `add` for a new token)
+- The logs: `fly logs -a "$APP"` (JSON lines; no birth data is ever written to them)
+- A new version: `git pull`, then `fly deploy -a "$APP"` (the database is migrated as the service starts)
+- Readings are rate-limited to 30 per client per hour and 300 a day; to change it,
+  `fly secrets set JYOTISH_READINGS_PER_HOUR=<n> JYOTISH_READINGS_PER_DAY=<n> -a "$APP"`
+
+**Backups on Fly.** Managed Postgres backs the database up automatically (the retention is the plan's: see
+the cluster's page in the Fly dashboard). For a copy of your own, the service's image has the backup
+script; this writes a dump to the app's volume and keeps 14 days of them:
+
+```bash
+fly ssh console -a "$APP" -C "/app/scripts/pg_backup.sh"
+```
+
+## One host of your own, with Caddy
+
+On a Linux server with Docker, a domain whose A record points at it, and ports 80 and 443 open:
+
+```bash
+git clone https://github.com/Geek4ray/jyotish.git && cd jyotish && cp .env.example .env
+```
+
+Fill in `POSTGRES_PASSWORD`, `ANTHROPIC_API_KEY`, `JYOTISH_SOURCE_URL` and `JYOTISH_DOMAIN` in `.env`, then:
+
+```bash
+docker compose --profile host up -d --build
+```
+
+Caddy obtains the certificate for the domain and serves the service at `https://<domain>/`; Postgres and
+the service are reachable only from the host. The `backup` service runs `scripts/pg_backup.sh --nightly`:
+a `pg_dump` at 03:00 UTC every night into `./backups`, each kept 14 days (`RETENTION_DAYS` in `.env`).
+Copy `./backups` off the host now and then; a backup on the same disk is not a backup against the disk.
+Tokens: `docker compose exec app jyotish reviewer add judge-1`. Restore a dump into an empty database:
+`docker compose exec -T db pg_restore --no-owner -U jyotish -d jyotish < backups/<file>.dump`.

@@ -546,3 +546,22 @@ milliseconds (never its query string, which for /places carries a birthplace; a 
 written as <chart>), a reading's id, depth, writer, attempts, gaps, cost and seconds, a failure by
 its exception's class; a test runs a reading, a place search and a chart table and finds no birth
 date, time, place, coordinates, timezone, question or chart id in the log.
+
+**HTTPS, backups and the guide.** A Caddyfile (HTTPS for JYOTISH_DOMAIN, certificates obtained and
+renewed by Caddy, no access log since a request line carries the birthplace search's query) and
+`scripts/pg_backup.sh` (a pg_dump in Postgres's custom format, pruned past RETENTION_DAYS, 14 by
+default; `--nightly` runs it at 03:00 UTC for ever), both in docker-compose.yml's `host` profile.
+The image moved to Debian 13 (python:3.12-slim-trixie, pinned) for PostgreSQL 17's client, whose
+pg_dump backs up a 16 server; CI dumps the compose Postgres, restore-checks the dump and sees an old
+one pruned. docs/deploy.md takes Ray from an empty Fly.io account to a working /review link, every
+step a documented command (fly apps create, fly volumes create, fly mpg create and attach with
+`--variable-name JYOTISH_DATABASE_URL`, fly secrets set, fly deploy, fly ssh console -C "jyotish
+reviewer add …"), in Singapore, the nearest region to India with Managed Postgres; Fly over Railway
+because Railway's CLI documents no flag for an empty service, a volume's mount path or a command in
+the container. fly.toml keeps one machine running (a reading runs on its threads for minutes) and
+checks /health. A command run beside the service in its container finds the service's database
+from its process environment when its own shell was not given the app's secrets, and the credential
+commands print the database they wrote to (`postgresql at …`, never the password), so a token stored
+in the wrong one shows at once. Managed Postgres backs up on its own; the same script makes a copy on
+the app's volume on demand. The guide also covers one Linux host of one's own with the compose
+`host` profile.

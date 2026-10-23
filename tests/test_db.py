@@ -73,3 +73,17 @@ def test_postgres_is_migrated_to_the_head_with_no_drift():
     engine = _check_fresh(url)
     cols = {c["name"]: c["type"] for c in inspect(engine).get_columns("readings")}
     assert type(cols["document"]).__name__ == "JSONB"
+
+
+def test_a_command_beside_the_service_finds_its_database(tmp_path, monkeypatch):
+    """`fly ssh console -C "jyotish reviewer add …"` may not carry the app's secrets: the service
+    process's environment (/proc/1/environ in its container) names the database."""
+    from jyotish.db import _service_environment, describe
+    environ = tmp_path / "environ"
+    environ.write_bytes(b"PATH=/usr/bin\0JYOTISH_DATABASE_URL=postgres://u:secret@db.internal:5432/jyotish\0HOME=/root\0")
+    assert _service_environment("JYOTISH_DATABASE_URL", str(environ)) == "postgres://u:secret@db.internal:5432/jyotish"
+    assert _service_environment("NOPE", str(environ)) is None and _service_environment("X", str(tmp_path / "none")) is None
+    assert describe("postgres://u:secret@db.internal:5432/jyotish") == "postgresql at db.internal:5432/jyotish"
+    assert "secret" not in describe("postgres://u:secret@db.internal:5432/jyotish")
+    monkeypatch.delenv("JYOTISH_DATABASE_URL", raising=False)
+    assert describe("sqlite:///jyotish.db") == "sqlite at jyotish.db"

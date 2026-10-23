@@ -1,0 +1,37 @@
+# Fly.io (docs/deploy.md): one machine in Singapore, the nearest region to India with Managed
+# Postgres. The app's name is given on every command (-a "$APP"); JYOTISH_DATABASE_URL is the secret
+# `fly mpg attach --variable-name JYOTISH_DATABASE_URL` sets, ANTHROPIC_API_KEY and JYOTISH_SOURCE_URL
+# are secrets Ray sets. The machine never stops on its own: a reading runs on its threads for minutes.
+app = "jyotish"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  JYOTISH_CANDIDATE_RULES = "/data/candidate_rules.jsonl"
+  JYOTISH_CACHE_DIR = "/data/cache"
+  FORWARDED_ALLOW_IPS = "*"
+
+[mounts]
+  source = "jyotish_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[http_service.checks]]
+  grace_period = "30s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

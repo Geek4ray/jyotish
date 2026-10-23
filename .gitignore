@@ -17,3 +17,5 @@ data/candidate_rules.jsonl
 data/sequestered.txt
 # A deployment's secrets (docker-compose reads them)
 .env
+# The compose host's nightly database dumps (scripts/pg_backup.sh)
+backups/

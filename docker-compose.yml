@@ -1,5 +1,6 @@
 # One host: Postgres and the service (docs/deploy.md). `docker compose up -d` with a .env file beside
-# this one (copy .env.example); the service listens on 127.0.0.1:8000 until Caddy is put in front.
+# this one (copy .env.example) runs them on 127.0.0.1:8000; `docker compose --profile host up -d` adds
+# Caddy (HTTPS for JYOTISH_DOMAIN) and the nightly pg_dump (scripts/pg_backup.sh, kept 14 days).
 services:
   db:
     image: postgres:16
@@ -25,6 +26,8 @@ services:
       JYOTISH_CANDIDATE_RULES: /data/candidate_rules.jsonl
       JYOTISH_CACHE_DIR: /data/cache
       JYOTISH_SOURCE_URL: ${JYOTISH_SOURCE_URL:-}
+      # The client address for the rate limit comes from the proxy's X-Forwarded-For (Caddy, below).
+      FORWARDED_ALLOW_IPS: "*"
     volumes:
       - appdata:/data
     depends_on:
@@ -33,6 +36,39 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
 
+  caddy:
+    image: caddy:2
+    profiles: ["host"]
+    restart: unless-stopped
+    environment:
+      JYOTISH_DOMAIN: ${JYOTISH_DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  backup:
+    build: .
+    profiles: ["host"]
+    restart: unless-stopped
+    command: ["/app/scripts/pg_backup.sh", "--nightly"]
+    environment:
+      JYOTISH_DATABASE_URL: postgresql+psycopg://jyotish:${POSTGRES_PASSWORD}@db:5432/jyotish
+      BACKUP_DIR: /backups
+      RETENTION_DAYS: ${RETENTION_DAYS:-14}
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
   appdata:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,14 @@
+# HTTPS for the service on one host (docker compose --profile host; docs/deploy.md). Caddy obtains and
+# renews the certificate for JYOTISH_DOMAIN itself; the domain's A record must point at this host and
+# ports 80 and 443 must be open. No access log: a request line carries its query string, and the
+# birthplace search (/places?q=) is birth data. The service logs requests itself, without them.
+{$JYOTISH_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8000
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}

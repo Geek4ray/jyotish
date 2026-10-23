@@ -85,4 +85,12 @@ jobs:
           cat health.json
           python3 -c "import json; h = json.load(open('health.json')); assert h['status'] == 'ok' and h['database']['dialect'] == 'postgresql' and h['database']['revision'] == h['database']['head'] and h['narration'] == 'no key', h"
           docker compose logs app | tail -20
+      - name: Back the Postgres database up, restore-check the dump, prune past the retention
+        env:
+          POSTGRES_PASSWORD: ci-only
+        run: |
+          docker compose exec -T app sh -c 'mkdir -p /data/backups && touch -d "20 days ago" /data/backups/jyotish-old.dump'
+          docker compose exec -T -e RETENTION_DAYS=14 app /app/scripts/pg_backup.sh | tee backup.log
+          grep -q "pg_backup: wrote /data/backups/jyotish-" backup.log
+          docker compose exec -T app sh -c 'test ! -e /data/backups/jyotish-old.dump && pg_restore --list /data/backups/jyotish-*.dump | grep -q "TABLE public readings"'
           docker compose down -v

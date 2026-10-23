@@ -427,9 +427,10 @@ def cmd_credentials(args) -> int:
     """jyotish reviewer|clerk|owner add|revoke|list: tokens in the credentials table."""
     import sys
     from sqlalchemy.orm import sessionmaker
-    from .db import CredentialRow, issue_token, migrate, revoke_token
+    from .db import CredentialRow, describe, issue_token, migrate, revoke_token
     Session = sessionmaker(migrate(args.database))
     kind = args.cmd
+    print(f"database: {describe(args.database)}", file=sys.stderr)    # so a token stored in the wrong one shows
     with Session.begin() as s:
         if args.kcmd == "add":
             try:
