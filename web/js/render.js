@@ -227,10 +227,20 @@ function areaCard(a, notes, depth) {
 // tier above is the engine's); a section that did not pass the checks says so and is listed as a gap.
 const ANALYSIS_HEADINGS = { assessment: "Assessment", timing: "Timing", not_said: "What the chart does not say" };
 function analysisBlock(a, notes) {
+  // A judgement is marked where it is read: its premises were checked, its weighing is the reading's.
+  const weighed = new Set((a.judgements || []).map((j) => j.sentence));
+  const marked = (text) => {
+    let out = notes.text(text);
+    for (const j of weighed) {
+      const plain = notes.text(j);
+      if (out.includes(plain)) out = out.replace(plain, `<span class="judgement"><span class="judgement-label">the reading's weighing</span> ${plain}</span>`);
+    }
+    return out;
+  };
   const sections = Object.entries(ANALYSIS_HEADINGS).map(([sec, heading]) => {
     const text = (a.analysis || {})[sec];
     return `<div class="analysis-section" data-section="${sec}"><h3 class="small">${heading}</h3>${text
-      ? `<p>${notes.text(text)}</p>` : `<p class="muted">Not narrated within the checks (listed below).</p>`}</div>`;
+      ? `<p>${marked(text)}</p>` : `<p class="muted">Not narrated within the checks (listed below).</p>`}</div>`;
   }).join("");
   // Never checked: set apart from the checked sections, each with the engine's own line.
   const trad = (a.traditions || []).length ? `<aside class="traditions"><h3 class="small">From the texts, not computed on this chart</h3>

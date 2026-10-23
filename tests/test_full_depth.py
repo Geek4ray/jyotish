@@ -374,3 +374,123 @@ def test_a_votes_or_contributions_fact_stands_for_the_vote_tags_it_states(chart)
     assert validate(one, set(), offered_votes=votes, facts=whole) == []
     other = "The lord vote is for longevity [fact:areas.career.votes.lord.vote]."     # another area's vote
     assert any("does not cite [vote:longevity.lord]" in e for e in validate(other, set(), offered_votes=votes, facts=whole))
+
+
+# --- part 3 of the second heading: the judgement sentence kind --------------------------------------
+
+JUDGE = ("I give the lord family more weight than the arudha vote, since the lord family ranks first "
+         "[fact:areas.career.contributions.strongest] [fact:areas.career.votes.arudha.vote].")
+
+
+@pytest.mark.parametrize("sentence,weighs", [
+    ("I weigh the lords above the arudha [vote:career.lord].", True),
+    ("I give the six agreeing families more weight than the arudha vote [vote:career.lord].", True),
+    ("I read Saturn's divisional dignity as the quality of what it gives [vote:career.varga].", True),
+    ("I resolve this contradiction toward Shadbala [vote:career.lord].", True),
+    ("Saturn gives weight to the career houses [vote:career.lord].", False),
+    ("The weighting reads the lords first [vote:career.lord].", False),
+])
+def test_a_judgement_is_known_by_its_form(sentence, weighs):
+    from jyotish.narrate import is_judgement
+    assert is_judgement(sentence) is weighs
+
+
+def test_a_judgement_goes_to_the_checker_for_its_premises_only(chart):
+    stub = SynthesisStub({"Mars is dignified in a kendra": True})
+    r = run(chart, draft(assessment=ASSESSMENT + " " + JUDGE), checker=stub)
+    data = dict(stub.calls)[JUDGE]
+    assert data["judgement"] is True and "synthesis" not in data            # never checked as a conclusion
+    assert set(data["facts"]) == {"areas.career.contributions.strongest", "areas.career.votes.arudha.vote"}
+    a = r.areas[0]
+    assert a.analysis["assessment"].endswith(JUDGE) and a.judgements == [{"section": "assessment", "sentence": JUDGE}]
+    assert r.judgement_sentences == 1 and r.synthesis_sentences == 1        # the kendra sentence only
+    assert "`judgement` true" in CHECKER_PROMPT and "do not list the weighing itself" in CHECKER_PROMPT
+
+
+def test_a_judgement_with_a_false_premise_is_refused(chart):
+    """The checker verifies the premises: a weighing that misstates a cited fact goes back."""
+    class PremiseStub(SynthesisStub):
+        def __call__(self, sentence, data):
+            if sentence == JUDGE:
+                return CheckResult(propositions=[Proposition(text="the lord family ranks first", supported=False,
+                                                             evidence="contributions.strongest is 'house'")])
+            return super().__call__(sentence, data)
+    r = run(chart, draft(assessment=ASSESSMENT + " " + JUDGE), checker=PremiseStub({"Mars is dignified in a kendra": True}))
+    assert r.areas[0].analysis.get("assessment") is None and not r.areas[0].judgements
+
+
+@pytest.mark.parametrize("sentence,needle", [
+    ("I weigh the lords above the arudha.", "cites the findings and facts it weighs"),
+    ("I weigh Venus at 1.33 above Saturn [vote:career.lord].", "only by citing the fact"),
+    ("I give the lords more weight, since career support is strong [fact:areas.career.contributions].", "tier language"),
+])
+def test_a_judgement_keeps_to_its_limits(chart, sentence, needle):
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range, validate_summary
+    whole = payload(chart, AS_OF, *full_range(AS_OF), ["career"])
+    errs = validate_summary(sentence, {"vote:career.lord"}, facts=whole, family_rule=False, traditions=True,
+                            judgements=True, where="career assessment")
+    assert any(needle in e for e in errs), errs
+
+
+def test_a_judgement_belongs_in_the_analysis(chart):
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range, validate
+    whole = payload(chart, AS_OF, *full_range(AS_OF), ["career"])
+    errs = validate("I weigh the lords above the arudha [vote:career.lord].", {"vote:career.lord"}, facts=whole)
+    assert any("belongs in the analysis" in e for e in errs)
+
+
+def test_the_10th_sign_is_refused_and_the_10th_house_from_the_lagna_cited(chart):
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range, validate
+    whole = payload(chart, AS_OF, *full_range(AS_OF), ["career"])
+    b = ("The timing join's full targets for career are Aquarius, the 10th sign, and Taurus, the sign of the A10 "
+         "[fact:timing.career.windows.0.targets.full] [fact:jaimini.arudhas.A10] [fact:lagnas.asc.sign].")
+    assert any("'10th sign' reads as the zodiac's" in e for e in validate(b, set(), facts=whole))
+    fixed = b.replace("the 10th sign", "the 10th house from the lagna").replace("[fact:lagnas.asc.sign]",
+                                                                               "[fact:houses.lagna.10]")
+    assert validate(fixed, set(), facts=whole) == []
+
+
+def test_the_prompt_asks_for_judgement_sentences_and_the_reading_date():
+    p = system_prompt("full")
+    for words in ("Make every weighing a judgement sentence", 'never "the 10th sign"', "at the reading date",
+                  'never "over the range"'):
+        assert words in p, words
+
+
+def test_the_page_marks_the_reading_s_weighing(chart):
+    from jyotish.page import JUDGEMENT_MARK, render
+    page = render(run(chart, draft(assessment=ASSESSMENT + " " + JUDGE)), chart)
+    career = page[page.index("### Assessment"):]
+    assert f"{JUDGEMENT_MARK} I give the lord family more weight" in career
+    assert career.count(JUDGEMENT_MARK) == 1                                  # the checked sentences are not marked
+
+
+# --- validator fixes from B's attempt 2 (the engine's, not the writer's) -----------------------------
+
+def test_a_navamsa_chain_sentence_does_not_name_the_varga_family(chart):
+    from jyotish.narrate import offered_chains, offered_votes, validate
+    b = ("Its navamsa chain runs from Gemini through Mercury and Venus to Saturn, self-disposited in Capricorn, and "
+         "the current major period of Jupiter activates the Sun, which is in a nakshatra of Jupiter [chain:career.karaka].")
+    errs = validate(b, {"chain:career.karaka"}, offered_votes=offered_votes(chart, ["career"])["career"],
+                    chains=offered_chains(chart, ["career"])["career"])
+    assert not [e for e in errs if "varga family" in e], errs
+    named = "Its navamsa chain ends in Saturn, and the D10 places it in Capricorn [chain:career.karaka]."
+    errs = validate(named, {"chain:career.karaka"}, offered_votes=offered_votes(chart, ["career"])["career"],
+                    chains=offered_chains(chart, ["career"])["career"])
+    assert any("names the varga family" in e for e in errs)                 # D10 is the varga family's word
+
+
+def test_a_tradition_sentence_is_not_held_to_the_family_rule(chart):
+    from jyotish.narrate import offered_votes, validate
+    b = "BPHS reads marriage through the Upapada, the arudha of the twelfth house, and the sign second from it [tradition:BPHS 30]."
+    errs = validate(b, set(), offered_votes=offered_votes(chart, ["marriage"])["marriage"], facts={}, traditions=True)
+    assert errs == []
+
+
+def test_a_hyphenated_rule_name_is_the_rule_s_name(chart):
+    from jyotish.narrate import validate
+    b = "Mars, lord-of-the-7th-in-the-7th, is scaled to 0.6 by marana karaka sthana [rule:place.l7_h7]."
+    assert not [e for e in validate(b, {"rule:place.l7_h7"}) if "names none of" in e]

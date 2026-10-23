@@ -204,6 +204,8 @@ table.windows td:nth-child(-n+6), table.windows th { white-space: nowrap; }
 .analysis { display: grid; gap: 12px; margin: 4px 0 12px; }
 .analysis-section p { margin: 4px 0 0; line-height: 1.6; }
 .traditions { border: 1px dashed var(--muted); border-radius: 6px; padding: 8px 12px; }
+.judgement { border-left: 2px solid var(--accent); padding-left: 6px; font-style: italic; }
+.judgement-label { font-style: normal; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
 .compare-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 .compare-column { min-width: 0; }
 .compare-label { margin: 0 0 8px; }

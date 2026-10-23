@@ -290,3 +290,26 @@ prompt says a sentence naming "the strongest support" or "the weakest point" cit
 (also "least support"). A fact stating an area's votes or contributions satisfies item 11's family
 rule for the families it states (B's attempt 2 refused "the votes for this area weigh houses,
 lords, karakas … [fact:areas.longevity.votes]"); another area's vote does not.
+
+**A judgement sentence kind.** The assessment is asked to weigh, and a weighing never follows
+from facts alone, so the checker refused every one B wrote ("I give the six agreeing families more
+weight than the arudha vote because …"). A sentence of the analysis that weighs is now a judgement,
+known by its form ("I weigh …", "I give … weight …", "I read … as …", "I resolve …"): the checker's
+data marks it `judgement`, and the checker lists only the premises it takes from what it cites,
+each supported when true and stated as the fact states it, and never the weighing itself. A
+judgement is not a synthesis. The page and the website mark it where it is read, "the reading's
+weighing" (its premises checked, the weighing not), set apart from the checked sentences beside
+it; the reading lists them per area (`judgements`) and counts them (`judgement_sentences`). Its
+limits, in the validator: in the analysis only; it cites what it weighs; it states no figure, date
+or period except by citing the fact, and no tier word. The prompt now names the two kinds: every
+weighing a judgement sentence, every fact a checked sentence of its own; "the 10th house from the
+lagna" with [fact:houses.lagna.10], never "the 10th sign" (the validator refuses "the nth sign" at
+this depth: it reads as the zodiac's); and the running periods are those at the reading date, the
+range's later ones listed from the fields that state them (three of B's refusals were "the running
+period over the whole range" for a sub-period ending in 2028).
+
+Three validator refusals in B's attempt 2 were the engine's too, fixed with this part: a navamsa
+chain's sentence names "navamsa" and "the D9 lagna" for the chain, not for the varga family (six
+chain claims were lost to it; "D10" in such a sentence still names the family); a [tradition:]
+sentence carries no tag by design, so item 11's family rule no longer applies to it; and a rule's
+name matches across hyphens ("lord-of-the-7th-in-the-7th" names "lord of the 7th").

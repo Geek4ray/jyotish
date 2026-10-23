@@ -16,11 +16,12 @@ from typing import Any
 
 from .models import Chart
 from .narrate import (DISCLAIMERS, SUDARSHANA_NOTE, TAG, TRADITION, TRADITION_NOTE, Reading, ReadingWindow, findings,
-                      learner_data, timing_line)
+                      learner_data, sentences, timing_line)
 from .rules import default_rules
 from .uncertainty import label
 
 SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where it is read
+JUDGEMENT_MARK = "*(the reading's weighing; its premises checked, the weighing not)*"
 ANALYSIS_HEADINGS = {"assessment": "Assessment", "timing": "Timing", "not_said": "What the chart does not say"}
 
 
@@ -275,10 +276,14 @@ def render(reading: Reading, chart: Chart) -> str:
         if reading.depth == "full":
             # The analysis: three checked sections, each the writer's argument over the cited facts;
             # the tier above is the engine's.
+            weighed = {j["sentence"] for j in a.judgements}
             for sec, heading in ANALYSIS_HEADINGS.items():
                 text = (a.analysis or {}).get(sec)
-                L += [f"### {heading}", "", notes.render(text) if text else
-                      "*Not narrated within the checks (listed below).*", ""]
+                # A judgement is marked where it is read: its premises were checked, its weighing is
+                # the reading's own (JUDGEMENT_MARK).
+                shown = " ".join(f"{JUDGEMENT_MARK} {notes.render(x)}" if x in weighed else notes.render(x)
+                                 for x in sentences(text)) if text else None
+                L += [f"### {heading}", "", shown or "*Not narrated within the checks (listed below).*", ""]
             if a.traditions:
                 # Never checked: set apart from the checked text, each with the engine's line.
                 L += ["#### From the texts, not computed on this chart", "", f"> *{TRADITION_NOTE}*", ">"]

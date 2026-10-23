@@ -786,6 +786,10 @@ def test_full_depth_reading_on_the_site(page, full_url):
     assert trad.locator("li").inner_text().startswith("Phaladeepika holds that a lord of the tenth")
     assert "(Phaladeepika 10; unverified)" in trad.locator("li").inner_text()
     assert "has not checked this" in trad.locator(".tradition-note").inner_text()
+    # The weighing is marked where it is read; the checked sentences beside it are not.
+    weigh = career.locator('.analysis-section[data-section="assessment"] .judgement')
+    assert weigh.count() == 1 and weigh.locator(".judgement-label").inner_text().lower() == "the reading's weighing"
+    assert "I give the lord family more weight" in weigh.inner_text()
 
 
 

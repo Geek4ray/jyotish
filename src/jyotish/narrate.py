@@ -198,6 +198,9 @@ class ReadingArea(BaseModel):
     # {section, sentence, citation, text, chapter, verse, checked: false, note}. Never checked, shown
     # apart under "from the texts, not computed on this chart", recorded as candidate rules.
     traditions: list[dict[str, Any]] = Field(default_factory=list)
+    # Depth full: the sentences of the analysis that weigh ({section, sentence}), shown as the
+    # reading's weighing; their premises were checked, their weighing never is.
+    judgements: list[dict[str, str]] = Field(default_factory=list)
 
 
 class ReadingSummary(BaseModel):
@@ -241,6 +244,7 @@ class Reading(BaseModel):
     checker: dict[str, Any] = Field(default_factory=dict)
     usage: dict[str, Any] = Field(default_factory=dict)
     synthesis_sentences: int = 0        # depth full: sentences shown that rest on two or more findings or facts
+    judgement_sentences: int = 0        # depth full: sentences shown that weigh (premises checked, weighing not)
     review: dict[str, Any] = Field(default_factory=lambda: {"status": "draft"})   # draft | reviewed (SPEC Layer 6b)
     summary: ReadingSummary
     areas: list[ReadingArea]
@@ -400,11 +404,11 @@ TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary",
                      family_rule: bool = True, chains: dict[str, list[str]] | None = None,
-                     facts: dict | None = None, traditions: bool = False) -> list[str]:
+                     facts: dict | None = None, traditions: bool = False, judgements: bool = False) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
     errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=False,
-                      facts=facts, traditions=traditions)
+                      facts=facts, traditions=traditions, judgements=judgements)
     for sentence in sentences(text):
         m = TIER_WORDS.search(TRADITION.sub("", TAG.sub("", sentence)))
         if m:
@@ -415,6 +419,19 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
 CHAIN_KINDS = re.compile(r"\b(signs?|nakshatras?|navamsas?)\b", re.I)
 # Depth full: a ranking of the area's families is the engine's (fullchart.contributions), so a
 # sentence that names the strongest support or the weakest point cites it, never its own ranking.
+# Depth full: a sentence that weighs ("I weigh …", "I give more weight to … than …", "I read … as
+# …", "I resolve … toward …") is the reading's judgement: its premises are checked, its weighing is
+# shown as the reading's and never checked (SPEC Layer 7, depth full).
+JUDGEMENT = re.compile(r"\bI (?:weigh|resolve)\b|\bI give\b[^.;]*\bweight\b|\bI read\b[^.;]*\bas\b")
+# "the 10th sign" reads as the 10th of the zodiac (Capricorn), not the 10th house from the lagna.
+NTH_SIGN = re.compile(r"\b(?:\d{1,2}(?:st|nd|rd|th)|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|"
+                      r"tenth|eleventh|twelfth) sign\b", re.I)
+
+
+def is_judgement(sentence: str) -> bool:
+    return bool(JUDGEMENT.search(TRADITION.sub("", TAG.sub("", sentence))))
+
+
 RANKING = re.compile(r"\bstrongest support\b|\bweakest (?:point|support|family)\b|\bleast support\b", re.I)
 # A claim that leans on another: the checker sees one claim and its finding, so "again" or an
 # opening "The same" is either unsupported or, worse, passed as true of nothing (SPEC Layer 7 item 10;
@@ -434,7 +451,7 @@ def _cites_family_fact(fact_tag: str, vote_tag: str) -> bool:
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
              family_rule: bool = True, chains: dict[str, list[str]] | None = None, standalone: bool = True,
-             facts: dict | None = None, traditions: bool = False) -> list[str]:
+             facts: dict | None = None, traditions: bool = False, judgements: bool = False) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
     set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
     summary over several areas, the set of that family's vote tags) for every vote offered:
@@ -452,7 +469,10 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
     `facts` a fact tag is not offered at all. A sentence citing a fact may state timing, since
     its dates and periods are the cited field's, checked against it. `traditions` (the analysis at
     depth full) admits a [tradition:<text> <chapter>] sentence within its limits (tradition_errors);
-    anywhere else such a sentence is refused."""
+    anywhere else such a sentence is refused. `judgements` (the same) admits a judgement sentence
+    (is_judgement) within its limits: it cites what it weighs, and states no figure, date or period
+    except by citing the fact; at depth full a judgement anywhere else is refused, and so is "the
+    10th sign" anywhere (it is "the 10th house from the lagna")."""
     from .fullchart import resolve
     offered_votes = offered_votes or {}
     errors = []
@@ -465,6 +485,16 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         if CLAIM_VERBS.search(bare) and not tags and not tradition:
             errors.append(f"untagged claim: {s!r}")
         errors += tradition_errors(s, traditions)
+        if facts is not None and is_judgement(s):
+            if not judgements:
+                errors.append(f"a weighing ('I weigh', 'I give more weight') belongs in the analysis: {s!r}")
+            elif not tags:
+                errors.append(f"a weighing cites the findings and facts it weighs: {s!r}")
+            elif re.search(r"\d", bare) and not fact_tags:
+                errors.append(f"a weighing states a figure or date only by citing the fact that states it: {s!r}")
+        if facts is not None and (m := NTH_SIGN.search(bare)):
+            errors.append(f"{m.group(0)!r} reads as the zodiac's: say 'the 10th house from the lagna' and cite "
+                          f"[fact:houses.lagna.10]: {s!r}")
         if standalone and (m := CROSS_REFERENCE.search(bare)):
             errors.append(f"refers to another claim ({m.group(0).strip()!r}): a claim stands alone and is checked "
                           f"against its finding only: {s!r}")
@@ -485,13 +515,21 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         if any(k == "chain" for k, _ in found) and "panchanga" in named and \
                 not FAMILY_WORDS["panchanga"].search(re.sub(r"\bnakshatra lords?\b", "", bare, flags=re.I)):
             named.discard("panchanga")
+        # A navamsa chain's sentence says "navamsa" and "the D9 lagna" for the chain, not for the
+        # varga family (B's attempt 2 lost six chain claims to it).
+        if any(k == "chain" for k, _ in found) and "varga" in named and \
+                not FAMILY_WORDS["varga"].search(re.sub(r"\bnavamsas?\b|\bD9\b", "", bare, flags=re.I)):
+            named.discard("varga")
+        if tradition:                     # never checked and carries no tag: the family rule cannot apply
+            named = set()
         for kind, value in found:
             if kind == "vote":
                 family = value.split(".", 1)[-1]
                 if family_rule and family not in named:
                     errors.append(f"[vote:{value}] on a sentence that does not name the {family} family: {s!r}")
             elif kind == "rule":
-                if not any(n.lower() in bare.lower() for n in rule_names(value)):
+                # "lord-of-the-7th-in-the-7th" names "lord of the 7th" as well as the spaced form does
+                if not any(n.lower() in bare.lower().replace("-", " ") for n in rule_names(value)):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
             elif kind == "chain":
                 planets = (chains or {}).get(value, [])
@@ -954,6 +992,18 @@ conclusion follows from them together, and it is refused when its conclusion fol
 them. Cite every premise; conclude only what the premises carry together. Each section is accepted \
 whole, so one sentence the checker refuses sends the section back.
 
+Two kinds of sentence in the analysis. A checked sentence states facts, and every proposition in \
+it is checked against what it cites. A judgement sentence weighs: it says "I weigh …", "I give \
+more weight to … than …", "I read … as …" or "I resolve … toward …", cites the findings and facts \
+it weighs, and is shown as the reading's weighing; the checker verifies its premises (each cited \
+fact true and stated as the fact states it), not the weighing. Make every weighing a judgement \
+sentence and every fact a checked sentence of its own: a judgement carries no fact its citations \
+do not state, and states no date, period, figure or tier word except by citing the fact. Say "the \
+10th house from the lagna" and cite [fact:houses.lagna.10], never "the 10th sign", which reads as \
+the 10th sign of the zodiac. The running periods are those at the reading date \
+(chart.vimshottari.current, the current Yogini and Chara periods): say "at the reading date", \
+never "over the range", and list the range's later periods from the fields that state them.
+
 The tier stays the engine's: the analysis and the summary use none of the words strong, moderate, \
 weak or mixed ("the strongest support", "below its required strength" say it without them), and \
 no confidence or probability words. The engine places the tier beside your analysis.
@@ -1059,8 +1109,13 @@ finding states is not. When the data has `synthesis` true, the sentence combines
 findings and facts into one conclusion: list each premise it takes from them as a proposition and \
 its conclusion as one more. The synthesis is supported when each of its cited facts is true and the \
 conclusion follows from them together; reject the conclusion when it does not follow from them \
-together, and always when none of its cited findings or facts supports it. Ignore the bracketed \
-citation tags."""
+together, and always when none of its cited findings or facts supports it. When the data has \
+`judgement` true, the sentence is the reading's weighing ("I weigh …", "I give more weight to …", \
+"I read … as …"): list only the premises it takes from its cited findings and facts, each \
+supported when it is true and stated as the fact states it; do not list the weighing itself \
+(what the reading gives more weight to, how it reads a fact, which way it resolves a \
+contradiction), which is shown as the reading's judgement and is never checked. Ignore the \
+bracketed citation tags."""
 
 
 def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
@@ -1442,7 +1497,9 @@ def _summary_checks(summary: str, finding_data: dict[str, dict],
         data: dict[str, Any] = {"findings": [_check_data(finding_data[i]) for i in ids]}
         if cited := _cited_facts(s, facts):
             data["facts"] = cited
-        if facts is not None and len(ids) + len(cited) > 1:
+        if facts is not None and is_judgement(s):
+            data["judgement"] = True                     # its premises are checked, never its weighing
+        elif facts is not None and len(ids) + len(cited) > 1:
             data["synthesis"] = True
         out.append((s, ids, json.dumps(data, indent=1, default=str)))
     return out
@@ -1471,7 +1528,7 @@ def is_synthesis(sentence: str, finding_data: dict[str, dict], facts: dict | Non
     """Depth full: a sentence resting on two or more findings or facts (checked as a synthesis)."""
     tags = {f"{k}:{v}" for k, v in TAG.findall(sentence)}
     ids = [fid for fid, f in finding_data.items() if tags & set(f["allowed_tags"])]
-    return facts is not None and len(ids) + len(_cited_facts(sentence, facts)) > 1
+    return facts is not None and not is_judgement(sentence) and len(ids) + len(_cited_facts(sentence, facts)) > 1
 
 
 def _usage(metas: list[dict | None]) -> dict[str, Any]:
@@ -1613,7 +1670,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                         sections[(name, sec)] = text
                     ana_errs[(name, sec)] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
                                                               where=f"{name} {sec}", chains=chains_offered[name],
-                                                              facts=facts, traditions=True)
+                                                              facts=facts, traditions=True, judgements=True)
                                              if text else [f"no {sec} for {name}: at full depth every area has one"])
                     errors += ana_errs[(name, sec)]
         entry["validator_errors"] = list(errors)
@@ -1774,7 +1831,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             other_placements=other_placements(chart, name),
             paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")],
             analysis=analysis, analysis_cites=list(dict.fromkeys(
-                f"{k}:{v}" for t in (analysis or {}).values() for k, v in TAG.findall(t))), traditions=traditions))
+                f"{k}:{v}" for t in (analysis or {}).values() for k, v in TAG.findall(t))), traditions=traditions,
+            judgements=[{"section": sec, "sentence": x} for sec, t in (analysis or {}).items() for x in sentences(t)
+                        if is_judgement(x)]))
 
     fired = [{"id": f.id, "basis": f.basis, "scale": round(f.scale, 3), "status": f.status,
               "stability": f.stability.time if f.stability else None}
@@ -1820,6 +1879,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                    usage={"writer": _usage(writer_metas), "checker": _usage(checker_metas),
                           "wall_seconds": round(time.perf_counter() - started, 3)},
                    synthesis_sentences=synthesis,
+                   judgement_sentences=sum(len(a.judgements) for a in reading_areas),
                    model=wcfg.model, attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    depth=depth,
