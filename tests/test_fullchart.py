@@ -15,14 +15,15 @@ from jyotish.uncertainty import assess
 
 AS_OF = date(2026, 10, 21)
 QUESTION = "How will my career go?"
-SECTIONS = ["chart", "planets", "nakshatras", "lagnas", "special_points", "sensitive", "vargas", "lordship", "roles",
+SECTIONS = ["chart", "constants", "houses", "not_computed", "planets", "nakshatras", "lagnas", "special_points", "sensitive", "vargas", "lordship", "roles",
             "aspects", "dispositors", "jaimini", "ashtakavarga", "shadbala", "bhava_bala", "vimsopaka", "ishta_kashta",
             "argala", "sudarshana_h10", "panchanga", "rules", "areas", "driver", "vimshottari", "yogini", "chara",
             "period_quality", "transits", "timing", "stability"]
 # The compact payload on the reference chart (as of 2026-10-21, three areas, ten years of transits)
-# measured 356,177 characters on 2026-10-23 (docs/spec_notes_2026-10-23.md). The bound is there so
-# that growth is noticed and the recorded size updated.
-MEASURED_CHARS = 356_177
+# measured 356,177 characters on 2026-10-23 at first, and 402,380 once what the engine knows was
+# labelled (the stability objects, the constants, houses and not_computed blocks; docs/spec_notes_2026-10-23.md).
+# The bound is there so that growth is noticed and the recorded size updated.
+MEASURED_CHARS = 402_380
 
 
 @pytest.fixture(scope="module")
@@ -193,3 +194,81 @@ def test_page_footnotes_a_fact_with_its_value(chart):
     r = narrate(chart, QUESTION, drafter=Replay(draft), checker=Stub(), as_of=AS_OF, areas=["career"], depth="full")
     page = render(r, chart)
     assert "`fact:planets.Mars.dignity`: The chart's field `planets.Mars.dignity`, computed by the engine: `\"own\"`." in page
+
+
+
+# --- what the engine knows, stated (the second depth-full heading of the spec notes) --------------
+
+def test_every_varga_row_carries_its_label_beside_the_number(whole):
+    from jyotish.scoring import DIGNITY_SCORE
+    rows = [r for a in whole["areas"].values() for r in ((a["votes"].get("varga") or {}).get("derivation") or [])]
+    assert rows
+    for r in rows:
+        assert DIGNITY_SCORE[r["varga_dignity_label"]] == r["varga_dignity"]
+        assert r["varga_dignity_label"] in ("exalted", "own", "friend", "neutral", "enemy", "debilitated")
+    by = {(r["planet"], r["varga"]): r for r in whole["areas"]["career"]["votes"]["varga"]["derivation"]}
+    assert (by[("Mars", "D10")]["varga_sign"], by[("Mars", "D10")]["varga_dignity_label"]) == ("Capricorn", "exalted")
+    assert (by[("Saturn", "D10")]["varga_sign"], by[("Saturn", "D10")]["varga_dignity_label"]) == ("Capricorn", "own")
+
+
+def test_the_varga_label_reaches_the_findings_the_checker_reads(chart):
+    from jyotish.narrate import findings
+    vote = next(f for f in findings(chart, "career", AS_OF)[0] if f["finding_id"] == "vote:career.varga")
+    assert {r["varga_dignity_label"] for r in vote["derivation"]} >= {"exalted", "own"}
+
+
+def test_stability_is_a_labelled_object_with_the_ayanamsa_count(whole):
+    st = resolve(whole, "stability.placements.D10.Jupiter")
+    assert set(st) == {"time", "ayanamsa", "house", "label", "ayanamsas", "house_systems"}
+    assert st["ayanamsa"] == 0.667 and st["ayanamsas"] == "holds under 2 of 3 ayanamsas"
+    area = resolve(whole, "areas.career.stability")
+    assert area["ayanamsas"] == "holds under 3 of 3 ayanamsas" and area["label"] == "stable"
+    assert all(isinstance(f["stability"], dict) for f in whole["rules"].values() if f["stability"])
+
+
+def test_the_arudha_derivation_names_what_it_rests_on_and_why(whole):
+    d = resolve(whole, "areas.career.votes.arudha.derivation")
+    assert d["rests_on"] == ["A10"] and d["padas"][0]["pada"] == "A10"
+    # A10 is Taurus, holding Jupiter (a benefic) and Saturn (a malefic): the vote abstains because they balance.
+    assert (d["padas"][0]["sign"], d["padas"][0]["occupants"], d["padas"][0]["benefics"]) == ("Taurus", ["Jupiter", "Saturn"],
+                                                                                          ["Jupiter"])
+    assert resolve(whole, "areas.career.votes.arudha.vote") == 0
+    assert d["why"] == "the benefics and malefics in A10 balance: the vote abstains"
+    assert resolve(whole, "areas.marriage.votes.arudha.derivation.rests_on") == ["UL", "UL2", "A7"]
+
+
+def test_constants_and_houses_are_citable_facts(chart, whole):
+    assert resolve(whole, "constants.signs")[10] == "Aquarius"
+    assert resolve(whole, "constants.sign_lords.Aquarius") == "Saturn"
+    assert resolve(whole, "constants.exaltation.Mars") == "Capricorn"
+    assert resolve(whole, "constants.debilitation.Mars") == "Cancer"
+    assert resolve(whole, "constants.moolatrikona.Saturn") == "Aquarius"
+    h10 = resolve(whole, "houses.lagna.10")
+    assert h10 == {"sign": "Aquarius", "lord": "Saturn", "occupants": ["Sun", "Mercury"]}
+    assert resolve(whole, "houses.sun.10.sign") == "Scorpio" and resolve(whole, "houses.moon.1.sign") == "Libra"
+    assert validate("Aquarius is the 10th house from the lagna [fact:houses.lagna.10].", set(), facts=whole) == []
+
+
+def test_not_computed_states_what_the_engine_does_not_do(whole):
+    nc = whole["not_computed"]
+    assert {"synastry", "rectification", "probability", "special_lagnas", "never"} <= set(nc)
+    assert "second chart" in nc["synastry"] and "Hora" in nc["special_lagnas"]
+
+
+def test_fields_say_their_reference_point(chart, whole):
+    assert "tara" not in whole["planets"]["Venus"] and whole["planets"]["Venus"]["tara_from_moon"] == "Pratyak"
+    assert all("tara_from_moon" in r for r in whole["nakshatras"].values())
+    row = whole["transits"]["rows"][0]
+    assert {"bav_grade", "good_from_moon"} <= set(row) and "grade" not in row
+    assert resolve(whole, "areas.longevity.main_karaka") == chart.scored.areas["longevity"].karakas[0]
+    w = whole["timing"]["career"]["windows"][0]
+    antar = w["periods"]["vimshottari"][-1]
+    assert w["dignity_of"] == f"{antar} ({chart.bodies[antar].dignity})"
+    assert whole["period_quality"]["Venus"]["dignity_label"] == "exalted"
+
+
+def test_bhava_bala_ranks_the_twelve_houses(chart, whole):
+    ws = whole["bhava_bala"]["whole_sign"]
+    assert sorted(h["rank_of_12"] for h in ws.values()) == list(range(1, 13))
+    weakest = min(ws, key=lambda h: ws[h]["rupas"])
+    assert ws[weakest]["rank_of_12"] == 12 and weakest == "H10"

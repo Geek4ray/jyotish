@@ -140,7 +140,7 @@ def test_learner_tables_come_from_the_engine(page):
     assert "| sun | Mars, H10 | 0.408 | 1 | rule | yes |" in ruchaka
     assert "Sudarshana: the fire from the Sun" in ruchaka
     assert "| sun | 10 | Scorpio | 7.37 | -0.04 | – |" in learner           # house vote, basis on the row
-    assert "| Jupiter | D10 | enemy | Aries | 0.5 | 0.25 | no | no | 0.25 |" in learner   # varga v2 row
+    assert "| Jupiter | D10 | enemy | Aries | 0.5 | friend | 0.25 | no | no | 0.25 |" in learner   # varga v2 row, labelled
     assert "Sudarshana" not in learner[:learner.index("`yoga.ruchaka@lagna+sun`")]
 
 

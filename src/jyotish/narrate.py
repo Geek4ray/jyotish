@@ -598,7 +598,7 @@ def houses_involved(item: dict, area: str) -> list[dict]:
             found.append(("lagna", h))
     else:
         d = item.get("derivation")
-        rows = d if isinstance(d, list) else [r for v in (d or {}).values() if isinstance(v, list) for r in v]
+        rows = d if isinstance(d, list) else [r for v in (d or {}).values() if isinstance(v, list) for r in v if isinstance(r, dict)]
         for r in rows:
             if "house" in r and "basis" in r and "planet" not in r:
                 found.append((r["basis"], r["house"]))
@@ -905,7 +905,13 @@ A sentence citing a fact is checked against that field's value and nothing else 
 cite, so cite the field that states what the sentence says, as narrowly as it is stated \
 (planets.Mars.dignity, not planets.Mars); a path that does not exist is refused. A claim may \
 cite facts besides its finding's tags. Dates, periods and transits come only from the cited \
-fields: a sentence that names one cites the field that states it.
+fields: a sentence that names one cites the field that states it. Where the engine gives a word \
+beside a number, use the word and cite the field: a varga row's varga_dignity_label ("exalted", \
+"own"), a stability's "holds under 2 of 3 ayanamsas". chart.constants holds the sign order, the \
+sign lords and each planet's exaltation, debilitation, moolatrikona and own signs; \
+chart.houses.<lagna|moon|sun>.<n> each house's sign, lord and occupants from that basis; \
+chart.not_computed what the engine does not do. Cite these for what they state rather than \
+stating it from memory.
 
 Think the chart through before you write: for each area, read its findings and the chart's own \
 fields, test each reading against the others, and only then write. Besides the claims, write for \

@@ -299,16 +299,20 @@ class _View:
         return statistics.mean(self.D[q] for q in loop)
 
     def varga_dignity(self, p: str, varga: str) -> float:
-        """Dignity of a planet's varga sign. A varga has no degree, so moolatrikona is not
-        read: exalted, debilitated, own, or the natural relation with the sign's lord."""
+        """Dignity of a planet's varga sign, as a number (DIGNITY_SCORE of varga_dignity_label)."""
+        return DIGNITY_SCORE[self.varga_dignity_label(p, varga)]
+
+    def varga_dignity_label(self, p: str, varga: str) -> str:
+        """The dignity's word. A varga has no degree, so moolatrikona is not read: exalted,
+        debilitated, own, or the natural relation (friend, neutral, enemy) with the sign's lord."""
         s = VARGAS[varga](self.lon[p])
         if s == EXALTATION[p][0]:
-            return 2.0
+            return "exalted"
         if s == (EXALTATION[p][0] + 6) % 12:
-            return -2.0
+            return "debilitated"
         if SIGN_LORD[s] == p:
-            return 1.0
-        return DIGNITY_SCORE[natural_relation(p, SIGN_LORD[s])]
+            return "own"
+        return natural_relation(p, SIGN_LORD[s])
 
 
 def _karakas(v: _View, names: list[str]) -> list[str]:
@@ -461,8 +465,11 @@ def score_area(v: _View, name: str, spec: dict) -> dict:
                 x += 1 if vott else 0
             vparts.append(x)
             agree.append(d1 == dv)
+            # The label is the word the writer may use ("Mars in Capricorn, exalted in the D10"); the
+            # number beside it is what the vote adds (DIGNITY_SCORE).
             row = {"planet": p, "varga": varga, "d1": v.c.bodies[p].dignity,
-                   "varga_sign": SIGNS[VARGAS[varga](v.lon[p])], "varga_dignity": dignity}
+                   "varga_sign": SIGNS[VARGAS[varga](v.lon[p])], "varga_dignity": dignity,
+                   "varga_dignity_label": v.varga_dignity_label(p, varga)}
             if v2:
                 row |= {"signed": dignity / 2.0, "vargottama_d9": vott, "agrees_with_d1": d1 == dv}
             varga_rows.append(dict(row, score=x))
@@ -539,13 +546,24 @@ def _vote_details(v: _View, spec, houses, karakas, lords_all, varga_rows, arudha
                "area_house_from": area_house_of(v.sign[p]), "dignity": v.c.bodies[p].dignity,
                "shadbala_ratio": round(v.ratio.get(p, 0.0), 2) if p in SEVEN else None} for p in karakas]
     pads = spec.get("arudha", [])
-    arudha = {"padas": [{"pada": n, "basis": "lagna", "house": v.lagna_house(s), "sign": SIGNS[s],
-                         "occupants": [q for q in GRAHAS if v.sign[q] == s],
-                         "benefics": [q for q in GRAHAS if v.sign[q] == s and q in v.benefics]}
-                        for n, s in zip(pads, arudha_signs)]}
+    # `rests_on` names what the vote reads (A10 for career, the Upapada for marriage) and `why` says
+    # why it came out as it did, so "the A10 is empty, so the arudha vote abstains" is a stated fact.
+    arudha = {**({"rests_on": pads} if pads else {}), "padas": [{"pada": n, "basis": "lagna", "house": v.lagna_house(s), "sign": SIGNS[s],
+                                           "occupants": [q for q in GRAHAS if v.sign[q] == s],
+                                           "benefics": [q for q in GRAHAS if v.sign[q] == s and q in v.benefics]}
+                                          for n, s in zip(pads, arudha_signs)]}
+    if arudha_signs:
+        net = sum(1 if q in v.benefics else -1 for q in occ)
+        names = ", ".join(pads)
+        arudha["why"] = (f"no planet occupies {names}: the vote abstains" if not occ else
+                         f"the benefics and malefics in {names} balance: the vote abstains" if net == 0 else
+                         f"more {'benefics' if net > 0 else 'malefics'} than {'malefics' if net > 0 else 'benefics'} "
+                         f"occupy {names}: the vote is {'for' if net > 0 else 'against'}")
     if spec.get("mks"):
-        arudha = {"marana_karaka_sthana": [{"planet": q, "basis": "lagna", "house": b.house}
-                                           for q, b in v.c.bodies.items() if b.marana_karaka_sthana]}
+        mks = [{"planet": q, "basis": "lagna", "house": b.house} for q, b in v.c.bodies.items() if b.marana_karaka_sthana]
+        arudha = {"rests_on": ["marana karaka sthana"], "marana_karaka_sthana": mks,
+                  "why": ("a planet is in its marana karaka sthana: the vote is against" if mks else
+                          "no planet is in its marana karaka sthana: the vote abstains")}
     kp = []
     for c in spec.get("kp", []):
         lords_c = v.c.lagnas.cusp_lords_kp.get(c)

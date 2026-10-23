@@ -136,7 +136,9 @@ const SUDARSHANA = "is the engine's Sudarshana reading (counting from that body 
 function derivation(d) {
   if (!d || (Array.isArray(d) && !d.length)) return `<p class="muted small">(no derivation rows)</p>`;
   if (Array.isArray(d)) return table(d);
-  return Object.entries(d).map(([k, v]) => `<h3>${esc(human(k))}</h3>${Array.isArray(v) ? table(v) : `<p>${cell(v)}</p>`}`).join("");
+  // A dict of named row lists (arudha: padas) beside plain values (rests_on, why).
+  const rows = (v) => Array.isArray(v) && v.every((x) => x && typeof x === "object");
+  return Object.entries(d).map(([k, v]) => `<h3>${esc(human(k))}</h3>${rows(v) ? table(v) : `<p>${cell(v)}</p>`}`).join("");
 }
 
 export function learnerPanel(learner) {

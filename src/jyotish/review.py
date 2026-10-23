@@ -187,8 +187,8 @@ def _vote_facts(f: dict) -> list[str]:
         out = [f"{r['planet']}, a significator, in the {_o(r['house'])} ({r['sign']}), {r['dignity']}"
                for r in lagna if "planet" in r]
     elif fam == "varga":
-        out = [f"{r['planet']} in {r['varga']} {r['varga_sign']}" + (" (vargottama)" if r.get("vargottama_d9") else "")
-               for r in rows if "varga_sign" in r]
+        out = [f"{r['planet']} in {r['varga']} {r['varga_sign']}" + (f", {r['varga_dignity_label']}" if r.get("varga_dignity_label") else "")
+               + (" (vargottama)" if r.get("vargottama_d9") else "") for r in rows if "varga_sign" in r]
     elif fam == "arudha":
         pads = (d or {}).get("padas", []) if isinstance(d, dict) else rows
         out = [f"{x['pada']} in the {_o(x['house'])} ({x['sign']})" +

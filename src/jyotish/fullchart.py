@@ -16,7 +16,15 @@ What is left out, and why (each would cite nothing the rest does not):
     and Mars's rows stay;
   - Kakshya spans of the fast transits (Sun, Mars): a span lasts under four days;
   - Julian days: every date is YYYY-MM-DD (UTC).
-Stability is written as [time, ayanamsa, house] (SPEC Layer 1b's three numbers, never pooled)."""
+
+What the engine knows is stated, not left to be inferred (docs/spec_notes_2026-10-23.md, the second
+heading): a stability is {time, ayanamsa, house} with its word and "holds under n of 3 ayanamsas"
+(SPEC Layer 1b's three numbers, never pooled); a varga dignity carries its label beside its number;
+a field whose reference point is not obvious says it in its name (tara_from_moon, bav_grade,
+good_from_moon); `constants` holds the tables a sentence leans on (sign order, sign lords,
+exaltation, debilitation, moolatrikona), `houses` each house's sign, lord and occupants from the
+lagna, the Moon and the Sun ("Aquarius, the 10th house from the lagna" cites houses.lagna.10), and
+`not_computed` what the engine does not do, so a sentence about it has a fact to cite."""
 
 from __future__ import annotations
 
@@ -50,8 +58,16 @@ def _r(x: Any, n: int = 3) -> Any:
     return x
 
 
-def _st(s: Stability | None) -> list[float] | None:
-    return None if s is None else [round(s.time, 3), round(s.ayanamsa, 3), round(s.house, 3)]
+def _st(s: Stability | None, chart: Chart) -> dict | None:
+    """A stability as a labelled object: the three shares, the time share's word, and how many of the
+    sampled ayanamsas and house systems it holds under ("holds under 2 of 3 ayanamsas")."""
+    if s is None:
+        return None
+    u = chart.uncertainty
+    n_ay, n_h = (len(u.ayanamsas), len(u.house_systems)) if u else (3, 2)
+    return {"time": round(s.time, 3), "ayanamsa": round(s.ayanamsa, 3), "house": round(s.house, 3), "label": s.label,
+            "ayanamsas": f"holds under {round(s.ayanamsa * n_ay)} of {n_ay} ayanamsas",
+            "house_systems": f"holds under {round(s.house * n_h)} of {n_h} house systems"}
 
 
 def _pos(lon: float) -> str:
@@ -67,10 +83,60 @@ def _planets(chart: Chart) -> dict:
         b = chart.bodies[p]
         out[p] = {"sign": b.sign_name, "deg": dms(b.deg), "house": b.house, "nakshatra": b.nak_name, "pada": b.pada,
                   "nak_lord": b.nak_lord, "sub_lord": b.sub_lord, "sub_sub_lord": b.sub_sub_lord,
-                  "tara": b.tara.name, "retro": b.retro, "combust": b.combust, "speed": _r(b.speed),
+                  "tara_from_moon": b.tara.name, "retro": b.retro, "combust": b.combust, "speed": _r(b.speed),
                   "dignity": b.dignity, "dignity_compound": b.dignity_compound, "avastha_baladi": b.avastha_baladi,
                   "vargottama": b.vargottama}
     return out
+
+
+def constants() -> dict:
+    """The tables a sentence leans on, citable as facts: the sign order, each sign's lord, and each
+    planet's exaltation, debilitation and moolatrikona signs and own signs (constants.py; BPHS 3)."""
+    from .constants import EXALTATION, MOOLATRIKONA, OWN_SIGNS, SIGN_LORD
+    return {"signs": list(SIGNS), "sign_lords": {SIGNS[i]: p for i, p in SIGN_LORD.items()},
+            "exaltation": {p: SIGNS[x[0]] for p, x in EXALTATION.items()},
+            "debilitation": {p: SIGNS[(x[0] + 6) % 12] for p, x in EXALTATION.items()},
+            "moolatrikona": {p: SIGNS[x[0]] for p, x in MOOLATRIKONA.items()},
+            "own_signs": {p: [SIGNS[i] for i in signs] for p, signs in OWN_SIGNS.items()}}
+
+
+def _houses(chart: Chart) -> dict:
+    """houses.<basis>.<n>: the sign of the nth house from the lagna, the Moon and the Sun (whole
+    signs), its lord and the bodies in it, so "Aquarius, the 10th house from the lagna" cites
+    houses.lagna.10 and "Saturn, lord of the 10th" the same field."""
+    from .constants import SIGN_LORD
+    base = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign, "sun": chart.bodies["Sun"].sign}
+    out = {}
+    for basis, first in base.items():
+        out[basis] = {}
+        for n in range(1, 13):
+            sign = (first + n - 1) % 12
+            out[basis][str(n)] = {"sign": SIGNS[sign], "lord": SIGN_LORD[sign],
+                                  "occupants": [p for p in GRAHAS if chart.bodies[p].sign == sign]}
+    return out
+
+
+# What the engine does not do (CLAUDE.md phase status, SPEC Layers 1b, 6 and 7), so a sentence saying
+# so in "what the chart does not say" has a fact to cite.
+NOT_COMPUTED = {
+    "synastry": "needs a second chart: the engine reads one chart, describes a relationship only as this "
+                "chart shows it, and says nothing of another person's own chart or life",
+    "rectification": "the birth time is not rectified: each finding carries its stability over the time window instead",
+    "probability": "no area has a calibrated probability: probability stays null until outcome data calibrates it",
+    "score_learned": "no learned score: score_learned is null until a model is trained on outcomes",
+    "special_lagnas": "the special lagnas (Hora, Ghati, Indu, Sree, Varnada) are not computed",
+    "retrieval": "no corpus of the classical texts is searched: the only verses cited are those checked on rules",
+    "question_routing": "a question is routed to its areas by keyword; no model translates it into a query",
+    "tara_scoring": "the transit taras are tagged but not scored: the timing join leaves them out",
+    "draft_placements": "a placement's effect is a draft until its verse is read: it weighs nothing and is not narrated",
+    "never": "the engine never times death, diagnoses illness, advises a trade or investment, or states another "
+             "person's fate",
+}
+
+
+def _tara_named(row: dict) -> dict:
+    """A nakshatra-table row with its tara under the name that says where it is counted from."""
+    return {("tara_from_moon" if k == "tara" else k): v for k, v in row.items()}
 
 
 def _sensitive(chart: Chart) -> dict:
@@ -86,7 +152,7 @@ def _lagnas(chart: Chart) -> dict:
     from .display import dms
     L = chart.lagnas
     out = {"asc": {"sign": L.asc_sign_name, "deg": dms(L.asc % 30), "nakshatra": L.asc_nak, "nak_lord": L.asc_nak_lord,
-                   "tara": L.asc_tara},
+                   "tara_from_moon": L.asc_tara},
            "mc": _pos(L.mc) if L.mc is not None else None,
            "kp_cusps": {f"H{h}": dict(_r(L.cusp_lords_kp.get(h, {})), cusp=_pos(lon))
                         for h, lon in sorted(L.cusps_placidus.items())},
@@ -168,7 +234,13 @@ def _period_quality(chart: Chart) -> dict:
     """What the timing join scores a period by, per lord (timing.planet_quality) and the houses a
     lord's period activates (timing.activation_set, the Nadi activation)."""
     from .timing import activation_set, planet_quality
-    return {p: {"terms": _r(planet_quality(chart, p)), "activation": activation_set(chart, p)} for p in GRAHAS}
+    out = {}
+    for p in GRAHAS:
+        row = {"terms": _r(planet_quality(chart, p)), "activation": activation_set(chart, p)}
+        if "dignity" in row["terms"]:
+            row["dignity_label"] = chart.bodies[p].dignity       # the word behind the dignity term
+        out[p] = row
+    return out
 
 
 def _transits(chart: Chart, start: date, end: date) -> dict:
@@ -180,8 +252,10 @@ def _transits(chart: Chart, start: date, end: date) -> dict:
         if r.body in LEFT_OUT_TRANSITS:
             continue
         row = {"body": r.body, "sign": r.sign_name, "start": _date(r.start_jd), "end": _date(r.end_jd),
-               "entered": r.entered, "houses": r.houses, "bav": r.bav, "sav": r.sav, "grade": r.grade,
-               "gochara_good": r.gochara_good, "murthi": r.murthi, "tags": r.tags,
+               "entered": r.entered, "houses": r.houses, "bav": r.bav, "sav": r.sav,
+               # The grade is from the transiting planet's own BAV bindus in the sign (Phaladeepika
+               # 23.11), the good house from the natal Moon (Phaladeepika 26.2): the names say which.
+               "bav_grade": r.grade, "good_from_moon": r.gochara_good, "murthi": r.murthi, "tags": r.tags,
                "vedha": [f"{v.by} {_date(v.start_jd)}..{_date(v.end_jd)}" for v in r.vedha
                          if v.by not in LEFT_OUT_TRANSITS],
                "vipareeta_vedha": [f"{v.by} {_date(v.start_jd)}..{_date(v.end_jd)}" for v in r.vipareeta_vedha
@@ -192,7 +266,7 @@ def _transits(chart: Chart, start: date, end: date) -> dict:
             row["kakshya"] = [f"{k.lord} {_date(k.start_jd)}..{_date(k.end_jd)}"
                               + ("" if k.bindu is None else (" bindu" if k.bindu else " no bindu")) for k in r.kakshya]
         rows.append(row)
-    taras = [{"body": t.body, "nakshatra": t.nakshatra, "tara": t.tara, "count": t.count, "adverse": t.adverse,
+    taras = [{"body": t.body, "nakshatra": t.nakshatra, "tara_from_moon": t.tara, "count": t.count, "adverse": t.adverse,
               "special": t.special, "start": _date(t.start_jd), "end": _date(t.end_jd), "tags": t.tags}
              for t in tl.tara_rows if t.body not in LEFT_OUT_TRANSITS]
     windows = [{"kind": w.kind, "start": _date(w.start_jd), "end": _date(w.end_jd), "tags": w.tags, "details": _r(w.details)}
@@ -215,7 +289,11 @@ def _timing(chart: Chart, areas: list[str], start: date, end: date) -> dict:
         def win(w):
             d = dict(w.derivation)
             sp = d.pop("strongest_piece", None)
+            antar = (w.periods.get("vimshottari") or [None])[-1]
             return {"start": _date(w.start_jd), "end": _date(w.end_jd), "score": round(w.joint, 3),
+                    # q's dignity term is the Vimshottari antar lord's (timing.period_quality_v2)
+                    "dignity_of": (f"{antar} ({chart.bodies[antar].dignity})"
+                                   if antar in SEVEN and "dignity" in d.get("q_terms", {}) else None),
                     "q": round(w.dasha_quality, 3), "t": round(w.transit_activation, 3), "periods": w.periods,
                     "confidence": w.confidence, "tags": w.tags,
                     "edge_spread_days": _r((w.stability or {}).get("time_range_days"), 2),
@@ -244,7 +322,7 @@ def _rules(chart: Chart) -> dict:
         out[_fire_key(f, seen)] = {"id": f.id, "family": f.family, "school": f.school, "status": f.status,
                                    "basis": f.basis, "nodes": f.nodes, "scale": round(f.scale, 3),
                                    "themes": _r(f.themes), "applied": f.applied, "unknown": f.unknown,
-                                   "details": _r(f.details), "stability": _st(f.stability)}
+                                   "details": _r(f.details), "stability": _st(f.stability, chart)}
     return out
 
 
@@ -257,9 +335,10 @@ def _areas(chart: Chart) -> dict:
     for name, a in sc.areas.items():
         weights = family_weights(a, rho) if a.score_classical is not None else {}
         out[name] = {"tier": a.tier, "score_classical": _r(a.score_classical), "confidence": _r(a.confidence),
-                     "direction": a.direction, "emphasised": a.emphasised, "stability": _st(a.stability),
+                     "direction": a.direction, "emphasised": a.emphasised, "stability": _st(a.stability, chart),
                      "families_agree_w": _r(a.families_agree_w), "families_total_w": _r(a.families_total_w),
-                     "lords": a.lords, "karakas": a.karakas, "polarity": a.polarity,
+                     "lords": a.lords, "karakas": a.karakas, "main_karaka": a.karakas[0] if a.karakas else None,
+                     "polarity": a.polarity,
                      "polarity_touches": a.polarity_touches, "varga_consistency": _r(a.varga_consistency),
                      "votes": {fam: {"vote": v, "term": _r(a.terms.get(fam)), "weight": _r(weights.get(fam)),
                                      "stability_time": _r(a.vote_stability.get(fam)),
@@ -274,12 +353,12 @@ def _uncertainty(chart: Chart) -> dict | None:
         return None
     return {"samples": u.samples, "half_width_min": u.half_width_min, "shape": u.shape, "ayanamsas": u.ayanamsas,
             "house_systems": u.house_systems, "lagna_sign_by_varga": _r(u.varga_stability),
-            "placements": {v: {p: _st(s) for p, s in rows.items()} for v, rows in u.placements.items()},
-            "nakshatras": {p: _st(s) for p, s in (u.nakshatras or {}).items()},
+            "placements": {v: {p: _st(s, chart) for p, s in rows.items()} for v, rows in u.placements.items()},
+            "nakshatras": {p: _st(s, chart) for p, s in (u.nakshatras or {}).items()},
             "rules_elsewhere": [{"id": r.id, "basis": r.basis, "planets": r.planets, "time": round(r.time, 3)}
                                 for r in u.rules_elsewhere],
-            "order": "each stability is [time, ayanamsa, house]: shares of the birth-time samples, of the "
-                     "ayanamsas and of the house systems in which it holds"}
+            "reading": "a stability gives the shares of the birth-time samples (time), of the ayanamsas and of "
+                       "the house systems in which the finding holds, its word, and the counts"}
 
 
 def payload(chart: Chart, as_of: date, start: date, end: date, areas: list[str]) -> dict[str, Any]:
@@ -299,15 +378,21 @@ def payload(chart: Chart, as_of: date, start: date, end: date, areas: list[str])
                     "tribhaga_lord": sb.tribhaga_lord, "wars": [w.model_dump() for w in sb.wars]}
     bhava = None
     if bb is not None:
-        bhava = {"birth_time": bb.birth_time} | {
-            system: {f"H{h}": dict(_r(x.model_dump(), 1), rupas=round(x.rupas, 2)) for h, x in rows.items()}
-            for system, rows in (("whole_sign", bb.whole_sign), ("sripati", bb.sripati))}
+        def ranked(rows):
+            order = sorted(rows, key=lambda h: -rows[h].rupas)        # rank 1 the strongest of the twelve
+            return {f"H{h}": dict(_r(x.model_dump(), 1), rupas=round(x.rupas, 2), rank_of_12=order.index(h) + 1)
+                    for h, x in rows.items()}
+        bhava = {"birth_time": bb.birth_time} | {system: ranked(rows) for system, rows in
+                                                 (("whole_sign", bb.whole_sign), ("sripati", bb.sripati))}
     pa = chart.panchanga
     return {
         "chart": {"header": _r(chart_header(chart)), "lagna": chart.lagnas.asc_sign_name, "as_of": as_of.isoformat(),
                   "signs": "sign names; houses counted from the lagna's sign unless a basis says otherwise"},
+        "constants": constants(),
+        "houses": _houses(chart),
+        "not_computed": NOT_COMPUTED,
         "planets": _planets(chart),
-        "nakshatras": {r["planet"]: r for r in nakshatra_table(chart)},
+        "nakshatras": {r["planet"]: _tara_named(r) for r in nakshatra_table(chart)},
         "lagnas": _lagnas(chart),
         "special_points": _special(chart),
         "sensitive": _sensitive(chart),

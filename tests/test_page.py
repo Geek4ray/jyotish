@@ -35,8 +35,12 @@ def test_every_derivation_of_every_family_renders(chart):
                 if d:
                     assert lines[0].startswith("| ") and len(lines) == len(d) + 2, (area, family)
             else:
-                shapes.add("named rows:" + ",".join(d))
+                named = [k for k, v in d.items() if isinstance(v, list) and all(isinstance(r, dict) for r in v)]
+                shapes.add("named rows:" + ",".join(named))
                 for key, rows in d.items():
+                    if key not in named:                    # a plain value (rests_on, why): one line
+                        assert any(x.startswith(f"{key.replace('_', ' ')}: ") for x in lines), (area, family, key)
+                        continue
                     assert f"{key.replace('_', ' ')}:" in lines, (area, family, key)
                     if rows:
                         cols = "| " + " | ".join(k.replace("_", " ") for k in dict.fromkeys(

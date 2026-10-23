@@ -247,3 +247,32 @@ chart at once (the comparison posts two) shared the chart cache's temporary file
 `replace` found it gone; and both inserted the chart row, so the second failed on its key. Each
 writer now has a temporary file of its own, and a lost insert leaves the stored row, which has the
 same key and so the same document (`tests/test_cache.py`, `tests/test_compare.py`).
+
+## Layer 7 (Depth full, after the first live comparison) — what the engine knows, stated
+
+The first live comparison (docs/comparison_2026-10-23.md; SPEC rev 118 records it) left all nine of
+reading B's analysis sections and three of its varga claims as gaps, and most refusals were the
+engine's fault: it knew the fact and did not state it where the checker could see it. What changed,
+by part, each with its commit; the replay numbers and the re-run command close the heading.
+
+**Label what the engine knows.** Every varga row of a vote's derivation carries
+`varga_dignity_label` (exalted, own, friend, neutral, enemy, debilitated; a varga has no degree, so
+no moolatrikona) beside the number it adds (`varga_dignity`, DIGNITY_SCORE of the label), and the
+review step's fact line says it; the D1 dignities were labels already, and each lord's period
+quality and each timing window's dignity term now names the lord and its label beside the number.
+A stability is an object everywhere in the payload: `{time, ayanamsa, house, label, ayanamsas:
+"holds under 2 of 3 ayanamsas", house_systems: "holds under 1 of 2 house systems"}`. The arudha
+derivation names what it rests on (`rests_on`: A10 for career, UL, UL2, A7 for marriage) and why it
+came out as it did (`why`: "the benefics and malefics in A10 balance: the vote abstains" on the
+reference chart; A10 is Taurus with Jupiter and Saturn). The payload gains `constants` (the sign
+order, the sign lords, each planet's exaltation, debilitation, moolatrikona and own signs),
+`houses.<lagna|moon|sun>.<n>` (sign, lord, occupants: "Aquarius, the 10th house from the lagna"
+cites houses.lagna.10, and so does "Saturn, lord of the 10th"), and `not_computed` (synastry without
+a second chart, rectification, calibrated probabilities, learned scores, the special lagnas, the
+retrieval corpus, model routing of questions, scored transit taras, draft placement effects, and
+what the engine never states). Beyond the five refusal kinds the comparison named, the recording
+showed three more fields that were opaque: the tara is now `tara_from_moon`, a transit row's grade
+`bav_grade` (from the planet's own bindus) and its good house `good_from_moon`, each Bhava Bala row
+has `rank_of_12` (the 10th is 12th of 12 under whole signs on the reference chart), and each area
+names its `main_karaka`. The payload measures 402,380 characters on the reference chart (from
+356,177), the stability objects most of the growth.
