@@ -21,9 +21,10 @@ SECTIONS = ["chart", "constants", "houses", "not_computed", "planets", "nakshatr
             "period_quality", "transits", "timing", "stability"]
 # The compact payload on the reference chart (as of 2026-10-21, three areas, ten years of transits)
 # measured 356,177 characters on 2026-10-23 at first, and 402,380 once what the engine knows was
-# labelled (the stability objects, the constants, houses and not_computed blocks; docs/spec_notes_2026-10-23.md).
+# labelled (the stability objects, the constants, houses and not_computed blocks), 423,836 once each
+# family's term said what it holds (the review's F13; docs/spec_notes_2026-10-23.md).
 # The bound is there so that growth is noticed and the recorded size updated.
-MEASURED_CHARS = 402_380
+MEASURED_CHARS = 423_836
 
 
 @pytest.fixture(scope="module")
@@ -295,3 +296,77 @@ def test_contributions_rank_the_families_by_term_times_weight(chart, whole):
     assert c["abstaining"] == ["arudha", "kp"] and c["against"] == []
     assert resolve(whole, "areas.marriage.contributions.against") == ["arudha"]
     assert "contributions" not in whole["areas"]["synastry"]
+
+
+
+# --- the review of 2026-10-23, F3, F9, F12, F13 ---------------------------------------------------
+
+def _walk(node, path=""):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            yield from _walk(v, f"{path}.{k}" if path else str(k))
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from _walk(v, f"{path}.{i}")
+    yield path, node
+
+
+def test_every_path_in_the_payload_resolves_to_its_value(whole):
+    """F3: the rules' keys held dots and none could be cited; walking the whole payload finds any key
+    that cannot be."""
+    n = 0
+    for path, value in _walk(whole):
+        if path:
+            assert resolve(whole, path) == value, path
+            n += 1
+    assert n > 10_000
+    assert resolve(whole, "rules.place-l7_h7@lagna.status") == "draft"
+    assert resolve(whole, "rules.yoga-ruchaka@lagna.id") == "yoga.ruchaka"
+    assert validate("Mars in the 7th is a draft placement [fact:rules.place-l7_h7@lagna.status].", set(), facts=whole) == []
+
+
+def test_no_absolute_longitude_in_the_payload(chart, whole):
+    """F9: the Bhava Bala madhyas were longitudes; every position is now a sign and a degree in it."""
+    for system in ("whole_sign", "sripati"):
+        for h, row in whole["bhava_bala"][system].items():
+            assert isinstance(row["madhya"], str) and row["madhya"].split()[0] in resolve(whole, "constants.signs"), (system, h)
+    assert whole["bhava_bala"]["whole_sign"]["H1"]["madhya"].startswith("Taurus 6°")
+    # No field that names a position holds a number (a figure that happens to equal a longitude, like a
+    # Shadbala bala of 36.3, is not one); the header's lon is the birthplace's, not a position in the sky.
+    positions = {"madhya", "cusp", "mc", "asc", "lon", "longitude", "start", "end"}
+    for path, value in _walk(whole):
+        key = path.rsplit(".", 1)[-1]
+        if key in positions and not path.startswith(("transits", "timing", "vimshottari", "yogini", "chara", "chart.header")):
+            assert not isinstance(value, float), path
+
+
+def test_houses_follow_the_house_system_and_say_which(whole):
+    """F12: under sripati the houses from the lagna are the bhavas, as planets.<p>.house is."""
+    from datetime import datetime
+    from jyotish.chart import compute
+    from jyotish.reference import REFERENCE_BIRTH_UTC as utc
+    assert whole["houses"]["system"] == {"lagna": "whole_sign", "moon": "whole_sign", "sun": "whole_sign"}
+    sp = compute(utc, REFERENCE_LAT, REFERENCE_LON, house_system="sripati", true_node=False)
+    from jyotish.fullchart import _houses
+    h = _houses(sp)
+    assert h["system"]["lagna"] == "sripati" and h["system"]["moon"] == "whole_sign"
+    for p, b in sp.bodies.items():
+        assert p in h["lagna"][str(b.house)]["occupants"], p
+    assert any(sp.bodies[p].house != (sp.bodies[p].sign - sp.lagnas.asc_sign) % 12 + 1 for p in sp.bodies)   # they differ here
+
+
+def test_one_term_per_family_named_for_what_it_holds(chart, whole):
+    """F13: the lord family's term was the lord term alone in the votes and lord plus dispositor in
+    the contributions; now one term, with the S terms it holds."""
+    a = chart.scored.areas["career"]
+    lord = resolve(whole, "areas.career.votes.lord")
+    assert lord["term_holds"] == ["lord", "dispositor"]
+    assert lord["term"] == round(a.terms["lord"] + a.terms["dispositor"], 3)
+    assert resolve(whole, "areas.career.votes.house.term_holds") == ["house"]
+    assert resolve(whole, "areas.career.votes.kp.term") is None
+
+
+def test_the_first_maha_flag_is_computed(chart, whole):
+    from jyotish.dasha import vimshottari
+    first = vimshottari(chart.bodies["Moon"].lon, chart.meta.jd, levels=1)[0]
+    assert whole["vimshottari"]["first_maha_starts_before_birth"] is (first.start_jd < chart.meta.jd)

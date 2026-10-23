@@ -667,3 +667,25 @@ def test_the_checker_lists_every_proposition_of_a_judgement():
                   "whether or not anything is cited for it",
                   '"I read Saturn in Taurus as its exaltation" states that Saturn is exalted'):
         assert words in prompt, words
+
+
+
+def test_a_contributions_fact_stands_only_for_the_families_it_names(whole):
+    """F13: `contributions.strongest` ("lord") stood for every family's vote tag."""
+    from jyotish.narrate import validate
+    votes = {"kp": "vote:career.kp", "lord": "vote:career.lord"}
+    kp = "The KP vote is against career [fact:areas.career.contributions.strongest]."
+    assert any("does not cite [vote:career.kp]" in e for e in validate(kp, set(), offered_votes=votes, facts=whole))
+    lord = "The lord vote ranks first [fact:areas.career.contributions.strongest]."
+    assert not any("does not cite" in e for e in validate(lord, set(), offered_votes=votes, facts=whole))
+
+
+def test_every_error_reaches_the_retry_instruction(chart):
+    """F13: "two claims for X" went into the errors but not the retry instruction."""
+    twice = draft()
+    claim = {"finding_id": "vote:career.house", "text": "The house vote is for career [vote:career.house]."}
+    twice["areas"][0]["claims"] = [claim, dict(claim)]
+    w = Replay(twice, draft())
+    narrate(chart, QUESTION, drafter=w, checker=SynthesisStub({"Mars is dignified in a kendra": True}), as_of=AS_OF,
+            areas=["career"], depth="full")
+    assert "two claims for vote:career.house in career" in w.calls[1]["errors"][0]

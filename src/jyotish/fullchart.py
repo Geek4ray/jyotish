@@ -101,18 +101,27 @@ def constants() -> dict:
 
 
 def _houses(chart: Chart) -> dict:
-    """houses.<basis>.<n>: the sign of the nth house from the lagna, the Moon and the Sun (whole
-    signs), its lord and the bodies in it, so "Aquarius, the 10th house from the lagna" cites
-    houses.lagna.10 and "Saturn, lord of the 10th" the same field."""
+    """houses.<basis>.<n>: the nth house from the lagna, the Moon and the Sun, its sign, lord and
+    the bodies in it, so "Aquarius, the 10th house from the lagna" cites houses.lagna.10 and "Saturn,
+    lord of the 10th" the same field. From the lagna the houses follow Meta.house_system (review
+    F12): under sripati a house is the bhava, its sign the madhya's, its occupants the bodies whose
+    house the chart gives as that bhava, as planets.<p>.house does; from the Moon and the Sun they
+    are whole signs. `houses.system` says which."""
     from .constants import SIGN_LORD
     base = {"lagna": chart.lagnas.asc_sign, "moon": chart.bodies["Moon"].sign, "sun": chart.bodies["Sun"].sign}
-    out = {}
+    sripati = chart.meta.house_system == "sripati" and len(chart.lagnas.bhava_madhya_sripati) == 12
+    out: dict[str, Any] = {"system": {"lagna": "sripati" if sripati else "whole_sign", "moon": "whole_sign",
+                                      "sun": "whole_sign"}}
     for basis, first in base.items():
         out[basis] = {}
         for n in range(1, 13):
-            sign = (first + n - 1) % 12
-            out[basis][str(n)] = {"sign": SIGNS[sign], "lord": SIGN_LORD[sign],
-                                  "occupants": [p for p in GRAHAS if chart.bodies[p].sign == sign]}
+            if basis == "lagna" and sripati:
+                sign = int(chart.lagnas.bhava_madhya_sripati[n - 1] * 12 / 360) % 12
+                occupants = [p for p in GRAHAS if chart.bodies[p].house == n]
+            else:
+                sign = (first + n - 1) % 12
+                occupants = [p for p in GRAHAS if chart.bodies[p].sign == sign]
+            out[basis][str(n)] = {"sign": SIGNS[sign], "lord": SIGN_LORD[sign], "occupants": occupants}
     return out
 
 
@@ -206,7 +215,8 @@ def _vimshottari(chart: Chart, as_of: date) -> dict:
         out["-".join(p.lords)] = row
         if p.start_jd <= now < p.end_jd and len(p.lords) > len(current):
             current = list(p.lords)
-    return {"current": "-".join(current), "first_maha_starts_before_birth": True, "periods": out}
+    return {"current": "-".join(current), "first_maha_starts_before_birth": periods[0].start_jd < chart.meta.jd,
+            "periods": out}
 
 
 def _listed(chart: Chart, system: str, as_of: date) -> dict:
@@ -306,8 +316,14 @@ def _timing(chart: Chart, areas: list[str], start: date, end: date) -> dict:
     return out
 
 
+def rule_key(rule_id: str) -> str:
+    """A rule id as a path key: a path splits on dots, so `place.l7_h7` is written `place-l7_h7`
+    (review F3: every key under `rules` was uncitable)."""
+    return rule_id.replace(".", "-")
+
+
 def _fire_key(f, seen: dict) -> str:
-    key = f"{f.id}@{f.basis}"
+    key = f"{rule_key(f.id)}@{f.basis}"
     if key in seen:
         key += "~" + "+".join(n for n in f.nodes if not n.startswith("H"))
     seen[key] = True
@@ -315,7 +331,9 @@ def _fire_key(f, seen: dict) -> str:
 
 
 def _rules(chart: Chart) -> dict:
-    """Every fire, experimental and draft included, with its status: id@basis -> the fire."""
+    """Every fire, experimental and draft included, with its status, keyed by its rule id with the
+    dots written as hyphens and its basis (`rules.place-l7_h7@lagna.status`); the fire's `id` is the
+    rule's own."""
     seen: dict = {}
     out = {}
     for f in chart.fired_rules:
@@ -340,7 +358,7 @@ def _areas(chart: Chart) -> dict:
                      "lords": a.lords, "karakas": a.karakas, "main_karaka": a.karakas[0] if a.karakas else None,
                      "polarity": a.polarity,
                      "polarity_touches": a.polarity_touches, "varga_consistency": _r(a.varga_consistency),
-                     "votes": {fam: {"vote": v, "term": _r(a.terms.get(fam)), "weight": _r(weights.get(fam)),
+                     "votes": {fam: {"vote": v, **family_term(a, fam), "weight": _r(weights.get(fam)),
                                      "stability_time": _r(a.vote_stability.get(fam)),
                                      "derivation": _r(a.vote_details.get(fam))}
                                for fam, v in a.votes.items()}}
@@ -353,6 +371,15 @@ def _areas(chart: Chart) -> dict:
 # terms together, so its term is their sum; arudha and KP vote but add nothing to S.
 FAMILY_TERMS = {"house": ("house",), "lord": ("lord", "dispositor"), "karaka": ("karaka",), "varga": ("varga",),
                 "panchanga": ("panchanga",)}
+
+
+def family_term(a, fam: str) -> dict:
+    """A family's one term, the same wherever the payload states it (review F13: the votes gave the
+    lord term alone, the contributions lord plus dispositor): its value in S and the S terms it holds."""
+    parts = FAMILY_TERMS.get(fam)
+    if parts is None or not a.terms:
+        return {"term": None, "term_holds": []}
+    return {"term": round(sum(a.terms.get(t, 0.0) for t in parts), 3), "term_holds": list(parts)}
 
 
 def contributions(a, weights: dict[str, float]) -> dict:
@@ -420,8 +447,9 @@ def payload(chart: Chart, as_of: date, start: date, end: date, areas: list[str])
     if bb is not None:
         def ranked(rows):
             order = sorted(rows, key=lambda h: -rows[h].rupas)        # rank 1 the strongest of the twelve
-            return {f"H{h}": dict(_r(x.model_dump(), 1), rupas=round(x.rupas, 2), rank_of_12=order.index(h) + 1)
-                    for h, x in rows.items()}
+            # The madhya is a position: sign and degree within the sign, never a longitude (review F9).
+            return {f"H{h}": dict(_r(x.model_dump(), 1), madhya=_pos(x.madhya), rupas=round(x.rupas, 2),
+                                  rank_of_12=order.index(h) + 1) for h, x in rows.items()}
         bhava = {"birth_time": bb.birth_time} | {system: ranked(rows) for system, rows in
                                                  (("whole_sign", bb.whole_sign), ("sripati", bb.sripati))}
     pa = chart.panchanga

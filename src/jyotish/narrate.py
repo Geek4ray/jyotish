@@ -498,13 +498,22 @@ CROSS_REFERENCE = re.compile(r"\b(again|likewise|aforementioned)\b|\bas (above|n
                              r"|^\s*(the|this|that) same\b", re.I)
 
 
-def _cites_family_fact(fact_tag: str, vote_tag: str) -> bool:
-    """Depth full: a fact that states a family's vote stands for its vote tag in the family rule:
-    the area's votes or its ranked contributions (every family), or that family's own vote."""
+def _cites_family_fact(fact_tag: str, vote_tag: str, facts: dict | None = None) -> bool:
+    """Depth full: a fact that states a family's vote stands for its vote tag in the family rule: the
+    area's whole votes or contributions (every family), that family's own vote, or a part of the
+    contributions whose value names the family (review F13: `contributions.strongest`, "lord", used to
+    stand for every family)."""
+    from .fullchart import resolve
     area, family = vote_tag[5:].split(".", 1)
     path = fact_tag[5:]
-    return path in (f"areas.{area}.votes", f"areas.{area}.contributions") or \
-        path.startswith((f"areas.{area}.contributions.", f"areas.{area}.votes.{family}"))
+    if path in (f"areas.{area}.votes", f"areas.{area}.contributions") or path.startswith(f"areas.{area}.votes.{family}"):
+        return True
+    if path.startswith(f"areas.{area}.contributions.") and facts is not None:
+        try:
+            return re.search(rf'"{family}"', json.dumps(resolve(facts, path))) is not None
+        except KeyError:
+            return False
+    return False
 
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
@@ -601,7 +610,7 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         for family in sorted(named) if family_rule else ():
             want = offered_votes.get(family)
             want = {want} if isinstance(want, str) else set(want or ())
-            if want and not want & tags and not any(_cites_family_fact(t, w) for t in fact_tags for w in want):
+            if want and not want & tags and not any(_cites_family_fact(t, w, facts) for t in fact_tags for w in want):
                 shown = " or ".join(f"[{t}]" for t in sorted(want))
                 errors.append(f"names the {family} family but does not cite {shown}: {s!r}")
         for kind, rx in FORBIDDEN.items():
@@ -1014,7 +1023,8 @@ Depth: full. The reader is an astrologer who wants the best analysis these facts
 the findings, the input carries `chart`: everything the engine computed on this chart, under \
 stable paths. A path is the keys from the root of `chart` joined by dots, a list item by its \
 index: planets.Mars.dignity, shadbala.planets.Mars.ratio, vargas.D9.Mars, \
-areas.career.votes.kp.derivation, vimshottari.periods.Rahu-Saturn, transits.windows.3. Cite any \
+areas.career.votes.kp.derivation, vimshottari.periods.Rahu-Saturn, transits.windows.3, and a rule \
+fire as rules.<rule id with its dots written as hyphens>@<basis>, e.g. rules.place-l7_h7@lagna. Cite any \
 field as [fact:<path>], the path written exactly as in the input, without a leading "chart.". \
 A sentence citing a fact is checked against that field's value and nothing else it does not \
 cite, so cite the field that states what the sentence says, as narrowly as it is stated \
@@ -1734,6 +1744,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     continue
                 if (da.name, c.finding_id) in claim_errs:
                     errors.append(f"two claims for {c.finding_id} in {da.name}")
+                    unit_errors.setdefault(f"the claim for {c.finding_id} ({da.name})", []).append(errors[-1])
                     continue
                 errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name],
                                 family_rule=not curious, chains=chains_offered[da.name], facts=facts)
@@ -1868,6 +1879,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             clean = True
             break
         if held:
+            # Every error reaches the writer (review F13): one no unit names goes under "the draft".
+            named = {e for v in unit_errors.values() for e in v}
+            stray = [e for e in errors if e not in named and not e.startswith("unsupported by ")]
+            if stray:
+                unit_errors.setdefault("the draft", []).extend(stray)
             heldnow = (["the summary"] if kept_summary is not None else []) + \
                 [f"the {n} {sec}" for n in areas for sec in ANALYSIS_SECTIONS if (n, sec) in kept_ana] + \
                 [f"the claim for {fid} ({n})" for n, fid in kept]

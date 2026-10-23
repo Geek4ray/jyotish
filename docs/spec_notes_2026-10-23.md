@@ -402,3 +402,19 @@ cites states (the word or its stem must be in a cited fact's value; a period wor
 dasha or timing field), and any age outright: the engine computes none. The timing filter knows
 ages at every depth ("after forty", "by age 35", "in the forties"). The review's five probes are
 tests and are refused.
+
+**The payload and the retries (F3, F9, F12, F13).** A rule fire's key in the payload is its rule id
+with the dots written as hyphens and its basis (`rules.place-l7_h7@lagna`; the fire's `id` field
+keeps the rule's own), because a path splits on dots and every one of the 38 keys was uncitable; a
+test now walks every path in the payload (over ten thousand) and resolves each to its value. The
+Bhava Bala madhyas are a sign and a degree in it like every other position (they were 24 absolute
+longitudes). `houses.<basis>` follows Meta.house_system from the lagna (under sripati a house is the
+bhava: the madhya's sign, and the bodies the chart places in that bhava, as planets.<p>.house does),
+and stays whole-sign from the Moon and the Sun; `houses.system` says which. Each family has one
+term wherever the payload states it, its value in S with the S terms it holds (`term_holds`: the
+lord family's is the lord and dispositor terms, which its vote reads together; the votes used to
+give the lord term alone and the contributions the sum). `vimshottari.first_maha_starts_before_birth`
+is computed, not written True. A fact under an area's contributions now stands in the family rule
+only for the families its value names (`contributions.strongest`, "lord", stood for every family),
+and under section retries every error reaches the writer: one no unit names, such as "two claims
+for X", goes under "the draft". The payload measures 423,836 characters on the reference chart.
