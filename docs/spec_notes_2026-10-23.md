@@ -465,3 +465,39 @@ blind view leaves out the top-level depth as well, and the website renders the d
 reading holds. `not_computed.retrieval` now says that a [tradition:] citation is the writer's own,
 unverified and shown apart. The comparison report counts every shown sentence of the model's as
 checked except a judgement, which has its own row ("premises checked, the weighing not").
+
+**The empty first attempt.** At effort max, B's first writer call thought through all 128,000
+output tokens and returned no draft (1,024 s). Depth full now defaults to effort xhigh
+(`CONFIG.full_effort`); max stays available by `--writer-effort max`. When a writer call stops at
+max_tokens with no draft, the next attempt runs one effort level lower (xhigh, then high, and so
+on; never below low), and the reading records it (`writer.efforts_by_attempt`,
+`writer.stepped_down`: the attempt, from, to, why); a refusal or any other failure does not step
+down, and the step starts from the effort the drafter actually runs at. The comparison report
+gains a table per reading of each attempt: effort, stop reason, whether a draft came, the writer's
+tokens in and out and seconds, the checker's calls, output tokens and seconds summed. For B's
+recording it reads: attempt 1 at max, stopped at max_tokens, no draft, 246,973 in and 128,000
+out, 1,024.5 s, no checks; attempt 2, no checks (a validator error elsewhere); attempt 3, 132
+checks.
+
+**Re-measured after the fixes.** The replay of B's recording (`scripts/section_retries.py`) is
+unchanged: under section retries the last attempt asks for 18 units rather than 47 and writes
+29,338 characters rather than 36,702, and 35 units are held and 12 gaps left under either policy;
+B's failing sections fail for reasons the fixes do not touch in a replay, which can only return
+B's own drafts. The checker benchmark offline: 145 rows (59 accept, 86 reject), the validator alone
+precision 1.000, recall 0.256, every wording row caught, no false reject. The payload is 434,445
+characters on the reference chart.
+
+**Definition of done.** Conditions 1 to 6 and 10 are met at the last commit of this heading: the
+notes are here, everything is exercised on the reference chart, no new astrological convention
+(the house system the houses follow is Meta's own), every number moved is in the scorecard
+(regenerated with these commits), every new sentence kind is gated in code, checked where the
+policy says and in the benchmark, nothing promoted, and each commit message quotes only numbers
+from a committed report or test. Condition 7 waits for the re-run, condition 4's CI for the push,
+and condition 9 for the next review. The re-run, the same two settings as the first, beside it:
+
+    .venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer \
+        --b claude-opus-5-5,xhigh,full --as-of 2026-10-21 --database sqlite:///jyotish.db \
+        --out docs/comparison_2026-10-23_r2.md
+
+The B setting is xhigh, the depth's default now; `--b claude-opus-5-5,max,full` re-runs the first
+comparison's B exactly, at the cost B's first attempt showed.

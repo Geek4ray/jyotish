@@ -1,6 +1,6 @@
 # Checker benchmark
 
-Run 2026-10-23 at commit `a499c70` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (145 rows: 59 accept, 86 reject). The positive class is reject.
+Run 2026-10-23 at commit `1eed6b7` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (145 rows: 59 accept, 86 reject). The positive class is reject.
 
 ## The code validator alone
 

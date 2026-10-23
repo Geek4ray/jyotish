@@ -82,10 +82,12 @@ def run(chart, *drafts, checker=None, rec=None, **kw):
 
 # --- the writer's settings --------------------------------------------------------------
 
-def test_full_depth_writer_thinks_at_the_highest_effort():
-    assert CONFIG.full_effort == "max" and CONFIG.full_thinking == "adaptive"
+def test_full_depth_writer_thinks_at_xhigh_by_default():
+    # xhigh since the review of 2026-10-23: at max, B's first attempt thought through all 128,000 tokens
+    assert CONFIG.full_effort == "xhigh" and CONFIG.full_thinking == "adaptive"
     w = writer_config(CONFIG, "full")
-    assert (w.effort, w.thinking, w.max_tokens) == ("max", "adaptive", CONFIG.full_max_tokens)
+    assert (w.effort, w.thinking, w.max_tokens) == ("xhigh", "adaptive", CONFIG.full_max_tokens)
+    assert writer_config(CONFIG, "full", effort="max").effort == "max"          # max by flag
     a = writer_config(CONFIG, "astrologer")
     assert (a.effort, a.thinking) == (CONFIG.effort, None)
     o = writer_config(CONFIG, "full", model="claude-sonnet-5-5", effort="high")
@@ -124,8 +126,8 @@ def test_the_drafter_sends_thinking_and_effort_and_the_checker_keeps_its_own_mod
     d = AnthropicDrafter(writer_config(CONFIG, "full", model="claude-fable-5-1"), client=client)
     d("system", "payload", [])
     assert seen["writer"]["thinking"] == {"type": "adaptive", "display": "summarized"}
-    assert seen["writer"]["output_config"] == {"effort": "max"} and seen["writer"]["model"] == "claude-fable-5-1"
-    assert d.last_meta["thinking"] == "Weighing Mars against the 10th." and d.last_meta["effort"] == "max"
+    assert seen["writer"]["output_config"] == {"effort": "xhigh"} and seen["writer"]["model"] == "claude-fable-5-1"
+    assert d.last_meta["thinking"] == "Weighing Mars against the 10th." and d.last_meta["effort"] == "xhigh"
     AnthropicChecker(writer_config(CONFIG, "full", model="claude-fable-5-1"), client=client)("s", "{}")
     assert seen["checker"]["model"] == CONFIG.checker_model and seen["checker"]["output_config"] == {"effort": "high"}
     assert "thinking" not in seen["checker"]
@@ -217,7 +219,7 @@ def test_a_synthesis_whose_conclusion_no_fact_supports_is_rejected(chart):
 def test_the_page_shows_the_analysis_and_the_writers_settings(chart):
     from jyotish.page import render
     page = render(run(chart, draft()), chart)
-    assert f"writer {CONFIG.model} at effort max, thinking adaptive" in page
+    assert f"writer {CONFIG.model} at effort xhigh, thinking adaptive" in page
     career = page[page.index("## Career"):]
     for heading in ("### Assessment", "### Timing", "### What the chart does not say"):
         assert heading in career
@@ -724,3 +726,66 @@ def test_not_computed_says_the_tradition_citations_are_unverified(whole):
     from jyotish.fullchart import resolve
     r = resolve(whole, "not_computed.retrieval")
     assert "[tradition:] citation is the writer's own, unverified" in r
+
+
+# --- the empty first attempt (B's: thinking through all 128,000 tokens, no draft) ------------------------
+
+def _stepping_client(stops):
+    """A fake client whose streamed answers stop as `stops` says: "max_tokens" with no draft, then a draft."""
+    calls = []
+
+    class Stream:
+        def __init__(self, **kw):
+            calls.append(kw)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def get_final_message(self):
+            stop = stops[min(len(calls), len(stops)) - 1]
+            out = None if stop != "end_turn" else ReadingDraft(**draft())
+            return SimpleNamespace(parsed_output=out, stop_reason=stop, content=[], usage=None, model="m")
+    return SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(stream=Stream))), calls
+
+
+def test_thinking_to_max_tokens_steps_the_effort_down_and_the_reading_says_so(chart):
+    client, calls = _stepping_client(["max_tokens", "end_turn"])
+    d = AnthropicDrafter(writer_config(CONFIG, "full"), client=client)
+    r = narrate(chart, QUESTION, drafter=d, checker=SynthesisStub({"Mars is dignified in a kendra": True}), as_of=AS_OF,
+                areas=["career"], depth="full")
+    assert [c["output_config"]["effort"] for c in calls] == ["xhigh", "high"]
+    assert r.writer["effort"] == "xhigh" and r.writer["efforts_by_attempt"] == ["xhigh", "high"]
+    assert r.writer["stepped_down"] == [{"attempt": 1, "from": "xhigh", "to": "high",
+                                         "why": "no draft: the writer's thinking reached max_tokens"}]
+    assert r.attempts == 2 and r.areas[0].analysis["timing"] == TIMING
+
+
+def test_no_step_down_for_any_other_failure_and_none_below_low(chart):
+    client, calls = _stepping_client(["refusal", "end_turn"])
+    r = narrate(chart, QUESTION, drafter=AnthropicDrafter(writer_config(CONFIG, "full"), client=client),
+                checker=SynthesisStub({"Mars is dignified in a kendra": True}), as_of=AS_OF, areas=["career"], depth="full")
+    assert [c["output_config"]["effort"] for c in calls] == ["xhigh", "xhigh"] and "stepped_down" not in r.writer
+    client, calls = _stepping_client(["max_tokens", "max_tokens", "end_turn"])
+    narrate(chart, QUESTION, drafter=AnthropicDrafter(writer_config(CONFIG, "full", effort="low"), client=client),
+            checker=SynthesisStub(), as_of=AS_OF, areas=["career"], depth="full")
+    assert [c["output_config"]["effort"] for c in calls] == ["low", "low", "low"]
+
+
+def test_the_report_shows_each_attempt_of_b():
+    import importlib.util
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("compare_readings", root / "scripts" / "compare_readings.py")
+    cr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cr)
+    rec = json.loads((root / "docs" / "comparison_2026-10-23" / "b.recording.json").read_text())["calls"]
+    rows = cr.per_attempt(rec)
+    assert [r["attempt"] for r in rows] == [1, 2, 3]
+    first = rows[0]
+    assert (first["stop"], first["draft"], first["writer_out"], round(first["writer_s"])) == ("max_tokens", False, 128000, 1025)
+    assert rows[2]["checks"] == 132 and rows[1]["checks"] == 0
+    table = "\n".join(cr._attempt_table(rows))
+    assert "| 1 | max | max_tokens | no | 246,973 / 128,000 | 1024.527 | 0 |" in table

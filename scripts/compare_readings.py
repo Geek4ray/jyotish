@@ -163,8 +163,35 @@ ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}, effort {m['writer'].g
         ("Narration wall time, s", lambda m: "–" if m["wall_seconds"] is None else f"{m['wall_seconds']:.1f}")]
 
 
+def per_attempt(recording: list) -> list[dict]:
+    """Each attempt's writer call (effort, stop reason, tokens, seconds) and checker calls (count,
+    tokens, the sum of their seconds), from a recording."""
+    out = []
+    for w in (c for c in recording if c.get("kind") == "writer"):
+        u = w.get("usage") or {}
+        checks = [c for c in recording if c.get("kind") == "checker" and c.get("attempt") == w.get("attempt")]
+        out.append({"attempt": w.get("attempt"), "effort": w.get("effort"), "stop": w.get("stop_reason"),
+                    "draft": bool(w.get("draft")), "writer_in": int(u.get("input_tokens") or 0)
+                    + int(u.get("cache_read_input_tokens") or 0) + int(u.get("cache_creation_input_tokens") or 0),
+                    "writer_out": int(u.get("output_tokens") or 0), "writer_s": w.get("seconds"),
+                    "checks": len(checks), "checker_out": sum(int((c.get("usage") or {}).get("output_tokens") or 0)
+                                                              for c in checks),
+                    "checker_s": round(sum(float(c.get("seconds") or 0) for c in checks), 1)})
+    return out
+
+
+def _attempt_table(rows: list[dict]) -> list[str]:
+    L = ["| attempt | effort | stop | draft | writer tokens in / out | writer s | checks | checker tokens out | "
+         "checker s (sum) |", "|---|---|---|---|---|---|---|---|---|"]
+    for r in rows:
+        L.append(f"| {r['attempt']} | {r['effort'] or '–'} | {r['stop'] or '–'} | {'yes' if r['draft'] else 'no'} | "
+                 f"{r['writer_in']:,} / {r['writer_out']:,} | {r['writer_s'] if r['writer_s'] is not None else '–'} | "
+                 f"{r['checks']} | {r['checker_out']:,} | {r['checker_s']} |")
+    return L
+
+
 def document(run_date: str, birth: dict, question: str, as_of: str, source: str, ma: dict, mb: dict,
-             page_a: str, page_b: str, ids: tuple[str, str] | None) -> str:
+             page_a: str, page_b: str, ids: tuple[str, str] | None, attempts: tuple[list, list] = ([], [])) -> str:
     L = [f"# Comparison of two readings, {run_date}", "",
          f"Birth data: {birth.get('place') or 'place not named'}, {birth['date']} {birth['time']} ({birth['tz']}), "
          f"{birth['lat']}, {birth['lon']}, node {birth.get('node', 'true')}. Question: \"{question}\". As of {as_of}.",
@@ -175,7 +202,12 @@ def document(run_date: str, birth: dict, question: str, as_of: str, source: str,
     L += ["| | A | B |", "|---|---|---|"] + [f"| {name} | {f(ma)} | {f(mb)} |" for name, f in ROWS] + [""]
     L += ["Prices: USD per million tokens from `PRICES` in scripts/compare_readings.py (the Anthropic price list "
           "as cached on 2026-10-06); thinking is billed as output. Wall time is the narration's (writer and "
-          "checker calls), not the chart's.", "", "## The two pages side by side", "", side_by_side(page_a, page_b), ""]
+          "checker calls), not the chart's.", ""]
+    for label, rows in zip("AB", attempts):
+        if rows:
+            L += [f"Per attempt, {label} (the checker's seconds are the sum of its calls, which run concurrently):", ""] \
+                + _attempt_table(rows) + [""]
+    L += ["## The two pages side by side", "", side_by_side(page_a, page_b), ""]
     return "\n".join(L)
 
 
@@ -276,7 +308,7 @@ def main(argv: list[str] | None = None) -> int:
     (ra, pa, reca, wa, *_), (rb, pb, recb, wb, *_) = results["a"], results["b"]
     source = "replayed from recordings (no API call)" if args.replay_a or args.replay_b else "live"
     out.write_text(document(today, birth, args.question, args.as_of, source, metrics(ra, reca, wa),
-                            metrics(rb, recb, wb), pa, pb, ids))
+                            metrics(rb, recb, wb), pa, pb, ids, (per_attempt(reca), per_attempt(recb))))
     print(f"wrote {out}" + (f"; blind review at /compare/{ids[0]}/{ids[1]}" if ids else ""))
     return 0
 

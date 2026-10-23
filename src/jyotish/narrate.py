@@ -62,11 +62,13 @@ class NarrationConfig:
     timing_years: int = 10                    # window for a "when" question with no dates; at depth full, the range always
     thinking: str | None = None               # the writer's `thinking` type; None sends none (Opus 5.5 thinks adaptively anyway)
     thinking_display: str = "summarized"      # a summary of the writer's reasoning, kept in the recording only
-    # Depth full (SPEC Layer 7, depth full): extended thinking on, the highest effort the API
-    # offers (EFFORTS) and room for the reasoning and the analysis. A max_tokens above
-    # STREAM_ABOVE is sent as a stream (the SDK refuses a long request otherwise).
+    # Depth full (SPEC Layer 7, depth full): extended thinking on, effort xhigh (max stays available by
+    # --writer-effort: at max, reading B's first attempt thought through all 128,000 output tokens and
+    # returned no draft) and room for the reasoning and the analysis. A max_tokens above STREAM_ABOVE
+    # is sent as a stream (the SDK refuses a long request otherwise). When thinking reaches max_tokens
+    # with no draft, the next attempt runs one effort level lower (narrate records it).
     full_thinking: str = "adaptive"
-    full_effort: str = "max"
+    full_effort: str = "xhigh"
     full_max_tokens: int = 128000
     # Depth full: every unit (the summary, a claim, a section) that passes the validator is checked in
     # the same attempt and held once it passes; a retry asks only for the units that failed, with
@@ -84,8 +86,8 @@ WRITER_MODELS = ("claude-opus-5-5", "claude-fable-5-1", "claude-opus-5", "claude
 
 def writer_config(config: NarrationConfig, depth: str, model: str | None = None,
                   effort: str | None = None) -> NarrationConfig:
-    """The writer's settings for a depth: at full, extended thinking (`full_thinking`), the highest
-    effort (`full_effort`) and `full_max_tokens`; `model` and `effort` override at any depth (the
+    """The writer's settings for a depth: at full, extended thinking (`full_thinking`), `full_effort`
+    (xhigh) and `full_max_tokens`; `model` and `effort` override at any depth (the
     --writer-model and --writer-effort flags). The checker's model and effort are not touched."""
     from dataclasses import replace
     if model is not None and model not in WRITER_MODELS:
@@ -1728,13 +1730,28 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     # validated, checked or rewritten again; every unit that passes the validator is checked in the
     # same attempt, and the next draft is asked for the failed units only (retry_instruction).
     held = full and config.section_retries
+    # The writer's settings as it runs them: a drafter with its own config (AnthropicDrafter) is the
+    # authority, so a step down starts from the effort it actually uses.
+    if isinstance(getattr(drafter, "config", None), NarrationConfig):
+        wcfg = drafter.config
+    effort_now, efforts, stepped = wcfg.effort, [], []
     for attempts in range(1, config.max_attempts + 1):
         progress("draft", {"attempt": attempts})
+        efforts.append(effort_now)
         try:
             draft = drafter(system, user, errors)
         except NarrationError as e:                        # a refusal or no structured output
             writer_metas.append(getattr(drafter, "last_meta", None))
             errors = [str(e)] + list(e.errors)
+            # Thinking reached max_tokens and left no draft: the next attempt one effort level lower.
+            if "max_tokens" in e.errors and effort_now in EFFORTS and EFFORTS.index(effort_now) > 0:
+                lower = EFFORTS[EFFORTS.index(effort_now) - 1]
+                stepped.append({"attempt": attempts, "from": effort_now, "to": lower,
+                                "why": "no draft: the writer's thinking reached max_tokens"})
+                effort_now = lower
+                if isinstance(getattr(drafter, "config", None), NarrationConfig):
+                    from dataclasses import replace as _replace
+                    drafter.config = _replace(drafter.config, effort=lower)
             if recording is not None:
                 recording.append(dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                                       draft=None, validator_errors=[], writer_error=errors))
@@ -2028,7 +2045,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
                    chart=chart_header(chart), facts_cited={k: v for t in shown for k, v in _cited_facts(t, facts).items()},
                    writer={"model": wcfg.model, "effort": wcfg.effort, "thinking": wcfg.thinking,
-                           "max_tokens": wcfg.max_tokens},
+                           "max_tokens": wcfg.max_tokens,
+                           **({"efforts_by_attempt": efforts, "stepped_down": stepped} if stepped else {})},
                    checker={"model": config.checker_model, "effort": config.checker_effort},
                    usage={"writer": _usage(writer_metas), "checker": _usage(checker_metas),
                           "wall_seconds": round(time.perf_counter() - started, 3)},
