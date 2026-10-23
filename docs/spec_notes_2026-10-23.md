@@ -207,3 +207,43 @@ chart", "your", "here"). Item 6's forbidden content and the tier words apply to 
 sentence. "May" is not read as the month: as a verb it is far commoner in a paraphrase. What the
 validator cannot do is know whether the chapter says it; that is what the triage is for, and the
 prompt tells the writer to leave out a sentence whose chapter it is not sure of.
+
+**The comparison.** `scripts/compare_readings.py` runs the same birth data and question (the
+reference chart and its career question by default) at two (model, effort, depth) settings through
+the one pipeline (`service.make_reading`: the validator, then the checker at its own fixed model and
+effort), and writes `docs/comparison_<date>.md`: per setting the writer and checker as run, the
+attempts, the checked sentences and claims shown, the checker's rejections and the rejected claims
+over all attempts, the validator's errors, the narration gaps, the synthesis and tradition
+sentences, the tokens of each side (input, cache read, cache write, output), the cost from a price
+table in the script (USD per million tokens as cached on 2026-10-06; thinking bills as output) and
+the narration's wall time; then the two pages side by side, a row per section. The readings and
+their recordings go to `docs/comparison_<date>/`; a recording replays offline (`--replay-a`,
+`--replay-b`), which is how the suite runs it. With `--database` both readings are stored and the
+script names the blind page.
+
+`/compare/{id_a}/{id_b}` (a reviewer token) shows two readings of one chart and question as A and B
+with their settings withheld: the writer, the checker, the usage, the model, the attempts, the
+replay source and the header's command and depth are left out of what the page is sent. Which
+reading is A is fixed per reviewer and pair by a hash of the two ids and the reviewer, so it is the
+same on every visit and for either order of the URL, and across reviewers each reading takes both
+roles. One question, "which reading would you give the client, and why", answered once (A or B and
+the reviewer's own words): it is logged in `reviews` (action `compare`: both readings, which was
+shown as A, the choice, each one's settings, the why) and exported with the judgements (kind
+`compare`). Only the answer reveals the settings, and since it does, a second answer is refused.
+Opening the page logs the reviewer and excludes the chart from the blind learning set, as the
+review step does.
+
+The live comparison on the reference chart needs an API key, which was not available when this was
+built. The command (writes `docs/comparison_<date>.md` and stores both readings for the blind page):
+
+    .venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer \
+        --b claude-opus-5-5,max,full --as-of 2026-10-21 --database sqlite:///jyotish.db
+
+Its numbers belong here once it has run: the measured input tokens of the full payload, both
+settings' checked, rejected and gap counts, synthesis and tradition sentences, cost and wall time.
+
+Two races the comparison exposed, both older than this work and both fixed with it: two jobs for one
+chart at once (the comparison posts two) shared the chart cache's temporary file, so the second
+`replace` found it gone; and both inserted the chart row, so the second failed on its key. Each
+writer now has a temporary file of its own, and a lost insert leaves the stored row, which has the
+same key and so the same document (`tests/test_cache.py`, `tests/test_compare.py`).

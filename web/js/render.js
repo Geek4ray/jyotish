@@ -282,7 +282,8 @@ export function renderReading(r) {
     <h1 class="question">${esc(r.question)}</h1>
     <p class="header-line">${headerLine(r.chart)}</p>
     ${r.review && r.review.status === "reviewed" ? `<p class="reviewed-by">Reviewed by <strong>${esc(r.review.reviewed_by)}</strong> on ${esc(r.review.reviewed_at.slice(0, 10))}. Edited sentences passed the same checks as the writer's; the astrologer's notes are the reviewer's own words.</p>` : ""}
-    <p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)} · model ${esc(r.model)} · ${num(r.attempts)} attempt(s) · narration ${esc(r.narration_source)}</p>
+    ${r.model ? `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)} · ${r.writer && r.writer.model ? `writer ${esc(r.writer.model)} at effort ${esc(r.writer.effort)}` : `model ${esc(r.model)}`} · ${num(r.attempts)} attempt(s) · narration ${esc(r.narration_source)}</p>`
+      : `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)}</p>`}
   </section>
   ${r.narration_complete === false ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}
   ${r.unchecked_sentences ? `<p class="notice">Offline replay: ${num(r.unchecked_sentences)} sentence(s) have no recorded checker verdict and were not semantically checked; the code validator ran on all of them.</p>` : ""}

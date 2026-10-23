@@ -29,6 +29,12 @@ draft until approved; the client-facing page says "reviewed by" only after. `?mo
 judge page) withholds an area's reading until the reviewer has answered from the chart alone:
 the server sends it only then, and only then is the chart excluded.
 
+The blind comparison (SPEC Layer 7, depth full; scripts/compare_readings.py): GET /compare/{a}/{b}
+is the page, GET /compare/{a}/{b}/view (a reviewer token) the two readings of one chart and question
+as A and B with their settings withheld, and POST /compare/{a}/{b}/answer the one question, which
+reading the reviewer would give the client and why, logged in `reviews` (action `compare`) and
+answered once: the answer reveals the settings.
+
 Run:  .venv/bin/uvicorn jyotish.api:app      then open http://127.0.0.1:8000/"""
 
 from __future__ import annotations
@@ -48,6 +54,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from .service import BirthInput
@@ -100,7 +107,7 @@ class ReviewRow(Base):
     reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"))
     chart_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     reviewer_id: Mapped[str] = mapped_column(String(64))
-    action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve | verdict | answer
+    action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve | verdict | answer | compare
     target: Mapped[str | None] = mapped_column(String(200), nullable=True)
     before: Mapped[str | None] = mapped_column(Text, nullable=True)
     after: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -291,6 +298,40 @@ class VerdictRequest(BaseModel):
         return self
 
 
+class CompareAnswer(BaseModel):
+    """The blind comparison's one question: which reading would you give the client (A or B), and why."""
+    model_config = ConfigDict(extra="forbid")
+    choice: Literal["A", "B"]
+    why: str = Field(min_length=1, max_length=4000)
+
+
+# What the blind comparison withholds of each reading until it is answered: the settings that made
+# it (writer, checker, usage, the model and attempts, the replay source) and the header's command
+# and depth, which name them.
+SETTINGS_FIELDS = ("model", "attempts", "writer", "checker", "usage", "narration_source")
+
+
+def blind(document: dict) -> dict:
+    out = {k: v for k, v in document.items() if k not in SETTINGS_FIELDS}
+    out["chart"] = {k: v for k, v in (document.get("chart") or {}).items() if k not in ("command", "depth")}
+    return out
+
+
+def settings_of(document: dict) -> dict:
+    w = document.get("writer") or {}
+    return {"model": w.get("model") or document.get("model"), "effort": w.get("effort"), "depth": document.get("depth"),
+            "thinking": w.get("thinking"), "checker": document.get("checker") or {}}
+
+
+def compare_order(a: str, b: str, reviewer: str) -> tuple[str, str]:
+    """(the reading shown as A, as B) for this reviewer: from a hash of the pair and the reviewer,
+    so it is the same on every visit and for either order of the URL, and the URL says nothing."""
+    import hashlib
+    first, second = sorted((a, b))
+    flip = int(hashlib.sha256(f"{first}|{second}|{reviewer}".encode()).hexdigest(), 16) % 2
+    return (second, first) if flip else (first, second)
+
+
 class OutcomeRows(BaseModel):
     model_config = ConfigDict(extra="forbid")
     rows: list[dict[str, Any]] = Field(max_length=5000)
@@ -391,10 +432,15 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             birth = BirthInput(**req.model_dump(include=set(BirthInput.model_fields)))
             chart, source, chart_id = assess_birth(birth)
             bkey = birth_key_of(birth)
-            with Session.begin() as s:
-                if s.get(ChartRow, chart_id) is None:
-                    s.add(ChartRow(id=chart_id, birth_key=bkey, birth=birth.model_dump(), engine=chart.meta.engine,
-                                   document=chart.model_dump(mode="json")))
+            try:
+                with Session.begin() as s:
+                    if s.get(ChartRow, chart_id) is None:
+                        s.add(ChartRow(id=chart_id, birth_key=bkey, birth=birth.model_dump(), engine=chart.meta.engine,
+                                       document=chart.model_dump(mode="json")))
+            except IntegrityError:
+                # Two jobs for one chart at once (a comparison posts two): the other stored it first,
+                # and a chart id is its document's key, so the stored row is this one.
+                pass
             update(reading_id, chart_id=chart_id, birth_key=bkey)
             keep = {"chart": chart_line(chart, birth),
                     "header": reading_header(birth, req.question, chart, req.as_of, model_fixture, req.depth,
@@ -690,6 +736,69 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             save(s, row, reading)
             s.flush()
             return review_view(s, row, reading, who, mode)
+
+    # --- the blind comparison (scripts/compare_readings.py) -------------------------------------
+
+    def compare_rows(s, a: str, b: str):
+        if a == b:
+            raise HTTPException(status_code=422, detail="a comparison needs two different readings")
+        rows = [done_reading(s, x)[0] for x in (a, b)]
+        if rows[0].chart_id != rows[1].chart_id or rows[0].question != rows[1].question:
+            raise HTTPException(status_code=422, detail="the two readings are not of the same chart and question")
+        return rows
+
+    def compare_answer_of(s, a: str, b: str, who: str):
+        target = "compare:" + ":".join(sorted((a, b)))
+        return s.query(ReviewRow).filter_by(action="compare", target=target, reviewer_id=who).first()
+
+    def compare_view(s, a: str, b: str, who: str) -> dict:
+        rows = {r.id: r for r in compare_rows(s, a, b)}
+        shown = dict(zip(("A", "B"), compare_order(a, b, who)))
+        view = {"readings": {label: blind(rows[rid].document) for label, rid in shown.items()}, "answer": None}
+        ans = compare_answer_of(s, a, b, who)
+        if ans is not None:                       # revealed only once answered
+            view["answer"] = {"choice": ans.answer["choice"], "why": ans.comment, "reviewer": who,
+                              "at": ans.created_at.isoformat()}
+            view["reveal"] = {label: dict(settings_of(rows[rid].document), reading_id=rid) for label, rid in shown.items()}
+        return view
+
+    @app.get("/compare/{a}/{b}", include_in_schema=False)
+    def compare_page(a: str, b: str):
+        from fastapi.responses import FileResponse
+        if web_dir is None or not (Path(web_dir) / "compare.html").exists():
+            raise HTTPException(status_code=404, detail="no compare page")
+        return FileResponse(Path(web_dir) / "compare.html")
+
+    @app.get("/compare/{a}/{b}/view")
+    def get_compare(a: str, b: str, request: Request) -> dict:
+        """The two readings as A and B with their settings withheld (which is A is fixed per
+        reviewer, compare_order); after this reviewer has answered, the answer and the settings.
+        Opening it logs the reviewer and excludes the chart from the blind learning set."""
+        who = reviewer(request)
+        with Session.begin() as s:
+            rows = compare_rows(s, a, b)
+            log(s, rows[0], who, "open", mode="compare", target="compare:" + ":".join(sorted((a, b))))
+            s.flush()
+            return compare_view(s, a, b, who)
+
+    @app.post("/compare/{a}/{b}/answer")
+    def post_compare(a: str, b: str, req: CompareAnswer, request: Request) -> dict:
+        """"Which reading would you give the client, and why": logged to the judgements with the
+        reviewer, both readings, which was shown as A and each one's settings. One answer per
+        reviewer and pair: the settings are revealed by it, so a second would not be blind."""
+        who = reviewer(request)
+        with Session.begin() as s:
+            rows = {r.id: r for r in compare_rows(s, a, b)}
+            if compare_answer_of(s, a, b, who) is not None:
+                raise HTTPException(status_code=409, detail="this comparison is answered: the settings are shown")
+            shown = dict(zip(("A", "B"), compare_order(a, b, who)))
+            first = rows[sorted((a, b))[0]]
+            log(s, first, who, "compare", mode="blind", target="compare:" + ":".join(sorted((a, b))),
+                answer={"choice": req.choice, "chosen": shown[req.choice], "shown_as": shown,
+                        "settings": {rid: settings_of(r.document) for rid, r in rows.items()}},
+                comment=req.why.strip())
+            s.flush()
+            return compare_view(s, a, b, who)
 
     # --- outcome capture (outcomes.py): the clerk's sheet over HTTP, the same checks as the CLI ---
 

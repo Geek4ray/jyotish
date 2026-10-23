@@ -734,7 +734,7 @@ def test_every_label_comes_from_the_strings_file():
     import re
     strings = (ROOT / "web" / "js" / "strings.js").read_text()
     en = set(re.findall(r'^\s+"([\w.]+)":', strings, re.M))
-    page = (ROOT / "web" / "js" / "review-page.js").read_text()
+    page = "".join((ROOT / "web" / "js" / f).read_text() for f in ("review-page.js", "compare-page.js"))
     used = set(re.findall(r'\bt\("([\w.]+)"', page))
     assert used and used <= en, used - en
     dynamic = {"intro.{}.heading": ("1", "2", "3"), "intro.{}.body": ("1", "2", "3"),
@@ -786,3 +786,46 @@ def test_full_depth_reading_on_the_site(page, full_url):
     assert trad.locator("li").inner_text().startswith("Phaladeepika holds that a lord of the tenth")
     assert "(Phaladeepika 10; unverified)" in trad.locator("li").inner_text()
     assert "has not checked this" in trad.locator(".tradition-note").inner_text()
+
+
+
+@pytest.fixture(scope="module")
+def compare_url(tmp_path_factory):
+    server, thread, url = _serve(tmp_path_factory.mktemp("cmp") / "c.db", EDITED, reviewers={"tok-1": "judge-1"})
+    yield url
+    server.should_exit = True
+    thread.join(5)
+
+
+def test_blind_comparison_page(page, compare_url):
+    """/compare/{a}/{b}: the reviewer signs in, sees A and B with no settings, answers the one
+    question, and only then sees which settings made which reading."""
+    import requests
+    body = dict(CURIOUS_BODY, depth="astrologer")
+    ids = [requests.post(f"{compare_url}/readings", json=dict(body, writer_effort=e)).json()["id"]
+           for e in ("medium", "max")]
+    for rid in ids:
+        for _ in range(600):
+            if requests.get(f"{compare_url}/readings/{rid}").json()["status"] in ("done", "failed"):
+                break
+            time.sleep(0.1)
+    page.goto(f"{compare_url}/compare/{ids[0]}/{ids[1]}")
+    page.fill("#token", "tok-1")
+    page.click("#token-open")
+    page.wait_for_selector("#compare[data-state=blind]")
+    for label in "AB":
+        col = page.locator(f"#reading-{label}")
+        assert col.locator(".compare-label").inner_text() == f"Reading {label}"
+        assert col.locator("section.area").count() >= 1
+        text = col.inner_text()
+        assert "effort" not in text and "claude-" not in text and "attempt(s)" not in text
+    assert page.locator("#compare-reveal").is_hidden()
+    assert page.inner_text("#compare-heading") == "Which reading would you give the client, and why?"
+    page.check("input[name=choice][value=A]")
+    page.fill("#compare-why", "A says what the 10th lord does; B only lists the votes.")
+    page.click("#compare-submit")
+    page.wait_for_selector("#compare[data-state=revealed]")
+    reveal = page.inner_text("#compare-reveal")
+    assert "You chose reading A (judge-1)." in reveal and "A says what the 10th lord does" in reveal
+    assert "effort medium" in reveal and "effort max" in reveal
+    assert page.locator("#compare-form").is_hidden()

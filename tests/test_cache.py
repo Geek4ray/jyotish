@@ -58,3 +58,25 @@ def test_caller_cannot_change_the_cache_and_off_switch(disk, monkeypatch):
         f.unlink()
     _, src = cache.cached_assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, **KW)
     assert src == "computed" and not list(disk.glob("*.json"))
+
+
+def test_two_jobs_computing_one_chart_at_once_both_succeed(tmp_path, monkeypatch):
+    """Two workers computing the same uncached chart (a comparison posts two readings of one chart)
+    each write their own temporary file: neither finds the other's moved away."""
+    import threading
+    monkeypatch.setenv("JYOTISH_CACHE_DIR", str(tmp_path))
+    cache.clear_memory()
+    errors = []
+
+    def job():
+        try:
+            cache.cached_assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+        except Exception as e:          # the failure this guards against: FileNotFoundError on replace
+            errors.append(repr(e))
+    threads = [threading.Thread(target=job) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == [] and [p.suffix for p in tmp_path.iterdir()] == [".json"]
+    cache.clear_memory()

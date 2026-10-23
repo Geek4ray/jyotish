@@ -9,7 +9,9 @@
                                         to each question (agree / partly / disagree, what is off, the best
                                         period, in blind mode the reviewer's own reading and period), the
                                         reviewer's own words on each, the note; and one row per (reading,
-                                        reviewer, mode) with area null for the reading as a whole
+                                        reviewer, mode) with area null for the reading as a whole; and one
+                                        row per blind comparison (kind "compare": the two readings, which
+                                        was shown as A, the choice, the reviewer's why, each one's settings)
 
 These are judgements, not outcomes: what a practising astrologer thought of a reading, never what
 happened to its client. They live in data/preferences/, apart from any outcome log (SPEC Layer 6b:
@@ -119,6 +121,16 @@ def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data
             if with_birth_data:
                 g["birth"] = birth(g["chart_hash"])
             judgements.append(g)
+
+        for row in s.query(ReviewRow).filter_by(action="compare").order_by(ReviewRow.id):
+            a = row.answer or {}
+            x = {"kind": "compare", "readings": sorted((a.get("shown_as") or {}).values()), "chart_hash": row.chart_id,
+                 "reviewer": row.reviewer_id, "shown_as": a.get("shown_as"), "choice": a.get("choice"),
+                 "chosen_reading": a.get("chosen"), "why": row.comment, "settings": a.get("settings"),
+                 "at": row.created_at.isoformat()}
+            if with_birth_data:
+                x["birth"] = birth(row.chart_id)
+            judgements.append(x)
 
     for name, rows in (("rewrites.jsonl", rewrites), ("judgements.jsonl", judgements)):
         lines = [_header(name, with_birth_data)] + rows

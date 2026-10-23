@@ -204,6 +204,11 @@ table.windows td:nth-child(-n+6), table.windows th { white-space: nowrap; }
 .analysis { display: grid; gap: 12px; margin: 4px 0 12px; }
 .analysis-section p { margin: 4px 0 0; line-height: 1.6; }
 .traditions { border: 1px dashed var(--muted); border-radius: 6px; padding: 8px 12px; }
+.compare-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.compare-column { min-width: 0; }
+.compare-label { margin: 0 0 8px; }
+.compare-question { margin-top: 16px; }
+@media (max-width: 900px) { .compare-columns { grid-template-columns: 1fr; } }
 .traditions ul { margin: 6px 0 0; padding-left: 18px; }
 details.astrologer > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; min-height: 44px; display: flex; align-items: center; }
 details.astrologer[open] > summary { margin-bottom: 8px; }

@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import uuid
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -86,7 +87,9 @@ def cached_assess(utc: datetime, lat: float, lon: float, **kw) -> tuple[Chart, s
         source = "computed"
         if path is not None:
             path.parent.mkdir(parents=True, exist_ok=True)
-            tmp = path.with_suffix(".tmp")
+            # A name of this writer's own: two jobs computing one chart at once (a comparison posts two)
+            # would otherwise share one .tmp, and the second replace would find it gone.
+            tmp = path.with_suffix(f".{uuid.uuid4().hex}.tmp")
             tmp.write_text(chart.model_dump_json())
             tmp.replace(path)
     if len(_MEMORY) >= _MEMORY_MAX:

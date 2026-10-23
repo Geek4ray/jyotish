@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -115,6 +115,23 @@ with Playwright (`.venv/bin/playwright install chromium`). The offline suite rep
 (`tests/fixtures/narration_career_opus55_r1.json`) and a hand-edited copy, with the checker stubbed;
 `JYOTISH_LIVE_NARRATION=1` runs the live test, and `JYOTISH_RECORD_FIXTURE=1` writes every call to
 `tests/fixtures/narration_career.json`.
+Depth full (2026-10-23; docs/spec_notes_2026-10-23.md, not yet in SPEC.md): the writer gets the whole chart
+(`fullchart.payload`: every table, vote derivation, dasha to the pratyantar and ten years of transits,
+under stable paths; 356,177 characters on the reference chart, held by `tests/test_fullchart.py`), cites
+any field as `[fact:<path>]` (the validator resolves the path, the checker gets the value, the reading
+keeps `facts_cited`), thinks adaptively at `CONFIG.full_effort` (max) with `full_max_tokens` streamed,
+and writes per area an `analysis` (assessment, timing, not_said), each section checked like the summary
+and accepted whole; a sentence on two or more findings or facts goes to the checker marked `synthesis`.
+`--writer-model`/`--writer-effort` (and `writer_model`/`writer_effort` on POST /readings) move the writer
+only; `CONFIG.checker_model` and `checker_effort` stay; the reading records `writer`, `checker`, `usage`.
+`[tradition:<text> <chapter>]` (analysis only, `narrate.TRADITION_TEXTS`) is never checked: it is shown
+apart as unverified, refused if it states a numeral, date, period or anything the engine computes, and
+a live reading appends it to `data/candidate_rules.jsonl` (JYOTISH_CANDIDATE_RULES; gitignored; triage
+in docs/triage.md). `scripts/compare_readings.py` runs two (model, effort, depth) settings and writes
+docs/comparison_<date>.md; `/compare/{a}/{b}` shows the two blind to a reviewer, one question, logged
+(`reviews` action `compare`, exported with the judgements), settings revealed after the answer. The
+live comparison on the reference chart has not been run yet (it needs the API key): the command is in
+the spec notes.
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,
