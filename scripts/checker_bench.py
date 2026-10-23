@@ -57,7 +57,8 @@ WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family
 # The depth-full comparison's rows (comparison_rows) add three semantic kinds: a sentence citing a field
 # narrower than its claim, a judgement whose premise is false, and a clause no field states.
 SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", "cites_too_narrowly",
-                                         "judgement_premise", "unstated_claim", "contradicts_its_fact"}
+                                         "judgement_premise", "unstated_claim", "contradicts_its_fact",
+                                         "synthesis_does_not_follow", "untagged_unsupported"}
 COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
 FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
 LIVE_HEADING = "## Validator + semantic checker (live)"
@@ -283,6 +284,35 @@ def full_inputs():
     return chart, as_of, whole, data
 
 
+# The review of 2026-10-23 (F5): one row of each new sentence kind that reaches the live checker (the
+# validator passes it), so the benchmark measures the checker on the kinds and not only the validator.
+KIND_ROWS = [
+    ("kind-judgement-accept", "analysis", "career", "assessment",
+     "I give the lord family more weight than the arudha vote, since the lord family's term is the largest "
+     "[fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote].", "accept", "accepted",
+     "constructed for the review's F5: an accepted judgement. Its one chart proposition, the lord family's term the "
+     "largest, is largest_term 'lord'; the arudha vote is cited for what is weighed against; the weighing is the reading's."),
+    ("kind-judgement-premise", "analysis", "career", "assessment",
+     "I give the lord family more weight than the arudha vote, since the arudha vote is against career "
+     "[fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote].", "reject", "judgement_premise",
+     "constructed for the review's F5: a judgement whose premise is false and whose form is clean: the career arudha "
+     "vote is 0 (abstains), not against"),
+    ("kind-synthesis-does-not-follow", "analysis", "career", "assessment",
+     "Mars is in its own sign in the 7th house from the lagna, so Mars rules the 10th house from the lagna "
+     "[fact:planets.Mars.dignity] [fact:houses.lagna.7].", "reject", "synthesis_does_not_follow",
+     "constructed for the review's F5: a synthesis with true premises (Mars own sign; the 7th from the lagna is "
+     "Scorpio, lord Mars, Mars in it) and a conclusion that does not follow and is false (the 10th from the lagna is "
+     "Aquarius, lord Saturn); the validator's form is clean"),
+    ("kind-untagged-summary", "summary", None, None, "Saturn exalted in Libra, Venus debilitated in Virgo.", "reject",
+     "untagged_unsupported", "constructed for the review's F2: an untagged sentence with no claim verb, which the "
+     "validator passes outside the analysis, now sent to the checker with nothing to rest on (and false: Saturn is in "
+     "Taurus, Venus exalted in Pisces)"),
+    ("kind-untagged-framing", "summary", None, None, "Three areas follow, career first.", "accept", "accepted",
+     "constructed for the review's F2: an untagged sentence that asserts nothing about the chart, sent to the checker "
+     "with nothing to rest on and supported for that reason"),
+]
+
+
 def comparison_rows() -> list[dict]:
     """B's refusals (docs/comparison_2026-10-23, depth full) that were the engine's fault, each with
     the label the engine now makes it earn, and beside a still-refused one the form that now passes.
@@ -349,9 +379,11 @@ def comparison_rows() -> list[dict]:
          "fixed from b-synastry by also citing [fact:not_computed.synastry], which says the engine says nothing of "
          "another person's own chart or life; the tier 'needs two charts' read."),
         ("b-judgement-marriage", "analysis", "marriage", "assessment", _b_sentence("I give the six agreeing families"),
-         "reject", "judgement_premise", f"{fault} that a weighing could never pass; as a judgement only its premises "
-         "are checked, and one is false: the lord vote is weighed over fifteen rows (lagna, Moon, Sun), it does not "
-         "rest on the 7th lord's placement alone"),
+         "reject", "judgement_premise", f"{fault} that a weighing could never pass; as a judgement every proposition "
+         "but the weighing is checked, and one is false on the facts: the arudha vote rests on UL, UL2 and A7 "
+         "(rests_on), not on the Upapada alone, though Rahu in the UL is the only occupant of the three (settled as "
+         "the review of 2026-10-23 argues, F8b; the lord-vote premise is left as B's summary had it, which the live "
+         "checker passed)"),
         ("b-chain-navamsa", "claim", "career", "chain:career.lord", _b_sentence("In its navamsa chain Saturn is in its "
          "own sign Capricorn, the 12th from the D9 lagna, and is its own final dispositor"), "accept", "accepted", f"{fault}: the validator read 'navamsa' in a chain sentence as "
          "naming the varga family. Capricorn, 12th from the D9 lagna, own; its own final navamsa dispositor; in "
@@ -359,14 +391,16 @@ def comparison_rows() -> list[dict]:
         ("b-tradition-family", "analysis", "marriage", "assessment", _b_sentence("BPHS reads marriage through the "
          "Upapada"), "accept", "accepted", f"{fault}: a [tradition:] sentence may carry no tag, yet the family rule "
          "asked it to cite the arudha vote. Never checked by design: the validator alone reads it."),
-        ("b-hyphen", "analysis", "marriage", "assessment", _b_sentence("A second tension sits in Mars itself: its place in the 7th"), "accept",
-         "accepted", f"{fault}: 'lord-of-the-7th' did not match the rule's name 'lord of the 7th'. Both placements "
-         "scaled to 0.6 by marana karaka sthana, Mars in it, its ratio 1.3: read; the last clause says no fact decides "
-         "the net, which is so."),
+        ("b-hyphen", "analysis", "marriage", "assessment", _b_sentence("A second tension sits in Mars itself: its place in the 7th"), "reject",
+         "unstated_claim", f"{fault}: 'lord-of-the-7th' did not match the rule's name 'lord of the 7th', and the "
+         "validator now passes it. Both placements scaled to 0.6 by marana karaka sthana, Mars in it, its ratio 1.3: "
+         "read; but its last clause (the facts leave the net quality open) is stated by no field it cites, the same "
+         "kind as b-votes-fact's, and is labelled the same (the review of 2026-10-23, F8a)"),
         ("b-votes-fact", "analysis", "longevity", "not_said", _b_sentence("The votes for this area weigh houses"),
          "reject", "unstated_claim", f"{fault}: the family rule refused it although it cites the area's votes; the "
          "validator now passes it, and its last clause (the reading draws no medical statement) is stated by no field"),
     ]
+    rows += KIND_ROWS
     by_id = {r[0]: r for r in rows}
     fixes = {"b-ranking-career-fixed": lambda: by_id["b-ranking-career"][4][:-1] + " [fact:areas.career.contributions].",
              "b-nth-sign-fixed": lambda: by_id["b-nth-sign"][4].replace("the 10th sign", "the 10th house from the lagna")
@@ -375,11 +409,13 @@ def comparison_rows() -> list[dict]:
     out = []
     for rid, where, area, unit, sentence, label, cat, note in rows:
         sentence = sentence or fixes[rid]()
+        kind = rid.startswith("kind-")
         row = {"id": rid, "where": where, "area": area, "finding_id": unit if where == "claim" else None,
                "section": unit if where == "analysis" else None, "sentence": sentence, "label": label, "category": cat,
-               "origin": f"comparison 2026-10-23, reading B: {note}", "tags": _tags(sentence),
-               "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else area_tags[area],
-                             "offered_votes": votes[area], "chains": chains[area], "family_rule": True, "full": FULL}}
+               "origin": note if kind else f"comparison 2026-10-23, reading B: {note}", "tags": _tags(sentence),
+               "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else
+                             area_tags[area or "career"], "offered_votes": votes[area or "career"],
+                             "chains": chains[area or "career"], "family_rule": True, **({} if where == "summary" else {"full": FULL})}}
         if label == "accept":
             row["audit"] = note
         if TRADITION.search(sentence):
@@ -388,7 +424,7 @@ def comparison_rows() -> list[dict]:
             row["facts"] = _check_payload(data[unit], sentence, whole)
         else:
             row["facts"] = _summary_checks(sentence, data, whole)[0][2]
-        assert row["tags"] or TRADITION.search(sentence), rid
+        assert row["tags"] or TRADITION.search(sentence) or where == "summary", rid
         out.append(row)
     return out
 

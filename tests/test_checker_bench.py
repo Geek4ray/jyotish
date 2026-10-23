@@ -52,7 +52,7 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
     expected = sentences(reading["summary"]["text"])
     for a in reading["areas"]:
         expected += [c["text"] for c in a["claims"]] + sentences(a["paragraph"] or "")
-    rows = [r for r in rows if not r["id"].startswith("b-")]                # the comparison's rows: their own test
+    rows = [r for r in rows if not r["id"].startswith(("b-", "kind-"))]    # the comparison's and the kinds' rows: own tests
     accepted = [r for r in rows if r["label"] == "accept"]
     assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 45
     assert all(r["audit"] and "CONTRADICTED" not in r["audit"] for r in accepted)
@@ -149,3 +149,35 @@ def test_the_comparisons_refusals_carry_the_lesson(cb, rows):
     facts = json.loads(b["b-varga-career"]["facts"])                 # a claim citing no fact: its finding's data
     assert {x["varga_dignity_label"] for x in facts["derivation"]} >= {"exalted", "own"}
     assert json.loads(b["b-judgement-marriage"]["facts"])["judgement"] is True
+
+
+
+def test_each_new_sentence_kind_reaches_the_live_checker(cb, rows):
+    """The review of 2026-10-23, F5: rows of each new kind that the validator passes, so the live run
+    measures the checker on them: an accepted judgement, a judgement with a false premise, a synthesis
+    whose conclusion does not follow, and an untagged sentence of each label."""
+    k = {r["id"]: r for r in rows if r["id"].startswith("kind-")}
+    assert set(k) == {"kind-judgement-accept", "kind-judgement-premise", "kind-synthesis-does-not-follow",
+                      "kind-untagged-summary", "kind-untagged-framing"}
+    pred = cb.run_validator(list(k.values()))
+    assert not any(rejected for rejected, _ in pred.values()), pred          # every one reaches the checker
+    marks = {rid: json.loads(r["facts"]) for rid, r in k.items()}
+    assert marks["kind-judgement-accept"]["judgement"] and marks["kind-judgement-premise"]["judgement"]
+    assert marks["kind-synthesis-does-not-follow"]["synthesis"]
+    assert marks["kind-untagged-summary"]["findings"] == [] and not k["kind-untagged-summary"]["tags"]
+    assert [k[x]["label"] for x in sorted(k)] == ["accept", "reject", "reject", "accept", "reject"]
+    # the gate's own kind in the analysis: an untagged analysis sentence is the validator's to refuse
+    analysis = dict(k["kind-untagged-summary"], where="analysis", area="career", section="assessment",
+                    validator=dict(k["kind-judgement-accept"]["validator"]))
+    assert cb.run_validator([analysis])[analysis["id"]][0]
+
+
+def test_the_three_label_disagreements_are_settled(rows):
+    """F8: b-hyphen and b-votes-fact (a last clause no field states) carry one label; b-judgement-marriage
+    is rejected on its arudha premise, which is false on the facts."""
+    b = {r["id"]: r for r in rows}
+    assert (b["b-hyphen"]["label"], b["b-hyphen"]["category"]) == ("reject", "unstated_claim") == \
+        (b["b-votes-fact"]["label"], b["b-votes-fact"]["category"])
+    assert "rests on UL, UL2 and A7" in b["b-judgement-marriage"]["origin"]
+    facts = json.loads(b["b-stability-career"]["facts"])["facts"]
+    assert facts["stability.lagna_sign_by_varga.D10"]["samples"] == "holds in 159 of 200 birth-time samples"

@@ -70,6 +70,18 @@ def _st(s: Stability | None, chart: Chart) -> dict | None:
             "house_systems": f"holds under {round(s.house * n_h)} of {n_h} house systems"}
 
 
+def _time_st(share: float | None, chart: Chart) -> dict | None:
+    """A time-only stability (the share of the birth-time samples in which a thing holds) as a
+    labelled object, like every stability in the payload (review F8: the varga lagnas and the
+    votes' stability were bare numbers)."""
+    if share is None:
+        return None
+    from .uncertainty import label
+    n = chart.uncertainty.samples if chart.uncertainty else 200
+    return {"time": round(share, 3), "label": label(share),
+            "samples": f"holds in {round(share * n)} of {n} birth-time samples"}
+
+
 def _pos(lon: float) -> str:
     """A sidereal longitude as its sign and degree within the sign: 'Taurus 6°17′31″'."""
     from .display import dms
@@ -359,7 +371,7 @@ def _areas(chart: Chart) -> dict:
                      "polarity": a.polarity,
                      "polarity_touches": a.polarity_touches, "varga_consistency": _r(a.varga_consistency),
                      "votes": {fam: {"vote": v, **family_term(a, fam), "weight": _r(weights.get(fam)),
-                                     "stability_time": _r(a.vote_stability.get(fam)),
+                                     "stability": _time_st(a.vote_stability.get(fam), chart),
                                      "derivation": _r(a.vote_details.get(fam))}
                                for fam, v in a.votes.items()}}
         if a.score_classical is not None:
@@ -426,10 +438,11 @@ def _uncertainty(chart: Chart) -> dict | None:
     if u is None:
         return None
     return {"samples": u.samples, "half_width_min": u.half_width_min, "shape": u.shape, "ayanamsas": u.ayanamsas,
-            "house_systems": u.house_systems, "lagna_sign_by_varga": _r(u.varga_stability),
+            "house_systems": u.house_systems,
+            "lagna_sign_by_varga": {v: _time_st(x, chart) for v, x in u.varga_stability.items()},
             "placements": {v: {p: _st(s, chart) for p, s in rows.items()} for v, rows in u.placements.items()},
             "nakshatras": {p: _st(s, chart) for p, s in (u.nakshatras or {}).items()},
-            "rules_elsewhere": [{"id": r.id, "basis": r.basis, "planets": r.planets, "time": round(r.time, 3)}
+            "rules_elsewhere": [{"id": r.id, "basis": r.basis, "planets": r.planets, "stability": _time_st(r.time, chart)}
                                 for r in u.rules_elsewhere],
             "reading": "a stability gives the shares of the birth-time samples (time), of the ayanamsas and of "
                        "the house systems in which the finding holds, its word, and the counts"}

@@ -22,9 +22,9 @@ SECTIONS = ["chart", "constants", "houses", "not_computed", "planets", "nakshatr
 # The compact payload on the reference chart (as of 2026-10-21, three areas, ten years of transits)
 # measured 356,177 characters on 2026-10-23 at first, and 402,380 once what the engine knows was
 # labelled (the stability objects, the constants, houses and not_computed blocks), 423,836 once each
-# family's term said what it holds (the review's F13), 425,120 with the percentiles (F4; docs/spec_notes_2026-10-23.md).
+# family's term said what it holds (the review's F13), 425,120 with the percentiles (F4), 434,445 with every stability an object (F8; docs/spec_notes_2026-10-23.md).
 # The bound is there so that growth is noticed and the recorded size updated.
-MEASURED_CHARS = 425_120
+MEASURED_CHARS = 434_445
 
 
 @pytest.fixture(scope="module")
@@ -408,3 +408,18 @@ def test_the_first_maha_flag_is_computed(chart, whole):
     from jyotish.dasha import vimshottari
     first = vimshottari(chart.bodies["Moon"].lon, chart.meta.jd, levels=1)[0]
     assert whole["vimshottari"]["first_maha_starts_before_birth"] is (first.start_jd < chart.meta.jd)
+
+
+
+def test_every_stability_field_is_an_object(whole):
+    """F8c: the varga lagnas and the votes' stability were bare numbers. Every field named stability
+    (below the top-level section of that name), and every varga lagna's, is a labelled object."""
+    fields = [(p, v) for p, v in _walk(whole)
+              if p != "stability" and (p.rsplit(".", 1)[-1] == "stability" or
+                                       (p.startswith("stability.lagna_sign_by_varga.") and p.count(".") == 2))]
+    assert len(fields) > 100 and not any(p.rsplit(".", 1)[-1] == "stability_time" for p, _ in _walk(whole))
+    for path, value in fields:
+        assert value is None or (isinstance(value, dict) and "time" in value and "label" in value), path
+    d10 = resolve(whole, "stability.lagna_sign_by_varga.D10")
+    assert d10 == {"time": 0.795, "label": "sensitive", "samples": "holds in 159 of 200 birth-time samples"}
+    assert resolve(whole, "areas.career.votes.lord.stability")["samples"] == "holds in 200 of 200 birth-time samples"

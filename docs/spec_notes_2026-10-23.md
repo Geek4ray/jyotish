@@ -437,3 +437,17 @@ finding. B's "the strongest support is in the lords" for career, accepted in the
 cited the contributions, now contradicts them and is relabelled (`contradicts_its_fact`); beside
 it, the form that states the engine's ranking.
 The payload measures 425,120 characters on the reference chart.
+
+**The benchmark (F5, F8).** Every new sentence kind now has rows the validator passes, so the live
+run measures the checker on it (`kind-…`): an accepted judgement, a judgement whose premise is false
+in a clean form (the career arudha vote is 0, not against), a synthesis with true premises whose
+conclusion does not follow (Mars in its own sign in the 7th, so Mars rules the 10th: Aquarius,
+Saturn's), and two untagged summary sentences, one false ("Saturn exalted in Libra …") and one that
+asserts nothing; an untagged analysis sentence is the validator's to refuse at depth full and a test
+holds that. The three disagreements are settled as the review argues: `b-hyphen` and `b-votes-fact`,
+each with a last clause no field states, are both rejected (`unstated_claim`); `b-judgement-marriage`
+is rejected on its arudha premise (the vote rests on UL, UL2 and A7, not the Upapada alone, though
+Rahu in the UL is the only occupant of the three); and every stability field in the payload is now
+an object, the varga lagnas (`{time, label, samples: "holds in 159 of 200 birth-time samples"}` for
+the D10 lagna), each vote's `stability` (was `stability_time`) and the rules seen elsewhere among
+them. The benchmark is 145 rows. The payload measures 434,445 characters on the reference chart.

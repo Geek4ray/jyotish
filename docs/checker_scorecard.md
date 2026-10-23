@@ -1,31 +1,34 @@
 # Checker benchmark
 
-Run 2026-10-23 at commit `87fec27` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (139 rows: 58 accept, 81 reject). The positive class is reject.
+Run 2026-10-23 at commit `a499c70` by `scripts/checker_bench.py` on `tests/fixtures/checker_bench.jsonl` (145 rows: 59 accept, 86 reject). The positive class is reject.
 
 ## The code validator alone
 
 | category | n | caught / false rejects | precision | recall | F1 |
 | --- | --- | --- | --- | --- | --- |
-| overall | 139 | 22 of 81 | 1.000 | 0.272 | 0.427 |
-| accepted | 58 | 0 false rejects | 1.000 | 1.000 | 1.000 |
+| overall | 145 | 22 of 86 | 1.000 | 0.256 | 0.407 |
+| accepted | 59 | 0 false rejects | 1.000 | 1.000 | 1.000 |
 | cites_too_narrowly | 2 | 0 of 2 | 1.000 | 0.000 | 0.000 |
+| contradicts_its_fact | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 | dasha_lord_changed | 6 | 0 of 6 | 1.000 | 0.000 | 0.000 |
 | dignity_changed | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | family_not_cited | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | forbidden_word | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | house_changed | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
-| judgement_premise | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
+| judgement_premise | 2 | 1 of 2 | 1.000 | 0.500 | 0.667 |
 | negated | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | nth_sign | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
 | planet_swapped | 9 | 1 of 9 | 1.000 | 0.111 | 0.200 |
 | ranking_not_cited | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | refers_to_another_claim | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | sign_changed | 5 | 0 of 5 | 1.000 | 0.000 | 0.000 |
+| synthesis_does_not_follow | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 | tag_not_offered | 2 | 2 of 2 | 1.000 | 1.000 | 1.000 |
 | tier_word | 9 | 9 of 9 | 1.000 | 1.000 | 1.000 |
-| unstated_claim | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
+| unstated_claim | 2 | 0 of 2 | 1.000 | 0.000 | 0.000 |
 | unsupported_clause | 9 | 0 of 9 | 1.000 | 0.000 | 0.000 |
 | untagged | 1 | 1 of 1 | 1.000 | 1.000 | 1.000 |
+| untagged_unsupported | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 | wrong_dignity | 1 | 0 of 1 | 1.000 | 0.000 | 0.000 |
 
 The validator reads tags and words, not meaning: it is meant to catch the tag and wording categories (family_not_cited, forbidden_word, nth_sign, ranking_not_cited, refers_to_another_claim, tag_not_offered, tier_word, untagged) and to leave the semantic ones to the checker.
@@ -144,11 +147,21 @@ Misses and false rejects (validator alone):
   reason: (none given)
 - `known_bad-4` (wrong_dignity, missed): The varga vote leans narrowly for career in the D10: Saturn, Mars and Venus score well there, while Jupiter and the Sun score poorly and Mercury and the Moon are neutral [vote:career.varga].  
   reason: (none given)
+- `b-ranking-career-fixed` (contradicts_its_fact, missed): The strongest support is in the lords, as the lord vote shows: Venus, lord of the 6th, is exalted in the 11th at a Shadbala ratio of 1.33, Mars, lord of the 7th and of the 10th from the Sun, is in its own sign at 1.3, and Mercury, lord of the 2nd, sits in the 10th at 1.19 [vote:career.lord] [fact:areas.career.contributions].  
+  reason: (none given)
 - `b-arudha` (cites_too_narrowly, missed): The arudha vote is 0, so the A10 gives no verdict on how the career appears [fact:areas.career.votes.arudha.vote].  
   reason: (none given)
 - `b-synastry` (cites_too_narrowly, missed): This chart says nothing about a partner's own chart or life, and the engine's synastry area needs two charts [fact:areas.synastry.tier].  
   reason: (none given)
+- `b-hyphen` (unstated_claim, missed): A second tension sits in Mars itself: its place in the 7th is a marana karaka sthana, for which the lord-of-the-7th-in-the-7th and lord-of-the-12th-in-the-7th placements are scaled to 0.6, while its Shadbala ratio stays at 1.3, and the facts leave the net quality of that placement open [rule:place.l7_h7] [rule:place.l12_h7] [fact:sensitive.Mars.marana_karaka_sthana] [fact:shadbala.planets.Mars.ratio].  
+  reason: (none given)
 - `b-votes-fact` (unstated_claim, missed): The votes for this area weigh houses, lords, karakas, vargas, the arudha and the panchanga, and this reading draws no medical statement from them [fact:areas.longevity.votes].  
+  reason: (none given)
+- `kind-judgement-premise` (judgement_premise, missed): I give the lord family more weight than the arudha vote, since the arudha vote is against career [fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote].  
+  reason: (none given)
+- `kind-synthesis-does-not-follow` (synthesis_does_not_follow, missed): Mars is in its own sign in the 7th house from the lagna, so Mars rules the 10th house from the lagna [fact:planets.Mars.dignity] [fact:houses.lagna.7].  
+  reason: (none given)
+- `kind-untagged-summary` (untagged_unsupported, missed): Saturn exalted in Libra, Venus debilitated in Virgo.  
   reason: (none given)
 
 ## Validator + semantic checker (live)
