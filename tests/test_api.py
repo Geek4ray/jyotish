@@ -145,7 +145,7 @@ def test_document_columns_are_jsonb_under_postgres():
     assert "JSONB" in str(CreateTable(ChartRow.__table__).compile(dialect=postgresql.dialect()))
     assert "JSON" in str(CreateTable(ChartRow.__table__).compile(dialect=sqlite.dialect()))
     assert set(Base.metadata.tables) == {"charts", "readings", "reviews", "exclusions", "consents", "subjects", "events",
-                                         "erasures"}
+                                         "erasures", "comparisons"}
 
 
 def test_places_endpoint(client):
@@ -179,3 +179,34 @@ def test_depth_defaults_to_curious_and_is_checked(client):
     assert ReadingRequest(**body).depth == "curious"
     r = client.post("/readings", json=dict(BODY, depth="expert"))
     assert r.status_code == 422 and r.json()["detail"][0]["loc"] == ["body", "depth"]
+
+
+def test_health_reports_the_engine_and_the_database_and_never_the_url(client, app):
+    from jyotish.cache import engine_hash
+    from jyotish.db import head_revision
+    r = client.get("/health")
+    assert r.status_code == 200
+    h = r.json()
+    assert h["status"] == "ok" and h["engine"] == {"version": "0.1.0", "hash": engine_hash()}
+    assert h["database"] == {"dialect": "sqlite", "ok": True, "revision": head_revision(), "head": head_revision()}
+    assert h["narration"] == "fixture"                     # this app replays a recording
+    assert "sqlite:///" not in r.text and ".db" not in r.text
+
+
+def test_health_is_503_when_the_database_cannot_be_reached(tmp_path):
+    from sqlalchemy import text
+    app = create_app(f"sqlite:///{tmp_path / 'h.db'}", model_fixture=EDITED)
+    with TestClient(app) as c:
+        app.state.engine.dispose()
+        with app.state.engine.begin() as conn:
+            conn.execute(text("DROP TABLE alembic_version"))
+            conn.execute(text("CREATE TABLE alembic_version (x INTEGER)"))   # a broken revision table
+        r = c.get("/health")
+    assert r.status_code == 503 and r.json()["database"]["ok"] is False and r.json()["status"] == "degraded"
+
+
+def test_source_redirects_to_the_configured_url(client, monkeypatch):
+    assert client.get("/source", follow_redirects=False).status_code == 404
+    monkeypatch.setenv("JYOTISH_SOURCE_URL", "https://example.org/jyotish")
+    r = client.get("/source", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "https://example.org/jyotish"

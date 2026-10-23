@@ -1,0 +1,38 @@
+# One host: Postgres and the service (docs/deploy.md). `docker compose up -d` with a .env file beside
+# this one (copy .env.example); the service listens on 127.0.0.1:8000 until Caddy is put in front.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jyotish
+      POSTGRES_USER: jyotish
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jyotish -d jyotish"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      JYOTISH_DATABASE_URL: postgresql+psycopg://jyotish:${POSTGRES_PASSWORD}@db:5432/jyotish
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      JYOTISH_CANDIDATE_RULES: /data/candidate_rules.jsonl
+      JYOTISH_CACHE_DIR: /data/cache
+      JYOTISH_SOURCE_URL: ${JYOTISH_SOURCE_URL:-}
+    volumes:
+      - appdata:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+volumes:
+  pgdata:
+  appdata:

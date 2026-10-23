@@ -41,18 +41,14 @@ def _header(kind: str, with_birth: bool) -> dict:
 
 def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data: bool = False) -> dict[str, int]:
     """Write the two files; returns the number of rows in each (headers not counted)."""
-    from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    from .api import Base, ChartRow, ReadingRow, ReviewRow, _add_missing_columns
+    from .db import ChartRow, ReadingRow, ReviewRow, migrate
     from .models import Chart
     from .review import facts, plain, sentence_facts, units
     from .narrate import Reading
 
-    engine = create_engine(database_url)
-    Base.metadata.create_all(engine)
-    _add_missing_columns(engine)
-    Session = sessionmaker(engine)
+    Session = sessionmaker(migrate(database_url))
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     rewrites, judgements = [], []

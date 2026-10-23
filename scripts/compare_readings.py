@@ -239,13 +239,10 @@ def save_recording(path: Path, question: str, s: dict, recording: list, wall: fl
 def store(database_url: str, birth_data: dict, question: str, chart, chart_id: str, reading, page: str) -> str:
     """Store a finished reading (and its chart) as the service would; returns its id."""
     import uuid
-    from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from jyotish.api import Base, ChartRow, ReadingRow, _add_missing_columns
+    from jyotish.db import ChartRow, ReadingRow, migrate
     from jyotish.service import BirthInput, birth_key_of
-    engine = create_engine(database_url)
-    Base.metadata.create_all(engine)
-    _add_missing_columns(engine)
+    engine = migrate(database_url)
     bkey = birth_key_of(BirthInput(**birth_data))
     rid = uuid.uuid4().hex
     with sessionmaker(engine).begin() as s:
@@ -261,15 +258,12 @@ def store(database_url: str, birth_data: dict, question: str, chart, chart_id: s
 
 
 def link(database_url: str, a: str, b: str) -> None:
-    """Record each stored reading as in the comparison with the other, so the service withholds its
-    settings from a reviewer who has not answered it (api.comparison_pending)."""
-    from sqlalchemy import create_engine
+    """Record the two stored readings as a comparison pair (the comparisons table), so the service
+    withholds their settings from a reviewer who has not answered it (api.comparison_pending)."""
     from sqlalchemy.orm import sessionmaker
-    from jyotish.api import ReadingRow
-    with sessionmaker(create_engine(database_url)).begin() as s:
-        for rid, other in ((a, b), (b, a)):
-            row = s.get(ReadingRow, rid)
-            row.request = dict(row.request, compared_with=list(dict.fromkeys((row.request.get("compared_with") or []) + [other])))
+    from jyotish.db import add_comparison, migrate
+    with sessionmaker(migrate(database_url)).begin() as s:
+        add_comparison(s, a, b, "scripts/compare_readings.py")
 
 
 def main(argv: list[str] | None = None) -> int:

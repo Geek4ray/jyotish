@@ -200,9 +200,11 @@ def test_the_script_links_the_two_readings_it_stores(tmp_path):
     db = f"sqlite:///{tmp_path / 'c.db'}"
     cr.main(["--replay-a", paths[0], "--replay-b", paths[1], "--as-of", "2026-10-21", "--question", QUESTION,
              "--out", str(tmp_path / "c.md"), "--database", db])
+    from jyotish.db import ComparisonRow
     with sessionmaker(create_engine(db))() as s:
-        rows = s.query(ReadingRow).all()
-        assert len(rows) == 2 and {tuple(r.request["compared_with"]) for r in rows} == {(rows[0].id,), (rows[1].id,)}
+        ids = sorted(r.id for r in s.query(ReadingRow).all())
+        pairs = [(c.reading_a, c.reading_b, c.created_by) for c in s.query(ComparisonRow).all()]
+        assert len(ids) == 2 and pairs == [(ids[0], ids[1], "scripts/compare_readings.py")]
 
 
 def test_the_report_counts_judgements_on_their_own_row():

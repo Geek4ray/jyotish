@@ -501,3 +501,29 @@ and condition 9 for the next review. The re-run, the same two settings as the fi
 
 The B setting is xhigh, the depth's default now; `--b claude-opus-5-5,max,full` re-runs the first
 comparison's B exactly, at the cost B's first attempt showed.
+
+## Tech stack, Ops (line 500) and Layer 6b — the service deployable
+
+So that a reviewer can use /review and /compare from his own machine. Four parts, a commit each.
+
+**The image and the database.** A Dockerfile (two stages: pyswisseph built from source in the
+first, a non-root runtime in the second, the checkout installed in place because the engine finds
+its rules, website and examples beside its source) and a docker-compose.yml with Postgres 16. The
+service reads its configuration from the environment only: JYOTISH_DATABASE_URL (a host's
+`postgres://` URL is given the psycopg driver), ANTHROPIC_API_KEY (read by the SDK, never stored,
+logged or returned), JYOTISH_CANDIDATE_RULES and JYOTISH_CACHE_DIR (both under the /data volume),
+and JYOTISH_SOURCE_URL. The tables moved from api.py to `jyotish.db` with one more: `comparisons`
+(the blind comparison's pairs, which had lived in each reading's request JSON). Alembic migrations
+(`src/jyotish/migrations`, revision 0001: charts, readings, reviews, exclusions, consents,
+subjects, events, erasures, comparisons) run when the service, the CLI or a script opens the
+database (`jyotish.db.migrate`); a database made by create_all before them is adopted (its missing
+columns added, its pairs copied out of the readings, stamped) rather than re-created, and a test
+holds that the migrations make exactly the models' schema (Alembic's own comparison finds no
+drift), on SQLite always and on Postgres in CI. `GET /health` reports the engine's version and
+hash, the database's dialect and revision against the head, and whether narration is live,
+replayed or without a key, and answers 503 when the database is unreachable, never naming it.
+docs/deploy.md states the licence position: Swiss Ephemeris, Moshier routines included, is
+AGPL-3.0 or Astrodienst's paid licence; running it as a network service obliges offering every user
+the source of the running version (AGPL section 13), which the deployment does through
+JYOTISH_SOURCE_URL, `/source` and a footer link. CI builds the image and checks /health on SQLite
+and, through the compose file, on Postgres.

@@ -15,3 +15,5 @@ data/outcomes/
 data/candidate_rules.jsonl
 # The frozen sequestered split of a real cohort: it names subject ids and lives with the database
 data/sequestered.txt
+# A deployment's secrets (docker-compose reads them)
+.env

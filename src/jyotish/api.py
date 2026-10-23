@@ -52,193 +52,14 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, inspect, text
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
+# The tables live in db.py; they are imported here too, where scripts and tests have always found them.
+from .db import (DOCUMENT, Base, ChartRow, ComparisonRow, ConsentRow, ErasureRow, EventRow, ExclusionRow,  # noqa: F401
+                 ReadingRow, ReviewRow, SubjectRow, _add_missing_columns, _now, add_comparison, compared_with,
+                 excluded_charts)
 from .service import BirthInput
-
-DOCUMENT = JSON().with_variant(JSONB(), "postgresql")
-
-
-def _now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-class ChartRow(Base):
-    """One chart object per chart id (SPEC data schema), with the birth data it came from."""
-    __tablename__ = "charts"
-    id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)   # cache.birth_key: the birth, no engine
-    birth: Mapped[dict] = mapped_column(DOCUMENT)
-    engine: Mapped[str] = mapped_column(String(32))
-    document: Mapped[dict] = mapped_column(DOCUMENT)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-
-
-class ReadingRow(Base):
-    """One reading job: its request, status and progress, then the reading and its page."""
-    __tablename__ = "readings"
-    id: Mapped[str] = mapped_column(String(32), primary_key=True)
-    chart_id: Mapped[str | None] = mapped_column(ForeignKey("charts.id"), nullable=True)
-    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    question: Mapped[str] = mapped_column(Text)
-    request: Mapped[dict] = mapped_column(DOCUMENT)
-    status: Mapped[str] = mapped_column(String(16))                 # queued | running | done | failed
-    progress: Mapped[dict] = mapped_column(DOCUMENT)
-    document: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
-    page: Mapped[str | None] = mapped_column(Text, nullable=True)
-    error: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
-    review_status: Mapped[str] = mapped_column(String(16), default="draft", server_default="draft")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
-
-
-class ReviewRow(Base):
-    """One reviewer action on a reading: open, edit (accepted or not, with the checks' errors),
-    note, approve. The judgement data of the review step."""
-    __tablename__ = "reviews"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"))
-    chart_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    reviewer_id: Mapped[str] = mapped_column(String(64))
-    action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve | verdict | answer | compare
-    target: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    before: Mapped[str | None] = mapped_column(Text, nullable=True)
-    after: Mapped[str | None] = mapped_column(Text, nullable=True)
-    accepted: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    errors: Mapped[list | None] = mapped_column(DOCUMENT, nullable=True)
-    area: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    verdict: Mapped[str | None] = mapped_column(String(16), nullable=True)      # agree | partly | disagree
-    reason: Mapped[str | None] = mapped_column(String(32), nullable=True)       # why, when not agree
-    step: Mapped[str | None] = mapped_column(String(32), nullable=True)         # a guided-review step
-    answer: Mapped[Any | None] = mapped_column(DOCUMENT, nullable=True)         # its answer
-    mode: Mapped[str | None] = mapped_column(String(16), nullable=True)         # review | blind
-    comment: Mapped[str | None] = mapped_column(Text, nullable=True)            # "in your own words", never shown
-    facts: Mapped[list | None] = mapped_column(DOCUMENT, nullable=True)         # an edit: the chart facts shown beside the sentence then
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-
-
-class ExclusionRow(Base):
-    """A chart whose reading a judge has seen: excluded from the blind learning set for good."""
-    __tablename__ = "exclusions"
-    chart_id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    reason: Mapped[str] = mapped_column(String(64))
-    reviewer_id: Mapped[str] = mapped_column(String(64))
-    reading_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-
-
-# --- outcome capture (SPEC Layer 6, outcome dataset; outcomes.py) ---------------------------------
-
-class ConsentRow(Base):
-    """A subject's consent: purpose-limited to validation, withdrawable (DPDP Act 2023)."""
-    __tablename__ = "consents"
-    id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    subject_id: Mapped[str] = mapped_column(String(64))
-    form_version: Mapped[str] = mapped_column(String(32))
-    track: Mapped[str] = mapped_column(String(16))                      # backlog | new
-    given_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    recorded_by: Mapped[str] = mapped_column(String(64))
-
-
-class SubjectRow(Base):
-    """A person whose dated events are recorded. `chart_id` is the engine's chart key for the birth
-    data at the first import (it carries the engine hash and the accuracy class); `birth_key` is the
-    birth as a person (cache.birth_key), by which the subject's rows are matched and erased.
-    Rectified charts are refused at import (SPEC Layer 6: excluded from every test)."""
-    __tablename__ = "subjects"
-    id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    chart_id: Mapped[str] = mapped_column(String(64))
-    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    birth: Mapped[dict] = mapped_column(DOCUMENT)                       # date, time, tz, lat, lon, place, node
-    accuracy: Mapped[str] = mapped_column(String(16))
-    sex: Mapped[str] = mapped_column(String(16))
-    region: Mapped[str] = mapped_column(String(64))
-    source: Mapped[str] = mapped_column(String(16))                     # file | interview | follow_up | public
-    rectified: Mapped[bool] = mapped_column(Boolean, default=False)
-    seen_by_astrologer: Mapped[bool] = mapped_column(Boolean, default=False)
-    household_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    birthplace_cluster: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-
-
-class EventRow(Base):
-    """An outcome triple (event type, age at event, censor age); no age at event means the event
-    had not happened by the censor age. `after` is true when it was entered once a reading had
-    been shown, and such events are excluded from every test."""
-    __tablename__ = "events"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    subject_id: Mapped[str] = mapped_column(ForeignKey("subjects.id"))
-    event_type: Mapped[str] = mapped_column(String(32))
-    age_at_event: Mapped[float | None] = mapped_column(Float, nullable=True)
-    censor_age: Mapped[float] = mapped_column(Float)
-    value: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)  # occupation: isco08, isei
-    self_report: Mapped[bool] = mapped_column(Boolean, default=False)
-    entered_by: Mapped[str] = mapped_column(String(64))
-    entered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    before_reading: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    after: Mapped[bool] = mapped_column(Boolean, default=False)
-    consent_id: Mapped[str] = mapped_column(String(64))
-
-
-class ErasureRow(Base):
-    """A right-of-erasure request carried out: who, when, and how many rows went. No birth data."""
-    __tablename__ = "erasures"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    subject_id: Mapped[str] = mapped_column(String(64))
-    erased_by: Mapped[str] = mapped_column(String(64))
-    counts: Mapped[dict] = mapped_column(DOCUMENT)
-    erased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-
-
-def excluded_charts(session) -> set[str]:
-    """The chart ids the Layer 6b learning set must leave out (their readings were seen)."""
-    return {r.chart_id for r in session.query(ExclusionRow).all()}
-
-
-def _add_missing_columns(engine) -> None:
-    """create_all makes new tables but never alters old ones: add columns a newer model has, then
-    fill the birth keys of rows stored before they existed."""
-    insp = inspect(engine)
-    for table in Base.metadata.sorted_tables:
-        if not insp.has_table(table.name):
-            continue
-        have = {c["name"] for c in insp.get_columns(table.name)}
-        for col in table.columns:
-            if col.name not in have:
-                default = f" DEFAULT '{col.server_default.arg}'" if col.server_default is not None else ""
-                with engine.begin() as conn:
-                    conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {col.name} "
-                                      f"{col.type.compile(engine.dialect)}{default}"))
-    _backfill_birth_keys(engine)
-
-
-def _backfill_birth_keys(engine) -> None:
-    """Charts and subjects stored before the birth key existed get theirs from their birth data,
-    readings and exclusions from their chart; a record that cannot be keyed is left as it is."""
-    from .cache import birth_key_of_record
-    with sessionmaker(engine)() as s:
-        for row in list(s.query(ChartRow).filter(ChartRow.birth_key.is_(None))) + \
-                list(s.query(SubjectRow).filter(SubjectRow.birth_key.is_(None))):
-            try:
-                row.birth_key = birth_key_of_record(row.birth)
-            except (KeyError, ValueError, TypeError):
-                pass
-        s.flush()
-        keys = dict(s.query(ChartRow.id, ChartRow.birth_key))
-        for r in s.query(ReadingRow).filter(ReadingRow.birth_key.is_(None), ReadingRow.chart_id.isnot(None)):
-            r.birth_key = keys.get(r.chart_id)
-        for x in s.query(ExclusionRow).filter(ExclusionRow.birth_key.is_(None)):
-            x.birth_key = keys.get(x.chart_id)
-        s.commit()
 
 
 class ReadingRequest(BirthInput):
@@ -319,11 +140,6 @@ def blind(document: dict) -> dict:
     return out
 
 
-def compared_with(row) -> list[str]:
-    """The readings a reading is compared with (request.compared_with, set when the pair is stored by
-    scripts/compare_readings.py or first opened at /compare/{a}/{b})."""
-    return list((row.request or {}).get("compared_with") or [])
-
 
 def settings_of(document: dict) -> dict:
     w = document.get("writer") or {}
@@ -395,10 +211,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     mounted when their directories exist (a source checkout). `reviewers` (token -> reviewer
     id) defaults to JYOTISH_REVIEWERS; `review_checker` checks edited sentences (default the
     live AnthropicChecker; tests pass a stub)."""
-    url = database_url or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
-    engine = create_engine(url, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {})
-    Base.metadata.create_all(engine)
-    _add_missing_columns(engine)
+    from .db import migrate
+    engine = migrate(database_url)                # JYOTISH_DATABASE_URL when none is named
     Session = sessionmaker(engine, expire_on_commit=False)
     tokens = reviewers if reviewers is not None else reviewers_from_env()
     clerk_tokens = clerks if clerks is not None else reviewers_from_env("JYOTISH_CLERKS")
@@ -750,21 +564,20 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     # --- the blind comparison (scripts/compare_readings.py) -------------------------------------
 
-    def compare_rows(s, a: str, b: str):
+    def compare_rows(s, a: str, b: str, who: str = "a reviewer"):
         if a == b:
             raise HTTPException(status_code=422, detail="a comparison needs two different readings")
         rows = [done_reading(s, x)[0] for x in (a, b)]
         if rows[0].chart_id != rows[1].chart_id or rows[0].question != rows[1].question:
             raise HTTPException(status_code=422, detail="the two readings are not of the same chart and question")
-        for row, other in ((rows[0], b), (rows[1], a)):          # each is now known to be in this comparison
-            if other not in compared_with(row):
-                row.request = dict(row.request or {}, compared_with=compared_with(row) + [other])
+        add_comparison(s, a, b, who)                              # each is now known to be in this comparison
+        s.flush()
         return rows
 
     def comparison_pending(s, row, who: str | None) -> bool:
         """A reading in a comparison this reviewer (or, with none, anyone) has not answered: its
         settings are withheld wherever it is shown (review F7)."""
-        others = compared_with(row)
+        others = compared_with(s, row.id)
         if not others:
             return False
         return who is None or any(compare_answer_of(s, row.id, o, who) is None for o in others)
@@ -798,7 +611,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         Opening it logs the reviewer and excludes the chart from the blind learning set."""
         who = reviewer(request)
         with Session.begin() as s:
-            rows = compare_rows(s, a, b)
+            rows = compare_rows(s, a, b, who)
             log(s, rows[0], who, "open", mode="compare", target="compare:" + ":".join(sorted((a, b))))
             s.flush()
             return compare_view(s, a, b, who)
@@ -810,7 +623,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         reviewer and pair: the settings are revealed by it, so a second would not be blind."""
         who = reviewer(request)
         with Session.begin() as s:
-            rows = {r.id: r for r in compare_rows(s, a, b)}
+            rows = {r.id: r for r in compare_rows(s, a, b, who)}
             if compare_answer_of(s, a, b, who) is not None:
                 raise HTTPException(status_code=409, detail="this comparison is answered: the settings are shown")
             shown = dict(zip(("A", "B"), compare_order(a, b, who)))
@@ -837,6 +650,37 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             res = import_rows(s, req.rows, entered_by=clerk_tokens[tok])
             return {"accepted": res.accepted, "subjects_created": res.subjects_created, "refused": res.refused}
 
+    @app.get("/health")
+    def health() -> JSONResponse:
+        """For a load balancer and for whoever runs the service: the engine (version and hash: the
+        hash changes with any source, data table or rule file), the database (reachable, its dialect,
+        its Alembic revision against the head), whether narration is live, replayed or without a key
+        (never the key), and where the source is (AGPL-3.0 section 13: docs/deploy.md). 503 when the
+        database cannot be reached; the database URL is never shown."""
+        from .cache import engine_hash
+        from .db import current_revision, head_revision
+        from . import __version__
+        db: dict[str, Any] = {"dialect": engine.dialect.name}
+        try:
+            db |= {"ok": True, "revision": current_revision(engine), "head": head_revision()}
+        except Exception as e:                                  # unreachable: say so, not where
+            db |= {"ok": False, "error": type(e).__name__}
+        body = {"status": "ok" if db["ok"] else "degraded",
+                "engine": {"version": __version__, "hash": engine_hash()}, "database": db,
+                "narration": ("fixture" if model_fixture else "live" if os.environ.get("ANTHROPIC_API_KEY")
+                              else "no key"),
+                "source": os.environ.get("JYOTISH_SOURCE_URL") or None}
+        return JSONResponse(body, status_code=200 if db["ok"] else 503)
+
+    @app.get("/source", include_in_schema=False)
+    def source():
+        """The program's source (AGPL-3.0 section 13, Swiss Ephemeris's licence): JYOTISH_SOURCE_URL."""
+        from fastapi.responses import RedirectResponse
+        url = os.environ.get("JYOTISH_SOURCE_URL")
+        if not url:
+            raise HTTPException(status_code=404, detail="JYOTISH_SOURCE_URL is not set on this server")
+        return RedirectResponse(url)
+
     @app.get("/places")
     def get_places(q: str, limit: int = 10) -> list[dict]:
         """Places for the birth form's Place field (GeoNames cities15000, CC BY 4.0)."""
@@ -852,7 +696,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             row = s.get(ReadingRow, reading_id)
             if row is None:
                 raise HTTPException(status_code=404, detail="no such reading")
-            if compared_with(row):
+            if compared_with(s, row.id):
                 who = reviewer(request)
                 if comparison_pending(s, row, who):
                     return ReadingStatus(id=row.id, status=row.status, progress={"stage": row.progress.get("stage")},

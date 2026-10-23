@@ -12,6 +12,19 @@ jobs:
     # runner without hiding a hang. The pip cache keeps the wheels (pyswisseph's build among them)
     # between runs, keyed on pyproject.toml; Playwright's Chromium is cached the same way.
     timeout-minutes: 75
+    # A scratch Postgres for tests/test_db.py's Postgres migration test (skipped without it).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: jyotish
+          POSTGRES_PASSWORD: jyotish
+          POSTGRES_DB: jyotish_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jyotish" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      JYOTISH_TEST_POSTGRES_URL: postgresql+psycopg://jyotish:jyotish@localhost:5432/jyotish_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,3 +58,31 @@ jobs:
         with:
           name: scorecard
           path: ${{ runner.temp }}/scorecard.*
+
+  # The deployable image (docs/deploy.md): it builds, starts on SQLite, and starts against Postgres
+  # through docker-compose.yml, each reporting a healthy engine and a migrated database at /health.
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t jyotish:ci .
+      - name: Start it on SQLite and check /health
+        run: |
+          docker run -d --name app -p 8000:8000 jyotish:ci
+          for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/health > health.json && break; sleep 2; done
+          cat health.json
+          python3 -c "import json; h = json.load(open('health.json')); assert h['status'] == 'ok' and h['database']['dialect'] == 'sqlite' and h['database']['revision'] == h['database']['head'], h"
+          docker rm -f app
+      - name: Start it on Postgres with docker compose and check /health
+        env:
+          POSTGRES_PASSWORD: ci-only
+        run: |
+          docker compose up -d --wait db
+          docker compose up -d app
+          for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/health > health.json && break; sleep 2; done
+          cat health.json
+          python3 -c "import json; h = json.load(open('health.json')); assert h['status'] == 'ok' and h['database']['dialect'] == 'postgresql' and h['database']['revision'] == h['database']['head'] and h['narration'] == 'no key', h"
+          docker compose logs app | tail -20
+          docker compose down -v

@@ -18,7 +18,7 @@ export function chrome(current) {
       <a href="/#honest">Honest scope</a></nav>`;
   document.querySelector("#site-footer").innerHTML = `
     <span>Classical signals computed exactly; tier and stability words come from the engine, not the writer. Probability language appears only for calibrated areas, and none are calibrated yet.</span>
-    <span>Not medical, legal or financial advice. Place names and coordinates: <a href="https://www.geonames.org/">GeoNames</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</span>`;
+    <span>Not medical, legal or financial advice. Place names and coordinates: <a href="https://www.geonames.org/">GeoNames</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Positions by Swiss Ephemeris (AGPL-3.0): <a href="/source">source</a>.</span>`;
   const bar = document.querySelector("#tabbar");
   if (bar) bar.innerHTML = links.map(([k, href, label]) => `<a href="${href}"${aria(k)}>${ICON[k]}${label}</a>`).join("");
 }

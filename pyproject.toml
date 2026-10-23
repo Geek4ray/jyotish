@@ -17,8 +17,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-api = ["fastapi>=0.110", "sqlalchemy>=2", "uvicorn>=0.29"]
-dev = ["pytest>=8", "httpx>=0.27", "fastapi>=0.110", "sqlalchemy>=2", "uvicorn>=0.29", "playwright>=1.44"]
+api = ["fastapi>=0.110", "sqlalchemy>=2", "uvicorn>=0.29", "alembic>=1.13", "psycopg[binary]>=3.1"]
+dev = ["pytest>=8", "httpx>=0.27", "fastapi>=0.110", "sqlalchemy>=2", "uvicorn>=0.29", "alembic>=1.13",
+       "psycopg[binary]>=3.1", "playwright>=1.44"]
 # The Phase 0 cross-check's reference implementation (scripts/crosscheck.py). PyJHora is AGPL and a
 # development-time reference only: never imported by src/. It declares no dependencies of its own;
 # these are the ones its core imports (pyIslam, for its Hijri calendar, is not on PyPI and not needed).
@@ -34,7 +35,8 @@ jyotish = "jyotish.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-jyotish = ["data/*.json", "data/*.tsv.gz", "data/*.yaml"]
+jyotish = ["data/*.json", "data/*.tsv.gz", "data/*.yaml", "migrations/*.py", "migrations/*.mako",
+           "migrations/versions/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

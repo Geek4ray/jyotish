@@ -275,10 +275,6 @@ def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
 
 
 def sessionmaker_for(database_url: str):
-    from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from .api import Base, _add_missing_columns
-    engine = create_engine(database_url)
-    Base.metadata.create_all(engine)
-    _add_missing_columns(engine)
-    return sessionmaker(engine, expire_on_commit=False)
+    from .db import migrate
+    return sessionmaker(migrate(database_url), expire_on_commit=False)

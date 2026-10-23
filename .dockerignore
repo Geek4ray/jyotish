@@ -1,0 +1,13 @@
+.git
+.venv
+.claude
+**/__pycache__
+.pytest_cache
+*.db
+data/
+reading.json
+reading.md
+tests/
+scripts/
+docs/
+design/
