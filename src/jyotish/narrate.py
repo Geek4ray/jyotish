@@ -58,10 +58,20 @@ class NarrationConfig:
     betas: tuple[str, ...] = ("server-side-fallback-2026-07-01",)
     max_attempts: int = 3                     # draft + regenerations on validator failure
     checker_concurrency: int = 16             # checker calls of one attempt in flight at once; 1 = one after another
-    timing_years: int = 10                    # window for a "when" question with no dates
+    timing_years: int = 10                    # window for a "when" question with no dates; at depth full, the range always
+    # Depth full (SPEC Layer 7, depth full): room for the whole chart's analysis. A max_tokens
+    # above STREAM_ABOVE is sent as a stream (the SDK refuses a long request otherwise).
+    full_max_tokens: int = 128000
 
 
 CONFIG = NarrationConfig()
+STREAM_ABOVE = 16000
+
+
+def writer_config(config: NarrationConfig, depth: str) -> NarrationConfig:
+    """The writer's settings for a depth: at full, `full_max_tokens`."""
+    from dataclasses import replace
+    return replace(config, max_tokens=config.full_max_tokens) if depth == "full" else config
 
 
 # --- what the model returns ------------------------------------------------------------
@@ -180,7 +190,8 @@ class Reading(BaseModel):
     narration_source: str = "live"      # "live", or "fixture:<path>" for an offline replay
     unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
     narration_complete: bool = True     # false when some finding or the summary was not narrated within the checks
-    depth: str = "astrologer"           # curious | learner | astrologer (SPEC Layer 7 prompt contract, item 1)
+    depth: str = "astrologer"           # curious | learner | astrologer | full (SPEC Layer 7 prompt contract, item 1)
+    facts_cited: dict[str, Any] = Field(default_factory=dict)   # depth full: path -> the chart's value, for every [fact:] shown
     review: dict[str, Any] = Field(default_factory=lambda: {"status": "draft"})   # draft | reviewed (SPEC Layer 6b)
     summary: ReadingSummary
     areas: list[ReadingArea]
@@ -200,7 +211,7 @@ class NarrationError(RuntimeError):
 
 # --- the validator ---------------------------------------------------------------------
 
-TAG = re.compile(r"\[(rule|text|vote|chain):([^\]\s]+)\]")
+TAG = re.compile(r"\[(rule|text|vote|chain|fact):([^\]\s]+)\]")
 CLAIM_VERBS = re.compile(
     r"\b(is|are|was|were|has|have|gives|give|shows|show|indicates|indicate|suggests|suggest|"
     r"brings|bring|forms|form|makes|make|supports|support|favours|favors|promises|denotes|"
@@ -278,10 +289,12 @@ TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 
 def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary",
-                     family_rule: bool = True, chains: dict[str, list[str]] | None = None) -> list[str]:
+                     family_rule: bool = True, chains: dict[str, list[str]] | None = None,
+                     facts: dict | None = None) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
-    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=False)
+    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=False,
+                      facts=facts)
     for sentence in sentences(text):
         m = TIER_WORDS.search(TAG.sub("", sentence))
         if m:
@@ -298,7 +311,8 @@ CROSS_REFERENCE = re.compile(r"\b(again|likewise|aforementioned)\b|\bas (above|n
 
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
-             family_rule: bool = True, chains: dict[str, list[str]] | None = None, standalone: bool = True) -> list[str]:
+             family_rule: bool = True, chains: dict[str, list[str]] | None = None, standalone: bool = True,
+             facts: dict | None = None) -> list[str]:
     """Every violation in a block of model text, as human-readable errors. `allowed` is the
     set of tags this text may carry; `offered_votes` maps family -> vote tag (or, for a
     summary over several areas, the set of that family's vote tags) for every vote offered:
@@ -311,20 +325,30 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
     the way a vote's sentence names its family. "Nakshatra lord" in a chain sentence is the
     chain's word, not the panchanga family's. `standalone` (a claim, which is checked against
     its own finding only) refuses a sentence that refers to another (CROSS_REFERENCE); a summary
-    or a paragraph is read whole and may."""
+    or a paragraph is read whole and may. `facts` (depth full: the whole chart, fullchart.payload)
+    offers a [fact:<path>] tag for every path it has; a path it lacks is refused, and with no
+    `facts` a fact tag is not offered at all. A sentence citing a fact may state timing, since
+    its dates and periods are the cited field's, checked against it."""
+    from .fullchart import resolve
     offered_votes = offered_votes or {}
     errors = []
     for s in sentences(text):
         bare = TAG.sub("", s)
         found = TAG.findall(s)
         tags = {f"{k}:{v}" for k, v in found}
+        fact_tags = {t for t in tags if t.startswith("fact:")}
         if CLAIM_VERBS.search(bare) and not tags:
             errors.append(f"untagged claim: {s!r}")
         if standalone and (m := CROSS_REFERENCE.search(bare)):
             errors.append(f"refers to another claim ({m.group(0).strip()!r}): a claim stands alone and is checked "
                           f"against its finding only: {s!r}")
-        for t in tags - allowed:
+        for t in sorted(tags - allowed - (fact_tags if facts is not None else set())):
             errors.append(f"tag not offered for this finding: [{t}] in {s!r}")
+        for t in sorted(fact_tags) if facts is not None else ():
+            try:
+                resolve(facts, t[5:])
+            except KeyError:
+                errors.append(f"no field at path {t[5:]!r} in the chart: [{t}] in {s!r}")
         if tags and not re.search(r"\]\s*[.!?]?\s*$", s):
             errors.append(f"tags must end the sentence: {s!r}")
         named = families_named(s)
@@ -352,6 +376,8 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
                 shown = " or ".join(f"[{t}]" for t in sorted(want))
                 errors.append(f"names the {family} family but does not cite {shown}: {s!r}")
         for kind, rx in FORBIDDEN.items():
+            if kind == "timing" and facts is not None and fact_tags:
+                continue
             m = rx.search(bare)
             if m:
                 word = m.group(0) or " + ".join(g for g in m.groups() if g)
@@ -714,7 +740,7 @@ has not been read in the text. A house is called by its area \
 10th, a career house"); say "the 10th" otherwise."""
 
 
-DEPTHS = ("curious", "learner", "astrologer")
+DEPTHS = ("curious", "learner", "astrologer", "full")
 
 # The family-name sentence of SYSTEM_PROMPT, dropped at curious depth (SPEC Layer 7 "Depth").
 FAMILY_RULE_TEXT = ('A sentence citing a vote names that family ("the KP vote", "the house vote"); a sentence naming a '
@@ -748,6 +774,26 @@ sentence citing a vote need not name its family. The claims are still written as
 are the astrologer's reading, shown under the paragraph."""
 
 
+# The timing sentence of SYSTEM_PROMPT, which depth full narrows to sentences citing no fact.
+TIMING_RULE_TEXT = "and do not mention timing, windows, dates, years, dashas, transits or the engine."
+FULL_TIMING_RULE = ("and mention timing, windows, dates, years, dashas, transits or the engine only in a sentence "
+                    "citing the fact that states them.")
+
+FULL_PROMPT = """
+
+Depth: full. The reader is an astrologer who wants the best analysis these facts allow. Besides \
+the findings, the input carries `chart`: everything the engine computed on this chart, under \
+stable paths. A path is the keys from the root of `chart` joined by dots, a list item by its \
+index: planets.Mars.dignity, shadbala.planets.Mars.ratio, vargas.D9.Mars, \
+areas.career.votes.kp.derivation, vimshottari.periods.Rahu-Saturn, transits.windows.3. Cite any \
+field as [fact:<path>], the path written exactly as in the input, without a leading "chart.". \
+A sentence citing a fact is checked against that field's value and nothing else it does not \
+cite, so cite the field that states what the sentence says, as narrowly as it is stated \
+(planets.Mars.dignity, not planets.Mars); a path that does not exist is refused. A claim may \
+cite facts besides its finding's tags. Dates, periods and transits come only from the cited \
+fields: a sentence that names one cites the field that states it."""
+
+
 def system_prompt(depth: str) -> str:
     if depth not in DEPTHS:
         raise ValueError(f"depth must be one of {DEPTHS}, not {depth!r}")
@@ -755,6 +801,9 @@ def system_prompt(depth: str) -> str:
         assert FAMILY_RULE_TEXT + "a sentence citing a rule" in SYSTEM_PROMPT
         return SYSTEM_PROMPT.replace(FAMILY_RULE_TEXT + "a sentence citing a rule", "A sentence citing a rule") \
             + CURIOUS_PROMPT
+    if depth == "full":
+        assert TIMING_RULE_TEXT in SYSTEM_PROMPT
+        return SYSTEM_PROMPT.replace(TIMING_RULE_TEXT, FULL_TIMING_RULE) + FULL_PROMPT
     return SYSTEM_PROMPT
 
 
@@ -765,9 +814,16 @@ def timing_note(areas: list[str]) -> str:
     return f"These are periods the engine scores as favourable for {joined}; it does not predict when you will act."
 
 
+def full_range(as_of: date, config: NarrationConfig = CONFIG) -> tuple[date, date]:
+    """The range the whole chart's transits and timing windows cover at depth full."""
+    return as_of, as_of + timedelta(days=round(365.25 * config.timing_years))
+
+
 def payload(chart: Chart, question: str, areas: list[str], depth: str = "astrologer",
-            as_of: date | None = None) -> tuple[str, dict[str, set[str]]]:
-    """The user message for the model, and the tags allowed per finding id."""
+            as_of: date | None = None, facts: dict | None = None) -> tuple[str, dict[str, set[str]]]:
+    """The user message for the model, and the tags allowed per finding id. At depth full the
+    message also carries `chart`, the whole chart (`facts`, fullchart.payload), and is written
+    compactly."""
     allowed: dict[str, set[str]] = {}
     body = {"question": question, "depth": depth, "areas": []}
     for name in areas:
@@ -777,6 +833,9 @@ def payload(chart: Chart, question: str, areas: list[str], depth: str = "astrolo
         a = chart.scored.areas.get(name)
         body["areas"].append({"name": name, "findings": ok,
                               **({"tests": area_votes(a)} if a is not None and a.score_classical is not None else {})})
+    if facts is not None:
+        from .fullchart import dumps
+        return dumps(dict(body, chart=facts)), allowed
     return json.dumps(body, indent=1, default=str), allowed
 
 
@@ -817,8 +876,10 @@ in which a planet cannot give its good results"), is supported when it matches t
 that term's entry in the data's glossary, and unsupported when it does not match or the term has \
 no entry there. A chain finding's `facts` state its rows in sentences; a proposition about a \
 chain is supported when its facts or rows state it. A house called by its area ("the house of career", "a career house") is supported \
-when the data's area_houses lists that house in those words, and unsupported otherwise. Ignore the \
-bracketed citation tags."""
+when the data's area_houses lists that house in those words, and unsupported otherwise. The data \
+may carry `facts`: each a path in the chart and the engine's value there, cited by the sentence; a \
+proposition a cited fact states is supported, and a date, period or figure no cited fact or \
+finding states is not. Ignore the bracketed citation tags."""
 
 
 def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
@@ -848,7 +909,10 @@ class AnthropicDrafter:
 
     def __call__(self, system: str, user: str, errors: list[str]) -> ReadingDraft:
         if not self.messages:
-            self.messages.append({"role": "user", "content": user})
+            # The payload is cached: a regeneration resends it unchanged, and at depth full it is
+            # the whole chart (docs/spec_notes_2026-10-23.md has its size).
+            self.messages.append({"role": "user", "content": [
+                {"type": "text", "text": user, "cache_control": {"type": "ephemeral"}}]})
         else:
             self.messages.append({"role": "user", "content":
                                   "The draft was rejected. Fix every one of these and return the whole draft again:\n- "
@@ -856,10 +920,14 @@ class AnthropicDrafter:
         import time
         cfg = self.config
         started = time.perf_counter()
-        response = self.client.beta.messages.parse(
-            model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
-            output_config={"effort": cfg.effort}, system=system, messages=self.messages,
-            output_format=ReadingDraft)
+        kwargs = dict(model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
+                      output_config={"effort": cfg.effort}, system=system, messages=self.messages,
+                      output_format=ReadingDraft)
+        if cfg.max_tokens > STREAM_ABOVE:
+            with self.client.beta.messages.stream(**kwargs) as stream:
+                response = stream.get_final_message()
+        else:
+            response = self.client.beta.messages.parse(**kwargs)
         self.last_meta = _meta(response, "writer", cfg.effort, started)
         if response.stop_reason == "refusal":
             raise NarrationError("the model declined the request", [str(getattr(response, "stop_details", ""))])
@@ -1142,9 +1210,25 @@ def timing_line(area: str, windows: list[ReadingWindow], avoid: ReadingWindow | 
     return line
 
 
-def _check_payload(f: dict) -> str:
-    """What the checker sees for one finding: its derivation and nothing else."""
-    return json.dumps(_check_data(f), indent=1, default=str)
+def _check_payload(f: dict, text: str = "", facts: dict | None = None) -> str:
+    """What the checker sees for one claim: its finding's derivation and, at depth full, the
+    value of every field the claim cites as a fact; nothing else."""
+    data = _check_data(f)
+    cited = _cited_facts(text, facts)
+    return json.dumps({"finding": data, "facts": cited} if cited else data, indent=1, default=str)
+
+
+def _cited_facts(text: str, facts: dict | None) -> dict[str, Any]:
+    """path -> the chart's value there, for each [fact:<path>] in `text` that resolves."""
+    from .fullchart import resolve
+    out = {}
+    for kind, path in TAG.findall(text):
+        if kind == "fact" and facts is not None:
+            try:
+                out[path] = resolve(facts, path)
+            except KeyError:
+                pass
+    return out
 
 
 def _check_data(f: dict) -> dict:
@@ -1155,16 +1239,20 @@ def _check_data(f: dict) -> dict:
     return {k: f[k] for k in keep if k in f}
 
 
-def _summary_checks(summary: str, finding_data: dict[str, dict]) -> list[tuple[str, list[str], str]]:
+def _summary_checks(summary: str, finding_data: dict[str, dict],
+                    facts: dict | None = None) -> list[tuple[str, list[str], str]]:
     """(sentence, finding ids, data) for each summary sentence that cites a tag: the data is
-    the union of the derivations of every finding offering one of its tags."""
+    the union of the derivations of every finding offering one of its tags, and at depth full
+    the value of every fact it cites."""
     out = []
     for s in sentences(summary):
         tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
         if not tags:
             continue
         ids = [fid for fid, f in finding_data.items() if tags & set(f["allowed_tags"])]
-        data = {"findings": [_check_data(finding_data[i]) for i in ids]}
+        data: dict[str, Any] = {"findings": [_check_data(finding_data[i]) for i in ids]}
+        if cited := _cited_facts(s, facts):
+            data["facts"] = cited
         out.append((s, ids, json.dumps(data, indent=1, default=str)))
     return out
 
@@ -1177,7 +1265,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
     "curious" adds a plain-language paragraph per area, validated and checked like the
-    summary; the claims and every engine field are the same at every depth."""
+    summary; "full" hands the writer the whole chart (fullchart.payload over `full_range`), whose
+    fields a sentence cites as [fact:<path>]; the claims and every engine field are the same at
+    every depth."""
     progress = progress or (lambda stage, info: None)
     if chart.scored is None:
         raise ValueError("narration needs a scored chart (birth moment, Shadbala, Bhava Bala)")
@@ -1186,11 +1276,15 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     routed, when = route(question, chart)
     areas = list(areas) if areas is not None else routed
     system = system_prompt(depth)
-    curious = depth == "curious"
-    user, allowed = payload(chart, question, areas, depth, as_of)
+    curious, full = depth == "curious", depth == "full"
+    facts = None
+    if full:
+        from .fullchart import payload as whole_chart
+        facts = whole_chart(chart, as_of, *full_range(as_of, config), areas)
+    user, allowed = payload(chart, question, areas, depth, as_of, facts)
     area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name, as_of)[0])) for name in areas}
     all_tags = set().union(*allowed.values()) if allowed else set()
-    drafter = drafter or AnthropicDrafter(config)
+    drafter = drafter or AnthropicDrafter(writer_config(config, depth))
     checker = checker or AnthropicChecker(config)
     votes_offered = offered_votes(chart, areas)
     chains_offered = offered_chains(chart, areas)
@@ -1230,7 +1324,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
         summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious,
-                                        chains=all_chains)
+                                        chains=all_chains, facts=facts)
         errors = list(summary_errs)
         claim_errs: dict[tuple[str, str], list[str]] = {}
         drafted: list[tuple[str, DraftClaim]] = []
@@ -1246,7 +1340,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     errors.append(f"two claims for {c.finding_id} in {da.name}")
                     continue
                 errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name],
-                                family_rule=not curious, chains=chains_offered[da.name])
+                                family_rule=not curious, chains=chains_offered[da.name], facts=facts)
                 if not TAG.search(c.text):
                     errs.append(f"claim without a tag: {c.text!r}")
                 claim_errs[(da.name, c.finding_id)] = errs
@@ -1282,9 +1376,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         # each with its finding's derivation alone; and on every tagged summary sentence,
         # against the union of the derivations of the findings it cites. On the last attempt
         # the sentences that passed the validator are checked even if others did not.
-        checks = ([(s, ids, data, "summary", None) for s, ids, data in _summary_checks(draft.summary, finding_data)]
+        checks = ([(s, ids, data, "summary", None)
+                   for s, ids, data in _summary_checks(draft.summary, finding_data, facts)]
                   if not summary_errs else [])
-        checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id]), c.finding_id, name)
+        checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id], c.text, facts), c.finding_id, name)
                    for name, c in drafted if not claim_errs[(name, c.finding_id)]]
         paragraphs = {d.name: d.paragraph for d in draft.areas if d.paragraph}
         for name, errs in para_errs.items():
@@ -1431,8 +1526,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         rules_fired=len(scored), drafts_fired=len(drafts), drafts_unstable=unstable_of(drafts),
         abstained_areas=[n for n, x in sc.areas.items() if x.tier in ("not emphasised", "cannot be assessed",
                                                                    "needs two charts")])
+    shown = [text] + [c.text for a in reading_areas for c in a.claims]
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
-                   chart=chart_header(chart),
+                   chart=chart_header(chart), facts_cited={k: v for t in shown for k, v in _cited_facts(t, facts).items()},
                    model=config.model, attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    depth=depth,

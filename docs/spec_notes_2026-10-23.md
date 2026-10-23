@@ -96,3 +96,56 @@ commit that did it, for Ray to port. Line numbers are SPEC.md's at rev 101.
   stand-in, and every report says which gate it used.
 - The facts shown beside a sentence are stored with the edit (`reviews.facts`) and the export reads
   them, recomputing (and saying so) only for rows from before.
+
+## Layer 7 (Depth, after line 374) — a fourth depth, full
+
+A fourth depth whose aim is the best analysis the engine's facts allow: the depth of a frontier
+model reasoning at its highest effort, with every sentence still tied to an exact fact and checked.
+Proposed text for the living doc, by part, each with the commit that built it.
+
+**The whole chart to the writer.** At depth full the user message carries, besides the findings,
+`chart`: everything the engine computes, serialised compactly under stable paths
+(`fullchart.payload`): the planet and nakshatra tables, the lagna, the KP cusps and the Sripati
+madhyas, the special points (the 64th navamsa and 22nd drekkana, Abhijit, the nakshatra lagnesha),
+the sixteen vargas and D1, dignities and avasthas, the sensitive-degree flags, aspects, lordship
+and roles, the three dispositor chains with their loops and final dispositors, karakas (7 and 8)
+and arudhas, Ashtakavarga (BAV, SAV, the Trikona and Ekadhipatya reductions, Sodhya Pinda,
+Kakshya), Shadbala with every bala, Bhava Bala under both house systems, Vimsopaka, Ishta/Kashta,
+Argala, Sudarshana, the panchanga, every rule fire and every placement with its status
+(experimental and draft included), every area's family votes with their derivations, terms,
+weights and vote stability, the driver, Vimshottari to the pratyantar with the current period,
+Yogini and Chara with theirs, each lord's period quality and Nadi activation, the tagged transit
+timeline and the named transit windows for the range, the timing join's windows per area for the
+same range, and the sampler's stamps. A path is the keys from the root joined by dots, a list item
+by its index (`planets.Mars.dignity`, `vimshottari.periods.Rahu-Saturn-Venus`, `yogini.periods.12`).
+The range is the reading date and `timing_years` (ten) after it, for every question at this depth.
+
+This departs from item 9 ("never a longitude") at this depth only, and only so far as the chart
+table does: a position is its sign and its degree within the sign (d°m′s″), never an absolute
+longitude. Also left out, because each would cite nothing the rest does not: the Moon's transit
+rows, daily tara rows and vedha spans (thousands over ten years), and the Kakshya spans of the Sun
+and Mars (under four days each). Dates are YYYY-MM-DD; stability is [time, ayanamsa, house].
+
+A new tag, `[fact:<path>]`, cites any field. The validator accepts it when the path exists in the
+payload (and refuses it at the other depths, where nothing is offered by path); the checker
+receives the value of each cited field beside the sentence (`facts`: path -> value), and the
+checker's prompt says a proposition a cited fact states is supported and a date, period or figure
+no cited fact or finding states is not. At this depth a sentence citing a fact may name dates,
+periods and transits (item 11's timing rule applies to sentences citing none). The existing
+`[rule:]`, `[text:]`, `[vote:]` and `[chain:]` tags work as before, and the family-name rule of
+item 11 holds at this depth. The reading carries `facts_cited` (path -> value for every fact its
+shown sentences cite), so the page and the website footnote a fact with its value from the reading
+alone. The writer's `max_tokens` at this depth is 128,000 (`CONFIG.full_max_tokens`), sent as a
+stream; the payload message is marked for the prompt cache, so a regeneration rereads it at the
+cache rate.
+
+Measured on the reference chart (as of 2026-10-21, three areas: career, marriage, longevity; ten
+years of transits): the `chart` section is **356,177 characters** of compact JSON (356,402 bytes:
+the degree marks are the only non-ASCII), built in 2.0 s; the whole user message, the findings
+included, is 456,098 characters, against 137,637 for the same three areas at astrologer depth
+(indented). By section, the largest: areas 115,479 (nineteen areas' votes with derivations),
+transits 89,876, Vimshottari 49,300 (772 periods), Chara 24,463, Yogini 20,244, rules 11,814; every
+other section is under 5,000. No API key was available when it was measured, so tokens are an
+estimate, about 130,000 for the whole message at 3.5 characters a token; the live comparison
+(part 4) records the exact input tokens from the API's usage. `tests/test_fullchart.py` holds the
+measured size and fails when the payload moves by more than a tenth, so this number is kept true.

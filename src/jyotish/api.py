@@ -239,7 +239,7 @@ class ReadingRequest(BirthInput):
     model_config = ConfigDict(extra="forbid")
     question: str
     as_of: str | None = None
-    depth: Literal["curious", "learner", "astrologer"] = "curious"
+    depth: Literal["curious", "learner", "astrologer", "full"] = "curious"
 
 
 class EditRequest(BaseModel):

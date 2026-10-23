@@ -25,7 +25,8 @@ SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where i
 class _Notes:
     """Tags -> numbered footnotes, one number per distinct tag across the page."""
 
-    def __init__(self, chart: Chart):
+    def __init__(self, chart: Chart, facts: dict | None = None):
+        self.facts = facts or {}
         self.order: list[str] = []
         self.names = {r.id: (r.data.get("names") or [r.id])[0] for r in default_rules()}
         self.chart = chart
@@ -45,6 +46,8 @@ class _Notes:
         if kind == "text":
             text, edition, chapter, verse = value.split("/")
             return f"{text}, {edition.replace('-', ' ')}, chapter {chapter}, verse {verse} (checked in that edition)."
+        if kind == "fact":
+            return f"The chart's field `{value}`, computed by the engine: {_fact_value(self.facts.get(value))}."
         area, family = value.split(".", 1)
         if kind == "chain":
             what = "the whole chart's final dispositors" if family == "chart" else f"the {area.replace('_', ' ')} {family}"
@@ -53,6 +56,15 @@ class _Notes:
 
     def block(self) -> list[str]:
         return [f"[^{i}]: `{t}`: {self.definition(t)}" for i, t in enumerate(self.order, 1)]
+
+
+FACT_SHOWN = 300           # characters of a cited fact's value shown in its footnote
+
+
+def _fact_value(v: Any) -> str:
+    """A cited fact's value as its footnote shows it: compact JSON, cut at FACT_SHOWN characters."""
+    text = json.dumps(v, ensure_ascii=False, separators=(", ", ": "), default=str)
+    return f"`{text if len(text) <= FACT_SHOWN else text[:FACT_SHOWN] + ' …'}`"
 
 
 def _family(name: str) -> str:
@@ -203,7 +215,7 @@ def fired_lines(s) -> list[str]:
 
 
 def render(reading: Reading, chart: Chart) -> str:
-    notes = _Notes(chart)
+    notes = _Notes(chart, reading.facts_cited)
     s = reading.summary
     L = [f"# Reading: {reading.question}", "",
          f"As of {reading.as_of} · engine {reading.engine} · weights {reading.weights} · model {reading.model} "

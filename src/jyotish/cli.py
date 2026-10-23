@@ -467,9 +467,10 @@ def main(argv: list[str] | None = None) -> None:
     rd = sub.add_parser("read", help="birth data and a question -> reading JSON and a Markdown page")
     _birth_flags(rd)
     rd.add_argument("--question", required=True)
-    rd.add_argument("--depth", default="curious", choices=["curious", "learner", "astrologer"],
+    rd.add_argument("--depth", default="curious", choices=["curious", "learner", "astrologer", "full"],
                     help="curious (default): a plain-language paragraph per area above the claims; "
-                         "learner and astrologer: the claims and learner panels")
+                         "learner and astrologer: the claims and learner panels; full: the whole chart to the "
+                         "writer, every field citable as [fact:<path>]")
     rd.add_argument("--as-of", help="date the reading is for, YYYY-MM-DD (default today)")
     rd.add_argument("--out", default="reading", help="output path without extension: writes .json and .md")
     rd.add_argument("--model-fixture", help="replay a recorded narration (tests/fixtures/*.json) instead of "

@@ -2,7 +2,7 @@
 // every tier or stability word comes from the JSON: nothing here computes, rounds beyond
 // display precision, or rewords an engine field. Text from the JSON is always escaped.
 
-const TAG = /\[(rule|text|vote|chain):([^\]\s]+)\]/g;
+const TAG = /\[(rule|text|vote|chain|fact):([^\]\s]+)\]/g;
 
 export function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -41,8 +41,10 @@ export function table(rows, columns) {
 
 // --- footnotes: one number per distinct tag across the page --------------------------------
 
+const FACT_SHOWN = 300;   // characters of a cited fact's value shown in its footnote (page.py's FACT_SHOWN)
+
 export class Footnotes {
-  constructor() { this.order = []; }
+  constructor(facts) { this.order = []; this.facts = facts || {}; }
   number(tag) {
     if (!this.order.includes(tag)) this.order.push(tag);
     return this.order.indexOf(tag) + 1;
@@ -80,6 +82,10 @@ export class Footnotes {
     if (kind === "text") {
       const [text, edition, chapter, verse] = value.split("/");
       return `${esc(text)}, ${esc(edition.replaceAll("-", " "))}, chapter ${esc(chapter)}, verse ${esc(verse)} (checked in that edition).`;
+    }
+    if (kind === "fact") {
+      const shown = JSON.stringify(this.facts[value] ?? null, null, 1).replace(/\s+/g, " ");
+      return `The chart's field <code>${esc(value)}</code>, computed by the engine: <code>${esc(shown.length <= FACT_SHOWN ? shown : shown.slice(0, FACT_SHOWN) + " …")}</code>.`;
     }
     const [area, fam] = value.split(".");
     if (kind === "chain") return `The dispositor chains of ${fam === "chart" ? "the whole chart's final dispositors" : `the ${esc(human(area))} ${esc(fam)}`}, traced by the engine (see the claim's learner panel).`;
@@ -249,7 +255,7 @@ const DISCLAIMER_TEXT = {
 // --- screens --------------------------------------------------------------------------------
 
 export function renderReading(r) {
-  const notes = new Footnotes();
+  const notes = new Footnotes(r.facts_cited);
   const s = r.summary;
   const summaryText = notes.text(s.text);
   const areas = r.areas.map((a) => areaCard(a, notes, r.depth)).join("");
