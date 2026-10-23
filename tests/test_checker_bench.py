@@ -52,7 +52,7 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
     expected = sentences(reading["summary"]["text"])
     for a in reading["areas"]:
         expected += [c["text"] for c in a["claims"]] + sentences(a["paragraph"] or "")
-    rows = [r for r in rows if not r["id"].startswith(("b-", "kind-"))]    # the comparison's and the kinds' rows: own tests
+    rows = [r for r in rows if not r["id"].startswith(("b-", "r2-", "kind-"))]   # the comparisons' and the kinds' rows: own tests
     accepted = [r for r in rows if r["label"] == "accept"]
     assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 45
     assert all(r["audit"] and "CONTRADICTED" not in r["audit"] for r in accepted)
@@ -150,6 +150,28 @@ def test_the_comparisons_refusals_carry_the_lesson(cb, rows):
     assert {x["varga_dignity_label"] for x in facts["derivation"]} >= {"exalted", "own"}
     assert json.loads(b["b-judgement-marriage"]["facts"])["judgement"] is True
 
+
+
+def test_the_re_runs_two_gaps_are_accepted_with_the_facts_the_engine_now_gives(cb, rows):
+    """docs/comparison_2026-10-23_r2: reading B's two narration gaps, both refused for want of a fact,
+    verbatim from B's recording, now passing the validator with every cited field stating what the
+    sentence says: Saturn's D10 dignity, and the Kantaka Shani spans' areas."""
+    r2 = {r["id"]: r for r in rows if r["id"].startswith("r2-")}
+    assert set(r2) == {"r2-varga-dignity", "r2-areas-touched"}
+    said = json.dumps(json.loads(cb.COMPARISON_R2.read_text()))
+    for rid, r in r2.items():
+        assert json.dumps(r["sentence"])[1:-1] in said, rid                       # B's own words
+        assert r["origin"].startswith("comparison 2026-10-23 r2, reading B: ") and r["audit"]
+        assert (r["label"], r["category"], r["where"]) == ("accept", "accepted", "analysis")
+        assert json.loads(r["facts"])["judgement"] is True                       # premises checked, weighing not
+    pred = cb.run_validator(list(r2.values()))
+    assert not any(rejected for rejected, _ in pred.values()), pred
+    assert json.loads(r2["r2-varga-dignity"]["facts"])["facts"]["vargas.D10.Saturn"] == {"sign": "Capricorn",
+                                                                                          "dignity": "own"}
+    spans = json.loads(r2["r2-areas-touched"]["facts"])["facts"]
+    for w in ("transits.windows.1", "transits.windows.3"):
+        assert spans[w]["kind"] == "kantaka_shani" and "grade:adverse" in spans[w]["tags"]
+        assert spans[w]["areas_touched"][0]["from_moon"] == {"house": 7, "areas": ["marriage", "foreign"]}
 
 
 def test_each_new_sentence_kind_reaches_the_live_checker(cb, rows):

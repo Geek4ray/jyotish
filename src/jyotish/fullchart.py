@@ -151,6 +151,11 @@ NOT_COMPUTED = {
     "question_routing": "a question is routed to its areas by keyword; no model translates it into a query",
     "tara_scoring": "the transit taras are tagged but not scored: the timing join leaves them out",
     "draft_placements": "a placement's effect is a draft until its verse is read: it weighs nothing and is not narrated",
+    "varga_dignity_nodes": "a varga dignity is read for the seven planets only; the nodes' dignity is a matter on which "
+                           "the texts differ, and the lagna has none",
+    "transit_areas": "a transit window's or tara row's areas_touched is the area-houses mapping counted from the Moon "
+                     "and from the lagna; it says which areas' houses the transit occupies, not what it does there, "
+                     "and the engine scores a transit for an area only in the timing join",
     "never": "the engine never times death, diagnoses illness, advises a trade or investment, or states another "
              "person's fate",
 }
@@ -183,7 +188,32 @@ def _lagnas(chart: Chart) -> dict:
 
 
 def _vargas(chart: Chart) -> dict:
-    return {v: {p: SIGNS[s] for p, s in places.items()} for v, places in chart.vargas.items()}
+    """Each body's sign in each varga and, for the seven planets, its dignity there in the varga
+    vote's own words (scoring.varga_dignity_word: exalted, debilitated, own, or the relation with
+    the sign's lord), so "Saturn in its own sign in the dasamsa" cites vargas.D10.Saturn. The nodes
+    and the lagna carry a sign only (not_computed.varga_dignity_nodes)."""
+    from .scoring import varga_dignity_word
+    return {v: {p: ({"sign": SIGNS[s], "dignity": varga_dignity_word(p, s)} if p in SEVEN else {"sign": SIGNS[s]})
+                for p, s in places.items()} for v, places in chart.vargas.items()}
+
+
+def areas_touched(chart: Chart, signs: list[int]) -> list[dict]:
+    """Per sign a transit occupies, the house it is from the natal Moon and from the lagna and the
+    areas whose houses those are (scoring.AREAS, the area-houses mapping): {"sign", "from_moon":
+    {"house", "areas"}, "from_lagna": {"house", "areas"}}, so "a Kantaka Shani span over the 7th
+    from the Moon, a marriage house" cites transits.windows.<i>.areas_touched. A mapping, not an
+    effect: the engine scores a transit for an area only in the timing join
+    (not_computed.transit_areas)."""
+    from .dignity import house_of
+    from .scoring import AREAS
+    out = []
+    for sign in dict.fromkeys(signs):
+        row: dict[str, Any] = {"sign": SIGNS[sign]}
+        for key, base in (("from_moon", chart.bodies["Moon"].sign), ("from_lagna", chart.lagnas.asc_sign)):
+            h = house_of(sign, base)
+            row[key] = {"house": h, "areas": [a for a, spec in AREAS.items() if h in spec["houses"]]}
+        out.append(row)
+    return out
 
 
 def _special(chart: Chart) -> dict | None:
@@ -289,11 +319,24 @@ def _transits(chart: Chart, start: date, end: date) -> dict:
             row["kakshya"] = [f"{k.lord} {_date(k.start_jd)}..{_date(k.end_jd)}"
                               + ("" if k.bindu is None else (" bindu" if k.bindu else " no bindu")) for k in r.kakshya]
         rows.append(row)
+    def tara_areas(t) -> list[dict]:
+        # The body's signs while it is in the nakshatra (one, or two where the nakshatra crosses a
+        # sign or the span a sign change): its own transit rows that overlap the span.
+        return areas_touched(chart, [r.sign for r in tl.rows
+                                     if r.body == t.body and r.start_jd < t.end_jd and r.end_jd > t.start_jd])
+
     taras = [{"body": t.body, "nakshatra": t.nakshatra, "tara_from_moon": t.tara, "count": t.count, "adverse": t.adverse,
-              "special": t.special, "start": _date(t.start_jd), "end": _date(t.end_jd), "tags": t.tags}
+              "special": t.special, "start": _date(t.start_jd), "end": _date(t.end_jd), "tags": t.tags,
+              "areas_touched": tara_areas(t)}
              for t in tl.tara_rows if t.body not in LEFT_OUT_TRANSITS]
-    windows = [{"kind": w.kind, "start": _date(w.start_jd), "end": _date(w.end_jd), "tags": w.tags, "details": _r(w.details)}
-               for w in tl.windows]
+    def window_areas(w) -> list[dict]:
+        # A window over one sign (details.sign), or over several (sade sati: details.phases[].sign).
+        d = w.details or {}
+        names = [d["sign"]] if d.get("sign") else [x["sign"] for x in d.get("phases", [])]
+        return areas_touched(chart, [SIGNS.index(n) for n in names if n in SIGNS])
+
+    windows = [{"kind": w.kind, "start": _date(w.start_jd), "end": _date(w.end_jd), "tags": w.tags, "details": _r(w.details),
+                "areas_touched": window_areas(w)} for w in tl.windows]
     return {"range": {"start": start.isoformat(), "end": end.isoformat()}, "rows": rows, "tara_rows": taras,
             "windows": windows, "left_out": "the Moon's rows, daily tara rows and vedha spans; Kakshya spans of the "
                                             "Sun and Mars"}

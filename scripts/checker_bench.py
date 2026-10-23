@@ -60,6 +60,7 @@ SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", 
                                          "judgement_premise", "unstated_claim", "contradicts_its_fact",
                                          "synthesis_does_not_follow", "untagged_unsupported"}
 COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
+COMPARISON_R2 = ROOT / "docs" / "comparison_2026-10-23_r2" / "b.recording.json"   # the re-run after F1-F13
 FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
 LIVE_HEADING = "## Validator + semantic checker (live)"
 
@@ -257,9 +258,9 @@ def build() -> list[dict]:
 
 # --- the depth-full comparison's refusals that were the engine's fault ----------------------------
 
-def _b_sentence(prefix: str) -> str:
+def _b_sentence(prefix: str, recording: Path = COMPARISON) -> str:
     """The sentence of reading B (its recording: checked sentences and drafts) that starts so."""
-    rec = json.loads(COMPARISON.read_text())
+    rec = json.loads(recording.read_text())
     found = [c["sentence"] for c in rec["calls"] if c["kind"] == "checker"]
     for c in rec["calls"]:
         for a in (c.get("draft") or {}).get("areas", []):
@@ -400,6 +401,26 @@ def comparison_rows() -> list[dict]:
          "reject", "unstated_claim", f"{fault}: the family rule refused it although it cites the area's votes; the "
          "validator now passes it, and its last clause (the reading draws no medical statement) is stated by no field"),
     ]
+    # The re-run's two narration gaps (docs/comparison_2026-10-23_r2, reading B), both refused for want of
+    # a fact the engine did not give: each verbatim, now citing fields that state what it says.
+    r2 = "the engine's fault in the re-run of 2026-10-23"
+    rows += [
+        ("r2-varga-dignity", "analysis", "career", "assessment",
+         _b_sentence("I give more weight to Saturn's divisional dignity", COMPARISON_R2), "accept", "accepted",
+         f"{r2}: vargas.D10.Saturn gave the sign alone, so 'Saturn's divisional dignity' stated nothing; it now gives "
+         "{sign Capricorn, dignity own}. Saturn the 10th lord (houses.lagna.10.lord), yogakaraka (roles.Saturn), "
+         "Shadbala ratio 0.69, below its required strength, and in marana karaka sthana: read. A judgement: the "
+         "weighing and the reading of the deficit as a brake are the reading's."),
+        ("r2-areas-touched", "analysis", "marriage", "timing",
+         _b_sentence("I give more weight to the Jupiter–Venus window than to the two windows in the Jupiter–Mercury period, "
+                     "because it joins", COMPARISON_R2),
+         "accept", "accepted",
+         f"{r2}: the Kantaka Shani spans were tagged house_moon:7 with nothing tying them to marriage; each transit "
+         "window now carries areas_touched, and both spans (transits.windows.1 and .3, Saturn in Aries, graded "
+         "adverse) are the 7th from the Moon, a marriage house. Marriage windows 0 (Jupiter-Venus, its strongest "
+         "piece crediting Jupiter in Scorpio), 1 and 2 (Jupiter-Mercury); Venus the main karaka, exalted: read. "
+         "A judgement: which window it gives more weight is the reading's."),
+    ]
     rows += KIND_ROWS
     by_id = {r[0]: r for r in rows}
     fixes = {"b-ranking-career-fixed": lambda: by_id["b-ranking-career"][4][:-1] + " [fact:areas.career.contributions].",
@@ -412,7 +433,8 @@ def comparison_rows() -> list[dict]:
         kind = rid.startswith("kind-")
         row = {"id": rid, "where": where, "area": area, "finding_id": unit if where == "claim" else None,
                "section": unit if where == "analysis" else None, "sentence": sentence, "label": label, "category": cat,
-               "origin": note if kind else f"comparison 2026-10-23, reading B: {note}", "tags": _tags(sentence),
+               "origin": note if kind else f"comparison 2026-10-23{' r2' if rid.startswith('r2-') else ''}, reading B: "
+                                           f"{note}", "tags": _tags(sentence),
                "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else
                              area_tags[area or "career"], "offered_votes": votes[area or "career"],
                              "chains": chains[area or "career"], "family_rule": True, **({} if where == "summary" else {"full": FULL})}}

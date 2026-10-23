@@ -1058,8 +1058,11 @@ cite, so cite the field that states what the sentence says, as narrowly as it is
 (planets.Mars.dignity, not planets.Mars); a path that does not exist is refused. A claim may \
 cite facts besides its finding's tags. Dates, periods and transits come only from the cited \
 fields: a sentence that names one cites the field that states it. Where the engine gives a word \
-beside a number, use the word and cite the field: a varga row's varga_dignity_label ("exalted", \
-"own"), a stability's "holds under 2 of 3 ayanamsas". chart.constants holds the sign order, the \
+beside a number, use the word and cite the field: a planet's dignity in a varga (vargas.D10.Saturn \
+gives its sign and dignity; a vote row's varga_dignity_label: "exalted", "own"), a stability's \
+"holds under 2 of 3 ayanamsas". A transit window or tara row carries areas_touched: the house it \
+occupies from the Moon and from the lagna and the areas whose houses those are; a sentence tying \
+a transit to an area cites it. chart.constants holds the sign order, the \
 sign lords and each planet's exaltation, debilitation, moolatrikona and own signs; \
 chart.houses.<lagna|moon|sun>.<n> each house's sign, lord and occupants from that basis; \
 chart.not_computed what the engine does not do. Cite these for what they state rather than \

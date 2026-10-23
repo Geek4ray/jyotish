@@ -325,16 +325,21 @@ class _View:
         return DIGNITY_SCORE[self.varga_dignity_label(p, varga)]
 
     def varga_dignity_label(self, p: str, varga: str) -> str:
-        """The dignity's word. A varga has no degree, so moolatrikona is not read: exalted,
-        debilitated, own, or the natural relation (friend, neutral, enemy) with the sign's lord."""
-        s = VARGAS[varga](self.lon[p])
-        if s == EXALTATION[p][0]:
-            return "exalted"
-        if s == (EXALTATION[p][0] + 6) % 12:
-            return "debilitated"
-        if SIGN_LORD[s] == p:
-            return "own"
-        return natural_relation(p, SIGN_LORD[s])
+        return varga_dignity_word(p, VARGAS[varga](self.lon[p]))
+
+
+def varga_dignity_word(p: str, s: int) -> str:
+    """The dignity of one of the seven planets in a varga sign `s`, as a word. A varga has no
+    degree, so moolatrikona is not read: exalted, debilitated, own, or the natural relation
+    (friend, neutral, enemy) with the sign's lord. The varga vote and the whole-chart payload's
+    vargas table both read it here."""
+    if s == EXALTATION[p][0]:
+        return "exalted"
+    if s == (EXALTATION[p][0] + 6) % 12:
+        return "debilitated"
+    if SIGN_LORD[s] == p:
+        return "own"
+    return natural_relation(p, SIGN_LORD[s])
 
 
 def _karakas(v: _View, names: list[str]) -> list[str]:

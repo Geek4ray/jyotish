@@ -577,3 +577,26 @@ the suite against the app served from the checkout (tests/test_web.py), so a cha
 fails before the image is built. What it does not cover: Postgres under the browser (the compose
 step checks /health and the backup only), HTTPS through Caddy, and Fly itself; the first deploy by the
 guide is the test of those.
+
+## Layer 7, depth full — readable by the client without losing anything (2026-10-24)
+
+The re-run after F1-F13 (docs/comparison_2026-10-23_r2.md, reading B) reasons correctly and is written
+for the astrologer. This batch closes its two gaps and puts a client's layer over the analysis.
+
+**The two gaps (part 1).** Both of B's refused sentences wanted a fact the engine did not give. The
+career assessment weighed "Saturn's divisional dignity", and vargas.D10.Saturn gave the sign alone; the
+whole-chart payload's vargas table now gives each of the seven planets its sign and its dignity in
+each varga, in the varga vote's own words (`scoring.varga_dignity_word`, one function for both:
+exalted, debilitated, own, or the relation with the sign's lord), and the nodes and the lagna a sign
+only (`not_computed.varga_dignity_nodes`: the texts differ on the nodes' dignity). The marriage timing
+read the two Kantaka Shani spans as a caution on marriage, and the spans were tagged house_moon:7 with
+nothing tying the 7th to marriage; every transit window and every tara row now carries
+`areas_touched`: per sign it occupies (a sade sati's several, a tara row's one or two, from the body's
+own transit rows over the span), the house from the natal Moon and from the lagna and the areas whose
+houses those are by the area-houses mapping (scoring.AREAS). It is a mapping, not an effect
+(`not_computed.transit_areas`: the engine scores a transit for an area only in the timing join). The
+payload on the reference chart grows from 434,445 to 449,112 characters (a first form with the house
+words on every entry was 485,176). Both sentences, verbatim from B's recording, pass the validator on
+the new payload and are accepted rows of the checker benchmark (`r2-varga-dignity`,
+`r2-areas-touched`, 147 rows), each a judgement whose premises a hand audit read against the fields it
+cites. The writer's prompt names both fields.

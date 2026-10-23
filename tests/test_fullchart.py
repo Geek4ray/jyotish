@@ -22,9 +22,10 @@ SECTIONS = ["chart", "constants", "houses", "not_computed", "planets", "nakshatr
 # The compact payload on the reference chart (as of 2026-10-21, three areas, ten years of transits)
 # measured 356,177 characters on 2026-10-23 at first, and 402,380 once what the engine knows was
 # labelled (the stability objects, the constants, houses and not_computed blocks), 423,836 once each
-# family's term said what it holds (the review's F13), 425,120 with the percentiles (F4), 434,445 with every stability an object (F8; docs/spec_notes_2026-10-23.md).
+# family's term said what it holds (the review's F13), 425,120 with the percentiles (F4), 434,445 with every stability an object (F8; docs/spec_notes_2026-10-23.md),
+# 449,112 with each varga dignity and each transit window's and tara row's areas_touched (2026-10-24).
 # The bound is there so that growth is noticed and the recorded size updated.
-MEASURED_CHARS = 434_445
+MEASURED_CHARS = 449_112
 
 
 @pytest.fixture(scope="module")
@@ -61,9 +62,9 @@ class Replay:
 def test_every_section_is_present_and_every_value_the_charts_own(chart, whole):
     assert list(whole) == SECTIONS
     assert resolve(whole, "planets.Mars.dignity") == chart.bodies["Mars"].dignity == "own"
-    assert resolve(whole, "vargas.D9.Mars") == ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
-                                               "Scorpio", "Sagittarius", "Capricorn", "Aquarius",
-                                               "Pisces"][chart.vargas["D9"]["Mars"]]
+    assert resolve(whole, "vargas.D9.Mars.sign") == ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
+                                                    "Scorpio", "Sagittarius", "Capricorn", "Aquarius",
+                                                    "Pisces"][chart.vargas["D9"]["Mars"]]
     assert resolve(whole, "shadbala.planets.Mars.ratio") == round(chart.features.shadbala.planets["Mars"].ratio, 2)
     assert resolve(whole, "areas.career.tier") == chart.scored.areas["career"].tier
     assert resolve(whole, "areas.career.votes.kp.vote") == chart.scored.areas["career"].votes["kp"]
@@ -423,3 +424,48 @@ def test_every_stability_field_is_an_object(whole):
     d10 = resolve(whole, "stability.lagna_sign_by_varga.D10")
     assert d10 == {"time": 0.795, "label": "sensitive", "samples": "holds in 159 of 200 birth-time samples"}
     assert resolve(whole, "areas.career.votes.lord.stability")["samples"] == "holds in 200 of 200 birth-time samples"
+
+
+def test_every_varga_row_carries_its_dignity_word_as_the_vote_reads_it(chart, whole):
+    # Reading B's refused assessment (docs/comparison_2026-10-23_r2): vargas.D10.Saturn gave the sign
+    # alone, so "Saturn's divisional dignity" had no fact. The word is the varga vote's own.
+    from jyotish.scoring import varga_dignity_word
+    assert resolve(whole, "vargas.D10.Saturn") == {"sign": "Capricorn", "dignity": "own"}
+    assert resolve(whole, "vargas.D10.Mars") == {"sign": "Capricorn", "dignity": "exalted"}
+    vote = {r["planet"]: r["varga_dignity_label"] for r in resolve(whole, "areas.career.votes.varga.derivation")
+            if isinstance(r, dict) and r.get("varga") == "D10"}
+    assert vote and all(resolve(whole, f"vargas.D10.{p}.dignity") == w for p, w in vote.items())
+    for v, row in whole["vargas"].items():
+        for p, x in row.items():
+            if p in ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"):
+                assert x["dignity"] == varga_dignity_word(p, chart.vargas[v][p])
+            else:                                               # the nodes and the lagna: a sign only
+                assert set(x) == {"sign"}
+    assert "varga_dignity_nodes" in whole["not_computed"]
+
+
+def test_transit_windows_and_tara_rows_carry_the_areas_they_touch(chart, whole):
+    # Reading B's refused marriage timing: the Kantaka Shani spans tagged house_moon:7 with nothing
+    # tying them to marriage. Each window now names the houses from the Moon and from the lagna and
+    # the areas whose houses they are (scoring.AREAS).
+    from jyotish.scoring import AREAS
+    kantaka = [w for w in whole["transits"]["windows"] if w["kind"] == "kantaka_shani" and w["details"]["sign"] == "Aries"]
+    assert kantaka and all(w["areas_touched"] == [{"sign": "Aries",
+                                                  "from_moon": {"house": 7, "areas": ["marriage", "foreign"]},
+                                                  "from_lagna": {"house": 12, "areas": ["mother_home", "health",
+                                                                 "debts_enemies", "fortune", "foreign", "spirituality"]}}]
+                           for w in kantaka)
+    assert resolve(whole, "transits.windows.1.areas_touched.0.from_moon.areas") == ["marriage", "foreign"]
+    for w in whole["transits"]["windows"]:
+        assert w["areas_touched"], w["kind"]                   # every window, one sign or a sade sati's several
+        for t in w["areas_touched"]:
+            for key in ("from_moon", "from_lagna"):
+                assert t[key]["areas"] == [a for a, spec in AREAS.items() if t[key]["house"] in spec["houses"]]
+    rows = {(r["body"], r["start"]): r for r in whole["transits"]["rows"]}
+    for t in whole["transits"]["tara_rows"]:
+        signs = [x["sign"] for x in t["areas_touched"]]
+        assert 1 <= len(signs) <= 2 and len(set(signs)) == len(signs)
+        # each sign is one the body's own transit rows give it during the span
+        assert set(signs) <= {r["sign"] for (b, _), r in rows.items() if b == t["body"] and r["start"] < t["end"]
+                              and r["end"] > t["start"]}
+    assert "transit_areas" in whole["not_computed"]
