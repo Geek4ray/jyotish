@@ -24,12 +24,15 @@ ASSESSMENT = ("The strongest support is the varga family [fact:areas.career.cont
               "[fact:planets.Mars.dignity] [fact:planets.Mars.house].")
 TIMING = "The current Vimshottari period is Jupiter-Mercury-Mercury [fact:vimshottari.current]."
 NOT_SAID = "The KP family abstains on career [fact:areas.career.votes.kp.vote]."
+NOT_DECIDED = "Which kind of work suits you is not settled by anything here [fact:not_computed.question_routing]."
 
 
-def draft(assessment=ASSESSMENT, timing=TIMING, not_said=NOT_SAID, summary="Mars is in its own sign "
-          "[fact:planets.Mars.dignity]."):
+def draft(assessment=ASSESSMENT, timing=TIMING, not_said=NOT_SAID, summary="", not_decided=NOT_DECIDED):
+    # At depth full the first call writes no summary (the client's layer does); `summary` is kept
+    # for the tests that show what a drafted one is refused or ignored for.
     return {"summary": summary, "areas": [{"name": "career", "claims": [], "analysis": {
-        "assessment": assessment, "timing": timing, "not_said": not_said}}]}
+        "assessment": assessment, "timing": timing, "not_said_client": [not_decided] if not_decided else None,
+        "not_said_astrologer": [not_said] if not_said else None}}]}
 
 
 class Replay:
@@ -139,8 +142,12 @@ def test_model_effort_and_usage_are_recorded_in_the_reading(chart):
     assert r.writer == {"model": "claude-sonnet-5-5", "effort": "xhigh", "thinking": "adaptive",
                         "max_tokens": CONFIG.full_max_tokens}
     assert r.checker == {"model": CONFIG.checker_model, "effort": CONFIG.checker_effort}
-    assert r.usage["writer"]["calls"] == 1 and r.usage["writer"]["input_tokens"] == 1000
-    assert r.usage["checker"]["calls"] == 5          # the summary, two assessment sentences, timing, not_said
+    # One writer call and one call of the client's layer (EchoClient: 100 input tokens), counted together
+    # under the writer and apart under `client`.
+    assert r.usage["writer"]["calls"] == 2 and r.usage["writer"]["input_tokens"] == 1100
+    assert r.usage["client"]["calls"] == 1 and r.usage["client"]["attempts"] == 1
+    # two assessment sentences, timing, the two not-said lists; then the paragraph and the summary
+    assert r.usage["checker"]["calls"] == 7
     assert r.usage["wall_seconds"] >= 0
 
 
@@ -149,7 +156,8 @@ def test_model_effort_and_usage_are_recorded_in_the_reading(chart):
 def test_the_prompt_asks_for_the_analysis_and_states_the_synthesis_rule():
     p = system_prompt("full")
     for words in ("`assessment`", "strongest support and the weakest", "resolve the contradiction explicitly",
-                  "rank what matters most", "`timing`", "`not_said`", "synthesis sentence",
+                  "rank what matters most", "`timing`", "`not_said_client`", "`not_said_astrologer`",
+                  "Leave `summary` empty", "synthesis sentence",
                   "each cited fact is true and the conclusion follows from them together"):
         assert words in p, words
     assert "`assessment`" not in system_prompt("astrologer")
@@ -158,7 +166,8 @@ def test_the_prompt_asks_for_the_analysis_and_states_the_synthesis_rule():
 def test_each_area_has_three_checked_sections(chart):
     r = run(chart, draft())
     a = r.areas[0]
-    assert a.analysis == {"assessment": ASSESSMENT, "timing": TIMING, "not_said": NOT_SAID}
+    assert a.analysis == {"assessment": ASSESSMENT, "timing": TIMING, "not_said_client": NOT_DECIDED,
+                          "not_said_astrologer": NOT_SAID}
     assert "fact:vimshottari.current" in a.analysis_cites and "fact:planets.Mars.house" in a.analysis_cites
     assert not [g for g in a.narration_gaps if g["kind"] == "analysis"]
     assert r.synthesis_sentences == 1                       # the kendra sentence: two facts, one conclusion
@@ -269,8 +278,8 @@ def test_post_readings_takes_the_writers_settings_and_records_them(tmp_path):
                            "max_tokens": CONFIG.full_max_tokens}
     assert "--writer-model claude-fable-5-1 --writer-effort xhigh" in r["chart"]["command"]
     # The replayed astrologer drafts have no analysis: each section is an honest gap.
-    assert {g["finding_id"] for g in r["areas"][0]["narration_gaps"]} >= {"analysis.assessment", "analysis.timing",
-                                                                          "analysis.not_said"}
+    assert {g["finding_id"] for g in r["areas"][0]["narration_gaps"]} >= {
+        "analysis.assessment", "analysis.timing", "analysis.not_said_client", "analysis.not_said_astrologer"}
 
 
 # --- part 3: knowledge beyond the engine, [tradition:<text> <chapter>] ----------------------------
@@ -514,7 +523,8 @@ def test_a_passed_section_is_held_and_never_rewritten(chart):
     w = Replay(draft(assessment=BAD), draft(timing=TIMING_2))
     stub = SynthesisStub({"Mars is dignified in a kendra": True})
     r = narrate(chart, QUESTION, drafter=w, checker=stub, as_of=AS_OF, areas=["career"], depth="full")
-    assert r.attempts == 2 and r.areas[0].analysis == {"assessment": ASSESSMENT, "timing": TIMING, "not_said": NOT_SAID}
+    assert r.attempts == 2 and r.areas[0].analysis == {"assessment": ASSESSMENT, "timing": TIMING,
+                                                       "not_said_client": NOT_DECIDED, "not_said_astrologer": NOT_SAID}
     checked = [x for x, _ in stub.calls]
     assert TIMING_2 not in checked and checked.count(TIMING) == 1 and checked.count(NOT_SAID) == 1
 
@@ -528,7 +538,9 @@ def test_the_retry_asks_only_for_the_failed_units_with_the_checkers_reasons(char
     assert len(ask) == 1 and ask[0].startswith(RETRY_HEAD)
     text = ask[0]
     held = text.split("Held: ", 1)[1].split("\n")[0]
-    assert "the summary" in held and "the career timing" in held and "the career not_said" in held
+    # At depth full the first call writes no summary (the client's layer does): nothing to hold or ask.
+    assert "the summary" not in text and "the career timing" in held
+    assert "the career not_said_client" in held and "the career not_said_astrologer" in held
     assert "the career assessment" not in held
     assert "- the career assessment:" in text and "the checker refused 'career will rise'" in text
     assert "no cited fact supports this conclusion" in text and "- the career timing" not in text
@@ -546,7 +558,7 @@ def test_every_unit_that_passes_the_validator_is_checked_in_its_attempt(chart):
     w = Replay(draft(not_said=""), draft())
     narrate(chart, QUESTION, drafter=w, checker=old, as_of=AS_OF, areas=["career"], depth="full",
             config=replace(CONFIG, section_retries=False))
-    assert w.calls[1]["errors"][0].startswith("no not_said for career")   # the old message: the whole draft
+    assert w.calls[1]["errors"][0].startswith("no not_said_astrologer for career")   # the whole draft
     assert [x for x, _ in old.calls].count(TIMING) == 1                    # checked only once the draft passed
 
 
@@ -638,17 +650,17 @@ def test_a_judgement_within_its_limits_passes(whole):
 def test_an_untagged_analysis_sentence_is_refused(whole, sentence):
     """F2's probes: no listed claim verb, so the old validator let them through untagged and unchecked."""
     errs = _section_errors(sentence, whole)
-    assert any("an analysis sentence carries the tags" in e for e in errs), errs
+    assert any("every sentence here carries the tags" in e for e in errs), errs
 
 
 def test_every_sentence_of_a_summary_is_checked_tagged_or_not(chart):
-    """At every depth: an untagged summary sentence goes to the checker with nothing to rest on."""
-    import json as _json
+    """Below depth full: an untagged summary sentence goes to the checker with nothing to rest on. At
+    depth full a summary drafted in the first call is not the reading's (the client's layer writes it,
+    every sentence tagged): it is neither checked nor shown."""
     summary = "Mars is in its own sign [fact:planets.Mars.dignity]. Career looks layered."
     stub = SynthesisStub()
-    run(chart, draft(summary=summary), checker=stub)
-    data = dict(stub.calls)
-    assert "Career looks layered." in data and _json.loads(_json.dumps(data["Career looks layered."]))["findings"] == []
+    r = run(chart, draft(summary=summary), checker=stub)
+    assert "Career looks layered." not in dict(stub.calls) and "Career looks layered." not in r.summary.text
     astro = SynthesisStub()
     w = Replay({"summary": "Career looks layered.", "areas": []})
     narrate(chart, QUESTION, drafter=w, checker=astro, as_of=AS_OF, areas=["career"])

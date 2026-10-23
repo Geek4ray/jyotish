@@ -600,3 +600,30 @@ words on every entry was 485,176). Both sentences, verbatim from B's recording, 
 the new payload and are accepted rows of the checker benchmark (`r2-varga-dignity`,
 `r2-areas-touched`, 147 rows), each a judgement whose premises a hand audit read against the fields it
 cites. The writer's prompt names both fields.
+
+**The client's layer (part 2).** At depth full each area now gets the curious depth's plain paragraph,
+written by a second writer call (`jyotish.client`) once the claims and the analysis are accepted. It
+sees only accepted text and the value of every fact that text cites: per area the accepted claims,
+the accepted sections (the [tradition:] sentences, never checked, left out) and the judgements among
+them; never the chart, never a refused draft. It writes per area the answer first in two or three
+sentences, then what argues for it, then what argues against, then the timing in dates, and the
+reading's summary the same way: the first call writes no summary at depth full any more, and a
+summary it drafts is neither checked nor shown. Every sentence carries the tags of the accepted
+sentences it draws on and no other (`client_errors`), is validated like the summary at depth full
+(facts resolvable, every sentence tagged, no tier word, the judgement limits) and goes to the checker
+like a summary sentence. The client's words: none of vote, family, term, percentile, learned score,
+house system, sample (and ayanamsa, derivation), no "I", and a sentence that weighs says "in the
+reading's view", which the validator and the checker treat as a judgement (its premises checked, the
+weighing the reading's; JUDGEMENT now knows the phrase, and the checker's prompt names it). A paragraph
+or summary that passes is held; a retry asks for the failed ones only, with their reasons. The layer
+runs on the writer's model at `CONFIG.client_effort` (high), thinking adaptively, `client_max_tokens`
+32,000, its own conversation; its calls count under the writer's usage and apart under `usage.client`
+(with its attempts), and the ledger prices them with the writer's. A unit that never passes is a
+narration gap (`paragraph`), and a summary that never passes is the engine's own, as before. A
+recording made before the layer has no client draft: replayed, its accepted claims and sections stand
+and its paragraphs are gaps (`FixtureDrafter(key="client_drafts")`); a recording made from now on keeps
+`client_drafts`. The page and the website show, per area at depth full: the paragraph, then what the
+chart does not decide (part 3), then the tier line, then "The astrologer's analysis" (assessment,
+timing, what the chart does not say) under a toggle, then the findings under theirs. A reviewer's edit
+of a depth-full paragraph is held to the same words and may cite facts. The offline suite replaces the
+layer's writer with a stub unless a test passes its own (`tests/conftest.py`).

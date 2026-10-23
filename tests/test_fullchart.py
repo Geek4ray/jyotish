@@ -141,14 +141,14 @@ def test_full_depth_writer_gets_the_chart_and_the_checker_the_cited_value(chart)
     assert body["depth"] == "full" and list(body["chart"]) == SECTIONS
     assert "\n" not in w.calls[0]["user"]                                     # compact
     data = {s: json.loads(d) for s, d in c.calls}
-    assert data[draft["summary"]]["facts"] == {"planets.Mars.dignity": "own"}
+    rupas = {"bhava_bala.whole_sign.H10.rupas": round(chart.features.bhava_bala.whole_sign[10].rupas, 2)}
     claim = draft["areas"][0]["claims"][0]["text"]
-    assert data[claim]["facts"] == {"bhava_bala.whole_sign.H10.rupas":
-                                    round(chart.features.bhava_bala.whole_sign[10].rupas, 2)}
-    assert data[claim]["finding"]["finding_id"] == "vote:career.house"
-    assert r.facts_cited == {"planets.Mars.dignity": "own",
-                             "bhava_bala.whole_sign.H10.rupas": round(chart.features.bhava_bala.whole_sign[10].rupas, 2)}
-    assert r.depth == "full" and r.summary.source == "model"
+    assert data[claim]["facts"] == rupas and data[claim]["finding"]["finding_id"] == "vote:career.house"
+    # The summary at depth full is the client's layer's (here the suite's stub, conftest.EchoClient),
+    # from the accepted claim: checked with the value of the fact it cites; the first call's is not.
+    assert draft["summary"] not in data
+    assert r.depth == "full" and r.summary.source == "model" and data[r.summary.text]["facts"] == rupas
+    assert r.facts_cited == rupas
 
 
 def test_full_depth_prompt_and_max_tokens():
@@ -192,7 +192,9 @@ def test_a_long_request_is_streamed_and_the_payload_cached():
 
 def test_page_footnotes_a_fact_with_its_value(chart):
     from jyotish.page import render
-    draft = {"summary": "Mars is in its own sign [fact:planets.Mars.dignity].", "areas": []}
+    # The fact in an accepted section (and so in the client's summary the suite's stub writes from it).
+    draft = {"summary": "", "areas": [{"name": "career", "claims": [], "analysis": {
+        "assessment": "Mars is in its own sign [fact:planets.Mars.dignity]."}}]}
     r = narrate(chart, QUESTION, drafter=Replay(draft), checker=Stub(), as_of=AS_OF, areas=["career"], depth="full")
     page = render(r, chart)
     assert "`fact:planets.Mars.dignity`: The chart's field `planets.Mars.dignity`, computed by the engine: `\"own\"`." in page

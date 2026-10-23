@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -41,6 +41,7 @@ from typing import Any, Callable
 
 from pydantic import BaseModel, Field
 
+from .client import client_errors
 from .models import Chart, Stability, TimingQuery
 from .rules import HOUSE_PLACEMENTS, NAKSHATRA_PLACEMENTS, PLACEMENT_FAMILIES, default_rules, in_default
 from .scoring import AREAS, THEME_AREAS
@@ -74,6 +75,11 @@ class NarrationConfig:
     # the same attempt and held once it passes; a retry asks only for the units that failed, with
     # their reasons, and a held unit is never rewritten. False: the whole draft every time.
     section_retries: bool = True
+    # Depth full, the client's layer (jyotish.client): a second writer call, after the claims and the
+    # analysis are accepted, writes each area's plain paragraph and the summary from the accepted text
+    # alone; it reads a few thousand tokens, so it runs at `client_effort`, thinking adaptively.
+    client_effort: str = "high"
+    client_max_tokens: int = 32000
 
 
 CONFIG = NarrationConfig()
@@ -117,11 +123,27 @@ class DraftAnalysis(BaseModel):
         "ends with the tags of the findings and facts it rests on. Null when the section is held."))
     timing: str | None = Field(default=None, description=(
         "The area's periods, windows and transits, every date and period cited to its fact. Null when held."))
-    not_said: str | None = Field(default=None, description=(
-        "What this chart does not say about the area, each statement cited. Null when held."))
+    # "What the chart does not say", for two readers, written separately (2026-10-24).
+    not_said_client: list[str] | None = Field(default=None, description=(
+        "For the client, in plain words: what no fact here decides about the area (the kind of work, a new "
+        "employer or a new role, the partner's own life), one statement per item, each ending with the tags "
+        "it rests on. Null when the list is held."))
+    not_said_astrologer: list[str] | None = Field(default=None, description=(
+        "For the astrologer: what the engine does not compute for the area or where its stamps are weak (the "
+        "learned score, the house systems, the birth-time samples, the ayanamsas, draft placements, routing by "
+        "keyword), one statement per item, each cited. Null when the list is held."))
 
 
-ANALYSIS_SECTIONS = ("assessment", "timing", "not_said")
+ANALYSIS_SECTIONS = ("assessment", "timing", "not_said_client", "not_said_astrologer")
+CLIENT_SECTIONS = ("not_said_client",)          # held to the client's words (client.client_errors)
+
+
+def section_text(an: "DraftAnalysis | None", sec: str) -> str | None:
+    """A section of a drafted analysis as one text: a list section's items joined, each a sentence."""
+    v = getattr(an, sec, None) if an is not None else None
+    if isinstance(v, list):
+        v = " ".join(x.strip() for x in v if x and x.strip())
+    return v or None
 
 
 class DraftArea(BaseModel):
@@ -135,7 +157,8 @@ class DraftArea(BaseModel):
 
 class ReadingDraft(BaseModel):
     summary: str = Field(description="Two or three tagged sentences answering the question; empty on a retry "
-                                     "when the summary is held.")
+                                     "when the summary is held, and empty at depth full, where the summary is "
+                                     "written afterwards from the accepted text.")
     areas: list[DraftArea]
 
 
@@ -462,7 +485,8 @@ CHAIN_KINDS = re.compile(r"\b(signs?|nakshatras?|navamsas?)\b", re.I)
 # Depth full: a sentence that weighs ("I weigh …", "I give more weight to … than …", "I read … as
 # …", "I resolve … toward …") is the reading's judgement: its premises are checked, its weighing is
 # shown as the reading's and never checked (SPEC Layer 7, depth full).
-JUDGEMENT = re.compile(r"\bI (?:weigh|resolve)\b|\bI give\b[^.;]*\bweight\b|\bI read\b[^.;]*\bas\b")
+JUDGEMENT = re.compile(r"\bI (?:weigh|resolve)\b|\bI give\b[^.;]*\bweight\b|\bI read\b[^.;]*\bas\b"
+                       r"|\bthe reading's view\b")       # the client's text marks a weighing so (jyotish.client)
 # "the 10th sign" reads as the 10th of the zodiac (Capricorn), not the 10th house from the lagna.
 NTH_SIGN = re.compile(r"\b(?:\d{1,2}(?:st|nd|rd|th)|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|"
                       r"tenth|eleventh|twelfth) sign\b", re.I)
@@ -579,7 +603,7 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         if CLAIM_VERBS.search(bare) and not tags and not tradition:
             errors.append(f"untagged claim: {s!r}")
         elif facts is not None and judgements and not tags and not tradition:
-            errors.append(f"an analysis sentence carries the tags of what it rests on (every one is checked, and "
+            errors.append(f"every sentence here carries the tags of what it rests on (every one is checked, and "
                           f"an untagged one rests on nothing): {s!r}")
         errors += tradition_errors(s, traditions, facts)
         if facts is not None and is_judgement(s):
@@ -1086,9 +1110,17 @@ fact, or that the facts leave it open. Then rank what matters most for this area
 periods, the timing join's windows in chart.timing.<area> with their reasons, and the transit \
 windows. Every date and period cites the field that states it. The engine sets and states each \
 window's score and confidence; argue which reasons weigh, never a score of your own.
-- `not_said`: what this chart does not say about the area: what the engine does not compute for \
-it, which families abstain or do not apply, what depends on the exact birth time (a stability \
-under 0.5, cited), and what no fact here decides.
+- What this chart does not say about the area, as two lists written separately, one statement per \
+item, each cited. `not_said_client`, for the client, in plain words: what no fact here decides (the \
+kind of work, a new employer or a new role, the partner's own life), with none of the words vote, \
+family, term, percentile, learned score, house system, sample, ayanamsa or derivation, and no "I". \
+`not_said_astrologer`, for the astrologer: what the engine does not compute for the area or where \
+its stamps are weak (the learned score, the house systems, the birth-time samples and the \
+ayanamsas, a stability under 0.5, families that abstain or do not apply, draft placements, routing \
+by keyword).
+
+Leave `summary` empty: at this depth the client's summary and a plain paragraph per area are \
+written afterwards, from the claims and sections that pass the checks.
 
 A synthesis sentence combines several findings and facts into one conclusion. It ends with every \
 tag it rests on and is checked as a whole: it passes when each cited fact is true and the \
@@ -1215,7 +1247,8 @@ its conclusion as one more. The synthesis is supported when each of its cited fa
 conclusion follows from them together; reject the conclusion when it does not follow from them \
 together, and always when none of its cited findings or facts supports it. When the data has \
 `judgement` true, the sentence is the reading's weighing ("I weigh …", "I give more weight to …", \
-"I read … as …"). List every proposition in it, as for any sentence. Each proposition about the \
+"I read … as …", or in the client's words "in the reading's view, …"). List every proposition in \
+it, as for any sentence. Each proposition about the \
 chart (a placement, a dignity, a strength, a date, an age, a period, an outcome, and how a fact is \
 read: "I read Saturn in Taurus as its exaltation" states that Saturn is exalted) must be stated by \
 a cited finding or fact, and is unsupported otherwise, whether or not anything is cited for it. \
@@ -1242,12 +1275,15 @@ class AnthropicDrafter:
     """Calls the Messages API with structured output. Keeps the conversation append-only
     across regenerations (each failed draft and its errors stay in the history)."""
 
-    def __init__(self, config: NarrationConfig = CONFIG, client=None):
+    def __init__(self, config: NarrationConfig = CONFIG, client=None, schema: type[BaseModel] | None = None,
+                 kind: str = "writer"):
         import anthropic
         self.config = config
         self.client = client or anthropic.Anthropic()
         self.messages: list[dict] = []
         self.last_meta: dict | None = None
+        self.schema = schema or ReadingDraft          # the client's layer: client.ClientDraft
+        self.kind = kind                              # "writer", or "client" for the client's layer
 
     def __call__(self, system: str, user: str, errors: list[str]) -> ReadingDraft:
         if not self.messages:
@@ -1266,7 +1302,7 @@ class AnthropicDrafter:
         started = time.perf_counter()
         kwargs = dict(model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
                       output_config={"effort": cfg.effort}, system=system, messages=self.messages,
-                      output_format=ReadingDraft)
+                      output_format=self.schema)
         if cfg.thinking:
             kwargs["thinking"] = {"type": cfg.thinking, "display": cfg.thinking_display}
         if cfg.max_tokens > STREAM_ABOVE:
@@ -1274,7 +1310,7 @@ class AnthropicDrafter:
                 response = stream.get_final_message()
         else:
             response = self.client.beta.messages.parse(**kwargs)
-        self.last_meta = _meta(response, "writer", cfg.effort, started)
+        self.last_meta = _meta(response, self.kind, cfg.effort, started)
         thought = "\n".join(b.thinking for b in getattr(response, "content", None) or []
                              if getattr(b, "type", None) == "thinking" and getattr(b, "thinking", ""))
         if thought:                                   # the summarised reasoning, for the recording only
@@ -1375,17 +1411,48 @@ def chart_header(chart: Chart) -> dict[str, Any]:
 
 # --- offline replay of a recording -------------------------------------------------------
 
-class FixtureDrafter:
-    """Replays a recording's writer drafts in order (the last one repeats)."""
+def anthropic_client_drafter(wcfg: NarrationConfig, config: NarrationConfig = CONFIG) -> "AnthropicDrafter":
+    """The client's layer's writer: the writer's model, thinking adaptively at `client_effort`, its
+    own conversation and schema (client.ClientDraft)."""
+    from .client import ClientDraft
+    return AnthropicDrafter(replace(wcfg, effort=config.client_effort, max_tokens=config.client_max_tokens,
+                                    thinking=config.full_thinking), schema=ClientDraft, kind="client")
 
-    def __init__(self, recording: dict):
-        self.drafts = [ReadingDraft(**d) for d in recording["drafts"]]
+
+# What narrate builds when no client drafter is passed (the offline suite replaces it with a stub).
+default_client_drafter = anthropic_client_drafter
+
+
+def _legacy_draft(d: dict) -> dict:
+    """A draft recorded before "what the chart does not say" was two lists: its one `not_said`
+    section, written for the astrologer, is the astrologer's list; the client's is absent."""
+    for a in d.get("areas", []):
+        an = a.get("analysis")
+        if isinstance(an, dict) and "not_said" in an:
+            text = an.pop("not_said")
+            an.setdefault("not_said_astrologer", [text] if text else None)
+    return d
+
+
+class FixtureDrafter:
+    """Replays a recording's writer drafts in order (the last one repeats); with `key`
+    "client_drafts", the client's layer's drafts (a recording made before it has none)."""
+
+    def __init__(self, recording: dict, key: str = "drafts", schema: type[BaseModel] | None = None):
+        from .client import ClientDraft
+        self.key = key
+        self.schema = schema or (ClientDraft if key == "client_drafts" else ReadingDraft)
+        import copy
+        self.drafts = [self.schema(**(_legacy_draft(copy.deepcopy(d)) if self.schema is ReadingDraft else d))
+                       for d in recording.get(key, [])]
         self.calls = 0
         self.last_meta: dict | None = None
 
-    def __call__(self, system: str, user: str, errors: list[str]) -> ReadingDraft:
+    def __call__(self, system: str, user: str, errors: list[str]) -> BaseModel:
         self.calls += 1
-        self.last_meta = {"kind": "writer", "replayed": True}
+        self.last_meta = {"kind": "client" if self.key == "client_drafts" else "writer", "replayed": True}
+        if not self.drafts:
+            raise NarrationError("the recording has no client draft (made before the client's layer)", [])
         return self.drafts[min(self.calls, len(self.drafts)) - 1]
 
 
@@ -1673,7 +1740,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             as_of: date | None = None, config: NarrationConfig = CONFIG,
             recording: list | None = None, areas: list[str] | None = None,
             progress: Callable[[str, dict], None] | None = None, depth: str = "astrologer",
-            writer_model: str | None = None, writer_effort: str | None = None) -> Reading:
+            writer_model: str | None = None, writer_effort: str | None = None,
+            client_drafter: Drafter | None = None) -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
@@ -1682,8 +1750,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     fields a sentence cites as [fact:<path>], with the writer thinking at the highest effort
     (writer_config) and an analysis per area (assessment, timing, not_said), each section checked
     like the summary, its synthesis sentences as syntheses; the claims and every engine field are
-    the same at every depth. `writer_model` and `writer_effort` override the writer's settings
-    (the checker's never change); the reading records both sides' settings and usage."""
+    the same at every depth. At depth full the analysis's "what the chart does not say" is two
+    lists (for the client, for the astrologer), and once the claims and sections are accepted a
+    second writer call (`client_drafter`, jyotish.client) writes each area's plain paragraph and the
+    summary from the accepted text alone, checked like the summary. `writer_model` and
+    `writer_effort` override the writer's settings (the checker's never change); the reading
+    records both sides' settings and usage."""
     import time
     started = time.perf_counter()
     progress = progress or (lambda stage, info: None)
@@ -1769,7 +1841,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         writer_metas.append(getattr(drafter, "last_meta", None))
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
-        summary_held = held and kept_summary is not None
+        # Depth full: the summary is the client's layer's, written after this loop from accepted text.
+        summary_held = (held and kept_summary is not None) or full
         summary_errs = [] if summary_held else validate_summary(
             draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains, facts=facts)
         if held and not summary_held and not draft.summary.strip():
@@ -1823,12 +1896,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 for sec in ANALYSIS_SECTIONS:
                     if held and (name, sec) in kept_ana:
                         continue
-                    text = getattr(an, sec, None) if an is not None else None
+                    text = section_text(an, sec)
                     if text:
                         sections[(name, sec)] = text
                     ana_errs[(name, sec)] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
                                                               where=f"{name} {sec}", chains=chains_offered[name],
                                                               facts=facts, traditions=True, judgements=True)
+                                             + (client_errors(text) if sec in CLIENT_SECTIONS else [])
                                              if text else [f"no {sec} for {name}: at full depth every area has one"])
                     unit_errors[f"the {name} {sec}"] = list(ana_errs[(name, sec)])
                     errors += ana_errs[(name, sec)]
@@ -1939,9 +2013,39 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
 
     if clean and not held:                                 # the last draft passed every check: it is the reading
         kept = {(name, c.finding_id): c for name, c in drafted}
-        kept_summary = draft.summary
+        kept_summary = None if full else draft.summary
         kept_para = {d.name: d.paragraph for d in draft.areas if d.paragraph} if curious else {}
         kept_ana = dict(sections)
+
+    client_metas: list[dict | None] = []
+    client_layer: dict[str, Any] = {}
+    if full:
+        # The client's layer (jyotish.client): written from the accepted claims and sections alone (the
+        # [tradition:] sentences, never checked, left out), every sentence tagged with what it draws on.
+        from . import client as _client
+        accepted = {}
+        for name in areas:
+            claim_texts = [kept[(name, f["finding_id"])].text for f in findings(chart, name, as_of)[0]
+                           if (name, f["finding_id"]) in kept]
+            secs, _ = split_traditions({sec: kept_ana[(name, sec)] for sec in ANALYSIS_SECTIONS
+                                        if (name, sec) in kept_ana})
+            if claim_texts or secs:
+                accepted[name] = _client.accepted_text(name, claim_texts, secs)
+            else:
+                para_error[name] = ("nothing in this area passed the checks to write the paragraph from", attempts)
+        if accepted:
+            client_drafter = client_drafter or default_client_drafter(wcfg, config)
+            client_layer = _client.write(client_drafter, checker, question=question, as_of=as_of.isoformat(),
+                                         accepted=accepted, finding_data=finding_data, facts=facts,
+                                         votes=votes_offered, chains=chains_offered, max_attempts=config.max_attempts,
+                                         recording=recording, progress=progress)
+            client_metas = client_layer["writer_metas"]
+            checker_metas += client_layer["checker_metas"]
+            kept_summary, summary_error = client_layer["summary"], client_layer["summary_error"] or summary_error
+            kept_para = dict(client_layer["paragraphs"])
+            para_error.update(client_layer["para_errors"])
+        else:
+            summary_error = ("nothing passed the checks to write the summary from", attempts)
 
     by_finding = {f["finding_id"]: f for name in areas for f in findings(chart, name, as_of)[0]}
     reading_areas, depends = [], []
@@ -1984,8 +2088,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             windows = [_window(w) for w in ans.windows]
             avoid = _window(ans.avoid) if ans.avoid is not None else None
         top3 = name in sc.top
-        paragraph = kept_para.get(name) if curious else None
-        if curious and paragraph is None:
+        paragraph = kept_para.get(name) if (curious or full) else None
+        if (curious or full) and paragraph is None:
             err, at = para_error.get(name, ("no paragraph was drafted for this area", attempts))
             gaps.append({"finding_id": "paragraph", "kind": "paragraph", "last_error": err, "attempt": at})
         analysis, traditions = (split_traditions({sec: kept_ana[(name, sec)] for sec in ANALYSIS_SECTIONS
@@ -2044,14 +2148,19 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                                                                    "needs two charts")])
     shown = [text] + [c.text for a in reading_areas for c in a.claims] + \
         [t for a in reading_areas for t in (a.analysis or {}).values()]
+    # The client's paragraphs are footnoted from facts_cited too; they are not counted among the
+    # analysis's syntheses (the paragraph restates accepted sentences, it adds no conclusion).
+    cited_texts = shown + [a.paragraph for a in reading_areas if a.paragraph]
     synthesis = sum(1 for t in shown for x in sentences(t) if is_synthesis(x, finding_data, facts))
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
-                   chart=chart_header(chart), facts_cited={k: v for t in shown for k, v in _cited_facts(t, facts).items()},
+                   chart=chart_header(chart), facts_cited={k: v for t in cited_texts for k, v in _cited_facts(t, facts).items()},
                    writer={"model": wcfg.model, "effort": wcfg.effort, "thinking": wcfg.thinking,
                            "max_tokens": wcfg.max_tokens,
                            **({"efforts_by_attempt": efforts, "stepped_down": stepped} if stepped else {})},
                    checker={"model": config.checker_model, "effort": config.checker_effort},
-                   usage={"writer": _usage(writer_metas), "checker": _usage(checker_metas),
+                   usage={"writer": _usage(writer_metas + client_metas), "checker": _usage(checker_metas),
+                          **({"client": _usage(client_metas) | {"attempts": client_layer.get("attempts", 0)}}
+                             if full else {}),
                           "wall_seconds": round(time.perf_counter() - started, 3)},
                    synthesis_sentences=synthesis,
                    judgement_sentences=sum(len(a.judgements) for a in reading_areas),

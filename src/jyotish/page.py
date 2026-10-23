@@ -22,7 +22,11 @@ from .uncertainty import label
 
 SENSITIVE_BELOW = 0.8      # a claim under this time-stability is marked where it is read
 JUDGEMENT_MARK = "*(the reading's weighing; its premises checked, the weighing not)*"
-ANALYSIS_HEADINGS = {"assessment": "Assessment", "timing": "Timing", "not_said": "What the chart does not say"}
+# The astrologer's analysis under its toggle; "not_said" is the one list of readings made before the
+# two lists (2026-10-24). The client's list, not_said_client, is shown under the paragraph.
+ANALYSIS_HEADINGS = {"assessment": "Assessment", "timing": "Timing", "not_said_astrologer": "What the chart does not say",
+                     "not_said": "What the chart does not say"}
+CLIENT_LIST_HEADING = "What the chart does not decide"
 
 
 class _Notes:
@@ -261,8 +265,16 @@ def render(reading: Reading, chart: Chart) -> str:
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
     learner: list[tuple[str, Any, dict]] = []
     for a in reading.areas:
-        L += [f"## {a.name.replace('_', ' ').capitalize()}", "",
-              f"- Tier: **{a.tier}** (classical score {_cell(a.score_classical)}; probability not calibrated)",
+        full = reading.depth == "full"
+        L += [f"## {a.name.replace('_', ' ').capitalize()}", ""]
+        if full:
+            # The client's layer first: the paragraph, then what no fact decides; the tier line after.
+            if a.paragraph:
+                L += [notes.render(a.paragraph), ""]
+            client_list = sentences((a.analysis or {}).get("not_said_client") or "")
+            if client_list:
+                L += [f"**{CLIENT_LIST_HEADING}**", ""] + [f"- {notes.render(x)}" for x in client_list] + [""]
+        L += [f"- Tier: **{a.tier}** (classical score {_cell(a.score_classical)}; probability not calibrated)",
               f"- Stability: {_stab(a.stability)}",
               f"- Families agreeing: {a.families_agree_w:.2f} of {a.families_total_w:.2f} (weighted)"]
         if a.polarity:
@@ -273,25 +285,32 @@ def render(reading: Reading, chart: Chart) -> str:
         para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
         if curious and a.paragraph:
             L += [notes.render(a.paragraph), ""]
-        if reading.depth == "full":
-            # The analysis: three checked sections, each the writer's argument over the cited facts;
-            # the tier above is the engine's.
+        if full:
+            # The astrologer's analysis under its toggle: the checked sections, each the writer's
+            # argument over the cited facts; the tier above is the engine's.
+            L += ["<details><summary>The astrologer's analysis</summary>", ""]
             weighed = {j["sentence"] for j in a.judgements}
+            legacy = "not_said" in (a.analysis or {})
             for sec, heading in ANALYSIS_HEADINGS.items():
+                if sec == ("not_said_astrologer" if legacy else "not_said"):
+                    continue
                 text = (a.analysis or {}).get(sec)
                 # A judgement is marked where it is read: its premises were checked, its weighing is
                 # the reading's own (JUDGEMENT_MARK).
-                shown = " ".join(f"{JUDGEMENT_MARK} {notes.render(x)}" if x in weighed else notes.render(x)
-                                 for x in sentences(text)) if text else None
-                L += [f"### {heading}", "", shown or "*Not narrated within the checks (listed below).*", ""]
+                marked = [f"{JUDGEMENT_MARK} {notes.render(x)}" if x in weighed else notes.render(x)
+                          for x in sentences(text)] if text else []
+                shown = ("\n".join(f"- {x}" for x in marked) if sec == "not_said_astrologer" else " ".join(marked))
+                L += [f"### {heading}", "", shown or "*Not written within the checks.*", ""]
             if a.traditions:
                 # Never checked: set apart from the checked text, each with the engine's line.
                 L += ["#### From the texts, not computed on this chart", "", f"> *{TRADITION_NOTE}*", ">"]
                 L += [f"> - {TRADITION.sub('', x['sentence']).replace(' .', '.').strip()} ({x['citation']}; "
-                      f"unverified, from the {ANALYSIS_HEADINGS[x['section']].lower()})" for x in a.traditions]
+                      f"unverified, from the {ANALYSIS_HEADINGS.get(x['section'], x['section']).lower()})"
+                      for x in a.traditions]
                 L.append("")
+            L += ["</details>", ""]
             if a.claims:
-                L += ["### The findings, one by one", ""]
+                L += ["<details><summary>The findings, one by one</summary>", ""]
         gaps = (["Not narrated within the checks:", ""] +
                 [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
                  for g in a.narration_gaps]) if a.narration_gaps else []
@@ -314,7 +333,7 @@ def render(reading: Reading, chart: Chart) -> str:
             L += ["", "Other placements the engine weighed (not narrated; the three strongest are above):", ""]
             L += [f"- `{o['rule_id']}` ({o['planet']}, scale {o['scale']:.3g}; {o.get('effect_status') or 'effect'}): "
                   f"{o['classical_effect']}" for o in a.other_placements]
-        if curious and a.claims:
+        if (curious or full) and a.claims:
             L += ["", "</details>"]
         if gaps and not para_gap:
             L += [""] + gaps

@@ -61,11 +61,14 @@ def setting(text: str) -> dict:
     return {"model": model, "effort": effort, "depth": depth}
 
 
-def tokens(recording: list, kind: str) -> dict:
+def tokens(recording: list, kind: str | tuple[str, ...]) -> dict:
+    """Calls and tokens of one side; the writer's side is ("writer", "client"): depth full's client's
+    layer is a second writer call on the same model."""
+    kinds = (kind,) if isinstance(kind, str) else kind
     out = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0,
            "cache_creation_input_tokens": 0}
     for c in recording:
-        if c.get("kind") != kind:
+        if c.get("kind") not in kinds:
             continue
         out["calls"] += 1
         for k in list(out)[1:]:
@@ -84,7 +87,7 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
     judgements = sum(len(a.judgements) for a in reading.areas)
     analysis_n = sum(len(sentences(t)) for a in reading.areas for t in (a.analysis or {}).values()) - judgements
     claims = sum(len(a.claims) for a in reading.areas)
-    writer, checker = tokens(recording, "writer"), tokens(recording, "checker")
+    writer, checker = tokens(recording, ("writer", "client")), tokens(recording, "checker")
     wc, cc = cost(reading.writer.get("model", reading.model), writer), cost(reading.checker.get("model", ""), checker)
     rejected = [c for c in recording if c.get("kind") == "checker"
                 and any(not p["supported"] for p in c["result"]["propositions"])]
@@ -92,8 +95,12 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
             "sentences_checked_shown": claims + summary_n + para_n + analysis_n, "claims_shown": claims,
             "checker_rejections": len(rejected),
             "claim_rejections": sum(1 for c in rejected if c.get("finding_id") != "summary"
-                                    and not str(c.get("finding_id", "")).startswith(("paragraph:", "analysis:"))),
-            "validator_errors": sum(len(c.get("validator_errors") or []) for c in recording if c.get("kind") == "writer"),
+                                    and not str(c.get("finding_id", "")).startswith(("paragraph:", "analysis:", "client:"))),
+            "validator_errors": sum(len(c.get("validator_errors") or []) for c in recording
+                                    if c.get("kind") in ("writer", "client")),
+            "client_layer": (getattr(reading, "usage", None) or {}).get("client"),
+            "paragraphs_shown": sum(1 for a in reading.areas if a.paragraph),
+            "gaps": [dict(g, area=a.name) for a in reading.areas for g in a.narration_gaps],
             "narration_gaps": sum(len(a.narration_gaps) for a in reading.areas),
             "synthesis_sentences": reading.synthesis_sentences, "judgement_sentences": judgements,
             "tradition_sentences": sum(len(a.traditions) for a in reading.areas),
@@ -142,6 +149,9 @@ ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}, effort {m['writer'].g
          lambda m: m["judgement_sentences"]),
         ("Tradition sentences (unchecked, shown apart)", lambda m: m["tradition_sentences"]),
         ("Summary written by", lambda m: m["summary_source"]),
+        ("Client's layer (depth full): attempts, calls; paragraphs shown",
+         lambda m: "–" if not m.get("client_layer") else
+         f"{m['client_layer']['attempts']}, {m['client_layer']['calls']}; {m['paragraphs_shown']}"),
         ("Writer tokens: input / cache read / cache write / output",
          lambda m: " / ".join(f"{m['writer_tokens'][k]:,}" for k in ("input_tokens", "cache_read_input_tokens",
                                                                      "cache_creation_input_tokens", "output_tokens"))),
@@ -197,6 +207,13 @@ def document(run_date: str, birth: dict, question: str, as_of: str, source: str,
         if rows:
             L += [f"Per attempt, {label} (the checker's seconds are the sum of its calls, which run concurrently):", ""] \
                 + _attempt_table(rows) + [""]
+    # The pages say only that a part could not be written within the checks (a client never sees a
+    # checker's error); the errors are here, from the readings' JSON.
+    for label, m in (("A", ma), ("B", mb)):
+        if m.get("gaps"):
+            L += [f"Narration gaps, {label} (the last error of each, from the reading's JSON):", ""]
+            L += [f"- {g['area']} `{g['finding_id']}` ({g['kind']}), attempt {g['attempt']}: {g['last_error']}"
+                  for g in m["gaps"]] + [""]
     L += ["## The two pages side by side", "", side_by_side(page_a, page_b), ""]
     return "\n".join(L)
 
@@ -223,6 +240,8 @@ def save_recording(path: Path, question: str, s: dict, recording: list, wall: fl
     path.write_text(json.dumps({"note": "Recorded by scripts/compare_readings.py.", "question": question, "settings": s,
                                 "wall_seconds": wall, "drafts": [c["draft"] for c in recording
                                                                  if c.get("kind") == "writer" and c.get("draft")],
+                                "client_drafts": [c["client_draft"] for c in recording
+                                                  if c.get("kind") == "client" and c.get("client_draft")],
                                 "calls": recording}, indent=1, ensure_ascii=False, default=str) + "\n")
 
 

@@ -169,12 +169,14 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     asked, _ = route(question, chart)
     areas = list(dict.fromkeys(asked + list(chart.scored.top)))
     day = date.fromisoformat(as_of) if as_of else date.today()
-    drafter = checker = None
+    drafter = checker = client_drafter = None
     if model_fixture:
         replayed = json.loads(Path(model_fixture).read_text())
         drafter, checker = FixtureDrafter(replayed), FixtureChecker(replayed)
+        client_drafter = FixtureDrafter(replayed, key="client_drafts")     # depth full's client's layer
     reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress,
-                      depth=depth, writer_model=writer_model, writer_effort=writer_effort, recording=recording)
+                      depth=depth, writer_model=writer_model, writer_effort=writer_effort, recording=recording,
+                      client_drafter=client_drafter)
     update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth, writer_model,
                                             writer_effort)}
     if model_fixture:

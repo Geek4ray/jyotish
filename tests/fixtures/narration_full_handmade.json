@@ -1,9 +1,9 @@
 {
- "note": "Hand-written for the website's rendering test at depth full (tests/test_web.py): not a model's draft. No checker verdicts are recorded, so a reading replayed from it says its sentences were not semantically checked. Each sentence states only what its cited fields hold on the reference chart.",
+ "note": "Hand-written for the website's rendering test at depth full (tests/test_web.py): not a model's draft. No checker verdicts are recorded, so a reading replayed from it says its sentences were not semantically checked. Each sentence states only what its cited fields hold on the reference chart. Since 2026-10-24 the first draft writes no summary and two not-said lists, and `client_drafts` holds a hand-written draft of the client's layer (the paragraph and the summary), every sentence citing only tags of the accepted text.",
  "question": "How will my career go?",
  "drafts": [
   {
-   "summary": "Mars is in its own sign [fact:planets.Mars.dignity].",
+   "summary": "",
    "areas": [
     {
      "name": "career",
@@ -12,11 +12,27 @@
      "analysis": {
       "assessment": "The strongest support is the varga family [fact:areas.career.contributions.strongest]. Mars is in its own sign in the 7th, so Mars is dignified in a kendra [fact:planets.Mars.dignity] [fact:planets.Mars.house]. Phaladeepika holds that a lord of the tenth in its own sign in a kendra gives a career of authority [tradition:Phaladeepika 10]. I give the lord family more weight than the arudha vote, since the lord family's term is the largest [fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote].",
       "timing": "Mars's own major period is laid out by the engine [fact:vimshottari.periods.Mars].",
-      "not_said": "The KP family abstains on career [fact:areas.career.votes.kp.vote]."
+      "not_said_astrologer": [
+       "The KP family abstains on career [fact:areas.career.votes.kp.vote]."
+      ],
+      "not_said_client": [
+       "Which kind of work suits you is not settled by anything here [fact:not_computed.question_routing]."
+      ]
      }
     }
    ]
   }
  ],
- "calls": []
+ "calls": [],
+ "client_drafts": [
+  {
+   "summary": "Mars, which sits in its own sign in your 7th house, is the reading's main support for your work [fact:planets.Mars.dignity] [fact:planets.Mars.house].",
+   "areas": [
+    {
+     "name": "career",
+     "paragraph": "Mars, which sits in its own sign in your 7th house, is the reading's main support for your work [fact:planets.Mars.dignity] [fact:planets.Mars.house]. In the reading's view, the planets that rule your houses count for more here than the other evidence [fact:areas.career.contributions.largest_term] [fact:areas.career.votes.arudha.vote]. Mars's own major period is set out in the chart's timing [fact:vimshottari.periods.Mars]."
+    }
+   ]
+  }
+ ]
 }

@@ -87,11 +87,23 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
         scope = [area] if kind == "paragraph" else names
         tags = set().union(*(set(f["allowed_tags"]) for n in scope for f in offered[n]))
         fam = votes[area] if kind == "paragraph" else {k: {v} for n in names for k, v in votes[n].items()}
+        # Depth full: the paragraph and the summary are the client's layer: a sentence may cite the
+        # whole chart's facts and keeps to the client's words (jyotish.client), as the writer's did.
+        full = reading.depth == "full"
+        facts = None
+        if full:
+            from .fullchart import payload
+            from .narrate import full_range
+            facts = payload(chart, as_of, *full_range(as_of), names)
         errors = validate_summary(text, tags, offered_votes=fam, where=f"{area} paragraph" if area else "summary",
-                                  family_rule=family_rule and kind == "summary",
-                                  chains=chains[area] if area else {k: v for n in names for k, v in chains[n].items()})
+                                  family_rule=family_rule and kind == "summary" and not full,
+                                  chains=chains[area] if area else {k: v for n in names for k, v in chains[n].items()},
+                                  facts=facts, judgements=full)
+        if full:
+            from .client import client_errors
+            errors += client_errors(text)
         scope_data = {fid: f for fid, f in data_by_id.items() if any(fid == x["finding_id"] for n in scope for x in offered[n])}
-        to_check = _summary_checks(text, scope_data)
+        to_check = _summary_checks(text, scope_data, facts)
     checks = []
     reasons = plain_reasons(errors)
     if not errors:

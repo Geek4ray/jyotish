@@ -770,12 +770,27 @@ def test_full_depth_reading_on_the_site(page, full_url):
     submit_reference(page, full_url, question="How will my career go?", depth="full")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
+    # The client's layer first, the tier line after it, then the astrologer's analysis, closed.
+    order = career.evaluate("""el => [...el.children].map(c => c.matches('p.paragraph') ? 'paragraph'
+        : c.matches('.not-decided') ? 'not_decided' : c.matches('dl.facts') ? 'tier'
+        : c.matches('details.analysis-toggle') ? 'analysis' : c.matches('details.findings') ? 'findings' : null)
+        .filter(Boolean)""")
+    assert order[:4] == ["paragraph", "not_decided", "tier", "analysis"], order
+    assert career.locator("p.paragraph").inner_text().startswith("Mars, which sits in its own sign in your 7th house")
+    assert career.locator(".not-decided h3").inner_text() == "What the chart does not decide"
+    assert career.locator(".not-decided li").inner_text().startswith("Which kind of work suits you")
+    toggle = career.locator("details.analysis-toggle")
+    assert toggle.locator("summary").inner_text() == "The astrologer's analysis" and toggle.get_attribute("open") is None
+    toggle.locator("summary").click()
     sections = career.locator(".analysis-section")
-    assert sections.evaluate_all("els => els.map(e => e.dataset.section)") == ["assessment", "timing", "not_said"]
+    assert sections.evaluate_all("els => els.map(e => e.dataset.section)") == ["assessment", "timing",
+                                                                              "not_said_astrologer"]
+    assert career.locator('.analysis-section[data-section="not_said_astrologer"] li').inner_text().startswith(
+        "The KP family abstains")
     assert career.locator('.analysis-section[data-section="assessment"] p').inner_text().startswith(
         "The strongest support is the varga family")
     marriage = page.locator('section.area[data-area="marriage"] .analysis-section[data-section="timing"]')
-    assert "Not narrated within the checks" in marriage.inner_text()
+    assert "Not written within the checks" in marriage.text_content()          # under its closed toggle
     note = page.locator('#footnotes li[data-tag="fact:planets.Mars.dignity"]')
     assert note.inner_text().endswith('computed by the engine: "own".')
     assert "not semantically checked" in page.inner_text("#reading")          # no verdicts were recorded

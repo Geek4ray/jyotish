@@ -59,6 +59,7 @@ def save(recording: list, accepted: bool, cfg, error: Exception | None) -> None:
                 f"checker concurrency {cfg.checker_concurrency}) by scripts/time_reading.py.",
         "question": QUESTION,
         "drafts": [e["draft"] for e in recording if e["kind"] == "writer"],
+        "client_drafts": [e["client_draft"] for e in recording if e["kind"] == "client" and e.get("client_draft")],
         "accepted": accepted,
         "error": None if error is None else {"type": type(error).__name__, "message": str(error),
                                              "errors": list(getattr(error, "errors", []) or [])},

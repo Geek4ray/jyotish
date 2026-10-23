@@ -201,6 +201,7 @@ function areaCard(a, notes, depth) {
     ? a.polarity.map((p) => `${esc(p)} (${cell(a.polarity_touches[p] || [])})`).join("; ") : "none";
   return `<section class="card area" data-area="${esc(a.name)}">
     <div class="area-head"><h2>${esc(title(a.name))}</h2><span class="tier" data-tier="${esc(a.tier)}">${esc(a.tier)}</span></div>
+    ${depth === "full" ? clientBlock(a, notes) : ""}
     <dl class="facts">
       <div><dt>Stability</dt><dd class="stability num">${stabilityText(a.stability)}</dd></div>
       <div><dt>Probability</dt><dd class="probability">${probability}</dd></div>
@@ -209,10 +210,10 @@ function areaCard(a, notes, depth) {
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
-    ${depth === "full" ? analysisBlock(a, notes) : ""}
+    ${depth === "full" ? `<details class="astrologer analysis-toggle"><summary>The astrologer's analysis</summary>${analysisBlock(a, notes)}</details>` : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
-    ${a.claims.length ? (depth === "curious"
-      ? `<details class="astrologer"${paraGap ? " open" : ""}><summary>Show the astrologer's reading</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
+    ${a.claims.length ? (depth === "curious" || depth === "full"
+      ? `<details class="astrologer${depth === "full" ? " findings" : ""}"${paraGap ? " open" : ""}><summary>${depth === "full" ? "The findings, one by one" : "Show the astrologer's reading"}</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
       : `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}`)
       : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
     ${paraGap ? "" : gapsList(gaps)}
@@ -223,9 +224,24 @@ function areaCard(a, notes, depth) {
   </section>`;
 }
 
-// Depth full: the three checked sections, each the writer's argument over the facts it cites (the
-// tier above is the engine's); a section that did not pass the checks says so and is listed as a gap.
-const ANALYSIS_HEADINGS = { assessment: "Assessment", timing: "Timing", not_said: "What the chart does not say" };
+// Depth full, the client's layer first: the plain paragraph, then what no fact decides, each sentence
+// footnoted like any other; the tier line follows it.
+function clientBlock(a, notes) {
+  const items = splitSentences((a.analysis || {}).not_said_client || "");
+  return `${a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}${items.length
+    ? `<div class="not-decided"><h3 class="small">What the chart does not decide</h3><ul>${items.map((x) => `<li>${notes.text(x)}</li>`).join("")}</ul></div>` : ""}`;
+}
+
+// The engine's sentence split (narrate.sentences), so a list item is the sentence the checker read.
+function splitSentences(text) {
+  return text.trim().split(/(?<=[.!?])\s+(?=[A-Z])|(?<=\])\s+(?=[A-Z])/).map((x) => x.trim()).filter(Boolean);
+}
+
+// Depth full, under "The astrologer's analysis": the checked sections, each the writer's argument over
+// the facts it cites (the tier above is the engine's); a section that did not pass the checks says so.
+// "not_said" is the one list of readings made before the two lists (2026-10-24).
+const ANALYSIS_HEADINGS = { assessment: "Assessment", timing: "Timing", not_said_astrologer: "What the chart does not say",
+  not_said: "What the chart does not say" };
 function analysisBlock(a, notes) {
   // A judgement is marked where it is read: its premises were checked, its weighing is the reading's.
   const weighed = new Set((a.judgements || []).map((j) => j.sentence));
@@ -237,16 +253,20 @@ function analysisBlock(a, notes) {
     }
     return out;
   };
-  const sections = Object.entries(ANALYSIS_HEADINGS).map(([sec, heading]) => {
-    const text = (a.analysis || {})[sec];
-    return `<div class="analysis-section" data-section="${sec}"><h3 class="small">${heading}</h3>${text
-      ? `<p>${marked(text)}</p>` : `<p class="muted">Not narrated within the checks (listed below).</p>`}</div>`;
-  }).join("");
+  const legacy = "not_said" in (a.analysis || {});
+  const sections = Object.entries(ANALYSIS_HEADINGS).filter(([sec]) => sec !== (legacy ? "not_said_astrologer" : "not_said"))
+    .map(([sec, heading]) => {
+      const text = (a.analysis || {})[sec];
+      const body = !text ? `<p class="muted">Not written within the checks.</p>`
+        : sec === "not_said_astrologer" ? `<ul>${splitSentences(text).map((x) => `<li>${marked(x)}</li>`).join("")}</ul>`
+        : `<p>${marked(text)}</p>`;
+      return `<div class="analysis-section" data-section="${sec}"><h3 class="small">${heading}</h3>${body}</div>`;
+    }).join("");
   // Never checked: set apart from the checked sections, each with the engine's own line.
   const trad = (a.traditions || []).length ? `<aside class="traditions"><h3 class="small">From the texts, not computed on this chart</h3>
     <p class="muted small tradition-note">${esc(a.traditions[0].note)}</p>
     <ul>${a.traditions.map((x) => `<li data-citation="${esc(x.citation)}">${esc(x.sentence.replace(/\s*\[tradition:[^\]]*\]/, ""))} <span class="muted small">(${esc(x.citation)}; unverified)</span></li>`).join("")}</ul></aside>` : "";
-  return `<div class="analysis">${sections}${trad}</div>${a.claims.length ? `<h3 class="small">The findings, one by one</h3>` : ""}`;
+  return `<div class="analysis">${sections}${trad}</div>`;
 }
 
 // Placements the engine weighed beyond the three offered to the writer (learner material).
