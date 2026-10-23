@@ -68,6 +68,10 @@ class NarrationConfig:
     full_thinking: str = "adaptive"
     full_effort: str = "max"
     full_max_tokens: int = 128000
+    # Depth full: every unit (the summary, a claim, a section) that passes the validator is checked in
+    # the same attempt and held once it passes; a retry asks only for the units that failed, with
+    # their reasons, and a held unit is never rewritten. False: the whole draft every time.
+    section_retries: bool = True
 
 
 CONFIG = NarrationConfig()
@@ -104,12 +108,15 @@ class DraftClaim(BaseModel):
 
 
 class DraftAnalysis(BaseModel):
-    assessment: str = Field(description=(
+    # Null on a retry for a section that passed and is held.
+    assessment: str | None = Field(default=None, description=(
         "The evidence for and against the area weighed: the strongest and the weakest support, every "
         "contradiction between families resolved explicitly, and what matters most ranked. Every sentence "
-        "ends with the tags of the findings and facts it rests on."))
-    timing: str = Field(description="The area's periods, windows and transits, every date and period cited to its fact.")
-    not_said: str = Field(description="What this chart does not say about the area, each statement cited.")
+        "ends with the tags of the findings and facts it rests on. Null when the section is held."))
+    timing: str | None = Field(default=None, description=(
+        "The area's periods, windows and transits, every date and period cited to its fact. Null when held."))
+    not_said: str | None = Field(default=None, description=(
+        "What this chart does not say about the area, each statement cited. Null when held."))
 
 
 ANALYSIS_SECTIONS = ("assessment", "timing", "not_said")
@@ -125,7 +132,8 @@ class DraftArea(BaseModel):
 
 
 class ReadingDraft(BaseModel):
-    summary: str = Field(description="Two or three tagged sentences answering the question.")
+    summary: str = Field(description="Two or three tagged sentences answering the question; empty on a retry "
+                                     "when the summary is held.")
     areas: list[DraftArea]
 
 
@@ -1149,6 +1157,8 @@ class AnthropicDrafter:
             # the whole chart (docs/spec_notes_2026-10-23.md has its size).
             self.messages.append({"role": "user", "content": [
                 {"type": "text", "text": user, "cache_control": {"type": "ephemeral"}}]})
+        elif len(errors) == 1 and errors[0].startswith(RETRY_HEAD):
+            self.messages.append({"role": "user", "content": errors[0]})     # a section retry (retry_instruction)
         else:
             self.messages.append({"role": "user", "content":
                                   "The draft was rejected. Fix every one of these and return the whole draft again:\n- "
@@ -1462,6 +1472,22 @@ def _check_payload(f: dict, text: str = "", facts: dict | None = None) -> str:
     return json.dumps({"finding": data, "facts": cited, "synthesis": True} if cited else data, indent=1, default=str)
 
 
+RETRY_HEAD = "Some parts of the draft passed every check and are held."
+
+
+def retry_instruction(held: list[str], failed: dict[str, list[str]]) -> str:
+    """The writer's next message under section retries: what is held (never rewritten), and each
+    unit to rewrite with the reasons it failed, the checker's quoted as it gave them."""
+    lines = [RETRY_HEAD + " They stand as written and are not rewritten: leave each out of your answer "
+             "(an empty summary, no claim for it, a null section).", ""]
+    lines += ["Held: " + ("; ".join(held) if held else "nothing yet") + ".", "",
+              "Rewrite only these, each for the reasons quoted, and return them in the same schema:"]
+    for unit, reasons in failed.items():
+        lines.append(f"- {unit}:")
+        lines += [f"    - {r}" for r in reasons]
+    return "\n".join(lines)
+
+
 def _cited_facts(text: str, facts: dict | None) -> dict[str, Any]:
     """path -> the chart's value there, for each [fact:<path>] in `text` that resolves."""
     from .fullchart import resolve
@@ -1602,6 +1628,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     kept_ana: dict[tuple[str, str], str] = {}           # (area, section) -> latest accepted text (depth full)
     ana_error: dict[tuple[str, str], tuple[str, int]] = {}
     draft, errors, attempts, clean = None, [], 0, False
+    # Depth full, section retries (CONFIG.section_retries): a unit that passed is held and never
+    # validated, checked or rewritten again; every unit that passes the validator is checked in the
+    # same attempt, and the next draft is asked for the failed units only (retry_instruction).
+    held = full and config.section_retries
     for attempts in range(1, config.max_attempts + 1):
         progress("draft", {"attempt": attempts})
         try:
@@ -1623,18 +1653,26 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         writer_metas.append(getattr(drafter, "last_meta", None))
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
-        summary_errs = validate_summary(draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious,
-                                        chains=all_chains, facts=facts)
+        summary_held = held and kept_summary is not None
+        summary_errs = [] if summary_held else validate_summary(
+            draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains, facts=facts)
+        if held and not summary_held and not draft.summary.strip():
+            summary_errs = ["no summary: it is not held, so the draft needs one"]
         errors = list(summary_errs)
+        unit_errors: dict[str, list[str]] = {"the summary": list(summary_errs)} if not summary_held else {}
         claim_errs: dict[tuple[str, str], list[str]] = {}
         drafted: list[tuple[str, DraftClaim]] = []
         for da in draft.areas:
             if da.name not in areas:
                 errors.append(f"area not asked for: {da.name}")
+                unit_errors.setdefault("the draft", []).append(errors[-1])
                 continue
             for c in da.claims:
+                if held and (da.name, c.finding_id) in kept:
+                    continue                                 # held: what the writer sent again is ignored
                 if c.finding_id not in allowed:
                     errors.append(f"unknown finding id {c.finding_id!r}")
+                    unit_errors.setdefault("the draft", []).append(errors[-1])
                     continue
                 if (da.name, c.finding_id) in claim_errs:
                     errors.append(f"two claims for {c.finding_id} in {da.name}")
@@ -1645,6 +1683,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     errs.append(f"claim without a tag: {c.text!r}")
                 claim_errs[(da.name, c.finding_id)] = errs
                 drafted.append((da.name, c))
+                unit_errors[f"the claim for {c.finding_id} ({da.name})"] = list(errs)
                 errors += errs
         para_errs: dict[str, list[str]] = {}
         if curious:
@@ -1665,6 +1704,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             for name in areas:
                 an = next((d.analysis for d in draft.areas if d.name == name), None)
                 for sec in ANALYSIS_SECTIONS:
+                    if held and (name, sec) in kept_ana:
+                        continue
                     text = getattr(an, sec, None) if an is not None else None
                     if text:
                         sections[(name, sec)] = text
@@ -1672,6 +1713,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                                                               where=f"{name} {sec}", chains=chains_offered[name],
                                                               facts=facts, traditions=True, judgements=True)
                                              if text else [f"no {sec} for {name}: at full depth every area has one"])
+                    unit_errors[f"the {name} {sec}"] = list(ana_errs[(name, sec)])
                     errors += ana_errs[(name, sec)]
         entry["validator_errors"] = list(errors)
         if recording is not None:
@@ -1688,7 +1730,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         if summary_errs:
             summary_error = (summary_errs[0], attempts)
         final = attempts == config.max_attempts
-        if errors and not final:
+        if errors and not final and not held:
             continue
         # The semantic check (SPEC Layer 7 item 10): on every claim of every attempt that
         # reaches it (the checker is a sample, so a claim that passed before is checked again),
@@ -1697,7 +1739,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         # the sentences that passed the validator are checked even if others did not.
         checks = ([(s, ids, data, "summary", None)
                    for s, ids, data in _summary_checks(draft.summary, finding_data, facts)]
-                  if not summary_errs else [])
+                  if not summary_errs and not summary_held else [])
         checks += [(c.text, [c.finding_id], _check_payload(finding_data[c.finding_id], c.text, facts), c.finding_id, name)
                    for name, c in drafted if not claim_errs[(name, c.finding_id)]]
         paragraphs = {d.name: d.paragraph for d in draft.areas if d.paragraph}
@@ -1734,6 +1776,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     msg = f"unsupported by {where}: {prop.text!r} ({prop.evidence}) in {sentence!r}"
                     errors.append(msg)
                     rejected.setdefault(label if whole else (name, label), msg)
+                    unit = ("the summary" if label == "summary" else f"the {name} {label.split(':')[2]}"
+                            if label.startswith("analysis:") else f"the {name} paragraph"
+                            if label.startswith("paragraph:") else f"the claim for {label} ({name})")
+                    unit_errors.setdefault(unit, []).append(
+                        f"the checker refused {prop.text!r}: {prop.evidence!r}, in {sentence!r}")
         for name, c in drafted:
             key = (name, c.finding_id)
             if claim_errs[key]:
@@ -1754,7 +1801,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     ana_error[(name, sec)] = (rejected[f"analysis:{name}:{sec}"], attempts)
                 else:
                     kept_ana[(name, sec)] = sections[(name, sec)]
-        if not summary_errs:
+        if not summary_errs and not summary_held:
             if "summary" in rejected:
                 summary_error = (rejected["summary"], attempts)
             else:
@@ -1762,8 +1809,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         if not errors:
             clean = True
             break
+        if held:
+            heldnow = (["the summary"] if kept_summary is not None else []) + \
+                [f"the {n} {sec}" for n in areas for sec in ANALYSIS_SECTIONS if (n, sec) in kept_ana] + \
+                [f"the claim for {fid} ({n})" for n, fid in kept]
+            errors = [retry_instruction(heldnow, {u: e for u, e in unit_errors.items() if e})]
 
-    if clean:                                              # the last draft passed every check: it is the reading
+    if clean and not held:                                 # the last draft passed every check: it is the reading
         kept = {(name, c.finding_id): c for name, c in drafted}
         kept_summary = draft.summary
         kept_para = {d.name: d.paragraph for d in draft.areas if d.paragraph} if curious else {}

@@ -313,3 +313,32 @@ chain's sentence names "navamsa" and "the D9 lagna" for the chain, not for the v
 chain claims were lost to it; "D10" in such a sentence still names the family); a [tradition:]
 sentence carries no tag by design, so item 11's family rule no longer applies to it; and a rule's
 name matches across hyphens ("lord-of-the-7th-in-the-7th" names "lord of the 7th").
+
+**Section-level retries.** At depth full (`CONFIG.section_retries`, on) every unit of a draft (the
+summary, a claim, an analysis section) that passes the validator is checked in that attempt and
+held once it passes: a held unit is never validated, checked or rewritten again, whatever the
+writer sends back. Before, nothing was checked until a whole draft passed the validator or the last
+attempt came, and every retry asked for the whole draft; B's attempts 1 and 2 were never checked
+at all. The next message to the writer (`retry_instruction`) lists what is held and asks only for
+the failed units, each with its reasons: the validator's errors and the checker's refusals, quoted
+(the proposition and its evidence). A held section may come back null, a held summary empty; a
+summary that is neither held nor written is an error. The other depths keep whole-draft retries.
+
+Measured by `scripts/section_retries.py` on a replay of B's recording with the engine as it now is
+(the writer replayed as it ran: attempt 1 fails with no structured output at max_tokens, then B's
+two drafts; the checker gives B's recorded verdicts, and every sentence checked had one):
+
+| | whole-draft retries | section retries |
+|---|---|---|
+| attempt 2: checker calls | 0 (a validator error elsewhere) | 37 |
+| attempt 3: units the writer is asked for | 47 (the whole draft) | 18 (29 held from attempt 2) |
+| attempt 3: characters written | 36,702 | 29,338 (7,364 fewer) |
+| attempt 3: checker calls | 43 | 12 |
+| checker calls, all attempts | 43 | 49 |
+| units held at the end; gaps | 35; 12 | 35; 12 |
+
+The saving in characters is a fifth, not more, because the units that fail are the long ones (the
+analysis sections); the saving in units asked for is three-fifths. The gaps cannot move in a replay:
+the replayed writer returns what B returned, written to the old prompt, so the effect on gaps waits
+for the re-run. B's attempt 1 cost more than both retries together (1,024 s and all 128,000 output
+tokens of thinking, no draft); section retries do nothing for that (see the end of this heading).

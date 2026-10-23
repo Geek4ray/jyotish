@@ -494,3 +494,87 @@ def test_a_hyphenated_rule_name_is_the_rule_s_name(chart):
     from jyotish.narrate import validate
     b = "Mars, lord-of-the-7th-in-the-7th, is scaled to 0.6 by marana karaka sthana [rule:place.l7_h7]."
     assert not [e for e in validate(b, {"rule:place.l7_h7"}) if "names none of" in e]
+
+
+# --- part 4 of the second heading: section-level retries ---------------------------------------------
+
+BAD = ("Mars is in its own sign in the 7th, so career will rise [fact:planets.Mars.dignity] "
+       "[fact:planets.Mars.house].")
+TIMING_2 = "Mars's own major period is laid out by the engine [fact:vimshottari.periods.Mars]."
+
+
+def test_a_passed_section_is_held_and_never_rewritten(chart):
+    """Attempt 1: the assessment fails the checker, the timing and the rest pass and are held. Attempt
+    2 rewrites the timing too, but the held version stands and is not checked again."""
+    w = Replay(draft(assessment=BAD), draft(timing=TIMING_2))
+    stub = SynthesisStub({"Mars is dignified in a kendra": True})
+    r = narrate(chart, QUESTION, drafter=w, checker=stub, as_of=AS_OF, areas=["career"], depth="full")
+    assert r.attempts == 2 and r.areas[0].analysis == {"assessment": ASSESSMENT, "timing": TIMING, "not_said": NOT_SAID}
+    checked = [x for x, _ in stub.calls]
+    assert TIMING_2 not in checked and checked.count(TIMING) == 1 and checked.count(NOT_SAID) == 1
+
+
+def test_the_retry_asks_only_for_the_failed_units_with_the_checkers_reasons(chart):
+    from jyotish.narrate import RETRY_HEAD
+    w = Replay(draft(assessment=BAD), draft())
+    narrate(chart, QUESTION, drafter=w, checker=SynthesisStub({"Mars is dignified in a kendra": True}), as_of=AS_OF,
+            areas=["career"], depth="full")
+    ask = w.calls[1]["errors"]
+    assert len(ask) == 1 and ask[0].startswith(RETRY_HEAD)
+    text = ask[0]
+    held = text.split("Held: ", 1)[1].split("\n")[0]
+    assert "the summary" in held and "the career timing" in held and "the career not_said" in held
+    assert "the career assessment" not in held
+    assert "- the career assessment:" in text and "the checker refused 'career will rise'" in text
+    assert "no cited fact supports this conclusion" in text and "- the career timing" not in text
+
+
+def test_every_unit_that_passes_the_validator_is_checked_in_its_attempt(chart):
+    """Under whole-draft retries a validator error anywhere kept the checker away until the last
+    attempt (B's attempts 1 and 2 were never checked); now the passing units are checked at once."""
+    from dataclasses import replace
+    stub = SynthesisStub({"Mars is dignified in a kendra": True})
+    w = Replay(draft(not_said=""), draft())
+    narrate(chart, QUESTION, drafter=w, checker=stub, as_of=AS_OF, areas=["career"], depth="full")
+    assert TIMING in [x for x, _ in stub.calls[:5]]                    # checked in attempt 1
+    old = SynthesisStub({"Mars is dignified in a kendra": True})
+    w = Replay(draft(not_said=""), draft())
+    narrate(chart, QUESTION, drafter=w, checker=old, as_of=AS_OF, areas=["career"], depth="full",
+            config=replace(CONFIG, section_retries=False))
+    assert w.calls[1]["errors"][0].startswith("no not_said for career")   # the old message: the whole draft
+    assert [x for x, _ in old.calls].count(TIMING) == 1                    # checked only once the draft passed
+
+
+def test_the_drafter_sends_the_retry_instruction_as_it_is():
+    from jyotish.narrate import RETRY_HEAD, retry_instruction
+    seen = {}
+
+    def parse(**kw):
+        seen["messages"] = list(kw["messages"])
+        return SimpleNamespace(parsed_output=ReadingDraft(summary="", areas=[]), stop_reason="end_turn", content=[],
+                               usage=None, model="m")
+    client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(parse=parse)))
+    d = AnthropicDrafter(CONFIG, client=client)
+    d("s", "payload", [])
+    ask = retry_instruction(["the summary"], {"the career timing": ["the checker refused 'x': 'y', in 'z'"]})
+    d("s", "payload", [ask])
+    assert seen["messages"][-1]["content"] == ask and ask.startswith(RETRY_HEAD)
+    assert "Fix every one of these" not in ask
+
+
+def test_the_saving_on_a_replay_of_b():
+    """scripts/section_retries.py on reading B's recording: the same units held at the end, but the
+    last attempt asks for the failed units only."""
+    import importlib.util
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("section_retries", root / "scripts" / "section_retries.py")
+    sr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sr)
+    m = sr.measure()
+    whole, sec = m["whole_draft"], m["section_retries"]
+    assert [p["writer_failed"] for p in whole["attempts"]] == [True, False, False]    # attempt 1 as recorded
+    assert whole["attempts"][-1]["asked"] == "the whole draft" and sec["attempts"][-1]["asked"] < whole["attempts"][-1]["units_written"]
+    assert m["last_attempt_units_saved"] > 0 and m["last_attempt_characters_saved"] > 0
+    assert sec["attempts"][1]["checker_calls"] > 0 == whole["attempts"][1]["checker_calls"]   # attempt 2 now checked
+    assert sec["units_held"] >= whole["units_held"] and sec["gaps"] <= whole["gaps"]
