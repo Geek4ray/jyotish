@@ -116,6 +116,18 @@ def test_an_edit_that_fails_a_check_is_refused_and_logged(setup, target, text, n
         assert row.accepted is False and row.after == text and row.errors
 
 
+def test_an_edit_keeps_the_facts_it_was_shown(guided):
+    app, c, rid = guided
+    r = c.post(f"/readings/{rid}/review/edit", headers=J1,
+               json={"target": "paragraph:career:0", "text": "The Sun and Mercury join in the 10th, forming Budhaditya yoga.",
+                     "keep_tags": True}).json()
+    with app.state.Session() as s:
+        row = s.query(ReviewRow).filter_by(reading_id=rid, action="edit").one()
+        assert isinstance(row.facts, list) and row.facts and all(isinstance(f, str) for f in row.facts)
+        assert any("Budhaditya yoga" in f for f in row.facts)
+    assert "accepted" in r
+
+
 def test_texts_are_bounded(guided):
     _, c, rid = guided
     post = lambda body: c.post(f"/readings/{rid}/review/answer", headers=J1, json=body)

@@ -113,6 +113,7 @@ class ReviewRow(Base):
     answer: Mapped[Any | None] = mapped_column(DOCUMENT, nullable=True)         # its answer
     mode: Mapped[str | None] = mapped_column(String(16), nullable=True)         # review | blind
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)            # "in your own words", never shown
+    facts: Mapped[list | None] = mapped_column(DOCUMENT, nullable=True)         # an edit: the chart facts shown beside the sentence then
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
@@ -492,17 +493,22 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         names = {a.name for a in reading.areas}
         return names if mode == "review" else revealed(row.document["areas"], answers_of(s, row, who))
 
-    def review_view(s, row, reading, who: str, mode: str = "review") -> dict:
-        """The reviewer's view. Each sentence carries its plain words and the chart facts it rests
-        on; in blind mode an area not yet answered from the chart alone is withheld, with its
-        sentences, and so are the page, the summary and the log."""
-        from .review import facts, plain, redact, sentence_facts, units
+    def area_facts_of(row, reading) -> dict:
+        from .review import facts
         names = [a.name for a in reading.areas]
         key = (row.chart_id, tuple(names), reading.as_of)
         if key not in fact_cache:
             from datetime import date as _date
             fact_cache[key] = facts(chart_of(row.chart_id), names, _date.fromisoformat(reading.as_of))
-        area_facts = fact_cache[key]
+        return fact_cache[key]
+
+    def review_view(s, row, reading, who: str, mode: str = "review") -> dict:
+        """The reviewer's view. Each sentence carries its plain words and the chart facts it rests
+        on; in blind mode an area not yet answered from the chart alone is withheld, with its
+        sentences, and so are the page, the summary and the log."""
+        from .review import plain, redact, sentence_facts, units
+        names = [a.name for a in reading.areas]
+        area_facts = area_facts_of(row, reading)
         shown = shown_areas(s, row, reading, who, mode)
         us = [dict(u, plain=plain(u["text"]), facts=sentence_facts(u["text"], area_facts.get(u["area"], [])))
               for u in units(reading) if (u["area"] in shown if u["area"] else len(shown) == len(names))]
@@ -608,8 +614,13 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 result = check_edit(reading, chart_of(row.chart_id), req.target, text_, checker)
             except ValueError as e:
                 raise HTTPException(status_code=422, detail=str(e))
+            from .review import sentence_facts
+            area = _parse(req.target)[1]
+            # The facts the page showed beside the sentence, kept with the edit: the export reads them
+            # rather than recomputing them with a later engine (review 2026-10-23).
+            shown = sentence_facts(before, area_facts_of(row, reading).get(area, [])) if area else []
             log(s, row, who, "edit", target=req.target, before=before, after=text_.strip(),
-                accepted=result["accepted"], errors=result["errors"], mode=mode, area=_parse(req.target)[1])
+                accepted=result["accepted"], errors=result["errors"], mode=mode, area=area, facts=shown)
             if result["accepted"]:
                 reading = apply_edit(reading, req.target, text_, who)
                 save(s, row, reading)

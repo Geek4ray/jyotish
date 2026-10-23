@@ -75,7 +75,14 @@ def test_rewrites_one_row_per_accepted_rewrite(db, tmp_path):
     assert r["rewritten"].startswith("The Sun and Mercury join in the 10th, forming Budhaditya yoga and a raja yoga [rule:")
     assert r["rewritten_plain"] == "The Sun and Mercury join in the 10th, forming Budhaditya yoga and a raja yoga."
     assert any("Budhaditya yoga, formed by Sun and Mercury" in f for f in r["facts_shown"])
-    assert "birth" not in r
+    assert r["facts_shown_source"] == "stored at review" and "birth" not in r
+    # A row from before the facts were stored with the edit: recomputed with the engine of today, and said so.
+    from sqlalchemy import create_engine, text
+    with create_engine(url).begin() as conn:
+        conn.execute(text("UPDATE reviews SET facts = NULL WHERE action = 'edit'"))
+    export_reviews(url, tmp_path / "again")
+    _, again = _read(tmp_path / "again" / "rewrites.jsonl")
+    assert again[0]["facts_shown_source"] == "recomputed with the current engine" and again[0]["facts_shown"] == r["facts_shown"]
 
 
 def test_judgements_one_row_per_area_answer(db, tmp_path):

@@ -2,7 +2,9 @@
 
     data/preferences/rewrites.jsonl     one row per accepted rewrite: the reading, the chart hash, the
                                         area and step, the sentence before and after (with and without
-                                        its tags), the chart facts shown beside it, the reviewer, the time
+                                        its tags), the chart facts shown beside it (stored with the edit;
+                                        recomputed, and said so, for a row from before that), the
+                                        reviewer, the time
     data/preferences/judgements.jsonl   one row per (reading, reviewer, mode, area) with the latest answer
                                         to each question (agree / partly / disagree, what is off, the best
                                         period, in blind mode the reviewer's own reading and period), the
@@ -80,7 +82,10 @@ def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data
                  "step": "sentences" if row.mode in ("review", "blind") else "edit", "target": row.target,
                  "mode": row.mode, "original": row.before, "rewritten": row.after,
                  "original_plain": plain(row.before or ""), "rewritten_plain": plain(row.after or ""),
-                 "facts_shown": shown_facts(row, row.before or "", area) if area else [],
+                 # The facts the page showed, stored with the edit since 2026-10-23; an older row's are
+                 # recomputed with the engine of today, and the row says which it got.
+                 "facts_shown": row.facts if row.facts is not None else (shown_facts(row, row.before or "", area) if area else []),
+                 "facts_shown_source": "stored at review" if row.facts is not None else "recomputed with the current engine",
                  "reviewer": row.reviewer_id, "at": row.created_at.isoformat()}
             if with_birth_data:
                 x["birth"] = birth(row.chart_id)
