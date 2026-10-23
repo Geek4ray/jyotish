@@ -287,7 +287,9 @@ export function renderReading(r) {
   const notes = new Footnotes(r.facts_cited);
   const s = r.summary;
   const summaryText = notes.text(s.text);
-  const areas = r.areas.map((a) => areaCard(a, notes, r.depth)).join("");
+  // A blind view (the comparison) carries no depth: the reading's own content says which it is.
+  const depth = r.depth || (r.areas.some((a) => a.analysis) ? "full" : r.areas.some((a) => a.paragraph) ? "curious" : "astrologer");
+  const areas = r.areas.map((a) => areaCard(a, notes, depth)).join("");
   return `
   <section class="identity">
     <span class="kicker">Your question</span>

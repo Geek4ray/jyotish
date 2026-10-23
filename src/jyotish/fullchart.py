@@ -146,7 +146,8 @@ NOT_COMPUTED = {
     "probability": "no area has a calibrated probability: probability stays null until outcome data calibrates it",
     "score_learned": "no learned score: score_learned is null until a model is trained on outcomes",
     "special_lagnas": "the special lagnas (Hora, Ghati, Indu, Sree, Varnada) are not computed",
-    "retrieval": "no corpus of the classical texts is searched: the only verses cited are those checked on rules",
+    "retrieval": "no corpus of the classical texts is searched: the verses a [text:] tag cites are those checked "
+                 "on rules; a [tradition:] citation is the writer's own, unverified and shown apart",
     "question_routing": "a question is routed to its areas by keyword; no model translates it into a query",
     "tara_scoring": "the transit taras are tagged but not scored: the timing join leaves them out",
     "draft_placements": "a placement's effect is a draft until its verse is read: it weighs nothing and is not narrated",

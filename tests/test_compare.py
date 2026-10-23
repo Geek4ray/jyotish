@@ -57,7 +57,8 @@ def test_the_two_readings_are_blind_until_answered(env):
     v = client.get(f"/compare/{a}/{b}/view", headers=AUTH("tok-1")).json()
     assert set(v["readings"]) == {"A", "B"} and v["answer"] is None and "reveal" not in v
     text = json.dumps(v)
-    for hidden in ("claude-fable-5-1", '"effort":', '"writer":', '"usage":', '"model":', "--writer", '"attempts":'):
+    for hidden in ("claude-fable-5-1", '"effort":', '"writer":', '"usage":', '"model":', "--writer", '"attempts":',
+                   '"depth":'):
         assert hidden not in text, hidden
     for r in v["readings"].values():
         assert r["question"] == QUESTION and r["areas"] and "command" not in r["chart"]
@@ -164,3 +165,57 @@ def test_cost_from_the_price_table():
          "cache_creation_input_tokens": 0}
     assert cr.cost("claude-opus-5-5", t) == pytest.approx(4.00 + 2.00 + 0.40)
     assert cr.cost("claude-unknown", t) is None
+
+
+
+def test_a_compared_reading_is_blind_on_its_own_endpoint_until_answered(env):
+    """The review's F7: the page names both ids, and GET /readings/{id} gave the settings to anyone."""
+    client, _, a, b, other, _ = env
+    client.get(f"/compare/{a}/{b}/view", headers=AUTH("tok-1"))              # the pair is now known
+    assert client.get(f"/readings/{a}").status_code == 401                    # no token, no reading
+    blind_one = client.get(f"/readings/{a}", headers=AUTH("tok-4")).json()   # judge-4 has not answered
+    text = json.dumps(blind_one)
+    for hidden in ('"writer":', '"usage":', '"model":', '"depth":', "--writer", '"attempts":', '"page":', '"header":'):
+        assert hidden not in text, hidden
+    assert blind_one["reading"]["areas"] and blind_one["progress"] == {"stage": "done"}
+    answered = client.get(f"/readings/{a}", headers=AUTH("tok-2")).json()    # judge-2 answered above
+    assert answered["reading"]["writer"]["effort"] in ("medium", "max") and answered["page"]
+    assert client.get(f"/readings/{other}").json()["reading"]["writer"]      # not in a comparison: as before
+    review = client.get(f"/readings/{a}/review", headers=AUTH("tok-4")).json()
+    assert "writer" not in review["reading"] and review["page"] is None      # nor through the review step
+
+
+def test_the_script_links_the_two_readings_it_stores(tmp_path):
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import compare_readings as cr
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.api import ReadingRow
+    rec = json.loads(Path(EDITED).read_text())
+    paths = []
+    for key, effort in (("a", "medium"), ("b", "high")):
+        p = tmp_path / f"{key}.json"
+        p.write_text(json.dumps(dict(rec, settings={"model": "claude-opus-5-5", "effort": effort, "depth": "astrologer"})))
+        paths.append(str(p))
+    db = f"sqlite:///{tmp_path / 'c.db'}"
+    cr.main(["--replay-a", paths[0], "--replay-b", paths[1], "--as-of", "2026-10-21", "--question", QUESTION,
+             "--out", str(tmp_path / "c.md"), "--database", db])
+    with sessionmaker(create_engine(db))() as s:
+        rows = s.query(ReadingRow).all()
+        assert len(rows) == 2 and {tuple(r.request["compared_with"]) for r in rows} == {(rows[0].id,), (rows[1].id,)}
+
+
+def test_the_report_counts_judgements_on_their_own_row():
+    """The review's F11: judgements were counted among the checked sentences and not reported."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import compare_readings as cr
+    from types import SimpleNamespace
+    j = "I give the lord family more weight [fact:areas.career.contributions.largest_term]."
+    area = SimpleNamespace(claims=[], paragraph=None, analysis={"assessment": "Mars is own [fact:planets.Mars.dignity]. " + j},
+                           judgements=[{"section": "assessment", "sentence": j}], traditions=[], narration_gaps=[])
+    reading = SimpleNamespace(summary=SimpleNamespace(text="One. Two.", source="model"), areas=[area], writer={"model": "claude-opus-5-5"},
+                              checker={"model": "claude-opus-5-5"}, model="claude-opus-5-5", attempts=1,
+                              synthesis_sentences=0, narration_complete=True)
+    m = cr.metrics(reading, [], None)
+    assert m["judgement_sentences"] == 1 and m["sentences_checked_shown"] == 3     # two summary + one analysis
+    assert any(name.startswith("Judgement sentences") for name, _ in cr.ROWS)

@@ -292,6 +292,7 @@ TRADITION_LIMITS = {
                        r"years?|months?|weeks?|aged?)\b", re.I),
     "dasha, period or transit": re.compile(r"\b(dashas?|mahadashas?|antardashas?|bhuktis?|pratyantar\w*|periods?|"
                                            r"sub-periods?|transits?|transiting|gochara|sade sati|windows?|timing)\b", re.I),
+    "strength word": re.compile(r"\b(?:strong\w*|strength\w*|weak\w*|powerful|powerless|feeble|afflict\w*)\b", re.I),
     "figure the engine computes": re.compile(r"\b(shadbala|bhava bala|rupas?|virupas?|bindus?|ashtakavarga|sav|bav|"
                                              r"scores?|tiers?|votes?|stability|ratios?|vimsopaka|ishta|kashta|"
                                              r"sub-lords?|cusps?)\b", re.I),
@@ -308,9 +309,17 @@ def tradition_citation(value: str) -> dict | None:
     return {"text": TRADITION_TEXTS[m["text"].strip().lower()], "chapter": m["chapter"], "verse": m["verse"]}
 
 
-def tradition_errors(sentence: str, allowed: bool) -> list[str]:
+ORDINAL_WORDS = {1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth", 6: "sixth", 7: "seventh", 8: "eighth",
+                 9: "ninth", 10: "tenth", 11: "eleventh", 12: "twelfth"}
+
+
+def tradition_errors(sentence: str, allowed: bool, facts: dict | None = None) -> list[str]:
     """A [tradition:] sentence's limits: in the analysis at depth full only, one citation of a
-    classical text by chapter, no other tag, and nothing the engine computes (TRADITION_LIMITS)."""
+    classical text by chapter, no other tag, nothing the engine computes (TRADITION_LIMITS), and
+    nothing of this chart's own configuration (review F6): a planet named with the sign or the
+    house (as a word: "the seventh") it has on this chart, or this chart's rising sign named as
+    rising. Such a sentence describes this chart under a text's name; the placement is a fact to
+    cite in a sentence of its own."""
     cites = TRADITION.findall(sentence)
     if not cites:
         return []
@@ -333,6 +342,22 @@ def tradition_errors(sentence: str, allowed: bool) -> list[str]:
         if (m := rx.search(bare)):
             errors.append(f"a [tradition:] sentence states no {what} ({m.group(0)!r}): that is the engine's, "
                           f"said in a sentence citing a fact: {sentence!r}")
+    planets = (facts or {}).get("planets") or {}
+    for p, row in planets.items():
+        if not re.search(rf"\b{p}\b", bare):
+            continue
+        house = ORDINAL_WORDS.get(row.get("house"))
+        for what, word in (("sign", row.get("sign")), ("house", house)):
+            if word and re.search(rf"\b{word}\b", bare, re.I):
+                errors.append(f"a [tradition:] sentence names {p} with the {what} it has on this chart ({word}): that "
+                              f"describes this chart, whose placement is a fact to cite in a sentence of its own "
+                              f"(planets.{p}): {sentence!r}")
+                break
+    rising = (((facts or {}).get("lagnas") or {}).get("asc") or {}).get("sign")
+    if rising and re.search(rf"\b{rising}\b[^.;]*\b(rising|ascendant|lagna)\b|\b(rising|ascendant|lagna)\b[^.;]*\b{rising}\b",
+                            bare, re.I):
+        errors.append(f"a [tradition:] sentence names this chart's rising sign ({rising}): cite lagnas.asc in a "
+                      f"sentence of its own: {sentence!r}")
     return errors
 CLAIM_VERBS = re.compile(
     r"\b(is|are|was|were|has|have|gives|give|shows|show|indicates|indicate|suggests|suggest|"
@@ -554,7 +579,7 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         elif facts is not None and judgements and not tags and not tradition:
             errors.append(f"an analysis sentence carries the tags of what it rests on (every one is checked, and "
                           f"an untagged one rests on nothing): {s!r}")
-        errors += tradition_errors(s, traditions)
+        errors += tradition_errors(s, traditions, facts)
         if facts is not None and is_judgement(s):
             if not judgements:
                 errors.append(f"a weighing ('I weigh', 'I give more weight') belongs in the analysis: {s!r}")

@@ -87,10 +87,12 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
     """The comparison's numbers for one reading, from the reading and its recording."""
     from jyotish.narrate import TAG, sentences
     s = reading.summary
-    summary_n = sum(1 for x in sentences(s.text) if TAG.search(x)) if s.source == "model" else 0
-    para_n = sum(sum(1 for x in sentences(a.paragraph or "") if TAG.search(x)) for a in reading.areas)
-    analysis_n = sum(sum(1 for t in (a.analysis or {}).values() for x in sentences(t) if TAG.search(x))
-                     for a in reading.areas)
+    # Every shown sentence of the model's is checked (the review's F2) except a judgement's weighing,
+    # which is counted on its own row (F11), and a tradition sentence, apart from the sections.
+    summary_n = len(sentences(s.text)) if s.source == "model" else 0
+    para_n = sum(len(sentences(a.paragraph or "")) for a in reading.areas)
+    judgements = sum(len(a.judgements) for a in reading.areas)
+    analysis_n = sum(len(sentences(t)) for a in reading.areas for t in (a.analysis or {}).values()) - judgements
     claims = sum(len(a.claims) for a in reading.areas)
     writer, checker = tokens(recording, "writer"), tokens(recording, "checker")
     wc, cc = cost(reading.writer.get("model", reading.model), writer), cost(reading.checker.get("model", ""), checker)
@@ -103,7 +105,7 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
                                     and not str(c.get("finding_id", "")).startswith(("paragraph:", "analysis:"))),
             "validator_errors": sum(len(c.get("validator_errors") or []) for c in recording if c.get("kind") == "writer"),
             "narration_gaps": sum(len(a.narration_gaps) for a in reading.areas),
-            "synthesis_sentences": reading.synthesis_sentences,
+            "synthesis_sentences": reading.synthesis_sentences, "judgement_sentences": judgements,
             "tradition_sentences": sum(len(a.traditions) for a in reading.areas),
             "summary_source": s.source, "narration_complete": reading.narration_complete,
             "writer_tokens": writer, "checker_tokens": checker,
@@ -146,6 +148,8 @@ ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}, effort {m['writer'].g
         ("Validator errors (all attempts)", lambda m: m["validator_errors"]),
         ("Narration gaps", lambda m: m["narration_gaps"]),
         ("Synthesis sentences", lambda m: m["synthesis_sentences"]),
+        ("Judgement sentences (premises checked, the weighing not; not among the checked)",
+         lambda m: m["judgement_sentences"]),
         ("Tradition sentences (unchecked, shown apart)", lambda m: m["tradition_sentences"]),
         ("Summary written by", lambda m: m["summary_source"]),
         ("Writer tokens: input / cache read / cache write / output",
@@ -224,6 +228,18 @@ def store(database_url: str, birth_data: dict, question: str, chart, chart_id: s
     return rid
 
 
+def link(database_url: str, a: str, b: str) -> None:
+    """Record each stored reading as in the comparison with the other, so the service withholds its
+    settings from a reviewer who has not answered it (api.comparison_pending)."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.api import ReadingRow
+    with sessionmaker(create_engine(database_url)).begin() as s:
+        for rid, other in ((a, b), (b, a)):
+            row = s.get(ReadingRow, rid)
+            row.request = dict(row.request, compared_with=list(dict.fromkeys((row.request.get("compared_with") or []) + [other])))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--a", type=setting, default=None, help="model,effort,depth for reading A")
@@ -256,6 +272,7 @@ def main(argv: list[str] | None = None) -> int:
     ids = None
     if args.database:
         ids = tuple(store(args.database, birth, args.question, r[4], r[5], r[0], r[1]) for r in results.values())
+        link(args.database, *ids)
     (ra, pa, reca, wa, *_), (rb, pb, recb, wb, *_) = results["a"], results["b"]
     source = "replayed from recordings (no API call)" if args.replay_a or args.replay_b else "live"
     out.write_text(document(today, birth, args.question, args.as_of, source, metrics(ra, reca, wa),

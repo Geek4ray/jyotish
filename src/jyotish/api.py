@@ -308,13 +308,21 @@ class CompareAnswer(BaseModel):
 # What the blind comparison withholds of each reading until it is answered: the settings that made
 # it (writer, checker, usage, the model and attempts, the replay source) and the header's command
 # and depth, which name them.
-SETTINGS_FIELDS = ("model", "attempts", "writer", "checker", "usage", "narration_source")
+SETTINGS_FIELDS = ("model", "attempts", "writer", "checker", "usage", "narration_source", "depth")
 
 
 def blind(document: dict) -> dict:
+    """A reading with the settings that made it left out (review F7: the top-level depth too); the
+    page renders the depth from what the reading holds."""
     out = {k: v for k, v in document.items() if k not in SETTINGS_FIELDS}
     out["chart"] = {k: v for k, v in (document.get("chart") or {}).items() if k not in ("command", "depth")}
     return out
+
+
+def compared_with(row) -> list[str]:
+    """The readings a reading is compared with (request.compared_with, set when the pair is stored by
+    scripts/compare_readings.py or first opened at /compare/{a}/{b})."""
+    return list((row.request or {}).get("compared_with") or [])
 
 
 def settings_of(document: dict) -> dict:
@@ -575,9 +583,11 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         intro_done = s.query(ReviewRow).filter_by(reviewer_id=who, action="answer", step="intro").first() is not None
         guided = {"reviewer": who, "mode": mode, "intro_done": intro_done, "answers": answers_of(s, row, who),
                   "shown": sorted(shown), "units": us}
+        # A reading in a comparison this reviewer has not answered shows no settings here either (F7).
+        document = blind(row.document) if comparison_pending(s, row, who) else row.document
         if mode == "blind":
             return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status,
-                    "reading": redact(row.document, shown), **guided}
+                    "reading": redact(document, shown), **guided}
         rows = list(s.query(ReviewRow).filter_by(reading_id=row.id).order_by(ReviewRow.id))
         # What changed the reading (opens, edits, notes, approvals) is everyone's history. Another
         # reviewer's answers, verdicts and words are their judgement, given blind to this one's, and
@@ -592,7 +602,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                     for r in rows if r.reviewer_id == who
                     and (r.action == "verdict" or (r.action == "answer" and r.step == "match"))}   # the latest per area, this reviewer's
         return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status, "verdicts": verdicts,
-                "reading": row.document, "page": row.page, "history": history, **guided}
+                "reading": document, "page": None if document is not row.document else row.page, "history": history,
+                **guided}
 
     def blind_gate(s, row, reading, who: str, mode: str, area: str | None) -> None:
         if mode == "blind" and area is not None and area not in shown_areas(s, row, reading, who, mode):
@@ -745,7 +756,18 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         rows = [done_reading(s, x)[0] for x in (a, b)]
         if rows[0].chart_id != rows[1].chart_id or rows[0].question != rows[1].question:
             raise HTTPException(status_code=422, detail="the two readings are not of the same chart and question")
+        for row, other in ((rows[0], b), (rows[1], a)):          # each is now known to be in this comparison
+            if other not in compared_with(row):
+                row.request = dict(row.request or {}, compared_with=compared_with(row) + [other])
         return rows
+
+    def comparison_pending(s, row, who: str | None) -> bool:
+        """A reading in a comparison this reviewer (or, with none, anyone) has not answered: its
+        settings are withheld wherever it is shown (review F7)."""
+        others = compared_with(row)
+        if not others:
+            return False
+        return who is None or any(compare_answer_of(s, row.id, o, who) is None for o in others)
 
     def compare_answer_of(s, a: str, b: str, who: str):
         target = "compare:" + ":".join(sorted((a, b)))
@@ -822,11 +844,21 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         return search(q, max(1, min(limit, 20)))
 
     @app.get("/readings/{reading_id}", response_model=ReadingStatus, response_model_exclude_none=True)
-    def get_reading(reading_id: str) -> ReadingStatus:
+    def get_reading(reading_id: str, request: Request) -> ReadingStatus:
+        """The reading and its page. A reading in a blind comparison needs a reviewer token, and until
+        that reviewer has answered the comparison it comes as the blind view: no settings, no page
+        (whose header carries the command) and no progress beyond its stage (review F7)."""
         with Session() as s:
             row = s.get(ReadingRow, reading_id)
             if row is None:
                 raise HTTPException(status_code=404, detail="no such reading")
+            if compared_with(row):
+                who = reviewer(request)
+                if comparison_pending(s, row, who):
+                    return ReadingStatus(id=row.id, status=row.status, progress={"stage": row.progress.get("stage")},
+                                         chart_id=row.chart_id, question=row.question, created_at=row.created_at,
+                                         updated_at=row.updated_at, reading=blind(row.document) if row.document else None,
+                                         page=None, error=row.error)
             return ReadingStatus(id=row.id, status=row.status, progress=row.progress, chart_id=row.chart_id,
                                  question=row.question, created_at=row.created_at, updated_at=row.updated_at,
                                  reading=row.document, page=row.page, error=row.error,

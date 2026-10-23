@@ -451,3 +451,17 @@ Rahu in the UL is the only occupant of the three); and every stability field in 
 an object, the varga lagnas (`{time, label, samples: "holds in 159 of 200 birth-time samples"}` for
 the D10 lagna), each vote's `stability` (was `stability_time`) and the rules seen elsewhere among
 them. The benchmark is 145 rows. The payload measures 434,445 characters on the reference chart.
+
+**Tradition, the blind view, retrieval and the report (F6, F7, F10, F11).** A [tradition:] sentence
+may no longer describe this chart under a text's name: the validator refuses one naming a planet
+with the sign or the house (as a word, "the seventh") it has on this chart, or this chart's rising
+sign as rising (the placement is a fact for a sentence of its own), and one with a strength word;
+the review's three probes are refused, a general principle that does not match the chart passes. A
+reading in a blind comparison (the script records the pair when it stores the readings, and opening
+/compare/{a}/{b} records it too) needs a reviewer token at GET /readings/{id}, and until that
+reviewer has answered the comparison it comes as the blind view: no settings, no page (its header
+carried the command), no progress beyond its stage; the review step shows it the same way. The
+blind view leaves out the top-level depth as well, and the website renders the depth from what the
+reading holds. `not_computed.retrieval` now says that a [tradition:] citation is the writer's own,
+unverified and shown apart. The comparison report counts every shown sentence of the model's as
+checked except a judgement, which has its own row ("premises checked, the weighing not").

@@ -691,3 +691,36 @@ def test_every_error_reaches_the_retry_instruction(chart):
     narrate(chart, QUESTION, drafter=w, checker=SynthesisStub({"Mars is dignified in a kendra": True}), as_of=AS_OF,
             areas=["career"], depth="full")
     assert "two claims for vote:career.house in career" in w.calls[1]["errors"][0]
+
+
+
+# --- the review's F6 and F10 -------------------------------------------------------------------------
+
+@pytest.mark.parametrize("sentence,needle", [
+    ("Saturn and Jupiter together in Taurus rising, with Mars in Scorpio in the seventh, deny marriage until "
+     "late [tradition:BPHS 18].", "with the sign it has on this chart (Taurus)"),
+    ("A native with Venus exalted in Pisces in the eleventh becomes very wealthy [tradition:Phaladeepika 8].",
+     "with the sign it has on this chart (Pisces)"),
+    ("Exaltation gives a planet great strength [tradition:BPHS 3].", "strength word"),
+    ("Mars in the seventh makes the native bold [tradition:Saravali 30].", "with the house it has on this chart (seventh)"),
+    ("Taurus rising gives a steady temperament [tradition:Saravali 33].", "rising sign (Taurus)"),
+])
+def test_a_tradition_sentence_names_nothing_of_this_chart(whole, sentence, needle):
+    from jyotish.narrate import validate
+    errs = validate(sentence, set(), facts=whole, traditions=True, judgements=True)
+    assert any(needle in e for e in errs), errs
+
+
+def test_a_tradition_sentence_of_a_general_principle_passes(whole):
+    from jyotish.narrate import validate
+    ok = "Phaladeepika holds that a lord of the tenth in its own sign in a kendra gives a career of authority [tradition:Phaladeepika 10]."
+    assert validate(ok, set(), facts=whole, traditions=True, judgements=True) == []
+    other = "Saravali holds that Mars in the fourth unsettles the home [tradition:Saravali 30]."    # Mars is in the 7th
+    assert validate(other, set(), facts=whole, traditions=True, judgements=True) == []
+
+
+def test_not_computed_says_the_tradition_citations_are_unverified(whole):
+    """F10: it said the only verses cited are checked ones, beside a tradition block that is not."""
+    from jyotish.fullchart import resolve
+    r = resolve(whole, "not_computed.retrieval")
+    assert "[tradition:] citation is the writer's own, unverified" in r
