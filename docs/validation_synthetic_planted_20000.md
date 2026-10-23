@@ -7,12 +7,12 @@ Run 2026-10-23 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 - rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `48c7ae0f0a24d542333ad7c0726d089e89f0ba0ab5d5f0950a0fd4c8d228eeab`
 - (the analysis code is validate.py with jyotish.cohort, jyotish.outcomes and the outcome map; the lift interval resamples households)
-- split definition `a26487fa893f8258665f38ac8483f8bea6620f1c4601b99776f42d4b475e8577` ({"salt_sha256": "b41f02ef8121a7213a6d734d2a8d039c0b2f4c63f7fdf3e6191158ac8a2bb206", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "d48ede0e5ec108b90815c1c4ce585fb0bb863dcb200d716bc8a638e0569f97fc"})
-- analysis code `71981ef003ab58d3631f50b7af420aea26a11b97d66d798f6a59bec29fcfe47d`
+- split definition `422d0b377aa693bfdcba66ed85d42c6bf64855aa93a9ed435c295d77f75a5f80` ({"salt_sha256": "b41f02ef8121a7213a6d734d2a8d039c0b2f4c63f7fdf3e6191158ac8a2bb206", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "9452785ccf381f8e5327a3e141d01ae257c25087fa2a5468d265d0a09421c1d1"})
+- analysis code `6518b038ea6548fc1b8d38d49210bd49953b24ea2b0966177acf6fb260748dee`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
 
-Positive prediction: tier strong or moderate. n is the predicted charts with the outcome recorded; coverage is their share of all charts with it (the rest abstain).
+Positive prediction: tier strong or moderate. n is the predicted charts with the outcome recorded; coverage is their share of all charts with it (the rest abstain). Abstention is by accuracy class (approximate, unknown), the gate's stand-in: the sampler did not run.
 
 | area | n | coverage | base rate | lift | 95% CI | p (permutation) | BH p | survives | power (5 pt, α 0.01) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
