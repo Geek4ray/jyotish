@@ -235,6 +235,87 @@ class ComparisonRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+class CredentialRow(Base):
+    """A reviewer's, clerk's or owner's token: its SHA-256 only (the token is shown once, by `jyotish
+    reviewer add`, and never stored), the name it acts under, and when it was revoked."""
+    __tablename__ = "credentials"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(16))                        # reviewer | clerk | owner
+    name: Mapped[str] = mapped_column(String(64))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class LedgerRow(Base):
+    """A finished reading's tokens and cost (jyotish.costs, from the usage the reading records): the
+    owner's per-reading ledger and, summed by `day` (UTC), the daily totals."""
+    __tablename__ = "ledger"
+    reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"), primary_key=True)
+    day: Mapped[str] = mapped_column(String(10), index=True)            # YYYY-MM-DD, UTC
+    writer_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    checker_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    depth: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    writer_tokens: Mapped[dict] = mapped_column(DOCUMENT)
+    checker_tokens: Mapped[dict] = mapped_column(DOCUMENT)
+    writer_calls: Mapped[int] = mapped_column(Integer, default=0)
+    checker_calls: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)  # null: a model without a price
+    seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
+    replayed: Mapped[bool] = mapped_column(Boolean, default=False)       # a fixture replay costs nothing
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+KINDS = ("reviewer", "clerk", "owner")
+
+
+def token_hash(token: str) -> str:
+    import hashlib
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def issue_token(session, kind: str, name: str) -> str:
+    """A new token for `name` as `kind`; only its hash is stored. Refused while `name` holds an
+    active token of that kind (revoke it first)."""
+    import secrets
+    if kind not in KINDS:
+        raise ValueError(f"kind must be one of {KINDS}")
+    if not name.strip() or len(name) > 64:
+        raise ValueError("a name of 1 to 64 characters")
+    if session.query(CredentialRow).filter_by(kind=kind, name=name, revoked_at=None).first() is not None:
+        raise ValueError(f"{name} already has an active {kind} token: revoke it first")
+    token = secrets.token_urlsafe(32)
+    session.add(CredentialRow(kind=kind, name=name, token_hash=token_hash(token)))
+    return token
+
+
+def revoke_token(session, kind: str, name: str) -> int:
+    """Revoke every active token of `name` as `kind`; returns how many."""
+    rows = session.query(CredentialRow).filter_by(kind=kind, name=name, revoked_at=None).all()
+    for r in rows:
+        r.revoked_at = _now()
+    return len(rows)
+
+
+def credential_name(session, kind: str, token: str) -> str | None:
+    """The name an active token of `kind` acts under, or None."""
+    row = session.query(CredentialRow).filter_by(kind=kind, token_hash=token_hash(token), revoked_at=None).first()
+    return row.name if row else None
+
+
+def record_cost(session, reading_row) -> LedgerRow | None:
+    """The ledger row of a finished reading, made from its document if it is not there yet."""
+    from .costs import reading_cost
+    if reading_row.document is None or session.get(LedgerRow, reading_row.id) is not None:
+        return None
+    v = reading_cost(reading_row.document)
+    when = reading_row.updated_at or _now()
+    row = LedgerRow(reading_id=reading_row.id, day=when.astimezone(timezone.utc).strftime("%Y-%m-%d") if when.tzinfo
+                    else when.strftime("%Y-%m-%d"), **v)
+    session.add(row)
+    return row
+
+
 def comparison_id(a: str, b: str) -> str:
     first, second = sorted((a, b))
     return f"{first}:{second}"
@@ -298,7 +379,17 @@ def migrate(url_or_engine=None):
             command.stamp(alembic_config(conn), "head")
     else:
         _backfill_birth_keys(engine)                 # rows stored without a birth key get theirs on every open
+    _backfill_ledger(engine)
     return engine
+
+
+def _backfill_ledger(engine) -> None:
+    """Every finished reading has its ledger row (readings finished before the ledger get theirs)."""
+    with sessionmaker(engine).begin() as s:
+        done = s.query(ReadingRow).outerjoin(LedgerRow, LedgerRow.reading_id == ReadingRow.id) \
+            .filter(ReadingRow.status == "done", LedgerRow.reading_id.is_(None)).all()
+        for r in done:
+            record_cost(s, r)
 
 
 def _adopt_comparisons(engine) -> None:

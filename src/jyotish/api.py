@@ -39,6 +39,7 @@ Run:  .venv/bin/uvicorn jyotish.api:app      then open http://127.0.0.1:8000/"""
 
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -202,20 +203,64 @@ class ReadingStatus(BaseModel):
 REPO = Path(__file__).resolve().parents[2]
 
 
+class RateLimit:
+    """Readings per client per hour and per day overall (POST /readings: each one costs a model's
+    tokens). In this process's memory: one service process per database (docs/deploy.md)."""
+
+    def __init__(self, per_client_hour: int, per_day: int):
+        import threading
+        from collections import deque
+        self.per_client_hour, self.per_day = per_client_hour, per_day
+        self.clients: dict[str, Any] = {}
+        self.all = deque()
+        self.lock = threading.Lock()
+        self._deque = deque
+
+    def check(self, client: str) -> int | None:
+        """None when allowed (and counted), else the seconds until it would be."""
+        import time
+        now = time.time()
+        with self.lock:
+            mine = self.clients.setdefault(client, self._deque())
+            while mine and now - mine[0] >= 3600:
+                mine.popleft()
+            while self.all and now - self.all[0] >= 86400:
+                self.all.popleft()
+            if len(mine) >= self.per_client_hour:
+                return int(3600 - (now - mine[0])) + 1
+            if len(self.all) >= self.per_day:
+                return int(86400 - (now - self.all[0])) + 1
+            mine.append(now)
+            self.all.append(now)
+            return None
+
+
 def create_app(database_url: str | None = None, *, model_fixture: str | None = None, workers: int = 2,
                web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
                reviewers: dict[str, str] | None = None, review_checker=None,
-               clerks: dict[str, str] | None = None) -> FastAPI:
+               clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
-    mounted when their directories exist (a source checkout). `reviewers` (token -> reviewer
-    id) defaults to JYOTISH_REVIEWERS; `review_checker` checks edited sentences (default the
-    live AnthropicChecker; tests pass a stub)."""
+    mounted when their directories exist (a source checkout). Reviewers, clerks and the owner
+    are the `credentials` table's (`jyotish reviewer add`); `reviewers` and `clerks` (token -> id)
+    add to it for a local run and default to JYOTISH_REVIEWERS and JYOTISH_CLERKS, which the log
+    says. `review_checker` checks edited sentences (default the live AnthropicChecker; tests pass a
+    stub). `rate` is (readings per client per hour, readings per day), default
+    JYOTISH_READINGS_PER_HOUR and JYOTISH_READINGS_PER_DAY, else 30 and 300."""
+    from . import logs
     from .db import migrate
+    logs.setup()
     engine = migrate(database_url)                # JYOTISH_DATABASE_URL when none is named
     Session = sessionmaker(engine, expire_on_commit=False)
     tokens = reviewers if reviewers is not None else reviewers_from_env()
     clerk_tokens = clerks if clerks is not None else reviewers_from_env("JYOTISH_CLERKS")
+    for var, given, explicit in (("JYOTISH_REVIEWERS", tokens, reviewers), ("JYOTISH_CLERKS", clerk_tokens, clerks)):
+        if given and explicit is None:
+            logs.event("credentials.environment", logging.WARNING, variable=var, names=sorted(set(given.values())),
+                       note="tokens from the environment: for a local run; deployed, use `jyotish reviewer add` "
+                            "and `jyotish clerk add`, which store only a hash")
+    limits = RateLimit(*(rate or (int(os.environ.get("JYOTISH_READINGS_PER_HOUR", 30)),
+                                  int(os.environ.get("JYOTISH_READINGS_PER_DAY", 300)))))
     pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="reading")
 
     @asynccontextmanager
@@ -225,6 +270,34 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     app = FastAPI(title="Jyotish readings", lifespan=lifespan)
     app.state.engine, app.state.pool, app.state.Session = engine, pool, Session
+
+    @app.middleware("http")
+    async def request_log(request: Request, call_next):
+        """One line per request: method, path (no query string; a chart id replaced), status, ms."""
+        import time
+        t = time.perf_counter()
+        response = await call_next(request)
+        logs.event("http.request", method=request.method, path=logs.safe_path(request.url.path),
+                   status=response.status_code, ms=round((time.perf_counter() - t) * 1000, 1))
+        return response
+
+    def credential(request: Request, kind: str, fallback: dict[str, str] | None = None) -> str:
+        """The name a bearer token acts under as `kind` (reviewer, clerk, owner): an active token in
+        the credentials table, or one from the local fallback (JYOTISH_REVIEWERS, JYOTISH_CLERKS); 401
+        otherwise. Only the token's hash is compared with the table."""
+        from .db import credential_name
+        auth = request.headers.get("authorization", "")
+        tok = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+        name = None
+        if tok:
+            if fallback and tok in fallback:
+                name = fallback[tok]
+            else:
+                with Session() as s:
+                    name = credential_name(s, kind, tok)
+        if name is None:
+            raise HTTPException(status_code=401, detail=f"a {kind} token is required", headers={"WWW-Authenticate": "Bearer"})
+        return name
 
     @app.exception_handler(RequestValidationError)
     async def refused(_: Request, exc: RequestValidationError) -> JSONResponse:
@@ -279,10 +352,18 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,
                    progress={"stage": "done", "attempts": reading.attempts, "narration_complete": reading.narration_complete,
                              **keep, "log": list(log)})
+            from .db import record_cost
+            with Session.begin() as s:
+                ledger = record_cost(s, s.get(ReadingRow, reading_id))
+            logs.event("reading.done", reading_id=reading_id, depth=reading.depth, writer=reading.writer.get("model"),
+                       effort=reading.writer.get("effort"), attempts=reading.attempts,
+                       gaps=sum(len(a.narration_gaps) for a in reading.areas),
+                       cost_usd=ledger.cost_usd if ledger else None, seconds=(reading.usage or {}).get("wall_seconds"))
         except NarrationError as e:
             log.append("failed")
             update(reading_id, status="failed", progress={"stage": "failed", **keep, "log": list(log)},
                    error={"message": str(e), "errors": list(e.errors)})
+            logs.event("reading.failed", logging.WARNING, reading_id=reading_id, error=type(e).__name__)
         except Exception as e:                      # the job reports its failure; it never raises into the pool
             log.append("failed")
             message = f"{type(e).__name__}: {e}"
@@ -291,14 +372,23 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                            "runs in (it is never sent by the browser).")
             update(reading_id, status="failed", progress={"stage": "failed", **keep, "log": list(log)},
                    error={"message": message})
+            logs.event("reading.failed", logging.WARNING, reading_id=reading_id, error=type(e).__name__)
 
     @app.post("/readings", status_code=202, response_model=Accepted)
-    def post_reading(req: ReadingRequest) -> Accepted:
+    def post_reading(req: ReadingRequest, request: Request) -> Accepted:
+        """Queue a reading. Rate-limited per client and per day (`rate`): 429 with Retry-After."""
+        wait = limits.check(request.client.host if request.client else "unknown")
+        if wait is not None:
+            logs.event("readings.rate_limited", logging.WARNING, retry_after=wait)
+            raise HTTPException(status_code=429, detail="too many readings: try again later",
+                                headers={"Retry-After": str(wait)})
         reading_id = uuid.uuid4().hex
         with Session.begin() as s:
             s.add(ReadingRow(id=reading_id, question=req.question, request=req.model_dump(), status="queued",
                              progress={"stage": "queued", "log": []}))
         pool.submit(run, reading_id, req)
+        logs.event("reading.queued", reading_id=reading_id, depth=req.depth, writer=req.writer_model,
+                   effort=req.writer_effort)
         return Accepted(id=reading_id, status="queued", url=f"/readings/{reading_id}")
 
     def chart_of(chart_id: str):
@@ -335,12 +425,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     # --- the review step ----------------------------------------------------------------
 
     def reviewer(request: Request) -> str:
-        auth = request.headers.get("authorization", "")
-        tok = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
-        if not tok or tok not in tokens:
-            raise HTTPException(status_code=401, detail="a reviewer token is required",
-                                headers={"WWW-Authenticate": "Bearer"})
-        return tokens[tok]
+        return credential(request, "reviewer", tokens)
 
     def done_reading(s, reading_id: str):
         from .narrate import Reading
@@ -642,13 +727,45 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         """Sheet rows as JSON. Refused rows come back with their reasons and are not stored; the
         rest are. A clerk's token (JYOTISH_CLERKS) is required; rows are entered under its id."""
         from .outcomes import import_rows
-        auth = request.headers.get("authorization", "")
-        tok = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
-        if not tok or tok not in clerk_tokens:
-            raise HTTPException(status_code=401, detail="a clerk token is required", headers={"WWW-Authenticate": "Bearer"})
+        clerk = credential(request, "clerk", clerk_tokens)
         with Session.begin() as s:
-            res = import_rows(s, req.rows, entered_by=clerk_tokens[tok])
+            res = import_rows(s, req.rows, entered_by=clerk)
             return {"accepted": res.accepted, "subjects_created": res.subjects_created, "refused": res.refused}
+
+    @app.get("/costs/daily")
+    def costs_daily(request: Request, days: int = 30) -> list[dict]:
+        """The owner's daily totals from the ledger, newest day first: readings, the writer's and the
+        checker's tokens, and the cost (a day with a reading on an unpriced model says how many)."""
+        from sqlalchemy import func
+        from .db import LedgerRow
+        credential(request, "owner")
+        with Session() as s:
+            days_seen = [d for (d,) in s.query(LedgerRow.day).distinct().order_by(LedgerRow.day.desc())
+                         .limit(max(1, min(days, 366)))]
+            out = []
+            for day in days_seen:
+                rows = s.query(LedgerRow).filter_by(day=day).all()
+                total = lambda side, k: sum(int((getattr(r, side) or {}).get(k) or 0) for r in rows)
+                out.append({"day": day, "readings": len(rows), "replayed": sum(r.replayed for r in rows),
+                            "cost_usd": round(sum(r.cost_usd or 0.0 for r in rows), 4),
+                            "unpriced": sum(r.cost_usd is None for r in rows),
+                            "writer_tokens": {k: total("writer_tokens", k) for k in ("input_tokens", "output_tokens",
+                                              "cache_read_input_tokens", "cache_creation_input_tokens")},
+                            "checker_tokens": {k: total("checker_tokens", k) for k in ("input_tokens", "output_tokens",
+                                               "cache_read_input_tokens", "cache_creation_input_tokens")}})
+            return out
+
+    @app.get("/costs/readings")
+    def costs_readings(request: Request, day: str) -> list[dict]:
+        """The owner's per-reading ledger for one day (YYYY-MM-DD, UTC)."""
+        from .db import LedgerRow
+        credential(request, "owner")
+        with Session() as s:
+            return [{"reading_id": r.reading_id, "depth": r.depth, "writer_model": r.writer_model,
+                     "checker_model": r.checker_model, "writer_tokens": r.writer_tokens,
+                     "checker_tokens": r.checker_tokens, "writer_calls": r.writer_calls, "checker_calls": r.checker_calls,
+                     "cost_usd": r.cost_usd, "seconds": r.seconds, "replayed": r.replayed}
+                    for r in s.query(LedgerRow).filter_by(day=day).order_by(LedgerRow.created_at)]
 
     @app.get("/health")
     def health() -> JSONResponse:

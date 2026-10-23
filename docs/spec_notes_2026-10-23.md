@@ -527,3 +527,22 @@ AGPL-3.0 or Astrodienst's paid licence; running it as a network service obliges 
 the source of the running version (AGPL section 13), which the deployment does through
 JYOTISH_SOURCE_URL, `/source` and a footer link. CI builds the image and checks /health on SQLite
 and, through the compose file, on Postgres.
+
+**Tokens, limits, the ledger and the logs.** Reviewers, clerks and the owner are rows of a
+`credentials` table (revision 0002): `jyotish reviewer add <name>` (and `clerk`, `owner`) prints a
+token once and stores only its SHA-256; `revoke` and `list` beside it; one active token per name.
+The review, compare and judge endpoints check a reviewer's token, POST /outcomes a clerk's, the cost
+endpoints the owner's; JYOTISH_REVIEWERS and JYOTISH_CLERKS still work for a local run, and the log
+says so when they are set (the names, never the tokens). POST /readings is rate-limited per client
+per hour and per day overall (JYOTISH_READINGS_PER_HOUR, JYOTISH_READINGS_PER_DAY; 30 and 300 by
+default), in the process's memory, with 429 and Retry-After. Every finished reading gets a `ledger`
+row (revision 0002) from the usage it records: the writer's and the checker's models, calls and
+tokens, the cost from one price table (`jyotish.costs`, which the comparison script now uses too; a
+model without a price is counted with no cost, never guessed), the seconds, and whether it was a
+replay; readings finished before the ledger get theirs when the database is opened. GET
+/costs/daily gives the owner each day's readings, tokens and cost, GET /costs/readings?day= the
+day's rows. The service logs JSON lines, field by field: a request's method, path, status and
+milliseconds (never its query string, which for /places carries a birthplace; a chart id in a path
+written as <chart>), a reading's id, depth, writer, attempts, gaps, cost and seconds, a failure by
+its exception's class; a test runs a reading, a place search and a chart table and finds no birth
+date, time, place, coordinates, timezone, question or chart id in the log.

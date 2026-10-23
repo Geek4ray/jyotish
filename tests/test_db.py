@@ -11,7 +11,8 @@ from sqlalchemy.orm import sessionmaker
 from jyotish.db import (Base, ComparisonRow, ReadingRow, current_revision, database_url, engine_for, head_revision,
                         migrate)
 
-TABLES = {"charts", "readings", "reviews", "exclusions", "consents", "subjects", "events", "erasures", "comparisons"}
+TABLES = {"charts", "readings", "reviews", "exclusions", "consents", "subjects", "events", "erasures", "comparisons",
+          "credentials", "ledger"}
 
 
 def _drift(engine) -> list:

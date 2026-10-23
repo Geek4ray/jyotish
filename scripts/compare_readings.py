@@ -20,8 +20,8 @@ Offline, from two recordings this script wrote (no API call):
     .venv/bin/python scripts/compare_readings.py --replay-a docs/comparison_<date>/a.recording.json \\
         --replay-b docs/comparison_<date>/b.recording.json --out /tmp/comparison.md
 
-Costs use PRICES (USD per million tokens, the Anthropic price list as cached on 2026-10-06; check it
-before quoting a cost). Thinking is billed as output and is inside output_tokens."""
+Costs use jyotish.costs.PRICES (USD per million tokens, the Anthropic price list as cached on
+2026-10-06; check it before quoting a cost), the table the service's ledger uses. Thinking is billed as output and is inside output_tokens."""
 
 from __future__ import annotations
 
@@ -45,9 +45,7 @@ def reference_birth() -> dict:
     from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
     return {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
             "node": "mean", "place": "Rewari, Haryana"}
-# USD per million tokens: input, output, cache read, cache write (5-minute, 1.25 x input).
-PRICES = {"claude-opus-5-5": (4.00, 20.00, 0.20, 5.00), "claude-fable-5-1": (10.00, 50.00, 0.25, 12.50),
-          "claude-opus-5": (5.00, 25.00, 0.50, 6.25), "claude-sonnet-5-5": (2.00, 10.00, 0.20, 2.50)}
+from jyotish.costs import PRICES, cost  # noqa: E402  (one price table: the service's ledger uses it too)
 
 
 def setting(text: str) -> dict:
@@ -73,14 +71,6 @@ def tokens(recording: list, kind: str) -> dict:
         for k in list(out)[1:]:
             out[k] += int(((c.get("usage") or {}).get(k)) or 0)
     return out
-
-
-def cost(model: str, t: dict) -> float | None:
-    p = PRICES.get(model)
-    if p is None:
-        return None
-    return (t["input_tokens"] * p[0] + t["output_tokens"] * p[1] + t["cache_read_input_tokens"] * p[2]
-            + t["cache_creation_input_tokens"] * p[3]) / 1e6
 
 
 def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
@@ -200,7 +190,7 @@ def document(run_date: str, birth: dict, question: str, as_of: str, source: str,
     if ids:
         L += [f"Blind review: `/compare/{ids[0]}/{ids[1]}` (the reviewer sees A and B without their settings).", ""]
     L += ["| | A | B |", "|---|---|---|"] + [f"| {name} | {f(ma)} | {f(mb)} |" for name, f in ROWS] + [""]
-    L += ["Prices: USD per million tokens from `PRICES` in scripts/compare_readings.py (the Anthropic price list "
+    L += ["Prices: USD per million tokens from `jyotish.costs.PRICES` (the Anthropic price list "
           "as cached on 2026-10-06); thinking is billed as output. Wall time is the narration's (writer and "
           "checker calls), not the chart's.", ""]
     for label, rows in zip("AB", attempts):

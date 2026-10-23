@@ -423,6 +423,33 @@ def cmd_read(args) -> int:
     return 0
 
 
+def cmd_credentials(args) -> int:
+    """jyotish reviewer|clerk|owner add|revoke|list: tokens in the credentials table."""
+    import sys
+    from sqlalchemy.orm import sessionmaker
+    from .db import CredentialRow, issue_token, migrate, revoke_token
+    Session = sessionmaker(migrate(args.database))
+    kind = args.cmd
+    with Session.begin() as s:
+        if args.kcmd == "add":
+            try:
+                token = issue_token(s, kind, args.name)
+            except ValueError as e:
+                print(str(e), file=sys.stderr)
+                return 2
+            print(f"{kind} {args.name}: token (shown once; store it now, only its hash is kept):")
+            print(token)
+            return 0
+        if args.kcmd == "revoke":
+            n = revoke_token(s, kind, args.name)
+            print(f"{kind} {args.name}: {n} active token(s) revoked" if n else f"{kind} {args.name} has no active token")
+            return 0 if n else 1
+        for r in s.query(CredentialRow).filter_by(kind=kind).order_by(CredentialRow.name, CredentialRow.created_at):
+            state = f"revoked {r.revoked_at:%Y-%m-%d}" if r.revoked_at else "active"
+            print(f"{r.name}\t{state}\tissued {r.created_at:%Y-%m-%d}")
+        return 0
+
+
 def cmd_outcomes(args) -> int:
     import os
     from . import outcomes as oc
@@ -516,6 +543,17 @@ def main(argv: list[str] | None = None) -> None:
     se.add_argument("subject_id")
     se.add_argument("--by", required=True, help="who carried out the request")
     se.add_argument("--database")
+    for kind, what in (("reviewer", "a reviewer's token: /review, /review?mode=blind (the judge page), /compare"),
+                       ("clerk", "a clerk's token: POST /outcomes"), ("owner", "the owner's token: /costs/daily")):
+        k = sub.add_parser(kind, help=what)
+        ksub = k.add_subparsers(dest="kcmd", required=True)
+        ka = ksub.add_parser("add", help=f"a new {kind} token, printed once (only its hash is stored)")
+        ka.add_argument("name")
+        kr = ksub.add_parser("revoke", help=f"revoke the {kind}'s active token")
+        kr.add_argument("name")
+        ksub.add_parser("list", help=f"the {kind}s and whether each token is active")
+        for x in (ka, kr, ksub.choices["list"]):
+            x.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
@@ -528,6 +566,8 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.cmd == "read":
         raise SystemExit(cmd_read(args))
+    if args.cmd in ("reviewer", "clerk", "owner"):
+        raise SystemExit(cmd_credentials(args))
     if args.cmd in ("outcomes", "subject"):
         raise SystemExit(cmd_outcomes(args))
     if args.cmd == "export-reviews":
