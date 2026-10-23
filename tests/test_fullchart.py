@@ -272,3 +272,26 @@ def test_bhava_bala_ranks_the_twelve_houses(chart, whole):
     assert sorted(h["rank_of_12"] for h in ws.values()) == list(range(1, 13))
     weakest = min(ws, key=lambda h: ws[h]["rupas"])
     assert ws[weakest]["rank_of_12"] == 12 and weakest == "H10"
+
+
+# --- the families ranked by the engine --------------------------------------------------------
+
+def test_contributions_rank_the_families_by_term_times_weight(chart, whole):
+    from jyotish.scoring import family_rho, family_weights
+    a = chart.scored.areas["career"]
+    w = family_weights(a, family_rho(chart.meta.varga_term, chart.meta.kp_vote))
+    c = resolve(whole, "areas.career.contributions")
+    by = {r["family"]: r for r in c["ranked"]}
+    assert set(by) == {"house", "lord", "karaka", "varga", "panchanga"}
+    assert by["lord"]["term"] == round(a.terms["lord"] + a.terms["dispositor"], 3)    # the lord vote reads both
+    for fam, r in by.items():
+        assert abs(r["contribution"] - r["term"] * r["weight"]) < 0.002 and r["weight"] == round(w[fam], 3)
+    assert [r["contribution"] for r in c["ranked"]] == sorted((r["contribution"] for r in c["ranked"]), reverse=True)
+    assert [r["rank"] for r in c["ranked"]] == [1, 2, 3, 4, 5]
+    assert c["strongest"] == c["ranked"][0]["family"] == "lord" and c["weakest"] == c["ranked"][-1]["family"]
+    applicable = {f for f, v in a.votes.items() if v is not None}
+    shares = [r["share_of_applicable_weight"] for r in c["ranked"] + c["vote_only"]]
+    assert abs(sum(shares) - 1.0) < 0.01 and {r["family"] for r in c["vote_only"]} == applicable & {"arudha", "kp"}
+    assert c["abstaining"] == ["arudha", "kp"] and c["against"] == []
+    assert resolve(whole, "areas.marriage.contributions.against") == ["arudha"]
+    assert "contributions" not in whole["areas"]["synastry"]

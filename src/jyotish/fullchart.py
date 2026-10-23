@@ -344,7 +344,47 @@ def _areas(chart: Chart) -> dict:
                                      "stability_time": _r(a.vote_stability.get(fam)),
                                      "derivation": _r(a.vote_details.get(fam))}
                                for fam, v in a.votes.items()}}
+        if a.score_classical is not None:
+            out[name]["contributions"] = contributions(a, weights)
     return out
+
+
+# A family's term in S (scoring.score_area): the lord family's vote reads its lord and dispositor
+# terms together, so its term is their sum; arudha and KP vote but add nothing to S.
+FAMILY_TERMS = {"house": ("house",), "lord": ("lord", "dispositor"), "karaka": ("karaka",), "varga": ("varga",),
+                "panchanga": ("panchanga",)}
+
+
+def contributions(a, weights: dict[str, float]) -> dict:
+    """The families ranked by what each adds: its term in S times its confluence weight, signed,
+    with its share of the applicable weight (the weight of every family that voted or abstained),
+    and the strongest and weakest named, so "the strongest support" is the engine's ranking, not
+    the writer's. Arudha and KP vote only (they count toward the tier by their weight and add no
+    term) and are listed apart; the rules and Navatara terms of S are not families."""
+    applicable = {f: weights[f] for f, v in a.votes.items() if v is not None and f in weights}
+    total = sum(applicable.values()) or 1.0
+    ranked = []
+    for fam, parts in FAMILY_TERMS.items():
+        if fam not in applicable:
+            continue
+        term = sum(a.terms.get(t, 0.0) for t in parts)
+        ranked.append({"family": fam, "term": round(term, 3), "weight": round(applicable[fam], 3),
+                       "contribution": round(term * applicable[fam], 3), "vote": a.votes[fam],
+                       "share_of_applicable_weight": round(applicable[fam] / total, 3)})
+    ranked.sort(key=lambda r: -r["contribution"])
+    for i, r in enumerate(ranked, 1):
+        r["rank"] = i
+    vote_only = [{"family": f, "vote": a.votes[f], "weight": round(applicable[f], 3),
+                  "share_of_applicable_weight": round(applicable[f] / total, 3)}
+                 for f in ("arudha", "kp") if f in applicable]
+    return {"basis": "each family's term in the area score times its confluence weight; arudha and KP vote "
+                     "without a term and are listed apart",
+            "ranked": ranked, "vote_only": vote_only,
+            "strongest": ranked[0]["family"] if ranked else None,
+            "weakest": ranked[-1]["family"] if ranked else None,
+            "against": [f for f, v in a.votes.items() if v == -1],
+            "abstaining": [f for f, v in a.votes.items() if v == 0],
+            "other_terms": {t: round(a.terms.get(t, 0.0), 3) for t in ("rules", "navatara")}}
 
 
 def _uncertainty(chart: Chart) -> dict | None:

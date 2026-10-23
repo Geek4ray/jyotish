@@ -413,11 +413,23 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
 
 
 CHAIN_KINDS = re.compile(r"\b(signs?|nakshatras?|navamsas?)\b", re.I)
+# Depth full: a ranking of the area's families is the engine's (fullchart.contributions), so a
+# sentence that names the strongest support or the weakest point cites it, never its own ranking.
+RANKING = re.compile(r"\bstrongest support\b|\bweakest (?:point|support|family)\b|\bleast support\b", re.I)
 # A claim that leans on another: the checker sees one claim and its finding, so "again" or an
 # opening "The same" is either unsupported or, worse, passed as true of nothing (SPEC Layer 7 item 10;
 # review 2026-10-23, F9). Narrow on purpose: "also" and "the same sign" are ordinary words.
 CROSS_REFERENCE = re.compile(r"\b(again|likewise|aforementioned)\b|\bas (above|noted|said|mentioned|before)\b"
                              r"|^\s*(the|this|that) same\b", re.I)
+
+
+def _cites_family_fact(fact_tag: str, vote_tag: str) -> bool:
+    """Depth full: a fact that states a family's vote stands for its vote tag in the family rule:
+    the area's votes or its ranked contributions (every family), or that family's own vote."""
+    area, family = vote_tag[5:].split(".", 1)
+    path = fact_tag[5:]
+    return path in (f"areas.{area}.votes", f"areas.{area}.contributions") or \
+        path.startswith((f"areas.{area}.contributions.", f"areas.{area}.votes.{family}"))
 
 
 def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set[str]] | None = None,
@@ -463,6 +475,10 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
                 resolve(facts, t[5:])
             except KeyError:
                 errors.append(f"no field at path {t[5:]!r} in the chart: [{t}] in {s!r}")
+        if facts is not None and (m := RANKING.search(bare)) and \
+                not any(re.match(r"fact:areas\.\w+\.contributions(\.|$)", t) for t in fact_tags):
+            errors.append(f"a ranking ({m.group(0)!r}) is the engine's: cite [fact:areas.<area>.contributions], "
+                          f"which ranks the families, not a ranking of your own: {s!r}")
         if (tags or tradition) and not re.search(r"\]\s*[.!?]?\s*$", s):
             errors.append(f"tags must end the sentence: {s!r}")
         named = families_named(s)
@@ -486,7 +502,7 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         for family in sorted(named) if family_rule else ():
             want = offered_votes.get(family)
             want = {want} if isinstance(want, str) else set(want or ())
-            if want and not want & tags:
+            if want and not want & tags and not any(_cites_family_fact(t, w) for t in fact_tags for w in want):
                 shown = " or ".join(f"[{t}]" for t in sorted(want))
                 errors.append(f"names the {family} family but does not cite {shown}: {s!r}")
         for kind, rx in FORBIDDEN.items():
@@ -917,7 +933,10 @@ Think the chart through before you write: for each area, read its findings and t
 fields, test each reading against the others, and only then write. Besides the claims, write for \
 each area `analysis`, in three parts.
 - `assessment`: weigh the evidence for and against the area. Name the strongest support and the \
-weakest, and say from which facts. Where families or schools disagree (a vote against the others, \
+weakest, and say from which facts. The ranking of the families is the engine's: \
+chart.areas.<area>.contributions ranks them by what each adds and names the strongest and the \
+weakest, so a sentence saying "the strongest support" or "the weakest point" cites \
+[fact:areas.<area>.contributions] and never a ranking of your own. Where families or schools disagree (a vote against the others, \
 an area's own house low by Bhava Bala while its lord is dignified, a cusp's sub-lord against its \
 house), resolve the contradiction explicitly: say which side you give more weight and on which \
 fact, or that the facts leave it open. Then rank what matters most for this area, most first.

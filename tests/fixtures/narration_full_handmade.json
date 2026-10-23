@@ -10,7 +10,7 @@
      "claims": [],
      "paragraph": null,
      "analysis": {
-      "assessment": "The strongest support is Mars in its own sign [fact:planets.Mars.dignity]. Mars is in its own sign in the 7th, so Mars is dignified in a kendra [fact:planets.Mars.dignity] [fact:planets.Mars.house]. Phaladeepika holds that a lord of the tenth in its own sign in a kendra gives a career of authority [tradition:Phaladeepika 10].",
+      "assessment": "The strongest support is the lord family [fact:areas.career.contributions.strongest]. Mars is in its own sign in the 7th, so Mars is dignified in a kendra [fact:planets.Mars.dignity] [fact:planets.Mars.house]. Phaladeepika holds that a lord of the tenth in its own sign in a kendra gives a career of authority [tradition:Phaladeepika 10].",
       "timing": "Mars's own major period is laid out by the engine [fact:vimshottari.periods.Mars].",
       "not_said": "The KP family abstains on career [fact:areas.career.votes.kp.vote]."
      }

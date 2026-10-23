@@ -276,3 +276,17 @@ showed three more fields that were opaque: the tara is now `tara_from_moon`, a t
 has `rank_of_12` (the 10th is 12th of 12 under whole signs on the reference chart), and each area
 names its `main_karaka`. The payload measures 402,380 characters on the reference chart (from
 356,177), the stability objects most of the growth.
+
+**Rank the families.** Each area's payload has `contributions`: every family with a term in the
+area score (house; lord, whose vote reads the lord and dispositor terms together; karaka; varga;
+panchanga), its term, its confluence weight, the two multiplied and signed, its vote, its share of
+the applicable weight (every family that voted or abstained) and its rank; the vote-only families
+(arudha, KP: they count toward the tier by weight and add no term) apart; the strongest and the
+weakest named; the families against and abstaining; and the score's non-family terms (rules,
+Navatara). On the reference chart the lord family is the strongest in career, marriage and
+longevity, so B's refused "the strongest support is in the lords" is now a stated fact. The
+prompt says a sentence naming "the strongest support" or "the weakest point" cites
+`[fact:areas.<area>.contributions]`, never a ranking of its own, and the validator holds it to that
+(also "least support"). A fact stating an area's votes or contributions satisfies item 11's family
+rule for the families it states (B's attempt 2 refused "the votes for this area weigh houses,
+lords, karakas … [fact:areas.longevity.votes]"); another area's vote does not.

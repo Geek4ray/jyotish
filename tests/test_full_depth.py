@@ -19,7 +19,7 @@ from jyotish.uncertainty import assess
 AS_OF = date(2026, 10, 21)
 QUESTION = "How will my career go?"
 
-ASSESSMENT = ("The strongest support is Mars in its own sign [fact:planets.Mars.dignity]. "
+ASSESSMENT = ("The strongest support is the lord family [fact:areas.career.contributions.strongest]. "
               "Mars is in its own sign in the 7th, so Mars is dignified in a kendra "
               "[fact:planets.Mars.dignity] [fact:planets.Mars.house].")
 TIMING = "The current Vimshottari period is Jupiter-Mercury-Mercury [fact:vimshottari.current]."
@@ -222,7 +222,7 @@ def test_the_page_shows_the_analysis_and_the_writers_settings(chart):
     for heading in ("### Assessment", "### Timing", "### What the chart does not say"):
         assert heading in career
     assert career.index("### Assessment") < career.index("### Timing") < career.index("### What the chart does not say")
-    assert "The strongest support is Mars in its own sign[^" in career
+    assert "The strongest support is the lord family[^" in career
 
 
 def test_the_command_reproduces_the_writers_settings(tmp_path):
@@ -338,3 +338,39 @@ def test_tradition_sentences_are_counted_in_neither_checked_text_nor_synthesis(c
 def test_the_prompt_offers_the_tradition_tag_at_full_depth_only():
     assert "[tradition:<text> <chapter>]" in system_prompt("full")
     assert "[tradition:" not in system_prompt("astrologer") and "[tradition:" not in system_prompt("curious")
+
+
+# --- the ranking is the engine's -----------------------------------------------------------------
+
+@pytest.mark.parametrize("sentence", [
+    "The strongest support is in the lords [vote:career.lord].",
+    "The weakest point is the varga family [fact:areas.career.votes.varga.vote].",
+    "The least support comes from the 10th itself [fact:bhava_bala.whole_sign.H10.rank_of_12].",
+])
+def test_a_ranking_must_cite_the_engines_contributions(chart, sentence):
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range, validate
+    whole = payload(chart, AS_OF, *full_range(AS_OF), ["career"])
+    errs = validate(sentence, {"vote:career.lord"}, facts=whole, family_rule=False)
+    assert any("a ranking" in e and "contributions" in e for e in errs), errs
+    fixed = sentence.split(" [")[0] + " [fact:areas.career.contributions]."
+    assert not [e for e in validate(fixed, set(), facts=whole, family_rule=False) if "a ranking" in e]
+
+
+def test_the_prompt_sends_the_ranking_to_the_contributions():
+    assert "[fact:areas.<area>.contributions] and never a ranking of your own" in system_prompt("full")
+
+
+def test_a_votes_or_contributions_fact_stands_for_the_vote_tags_it_states(chart):
+    """B's attempt 2 refused a sentence naming every family and citing the area's votes as a fact."""
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range, offered_votes, validate
+    whole = payload(chart, AS_OF, *full_range(AS_OF), ["longevity", "career"])
+    votes = offered_votes(chart, ["longevity"])["longevity"]
+    b = ("The votes for this area weigh houses, lords, karakas, vargas, the arudha and the panchanga "
+         "[fact:areas.longevity.votes].")
+    assert validate(b, set(), offered_votes=votes, facts=whole) == []
+    one = "The lord vote is for longevity [fact:areas.longevity.votes.lord.vote]."
+    assert validate(one, set(), offered_votes=votes, facts=whole) == []
+    other = "The lord vote is for longevity [fact:areas.career.votes.lord.vote]."     # another area's vote
+    assert any("does not cite [vote:longevity.lord]" in e for e in validate(other, set(), offered_votes=votes, facts=whole))
