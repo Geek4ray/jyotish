@@ -32,8 +32,12 @@ terms, its fired rules and its window activation.
    at the slow movers' ingresses, joint = 0.6 q + 0.4 t) over the life to --as-of, the active ones
    the best third of the life by joint (jyotish.cohort). Compared with coverage-matched random
    windows (each subject's own activation pattern shifted round their lifetime).
-5. Abstention: an area with no score, or one whose accuracy class cannot pass the stability gate
-   (approximate, unknown), is an abstention. Every number carries its coverage.
+5. Abstention: the engine's own gate. With --stability-samples (200 by default on a real cohort)
+   the Layer 1b sampler runs per chart and an area whose tier holds in under half the birth-time
+   samples, what the engine would not narrate, is an abstention, as is one with no score; without
+   the sampler (0: the synthetic harness, whose births are all exact) the accuracy class stands in
+   (approximate and unknown abstain), and the report says which gate it used. Every number carries
+   its coverage.
 6. Per-rule effects with intervals, and the powered-null rule: classical_rejected is recommended
    only when power >= 0.8 for a 5-point lift at alpha 0.01 and the effect is not significant;
    otherwise the rule is not_testable_yet.
@@ -85,9 +89,10 @@ MAX_AGE = 120
 
 # --- the cohort -----------------------------------------------------------------------------------
 
-def features_for(births: dict[str, dict], workers: int | None = None, until: str | None = None) -> dict[str, dict]:
+def features_for(births: dict[str, dict], workers: int | None = None, until: str | None = None,
+                 stability_samples: int = 0) -> dict[str, dict]:
     from jyotish.cohort import features_for as f
-    return f(births, workers, until)
+    return f(births, workers, until, stability_samples)
 
 
 @dataclass
@@ -97,10 +102,11 @@ class Cohort:
     features: dict[str, dict]                  # birth key -> chart_features
     synthetic: bool = False
     as_of: str | None = None                   # the day every life is closed on (window activation)
+    stability_samples: int = 0                 # the sampler's n per chart (0: the accuracy class stands in)
 
 
 def load_cohort(database_url: str, features: dict | None = None, synthetic: bool = False,
-                as_of: date | None = None) -> Cohort:
+                as_of: date | None = None, stability_samples: int = 0) -> Cohort:
     from jyotish.api import EventRow, SubjectRow
     from jyotish.cache import birth_key_of_record
     from jyotish.outcomes import sessionmaker_for
@@ -116,10 +122,10 @@ def load_cohort(database_url: str, features: dict | None = None, synthetic: bool
                      "source": x.source, "decade": int(str(x.birth["date"])[:3] + "0"), "household": x.household_key,
                      "cluster": x.birthplace_cluster, "birth": x.birth} for x in subs]
     have = dict(features or {})
-    need = {x["birth_key"]: x["birth"] for x in subjects if x["birth_key"] not in have}
+    need = {x["birth_key"]: dict(x["birth"], accuracy=x["accuracy"]) for x in subjects if x["birth_key"] not in have}
     day = (as_of or date.today()).isoformat()
-    have.update(features_for(need, until=day))
-    return Cohort(subjects, evs, have, synthetic, day)
+    have.update(features_for(need, until=day, stability_samples=stability_samples))
+    return Cohort(subjects, evs, have, synthetic, day, stability_samples)
 
 
 # --- splits ---------------------------------------------------------------------------------------
@@ -603,7 +609,11 @@ def area_rows(cohort: Cohort, area: str, ids: set[str]) -> list[dict]:
         if o is None:
             continue
         f = cohort.features[s["birth_key"]]["areas"][area]
-        abstain = f["score"] is None or f["tier"] == "needs two charts" or s["accuracy"] in ABSTAIN_ACCURACY
+        # The engine's gate when the sampler ran (narrate False: the tier holds in under half the
+        # samples); the accuracy class stands in when it did not (narrate None).
+        gated = f.get("narrate")
+        abstain = (f["score"] is None or f["tier"] == "needs two charts" or gated is False
+                   or (gated is None and s["accuracy"] in ABSTAIN_ACCURACY))
         out.append(dict(o, id=s["id"], sex=s["sex"], region=s["region"], decade=s["decade"], tier=f["tier"],
                         score=f["score"], terms=f["terms"], votes=f.get("votes", {}), active=f["active"],
                         abstain=abstain, stratum=stratum(s), household=s.get("household") or f"s:{s['id']}"))
@@ -649,6 +659,8 @@ def run(cohort: Cohort, sequestered_file: Path = SEQUESTERED, score_sequestered:
     dev = {s["id"] for s in dev_subjects}
     fold_of = dict(zip([s["id"] for s in dev_subjects], folds(dev_subjects, seed))) if len(dev_subjects) >= K else {}
     res = {"date": date.today().isoformat(), "as_of": cohort.as_of, "synthetic": cohort.synthetic, "n_subjects": len(ids),
+           "abstention": ({"gate": "stability", "samples": cohort.stability_samples} if cohort.stability_samples
+                          else {"gate": "accuracy_class"}),
            "n_sequestered": len(seq), "n_development": len(dev), "folds": int(len(set(fold_of.values()))),
            "areas": {}, "rules": {}, "hashes": hashes(seq_meta), "score_sequestered": score_sequestered}
     gid = dict(zip([s["id"] for s in dev_subjects], groups_of(dev_subjects)))
@@ -780,7 +792,11 @@ def report(res: dict, label: str = "") -> str:
          f"- split definition `{h['split_definition']}` ({json.dumps(h['split'])})", f"- analysis code `{h['analysis_code']}`", "",
          f"## {syn}Lift of the tier, per area (tests 2 and 5)", "",
          "Positive prediction: tier strong or moderate. n is the predicted charts with the outcome recorded; coverage "
-         "is their share of all charts with it (the rest abstain).", "",
+         "is their share of all charts with it (the rest abstain). "
+         + (f"Abstention is the engine's gate: an area whose tier holds in under half of {res['abstention']['samples']} "
+            "birth-time samples, what the engine would not narrate (SPEC test 5)."
+            if res.get("abstention", {}).get("gate") == "stability" else
+            "Abstention is by accuracy class (approximate, unknown), the gate's stand-in: the sampler did not run."), "",
          "| area | n | coverage | base rate | lift | 95% CI | p (permutation) | BH p | survives | power (5 pt, α 0.01) |",
          "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for area, a in res["areas"].items():
@@ -877,8 +893,11 @@ def main(argv=None) -> int:
     ap.add_argument("--json", help="also write the results as JSON")
     ap.add_argument("--as-of", help="the day every life is closed on for window activation (default today)")
     ap.add_argument("--registry", default=str(REGISTRY), help="the split's registry (a real cohort; commit it)")
+    ap.add_argument("--stability-samples", type=int, default=200,
+                    help="the sampler's birth times per chart for the abstention gate (0: the accuracy class stands in)")
     a = ap.parse_args(argv)
-    cohort = load_cohort(a.database, synthetic=a.synthetic, as_of=date.fromisoformat(a.as_of) if a.as_of else None)
+    cohort = load_cohort(a.database, synthetic=a.synthetic, as_of=date.fromisoformat(a.as_of) if a.as_of else None,
+                         stability_samples=a.stability_samples)
     res = run(cohort, Path(a.sequestered), a.score_sequestered, registry=Path(a.registry))
     Path(a.out).write_text(report(res))
     if a.json:

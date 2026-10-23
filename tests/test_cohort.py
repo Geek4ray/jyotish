@@ -121,6 +121,20 @@ def test_a_third_of_the_life_is_active_and_inside_it(b):
         assert sum(y - x for x, y in a["active"]) == pytest.approx(a["active_share"] * age, abs=0.02)
 
 
+def test_the_stability_gate_rides_with_the_features():
+    b = _birth(BIRTHS[0])
+    f = chart_features(dict(b, accuracy="exact"), until=UNTIL.isoformat(), stability_samples=12)
+    scored = {k: a for k, a in f["areas"].items() if a["score"] is not None}
+    assert f["stability_samples"] == 12 and scored
+    assert all(0.0 <= a["stability_time"] <= 1.0 and isinstance(a["narrate"], bool) for a in scored.values())
+    assert sum(a["narrate"] for a in scored.values()) >= len(scored) - 2             # +-2 minutes moves little
+    g = chart_features(dict(b, accuracy="unknown"), until=UNTIL.isoformat(), stability_samples=12)
+    assert any(a["narrate"] is False for a in g["areas"].values() if a["score"] is not None)   # a day's window
+    plain = chart_features(b, until=UNTIL.isoformat())
+    assert plain["stability_samples"] == 0
+    assert all(a["narrate"] is None and a["stability_time"] is None for a in plain["areas"].values())
+
+
 def test_the_reference_charts_career_activation(chart):
     f = chart_features(_birth(BIRTHS[0]), until=UNTIL.isoformat())
     career = f["areas"]["career"]

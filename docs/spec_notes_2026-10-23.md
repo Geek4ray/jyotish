@@ -77,9 +77,22 @@ commit that did it, for Ray to port. Line numbers are SPEC.md's at rev 101.
   before checking; summaries and paragraphs are exempt (4699460). The two benchmark rows the checker
   could never catch are caught; the validator's recall on the benchmark is 0.243.
 
-## Standing differences the code does not settle
+## Two differences decided on 2026-10-23
 
-- Line 564 says the Sun in PurvaBhadra is the 12th from Chitra, "Desha"; `constants.SPECIAL_TARAS`
-  has jati at 26 and desha at 27 and nothing at 12 (2228f41, before the review's range). One of the
-  two should change.
-- Line 558 names the sign loop "Venus–Jupiter"; the engine names it "Jupiter–Venus" (graha order).
+- Line 564 (the Sun in PurvaBhadra "the 12th (Desha)", "27th (Jati)") against the engine's Jati 26 and
+  Desha 27: the special taras are now a setting, `Meta.special_taras`. The default, `desha_27`, is the
+  common modern list (Jagannatha Hora's among them: Jati 26, Desha 27); the SPEC's reading is kept as
+  `desha_12` (Desha 12, Jati 27), so nothing the doc says is lost. Neither is read in a named edition.
+  The doc should say the Sun's 12th is a special tara only under the second scheme, or name a text
+  for the 12th. (SPECIAL_TARAS predates the review's range: 2228f41.)
+- Line 558 ("the Venus–Jupiter loop"): one name everywhere now, the loop read from the planet
+  earliest in graha order, in the chart object, the chain findings and the chart page: Jupiter–Venus.
+  The `houses` beside it read in the same order (Jupiter in the 1st, Venus in the 11th: [1, 11]).
+
+## Still standing
+
+- Abstention (test 5) now follows the engine's gate when `--stability-samples` runs the sampler
+  (200 by default on a real cohort); the synthetic harness keeps the accuracy class as the gate's
+  stand-in, and every report says which gate it used.
+- The facts shown beside a sentence are stored with the edit (`reviews.facts`) and the export reads
+  them, recomputing (and saying so) only for rows from before.

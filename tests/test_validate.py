@@ -163,6 +163,21 @@ def test_the_analysis_code_hash_covers_the_feature_code(V, tmp_path, monkeypatch
     assert V.hashes(meta)["analysis_code"] == before
 
 
+def test_abstention_follows_the_engines_gate_when_the_sampler_ran(V):
+    def cohort(narrate, accuracy):
+        subj = {"id": "S1", "chart_id": "c", "birth_key": "b", "sex": "female", "region": "r", "accuracy": accuracy,
+                "source": "file", "decade": 1980, "household": None, "cluster": None, "birth": {}}
+        area = {"score": 1.0, "tier": "strong", "confidence": 0.9, "terms": {}, "votes": {}, "active": [],
+                "active_share": 0.0, "stability_time": {False: 0.4, True: 1.0, None: None}[narrate], "narrate": narrate}
+        return V.Cohort([subj], {"S1": [{"type": "first_marriage", "age": 25.0, "censor": 40.0, "value": None}]},
+                        {"b": {"areas": {"marriage": area}, "rules": []}})
+    row = lambda narrate, acc: V.area_rows(cohort(narrate, acc), "marriage", {"S1"})[0]
+    assert row(False, "exact")["abstain"] is True                     # the gate shut: the engine would not narrate
+    assert row(True, "approximate")["abstain"] is False               # the gate open outranks the accuracy class
+    assert row(None, "approximate")["abstain"] is True                # no sampler: the accuracy class stands in
+    assert row(None, "exact")["abstain"] is False
+
+
 def test_the_delong_cell_marks_a_fall(V):
     assert V._delong_cell({"delong_p": 0.012, "auc_covariates": 0.494, "auc_with_engine": 0.487}) == "0.0120 (AUC fell)"
     assert V._delong_cell({"delong_p": 0.012, "auc_covariates": 0.494, "auc_with_engine": 0.540}) == "0.0120"

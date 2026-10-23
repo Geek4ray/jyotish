@@ -35,7 +35,8 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 1. Astrological conventions are settings, not silent choices: ayanamsa, node type (the
    reference app uses the **mean** node), house system, dasha year length, karaka scheme,
    node aspects. Every new convention goes in `constants.py` with its text source and,
-   if texts disagree, a comment saying so and a setting.
+   if texts disagree, a comment saying so and a setting. (The special taras are one: `Meta.special_taras`,
+   `desha_27` by default, `desha_12` the SPEC's reading.)
 2. No placeholder values in the chart object. A field exists only when a layer produces
    it (see `models.py`). Illustrative numbers belong in SPEC.md, labelled, never in code.
 3. Floating-point sign and nakshatra boundaries: use the `lon * 27 / 360` style
@@ -167,8 +168,9 @@ and 10 over the database: a salted-hash sequestered 25% by household (a househol
 side) frozen in data/sequestered.txt (gitignored) and registered by its salt's hash in
 docs/pre_registration.json, which also logs every scoring of the sequestered cohort; grouped
 stratified K-fold; test 4's activation is the engine's own windows (the timing join's pieces over the
-life, the best third by joint, `jyotish.cohort`); test 8 compares the schools' vote sums per area;
-docs/validation.md. Chart features for cohorts come from `jyotish.cohort`. `scripts/synthetic_cohort.py` makes planted and null cohorts;
+life, the best third by joint, `jyotish.cohort`); test 8 compares the schools' vote sums per area; abstention (test 5) is the engine's own gate when
+`--stability-samples` runs the sampler per chart (200 by default on a real cohort), the accuracy class
+standing in without it; docs/validation.md. Chart features for cohorts come from `jyotish.cohort`. `scripts/synthetic_cohort.py` makes planted and null cohorts;
 the suite runs them at small N, and the harness at 2,000 and 20,000, writing
 docs/validation_synthetic_*.md (every heading says synthetic).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

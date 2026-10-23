@@ -69,18 +69,27 @@ def active_windows(pieces: list[dict], start_jd: float, end_jd: float, jd0: floa
     return [((a - jd0) / 365.25, (b - jd0) / 365.25) for a, b in merged], covered / total
 
 
-def chart_features(birth: dict, until: str | None = None) -> dict:
+def chart_features(birth: dict, until: str | None = None, stability_samples: int = 0) -> dict:
     """Everything the tests read from one chart: per area its score, tier, confidence, votes and
     terms, and the ages at which the engine's windows are active, from birth to `until` (today
-    by default: no event is later); and the rules that fired. Top level, so a process pool can
-    run it."""
+    by default: no event is later); and the rules that fired. With `stability_samples` the Layer
+    1b sampler runs with that many birth times from the accuracy class's posterior
+    (`birth["accuracy"]`, exact by default), and each area carries the time-stability of its tier
+    and whether the engine would narrate it (`narrate`, the stability gate of SPEC test 5); without,
+    those are None and the tests fall back to the accuracy class. Top level, so a process pool
+    can run it."""
     from jyotish.chart import compute
     from jyotish.scoring import AREAS
     from jyotish.service import birth_utc
     from jyotish.timing import slices, window_pieces
     utc, _ = birth_utc(birth["date"], birth["time"], birth["tz"])
-    c = compute(utc, float(birth["lat"]), float(birth["lon"]), true_node=(birth.get("node") or "mean") == "true",
-                dasha_levels=2)
+    true_node = (birth.get("node") or "mean") == "true"
+    if stability_samples > 0:
+        from jyotish.uncertainty import assess
+        c = assess(utc, float(birth["lat"]), float(birth["lon"]), true_node=true_node, n=stability_samples,
+                   time_accuracy=birth.get("accuracy") or "exact")
+    else:
+        c = compute(utc, float(birth["lat"]), float(birth["lon"]), true_node=true_node, dasha_levels=2)
     jd0 = c.meta.jd
     day = date.fromisoformat(until) if until else date.today()
     end_jd = _jd(day)
@@ -97,15 +106,20 @@ def chart_features(birth: dict, until: str | None = None) -> dict:
             active, share = active_windows(pieces, jd0, end_jd, jd0)
         out["areas"][name] = {"score": a.score_classical, "tier": a.tier, "confidence": a.confidence,
                               "votes": dict(a.votes), "terms": dict(sorted(a.terms.items())),
-                              "active": active, "active_share": share}
+                              "active": active, "active_share": share,
+                              "stability_time": a.stability.time if a.stability is not None else None,
+                              "narrate": a.narrate if a.stability is not None else None}
+    out["stability_samples"] = stability_samples
     return out
 
 
-def features_for(births: dict[str, dict], workers: int | None = None, until: str | None = None) -> dict[str, dict]:
-    """birth key -> features, computed in a process pool; `until` closes every life on one day."""
+def features_for(births: dict[str, dict], workers: int | None = None, until: str | None = None,
+                 stability_samples: int = 0) -> dict[str, dict]:
+    """birth key -> features, computed in a process pool; `until` closes every life on one day;
+    `stability_samples` runs the sampler per chart (see chart_features)."""
     keys = list(births)
     workers = workers or min(8, os.cpu_count() or 1)
-    f = partial(chart_features, until=until)
+    f = partial(chart_features, until=until, stability_samples=stability_samples)
     if workers <= 1 or len(keys) < 50:
         return {k: f(births[k]) for k in keys}
     with ProcessPoolExecutor(max_workers=workers) as ex:
