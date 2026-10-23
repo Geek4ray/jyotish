@@ -395,7 +395,7 @@ def test_a_judgement_is_known_by_its_form(sentence, weighs):
     assert is_judgement(sentence) is weighs
 
 
-def test_a_judgement_goes_to_the_checker_for_its_premises_only(chart):
+def test_a_judgement_goes_to_the_checker_marked_and_with_its_facts(chart):
     stub = SynthesisStub({"Mars is dignified in a kendra": True})
     r = run(chart, draft(assessment=ASSESSMENT + " " + JUDGE), checker=stub)
     data = dict(stub.calls)[JUDGE]
@@ -404,7 +404,8 @@ def test_a_judgement_goes_to_the_checker_for_its_premises_only(chart):
     a = r.areas[0]
     assert a.analysis["assessment"].endswith(JUDGE) and a.judgements == [{"section": "assessment", "sentence": JUDGE}]
     assert r.judgement_sentences == 1 and r.synthesis_sentences == 1        # the kendra sentence only
-    assert "`judgement` true" in CHECKER_PROMPT and "do not list the weighing itself" in CHECKER_PROMPT
+    assert "`judgement` true" in CHECKER_PROMPT and "List every proposition in it" in CHECKER_PROMPT
+    assert "Only the weighing itself may stand unverified" in CHECKER_PROMPT
 
 
 def test_a_judgement_with_a_false_premise_is_refused(chart):
@@ -421,7 +422,7 @@ def test_a_judgement_with_a_false_premise_is_refused(chart):
 
 @pytest.mark.parametrize("sentence,needle", [
     ("I weigh the lords above the arudha.", "cites the findings and facts it weighs"),
-    ("I weigh Venus at 1.33 above Saturn [vote:career.lord].", "only by citing the fact"),
+    ("I weigh Venus at 1.33 above Saturn [vote:career.lord].", "a figure ('1.33')"),
     ("I give the lords more weight, since career support is strong [fact:areas.career.contributions].", "tier language"),
 ])
 def test_a_judgement_keeps_to_its_limits(chart, sentence, needle):
@@ -578,3 +579,91 @@ def test_the_saving_on_a_replay_of_b():
     assert m["last_attempt_units_saved"] > 0 and m["last_attempt_characters_saved"] > 0
     assert sec["attempts"][1]["checker_calls"] > 0 == whole["attempts"][1]["checker_calls"]   # attempt 2 now checked
     assert sec["units_held"] >= whole["units_held"] and sec["gaps"] <= whole["gaps"]
+
+
+
+# --- the review of 2026-10-23 (docs/review_2026-10-23_depth_full.md), F1 and F2: the gate -------------
+
+@pytest.fixture(scope="module")
+def whole(chart):
+    from jyotish.fullchart import payload
+    from jyotish.narrate import full_range
+    return payload(chart, AS_OF, *full_range(AS_OF), ["career", "marriage", "longevity"])
+
+
+def _section_errors(sentence, whole):
+    from jyotish.narrate import validate_summary
+    return validate_summary(sentence, {"vote:career.lord", "vote:career.house"}, facts=whole, family_rule=False,
+                            traditions=True, judgements=True, where="career assessment")
+
+
+@pytest.mark.parametrize("sentence,needle", [
+    # F1's probes, each passed by the validator before the fix
+    ("I read Saturn's place in Taurus as its exaltation, so career rises sharply after forty "
+     "[fact:planets.Saturn.sign].", "dignity word ('exaltation')"),
+    ("I give the lord family more weight, since Saturn is exalted in the 10th [fact:areas.career.contributions].",
+     "dignity word ('exalted')"),
+    ("I resolve the contradiction toward a job change in 2031 [fact:vimshottari.periods.Jupiter-Venus].",
+     "date ('2031')"),
+    ("I read the lords as the career's backbone, which peaks after forty [fact:areas.career.contributions].",
+     "no age ('after forty')"),
+    ("I weigh the karaka above the house, so career rises [fact:areas.career.contributions].", "outcome ('rises')"),
+    ("I give the lord family more weight in the Saturn period [fact:areas.career.contributions].", "period ('period')"),
+])
+def test_a_judgement_states_no_chart_proposition_its_facts_do_not(whole, sentence, needle):
+    errs = _section_errors(sentence, whole)
+    assert any(needle in e for e in errs), errs
+
+
+def test_a_judgement_within_its_limits_passes(whole):
+    ok = ("I give the lord family more weight than the arudha vote, since the lord family ranks first "
+          "[fact:areas.career.contributions.strongest] [fact:areas.career.votes.arudha.vote].")
+    assert _section_errors(ok, whole) == []
+    exalted = "I weigh Venus, exalted in Pisces, above Saturn [fact:planets.Venus.dignity] [fact:planets.Venus.sign]."
+    assert _section_errors(exalted, whole) == []                   # the dignity word is the cited fact's
+    dated = ("I weigh the window from 2029-10-23 above the others [fact:timing.career.windows.0.start] "
+             "[fact:timing.career.windows.0].")
+    assert _section_errors(dated, whole) == []                     # the date is the cited fact's
+
+
+@pytest.mark.parametrize("sentence", [
+    "Saturn exalted in Libra, Venus debilitated in Virgo.",
+    "Marriage comes late and career peaks after forty.",
+    "Saturn owns the tenth and governs the career outright.",
+])
+def test_an_untagged_analysis_sentence_is_refused(whole, sentence):
+    """F2's probes: no listed claim verb, so the old validator let them through untagged and unchecked."""
+    errs = _section_errors(sentence, whole)
+    assert any("an analysis sentence carries the tags" in e for e in errs), errs
+
+
+def test_every_sentence_of_a_summary_is_checked_tagged_or_not(chart):
+    """At every depth: an untagged summary sentence goes to the checker with nothing to rest on."""
+    import json as _json
+    summary = "Mars is in its own sign [fact:planets.Mars.dignity]. Career looks layered."
+    stub = SynthesisStub()
+    run(chart, draft(summary=summary), checker=stub)
+    data = dict(stub.calls)
+    assert "Career looks layered." in data and _json.loads(_json.dumps(data["Career looks layered."]))["findings"] == []
+    astro = SynthesisStub()
+    w = Replay({"summary": "Career looks layered.", "areas": []})
+    narrate(chart, QUESTION, drafter=w, checker=astro, as_of=AS_OF, areas=["career"])
+    assert [x for x, _ in astro.calls] == ["Career looks layered."]
+
+
+def test_the_timing_filter_knows_ages():
+    from jyotish.narrate import validate
+    for s in ("Mars in the 7th brings success after forty [rule:yoga.ruchaka].",
+              "Ruchaka yoga works by age 35 [rule:yoga.ruchaka].",
+              "Ruchaka yoga matures in the native's forties [rule:yoga.ruchaka]."):
+        assert any("timing language" in e for e in validate(s, {"rule:yoga.ruchaka"})), s
+    assert not any("timing" in e for e in validate("Mars forms Ruchaka yoga in the 7th [rule:yoga.ruchaka].",
+                                                   {"rule:yoga.ruchaka"}))
+
+
+def test_the_checker_lists_every_proposition_of_a_judgement():
+    prompt = " ".join(CHECKER_PROMPT.split())
+    for words in ("List every proposition in it", "Only the weighing itself may stand unverified",
+                  "whether or not anything is cited for it",
+                  '"I read Saturn in Taurus as its exaltation" states that Saturn is exalted'):
+        assert words in prompt, words

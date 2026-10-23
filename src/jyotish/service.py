@@ -178,9 +178,9 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth, writer_model,
                                             writer_effort)}
     if model_fixture:
-        said = [x for x in sentences(reading.summary.text) if TAG.search(x)] + \
+        said = (sentences(reading.summary.text) if reading.summary.source == "model" else []) + \
                [c.text for a in reading.areas for c in a.claims] + \
-               [x for a in reading.areas for t in (a.analysis or {}).values() for x in sentences(t) if TAG.search(x)]
+               [x for a in reading.areas for t in (a.paragraph, *(a.analysis or {}).values()) if t for x in sentences(t)]
         update |= {"narration_source": f"fixture:{model_fixture}",
                    "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)}
     reading = reading.model_copy(update=update)

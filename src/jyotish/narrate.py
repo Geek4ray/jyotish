@@ -339,6 +339,11 @@ CLAIM_VERBS = re.compile(
     r"brings|bring|forms|form|makes|make|supports|support|favours|favors|promises|denotes|"
     r"signifies|strengthens|weakens|rules|occupies|aspects|activates|marks|points|will|"
     r"can|may|tends|tend|means|leads|lead|sits|sit|lies|holds|hold|places|place)\b", re.I)
+# An age is timing as a year is (review F1: "after forty" passed the timing filter).
+AGE = (r"\b(?:after|before|by|until|around|about|near|at|past|from|over|under)\s+(?:the\s+age\s+of\s+)?"
+       r"(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b|\bage(?:d)?\s+(?:of\s+)?\d+|"
+       r"\b(?:twenties|thirties|forties|fifties|sixties|seventies|eighties)\b|"
+       r"\b(?:after|before|by|until|around|at)\s+\d{2}\b")
 FORBIDDEN = {
     "probability": re.compile(r"\b(probability|probable|probably|likely|likelihood|unlikely|chances?|"
                               r"odds|percent)\b|\d+\s*%", re.I),
@@ -356,7 +361,7 @@ FORBIDDEN = {
     "timing": re.compile(r"\b(timing|timed|time frame|window|windows|date|dates|dated|engine|dasha|"
                          r"mahadasha|antardasha|bhukti|transits?|years?|months?|weeks?|"
                          r"january|february|march|april|june|july|august|september|october|november|"
-                         r"december)\b|\b(?:19|20)\d{2}\b", re.I),
+                         r"december)\b|\b(?:19|20)\d{2}\b|" + AGE, re.I),
     "third_party": re.compile(r"\b(mother|father|parents?|partner|spouse|wife|husband|child|children|son|"
                               r"daughter|sibling|brother|sister)s?(?:'s)?\s+(?:\w+\s+){0,2}"
                               r"(will|is going to|shall|would|must|has to|gets?|suffers?)\b", re.I),
@@ -436,6 +441,51 @@ NTH_SIGN = re.compile(r"\b(?:\d{1,2}(?:st|nd|rd|th)|first|second|third|fourth|fi
                       r"tenth|eleventh|twelfth) sign\b", re.I)
 
 
+# What a judgement may state only as its cited facts state it (review F1): its weighing is the
+# reading's, every other proposition is the chart's. A word of these kinds must appear in the value of
+# a fact the sentence cites; an age never does (the engine computes none).
+JUDGEMENT_LIMITS = {
+    "date": re.compile(r"\b(?:19|20)\d{2}(?:-\d{2}(?:-\d{2})?)?\b"),
+    "period": re.compile(r"\b(?:maha|antar)?dashas?\b|\bbhuktis?\b|\bpratyantar\w*|\bsub-?periods?\b|\bperiods?\b", re.I),
+    "dignity word": re.compile(r"\bexalt\w*|\bdebilitat\w*|\bmoolatrikona\b|\bown sign\b|"
+                               r"\b(?:friend|enemy|neutral)(?:'s|ly)?(?:\s+sign)?\b", re.I),
+    "strength word": re.compile(r"\b(?:strong\w*|weak\w*|powerful|feeble|afflict\w*|strength)\b", re.I),
+    "outcome": re.compile(r"\b(?:rises?|rising|peaks?|peaking|success\w*|succeed\w*|promotions?|wealth\w*|fame|"
+                          r"famous|prosper\w*|thrives?|fails?|failure|loss(?:es)?|gains?|late|delay\w*|den(?:y|ies|ial)|"
+                          r"marr(?:y|ies|iage comes)|divorce\w*|happ(?:y|iness)|suffer\w*|struggle\w*)\b", re.I),
+}
+JUDGEMENT_STEMS = {"dignity word": lambda w: re.sub(r"(ation|ed|s|'s|ly)$", "", w.lower().replace(" sign", "")),
+                   "strength word": lambda w: w.lower()[:5]}
+
+
+def judgement_errors(sentence: str, bare: str, cited: dict[str, Any]) -> list[str]:
+    """A judgement states a figure, a date, an age, a period, a dignity, a strength or an outcome only
+    as a fact it cites states it: the figure or the word (its stem) must be in a cited fact's value,
+    and a period word needs a cited dasha or timing field; an age is refused outright, the engine
+    computing none."""
+    text = json.dumps(cited, default=str).lower()
+    errors = []
+    for n in re.findall(r"\d+(?:\.\d+)?", bare):
+        if not re.search(rf"(?<![\d.]){re.escape(n)}(?![\d])", text):
+            errors.append(f"a weighing states a figure ({n!r}) that no fact it cites states: cite the fact that "
+                          f"states it: {sentence!r}")
+            break
+    if (m := re.search(AGE, bare, re.I)):
+        errors.append(f"a weighing states no age ({m.group(0)!r}): the engine computes none: {sentence!r}")
+    for kind, rx in JUDGEMENT_LIMITS.items():
+        for m in rx.finditer(bare):
+            word = m.group(0)
+            if kind == "period":
+                ok = any(p.split(".")[0] in ("vimshottari", "yogini", "chara", "timing", "period_quality") for p in cited)
+            else:
+                ok = JUDGEMENT_STEMS.get(kind, str.lower)(word) in text
+            if not ok:
+                errors.append(f"a weighing states a {kind} ({word!r}) that no fact it cites states: the weighing "
+                              f"is the reading's, every other proposition is the chart's and must be cited: {sentence!r}")
+                break
+    return errors
+
+
 def is_judgement(sentence: str) -> bool:
     return bool(JUDGEMENT.search(TRADITION.sub("", TAG.sub("", sentence))))
 
@@ -492,14 +542,17 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
         tradition = bool(TRADITION.search(s))
         if CLAIM_VERBS.search(bare) and not tags and not tradition:
             errors.append(f"untagged claim: {s!r}")
+        elif facts is not None and judgements and not tags and not tradition:
+            errors.append(f"an analysis sentence carries the tags of what it rests on (every one is checked, and "
+                          f"an untagged one rests on nothing): {s!r}")
         errors += tradition_errors(s, traditions)
         if facts is not None and is_judgement(s):
             if not judgements:
                 errors.append(f"a weighing ('I weigh', 'I give more weight') belongs in the analysis: {s!r}")
             elif not tags:
                 errors.append(f"a weighing cites the findings and facts it weighs: {s!r}")
-            elif re.search(r"\d", bare) and not fact_tags:
-                errors.append(f"a weighing states a figure or date only by citing the fact that states it: {s!r}")
+            else:
+                errors += judgement_errors(s, bare, _cited_facts(s, facts))
         if facts is not None and (m := NTH_SIGN.search(bare)):
             errors.append(f"{m.group(0)!r} reads as the zodiac's: say 'the 10th house from the lagna' and cite "
                           f"[fact:houses.lagna.10]: {s!r}")
@@ -1119,11 +1172,13 @@ its conclusion as one more. The synthesis is supported when each of its cited fa
 conclusion follows from them together; reject the conclusion when it does not follow from them \
 together, and always when none of its cited findings or facts supports it. When the data has \
 `judgement` true, the sentence is the reading's weighing ("I weigh …", "I give more weight to …", \
-"I read … as …"): list only the premises it takes from its cited findings and facts, each \
-supported when it is true and stated as the fact states it; do not list the weighing itself \
-(what the reading gives more weight to, how it reads a fact, which way it resolves a \
-contradiction), which is shown as the reading's judgement and is never checked. Ignore the \
-bracketed citation tags."""
+"I read … as …"). List every proposition in it, as for any sentence. Each proposition about the \
+chart (a placement, a dignity, a strength, a date, an age, a period, an outcome, and how a fact is \
+read: "I read Saturn in Taurus as its exaltation" states that Saturn is exalted) must be stated by \
+a cited finding or fact, and is unsupported otherwise, whether or not anything is cited for it. \
+Only the weighing itself may stand unverified: which side the reading gives more weight to, or \
+what it makes of the cited facts taken together; list it with evidence "the weighing" and mark it \
+supported. Ignore the bracketed citation tags."""
 
 
 def _meta(response, kind: str, effort: str, started: float | None = None) -> dict:
@@ -1511,13 +1566,16 @@ def _check_data(f: dict) -> dict:
 
 def _summary_checks(summary: str, finding_data: dict[str, dict],
                     facts: dict | None = None) -> list[tuple[str, list[str], str]]:
-    """(sentence, finding ids, data) for each summary sentence that cites a tag: the data is
-    the union of the derivations of every finding offering one of its tags, and at depth full
-    the value of every fact it cites."""
+    """(sentence, finding ids, data) for every sentence of a summary, paragraph or section, tagged
+    or not (review F2: an untagged sentence with no listed claim verb used to reach the page
+    unchecked): the data is the union of the derivations of every finding offering one of its tags,
+    and at depth full the value of every fact it cites; an untagged sentence is checked against
+    nothing, so it passes only if it asserts nothing about the chart. A [tradition:] sentence is
+    never checked."""
     out = []
     for s in sentences(summary):
         tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
-        if not tags or TRADITION.search(s):              # a [tradition:] sentence is never checked
+        if TRADITION.search(s):
             continue
         ids = [fid for fid, f in finding_data.items() if tags & set(f["allowed_tags"])]
         data: dict[str, Any] = {"findings": [_check_data(finding_data[i]) for i in ids]}

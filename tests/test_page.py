@@ -56,7 +56,10 @@ def test_full_page_with_a_claim_for_every_finding_in_every_area(chart):
     """The whole renderer, learner section included, over every finding the engine offers in
     all 18 areas (claims stand in for the model's sentences; the page renders their tags)."""
     blank = ReadingDraft(summary="Overview.", areas=[])
-    reading = narrate(chart, "Tell me about my chart", drafter=lambda *_: blank, checker=lambda *_: None,
+    # Every summary sentence is checked, tagged or not (review F2): the stub supports all of them.
+    from jyotish.narrate import CheckResult
+    reading = narrate(chart, "Tell me about my chart", drafter=lambda *_: blank,
+                      checker=lambda *_: CheckResult(propositions=[]),
                       as_of=date(2026, 10, 21), areas=list(AREAS))
     areas = []
     for a in reading.areas:

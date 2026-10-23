@@ -380,3 +380,25 @@ since there is no draft to hold. The models this depth uses take no thinking bud
 so the levers are the effort (xhigh rather than max at depth full), a task budget (beta), or a
 smaller payload. Not changed here: it is a cost-and-quality decision for Ray, and the re-run will
 show whether it recurs.
+
+## Layer 7 (Depth full) — the independent review's findings, fixed
+
+docs/review_2026-10-23_depth_full.md (condition 9 of docs/definition_of_done.md) found fourteen
+things; F1 to F13 are fixed here, most serious first, a commit per group, and F14 (the batch not
+done until its comparison is re-run and CI is green) closes with the re-run command at the end.
+
+**The gate (F1, F2).** Every sentence of a summary, a curious paragraph or an analysis section now
+goes to the checker, tagged or not, at every depth: an untagged one is checked against nothing,
+so it passes only if it asserts nothing about the chart (before, a sentence with no tag and none of
+the validator's listed verbs, "Saturn exalted in Libra, Venus debilitated in Virgo.", reached the
+page unchecked). At depth full the validator also refuses any analysis sentence without a tag. A
+judgement is no longer a door for facts: the checker lists every proposition in it as in any
+sentence, each proposition about the chart (a placement, dignity, strength, date, age, period,
+outcome, and how a fact is read: "I read Saturn in Taurus as its exaltation" states that Saturn is
+exalted) must be stated by a cited finding or fact, and only the weighing itself (which side weighs
+more, what the reading makes of the cited facts together) stands unverified. The validator refuses
+a judgement stating a figure, date, period, dignity word, strength word or outcome that no fact it
+cites states (the word or its stem must be in a cited fact's value; a period word needs a cited
+dasha or timing field), and any age outright: the engine computes none. The timing filter knows
+ages at every depth ("after forty", "by age 35", "in the forties"). The review's five probes are
+tests and are refused.
