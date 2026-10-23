@@ -207,9 +207,15 @@ def test_reading_with_gaps_shows_them_and_the_engine_summary(page, servers):
     assert page.locator("#incomplete").is_visible()
     assert page.locator('.summary[data-source="engine"] .engine-summary').is_visible()
     assert page.inner_text(".summary-text").startswith("Career: tier moderate")
+    # Counted on the client's page, never with the checker's or validator's error (the JSON has it).
     gaps = page.locator('section.area[data-area="career"] .gaps')
-    assert "Not narrated within the checks" in gaps.inner_text()
-    assert gaps.locator('li[data-finding="yoga.ruchaka@lagna+sun"]').count() == 1
+    reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams("
+                            "location.search).get('id')).then(r => r.json())")["reading"]
+    career_gaps = reading["areas"][0]["narration_gaps"]
+    assert gaps.inner_text() == f"{len(career_gaps)} parts of this area could not be written within the checks."
+    assert "yoga.ruchaka@lagna+sun" in {g["finding_id"] for g in career_gaps}
+    text = page.inner_text("#reading")
+    assert all(g["last_error"][:60] not in text for g in career_gaps) and "yoga.ruchaka@lagna+sun" not in text
     assert page.locator('section.area[data-area="career"] li.claim').count() >= 1     # the claims that passed
 
 
@@ -303,8 +309,12 @@ def test_curious_reading_on_the_site(page, curious_url):
     assert career.locator("p.paragraph").inner_text().startswith("In your chart the Sun and Mercury sit together")
     # The recording predates the placement library: its placement findings are listed as gaps,
     # every one "no claim was drafted"; nothing else is missing and every sentence was checked.
-    gaps = page.eval_on_selector_all(".gaps li", "els => els.map(e => [e.dataset.finding, e.textContent])")
-    assert gaps and all(f.startswith(("place.", "chain:")) and "no claim was drafted" in t for f, t in gaps)
+    reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams("
+                            "location.search).get('id')).then(r => r.json())")["reading"]
+    gaps = [g for a in reading["areas"] for g in a["narration_gaps"]]
+    assert gaps and all(g["finding_id"].startswith(("place.", "chain:")) and "no claim was drafted" in g["last_error"]
+                        for g in gaps)
+    assert "no claim was drafted" not in page.inner_text("#reading")             # counted, not quoted
     assert "Offline replay" not in page.inner_text("#reading")
     assert page.locator('section.area[data-area="longevity"] p.paragraph').count() == 1
     toggle = career.locator("details.astrologer")
@@ -381,8 +391,8 @@ def test_curious_paragraph_gap_opens_the_claims_on_the_site(page, curious_url):
     toggle = career.locator("details.astrologer")
     assert toggle.get_attribute("open") is not None and career.locator("li.claim").first.is_visible()
     order = career.evaluate("""el => [...el.querySelectorAll('.gap-lead, .gaps, details.astrologer')].map(e => e.className)""")
-    assert order == ["gap-lead muted", "gaps", "astrologer"]                # the gap note above the claims, once
-    assert career.locator('.gaps li[data-finding="paragraph"]').count() == 1
+    assert order == ["gap-lead muted", "gaps small muted", "astrologer"]     # the gap note above the claims, once
+    assert "the house of career" not in career.inner_text()                  # the error is never on this page
     marriage = page.locator('section.area[data-area="marriage"]')
     assert marriage.locator("details.astrologer").get_attribute("open") is None
     assert marriage.locator(".gap-lead").count() == 0
@@ -873,3 +883,27 @@ def test_the_ci_smoke_script_passes_against_a_served_app(tmp_path, monkeypatch):
     finally:
         server.should_exit = True
         thread.join(timeout=10)
+
+
+def test_the_review_page_shows_each_gap_with_its_error(browser, guided_url):
+    """The client's page counts an area's gaps; the reviewer sees each with its last error as the engine
+    gave it, under the area's quoted reading (2026-10-24, part 3)."""
+    rid, reading = new_reading(guided_url)
+    career = next(a for a in reading["areas"] if a["name"] == "career")
+    assert career["narration_gaps"]
+    rev = browser.new_context(viewport={"width": 1280, "height": 900}).new_page()
+    sign_in(rev, guided_url, rid, "tok-1")
+    # The intro is shown once per reviewer: another test of this module may have passed it already.
+    rev.wait_for_selector('#review[data-step="intro:1"], #review[data-step="match:career"]')
+    if rev.get_attribute("#review", "data-step") == "intro:1":
+        for i in (1, 2, 3):
+            at(rev, f"intro:{i}")
+            rev.keyboard.press("Enter")
+    at(rev, "match:career")
+    note = rev.locator("#guided-panel details.gaps-review")
+    assert note.locator("summary").inner_text().startswith(f"Not written within the checks ({len(career['narration_gaps'])})")
+    note.locator("summary").click()
+    items = note.locator("li").evaluate_all("els => els.map(e => [e.dataset.finding, e.textContent])")
+    assert [f for f, _ in items] == [g["finding_id"] for g in career["narration_gaps"]]
+    assert all(g["last_error"] in t for (_, t), g in zip(items, career["narration_gaps"]))
+    plain_words(rev)                                           # the page's own words stay plain

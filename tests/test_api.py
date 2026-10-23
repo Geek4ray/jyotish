@@ -109,7 +109,8 @@ def test_narration_that_never_passes_is_done_with_gaps(tmp_path):
     reading = Reading(**r["reading"])
     assert reading.summary.source == "engine" and not reading.narration_complete
     gaps = {g["finding_id"]: g for a in reading.areas for g in a.narration_gaps}
-    assert "yoga.ruchaka@lagna+sun" in gaps and "Not narrated within the checks:" in r["page"]
+    assert "yoga.ruchaka@lagna+sun" in gaps and "could not be written within the checks." in r["page"]
+    assert gaps["yoga.ruchaka@lagna+sun"]["last_error"] not in r["page"]          # the error is the JSON's
 
 
 def test_progress_shows_the_chart_line_and_a_failed_job_keeps_the_header(client, done, tmp_path):

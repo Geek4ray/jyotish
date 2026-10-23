@@ -29,6 +29,13 @@ ANALYSIS_HEADINGS = {"assessment": "Assessment", "timing": "Timing", "not_said_a
 CLIENT_LIST_HEADING = "What the chart does not decide"
 
 
+def gap_line(n: int) -> str:
+    """What the page says of an area's narration gaps. A checker's or validator's error is never
+    shown here (the page is the client's): it stays in the reading's JSON and on the review page."""
+    return ("One part of this area could not be written within the checks." if n == 1 else
+            f"{n} parts of this area could not be written within the checks.")
+
+
 class _Notes:
     """Tags -> numbered footnotes, one number per distinct tag across the page."""
 
@@ -311,9 +318,7 @@ def render(reading: Reading, chart: Chart) -> str:
             L += ["</details>", ""]
             if a.claims:
                 L += ["<details><summary>The findings, one by one</summary>", ""]
-        gaps = (["Not narrated within the checks:", ""] +
-                [f"- `{g['finding_id']}` ({g['kind']}), last error on attempt {g['attempt']}: {g['last_error']}"
-                 for g in a.narration_gaps]) if a.narration_gaps else []
+        gaps = [f"*{gap_line(len(a.narration_gaps))}*"] if a.narration_gaps else []
         if para_gap:
             L += ["The plain paragraph for this area did not pass the checks; the astrologer's reading is shown "
                   "instead.", ""] + gaps + [""]

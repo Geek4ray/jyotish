@@ -627,3 +627,18 @@ chart does not decide (part 3), then the tier line, then "The astrologer's analy
 timing, what the chart does not say) under a toggle, then the findings under theirs. A reviewer's edit
 of a depth-full paragraph is held to the same words and may cite facts. The offline suite replaces the
 layer's writer with a stub unless a test passes its own (`tests/conftest.py`).
+
+**Two audiences in "what the chart does not say" (part 3).** The section is two lists the writer fills
+separately (the schema landed with part 2, since the client's writer reads them): `not_said_client`,
+what no fact decides (the kind of work, a new employer or a new role, the partner's own life), held to
+the client's words by the validator in the first call; and `not_said_astrologer`, what the engine does
+not compute for the area or where its stamps are weak (the learned score, the house systems, the
+samples and ayanamsas, draft placements, routing by keyword). Each item is one sentence, cited and
+checked like any analysis sentence. The page and the website show the client's list under the
+paragraph, headed "What the chart does not decide", and the astrologer's under "The astrologer's
+analysis" as "What the chart does not say"; a reading made before the split shows its one list there.
+A failed unit's error is never on the client's page any more, at any depth: the Markdown page and the
+website say "One part of this area could not be written within the checks" (or "n parts"), and the
+error text stays in the reading's JSON, on the review page (under the area's quoted reading, each gap
+with its last error, for the reviewer only) and in the comparison report, which now lists each
+reading's gaps from its JSON.

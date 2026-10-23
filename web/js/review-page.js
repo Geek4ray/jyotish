@@ -217,6 +217,16 @@ function quoted(area) {
   return `<blockquote class="quoted paragraph-quote">${us.map((u) => esc(u.plain)).join(" ")}</blockquote>`;
 }
 
+// The parts of the area the writer could not get through the checks, each with its last error as the
+// engine gave it: for the reviewer only (the client's page says only that a part could not be
+// written). Marked .quoted like the reading under review: it is the engine's text, not the page's.
+function gapNote(area) {
+  const gaps = (areaOf(area) || {}).narration_gaps || [];
+  if (!gaps.length) return "";
+  return `<details class="gaps-review quoted"><summary class="small">${esc(t("gaps.summary", { n: gaps.length }))}</summary>
+    <ul class="small">${gaps.map((g) => `<li data-finding="${esc(g.finding_id)}"><code>${esc(g.finding_id)}</code>: ${esc(g.last_error)}</li>`).join("")}</ul></details>`;
+}
+
 function footer(nextLabel = t("nav.next"), { back = true } = {}) {
   return `<div class="step-nav">
     ${back ? `<button type="button" class="button secondary back">${esc(t("nav.back"))}</button>` : "<span></span>"}
@@ -252,7 +262,7 @@ const VIEWS = {
   match(s) {
     const cur = state.local.choice ?? latest(s.area, s.k);
     const own = MODE === "blind" ? latest(s.area, "blind_reading") : undefined;
-    return `${stepHead(s)}<p class="small muted">${esc(t("match.lead", { area: areaName(s.area) }))}</p>${quoted(s.area)}
+    return `${stepHead(s)}<p class="small muted">${esc(t("match.lead", { area: areaName(s.area) }))}</p>${quoted(s.area)}${gapNote(s.area)}
       ${own ? `<p class="small own">${esc(t("match.your_blind", { answer: t(`blind_reading.${own}`) }))}</p>` : ""}
       <h3 class="question">${esc(t("match.q", { area: areaName(s.area) }))}</h3>
       ${beside(s, choices(["agree", "partly", "disagree"].map((x) => [x, t(`match.${x}`)]), cur))}${footer()}`;

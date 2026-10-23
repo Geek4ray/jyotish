@@ -87,6 +87,7 @@ export const STRINGS = {
     "match.partly": "Partly",
     "match.disagree": "Disagree",
     "match.your_blind": "Your reading from the chart alone: {answer}",
+    "gaps.summary": "Not written within the checks ({n}): what was refused, as the engine gave it",
 
     "off.q": "What is off?",
     "off.hint": "Choose all that apply.",

@@ -160,7 +160,10 @@ def test_frozen_recording_gives_a_reading_with_gaps(tmp_path, capsys):
     assert {c.finding_id for c in career.claims} >= {"yoga.budhaditya@lagna", "vote:career.house"}
     md = out.with_suffix(".md").read_text()
     assert "> Narration incomplete:" in md and "*Written by the engine from its fields" in md
-    assert "Not narrated within the checks:" in md and "`yoga.ruchaka@lagna+sun` (rule)" in md
+    # The page is the client's: it counts the gaps and never shows a checker's or validator's error.
+    n = len(career.narration_gaps)
+    assert f"*{n} parts of this area could not be written within the checks.*" in md
+    assert "yoga.ruchaka@lagna+sun" not in md.split("## Learner")[0] and career.narration_gaps[0]["last_error"] not in md
 
 
 TIMING_LINE = ("Best window for career by the engine's timing score: 2029-10-23 to 2032-06-23 "
@@ -302,12 +305,13 @@ def test_curious_paragraph_gap_opens_the_claims_under_the_gap_note(tmp_path):
                 assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False))
     career = md[md.index("## Career"):md.index("## Marriage")]
     note = career.index("The plain paragraph for this area did not pass the checks")
-    assert note < career.index("Not narrated within the checks:") < career.index("- `paragraph` (paragraph)") \
-        < career.index("<details open><summary>Show the astrologer's reading") < career.index("1. ") < career.index("</details>")
-    assert career.count("Not narrated within the checks:") == 1           # listed once, above the claims
+    line = "parts of this area could not be written within the checks."
+    assert note < career.index(line) < career.index("<details open><summary>Show the astrologer's reading") \
+        < career.index("1. ") < career.index("</details>")
+    assert career.count(line) == 1 and "the house of career" not in career     # once, above the claims; no error
     marriage = md[md.index("## Marriage"):md.index("## Longevity")]
     assert "<details><summary>Show the astrologer's reading" in marriage and "did not pass the checks" not in marriage
-    assert marriage.index("</details>") < marriage.index("Not narrated within the checks:")
+    assert marriage.index("</details>") < marriage.index("could not be written within the checks.")
 
 
 def test_summary_counts_scored_rules_and_draft_placements_apart(page):

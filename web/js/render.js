@@ -171,11 +171,13 @@ function claimItem(c, notes) {
   return `<li class="claim" data-finding="${esc(c.finding_id)}"><p class="claim-text">${notes.text(c.text)}${shaky ? ` <span class="sensitive">(time-stability ${num(c.stability)}${c.stability_label ? `, ${esc(c.stability_label)}` : ""})</span>` : ""}</p>${learnerPanel(c.learner)}</li>`;
 }
 
-// Findings the writer could not narrate within the checks: named, with the last error, never hidden.
+// Parts the writer could not get through the checks: counted, never hidden, and never with the
+// checker's error, which is for the review page and the JSON only (page.gap_line says the same).
 function gapsList(gaps) {
   if (!gaps.length) return "";
-  return `<div class="gaps"><h3 class="small">Not narrated within the checks</h3><ul class="small">${gaps.map((g) =>
-    `<li data-finding="${esc(g.finding_id)}"><code>${esc(g.finding_id)}</code> (${esc(g.kind)}), last error on attempt ${num(g.attempt)}: <span class="muted">${esc(g.last_error)}</span></li>`).join("")}</ul></div>`;
+  const line = gaps.length === 1 ? "One part of this area could not be written within the checks."
+    : `${num(gaps.length)} parts of this area could not be written within the checks.`;
+  return `<p class="gaps small muted" data-gaps="${gaps.length}">${line}</p>`;
 }
 
 function conflict(sc) {
