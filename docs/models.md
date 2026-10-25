@@ -135,9 +135,28 @@ Since 2026-10-25 the narration runs on DeepInfra, with no Anthropic call: GLM-4.
 writes and writes the client's layer (the lines under (a)); depth full needs the Qwen writer. The
 repository's `.env` (gitignored) holds these lines and the key; the scripts read it, docker-compose passes
 the variables to the service, and a shell running `jyotish read` or `uvicorn` loads them with
-`set -a; . ./.env; set +a`. The writer on gpt-oss-120b has not yet been measured against the checker
-(`scripts/compare_readings.py`, the second command under Measuring); its pass rate and gaps decide whether
-it stays.
+`set -a; . ./.env; set +a`.
+
+**The writer, measured** (2026-10-25, docs/comparison_2026-10-25_open_writers.md): the reference chart at
+astrologer depth, the career question, both writers at effort medium, both checked by GLM-4.7; Opus's
+reading of the same question (docs/comparison_2026-10-23_r2.md, A) beside them.
+
+| | gpt-oss-120b | Qwen3.6-35B-A3B | Opus 5.5 under Opus (2026-10-23) |
+| --- | --- | --- | --- |
+| Claims accepted of the 37 findings offered | 37 (100%) | 36; the one gap a checker call that failed all five tries, not the writer | 37 |
+| Summary | refused every attempt (a framing clause the checker would not pass; then an untagged sentence and citations without their names): the engine's own | the writer's | the writer's |
+| Attempts, validator errors | 3, 7 | 3, 8 | 2, 0 |
+| Checker rejections | 2 | 8 | 1 |
+| Cost, USD (writer + checker) | 0.42 (0.01 + 0.41) | 0.61 (0.05 + 0.56) | 2.61 (0.63 + 1.98) |
+| Wall time | 1,950 s | 3,619 s | 176 s |
+
+gpt-oss-120b writes every claim through the checks for a cent, but not the summary, which the engine
+then writes from its fields; the checker is most of the cost and nearly all of the time: GLM-4.7 reasons
+for 100 to 200 seconds a check at effort high, so a reading takes half an hour or more. This run sent 16
+checks at once (JYOTISH_CHECKER_CONCURRENCY=16) and DeepInfra dropped connections under it: 30 retries,
+and three checks failed all five tries (unchecked; one became Qwen's gap). Keep the default of 4. A
+faster gate is the next measurement: GLM-4.7 at a lower checker effort, or another checker, each held to
+the rule on the benchmark first.
 
 ## (c) Anthropic, as before
 

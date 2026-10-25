@@ -159,3 +159,15 @@ its own table without calling a model. Against GLM-4.7, Qwen3.6-35B-A3B is worse
 (gitignored) sets the three roles; docker-compose passes JYOTISH_WRITER_BACKEND, _CHECKER_, _CLIENT_,
 JYOTISH_OPENAI_KEY and JYOTISH_CHECKER_CONCURRENCY to the service; docs/deploy.md's Fly secrets are the
 DeepInfra ones. Not yet measured: gpt-oss-120b as the writer under GLM-4.7 (scripts/compare_readings.py).
+
+**The writer under the GLM-4.7 gate (2026-10-25).** `scripts/compare_readings.py` ran gpt-oss-120b and
+Qwen3.6-35B-A3B as writers on the reference chart at astrologer depth, effort medium, both checked by
+GLM-4.7 (docs/comparison_2026-10-25_open_writers.md and its directory). gpt-oss-120b: 3 attempts, all 37
+offered findings narrated (100%), no gap, its summary refused every attempt and replaced by the engine's,
+7 validator errors and 2 checker rejections over the attempts, USD 0.42 (writer 0.01, checker 0.41),
+1,950 s. Qwen3.6-35B-A3B: 3 attempts, 36 of 37 narrated, one gap (a checker call that failed all five
+tries: unchecked), its summary the writer's, 8 validator errors and 8 checker rejections, USD 0.61,
+3,619 s. For scale, Opus under Opus on the same question (2026-10-23): 2 attempts, 37 of 37, USD 2.61,
+176 s. The checker dominates cost and time (GLM-4.7 reasons 100 to 200 s a check). The run used 16 checks
+at once and met 30 retries and 3 unchecked calls: the default of 4 for a hosted provider stands. gpt-oss-120b
+stays the configured writer; whether an engine-written summary is acceptable is Ray's call.
