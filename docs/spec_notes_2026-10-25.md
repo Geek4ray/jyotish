@@ -100,3 +100,35 @@ item 5 for a new checker), which spend tokens and are Ray's: the benchmark on De
 Qwen3.6-35B-A3B, Opus's benchmark run again on the 147 rows so the rule can be applied on every category,
 the comparison of gpt-oss-120b as writer under the Opus checker, and both on Ollama; and the independent
 review of this batch (item 9). Until a checker passes the rule, client readings keep Opus as the gate.
+
+**The OpenAI-compatible backend under load (2026-10-25, later).** The live checker benchmark against
+DeepInfra's GLM-4.7 ended in httpx.ReadError every time, while one request to the same endpoint answered.
+Reproducing with the stub server found a fault of ours: the backend kept one async client across batches,
+and each batch of checker calls runs in an event loop of its own, so a pooled keep-alive connection made
+in a closed loop failed the next batch ("Event loop is closed"; a server that closes every connection, as
+the first stub did, never shows it). The Part 1 refactor had brought the same fault to the Anthropic
+backend, whose checker had made a client per batch before. Now each batch opens its client in its own
+loop and closes it at its end (`Backend.aclose`), and the sync client is kept and reused instead of one
+per call. A request is sent again on a dropped connection (ReadError, WriteError, ConnectError,
+RemoteProtocolError), a timeout, or HTTP 429, 500, 502, 503 or 529, up to five attempts with exponential
+backoff from one second and as much again of jitter, capped at a minute, waiting what Retry-After asks;
+each retry is logged (`backend.retry`: provider, host, model, attempt, reason, wait; never the key), and a
+request that still fails is a NarrationError naming the server. A checker call that fails so fails its
+sentence alone, marked unchecked (`(unchecked)`, the reason as its evidence), and the batch carries on;
+a reading counts such sentences in `unchecked_sentences` (they failed and are not shown; the page's
+"offline replay" notice is now a replay's only). Concurrency is per provider: JYOTISH_CHECKER_CONCURRENCY
+overrides; else an OpenAI-compatible backend sends 4 at once to a hosted provider and 1 to a server on
+this machine, and Anthropic keeps CONFIG.checker_concurrency (16). A reasoning model (GLM-4.7) writes
+reasoning_content before its answer: the answer is parsed from content only (the reasoning is kept in the
+call's record), and the checker's max_tokens on an OpenAI-compatible backend is 16,000
+(`OPENAI_CHECKER_MAX_TOKENS`), room for the reasoning and the verdict. The benchmark checks in chunks and
+appends each row to data/bench_partial/<model>.jsonl as it goes (gitignored); `--resume` carries over the
+rows already checked and asks only the rest (unchecked rows are asked again), and unchecked rows are
+listed in the scorecard and left out of its scores. The comparison writes each side's reading and
+recording as it finishes; `--resume` loads a finished side instead of running it again. Both scripts read
+ANTHROPIC_API_KEY and JYOTISH_* from the gitignored .env when the environment lacks them, printing the
+names read and never a value (`jyotish.envfile`; the service never reads it). Tests with the stub server:
+a dropped connection then an answer, a 429 with Retry-After, a request failing every retry, a sentence
+failing every retry in a batch (sequential and concurrent), a reading counting it, a reply with
+reasoning_content, the concurrency defaults, a keep-alive server across three batches, and the
+benchmark's partial file and resume.

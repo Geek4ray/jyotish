@@ -157,3 +157,19 @@ def test_the_rule_passes_only_when_not_worse_on_any_category_and_waits_for_the_u
                                                                                                      "negated": 1.0}, "Opus"))
     waits = "\n".join(cb.rule_section(rows, caught, {"sign_changed": 1.0}, "Opus"))
     assert "not yet decided: the gate has no run on negated" in waits
+
+
+def test_the_scripts_env_file_sets_only_unset_keys_and_returns_names_only(tmp_path, monkeypatch):
+    from jyotish.envfile import load
+    env = tmp_path / ".env"
+    env.write_text("# a comment\nPOSTGRES_PASSWORD=not-read\nexport JYOTISH_OPENAI_KEY='sk-from-file'\n"
+                   "ANTHROPIC_API_KEY=already-there\nJYOTISH_CHECKER_CONCURRENCY=2\n")
+    # Set empty through monkeypatch (empty counts as unset for load()), so what load() sets is undone after.
+    for name in ("JYOTISH_OPENAI_KEY", "JYOTISH_CHECKER_CONCURRENCY", "POSTGRES_PASSWORD"):
+        monkeypatch.setenv(name, "")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "from-the-shell")
+    names = load(env)
+    import os
+    assert names == ["JYOTISH_OPENAI_KEY", "JYOTISH_CHECKER_CONCURRENCY"] and "sk-from-file" not in str(names)
+    assert os.environ["JYOTISH_OPENAI_KEY"] == "sk-from-file" and os.environ["ANTHROPIC_API_KEY"] == "from-the-shell"
+    assert os.environ["POSTGRES_PASSWORD"] == "" and load(tmp_path / "missing") == []

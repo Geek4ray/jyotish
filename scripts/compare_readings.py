@@ -289,6 +289,19 @@ def run(birth_data: dict, question: str, as_of: str, s: dict, replay: str | None
     return reading, page, recording, round(time.perf_counter() - t, 1), chart, chart_id, s
 
 
+def resumed(birth_data: dict, files: tuple[Path, Path], s: dict | None):
+    """A side this script finished before it was interrupted: its reading and recording as written,
+    the page rendered again from the reading (narrate.upgrade_reading fills what it lacks)."""
+    from jyotish.narrate import Reading, upgrade_reading
+    from jyotish.page import render
+    from jyotish.service import BirthInput, assess_birth
+    chart, _, chart_id = assess_birth(BirthInput(**birth_data))
+    reading = upgrade_reading(Reading(**json.loads(files[0].read_text())), chart)
+    rec = json.loads(files[1].read_text())
+    return reading, render(reading, chart), rec.get("calls", []), rec.get("wall_seconds"), chart, chart_id, \
+        rec.get("settings") or s
+
+
 def save_recording(path: Path, question: str, s: dict, recording: list, wall: float | None) -> None:
     path.write_text(json.dumps({"note": "Recorded by scripts/compare_readings.py.", "question": question, "settings": s,
                                 "wall_seconds": wall, "drafts": [c["draft"] for c in recording
@@ -342,9 +355,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--checker-a", help="A's checker backend: anthropic or openai:<url>:<model> (default: the environment's)")
     ap.add_argument("--checker-b", help="B's checker backend (the same)")
     ap.add_argument("--client-backend", help="the client's layer's backend on both sides (default: the environment's)")
+    ap.add_argument("--resume", action="store_true",
+                    help="a side whose reading and recording this script already wrote under --out is loaded, not run "
+                         "again (an interrupted comparison picks up where it stopped)")
     ap.add_argument("--live-checker", action="store_true",
                     help="with --replay-a/--replay-b: check the recorded drafts live on --checker-a/--checker-b")
     args = ap.parse_args(argv)
+    from jyotish.envfile import load as load_env
+    for name in load_env(REPO / ".env"):                  # keys from the gitignored .env; never a value printed
+        print(f"{name} read from .env", file=sys.stderr)
     if not ((args.a or args.replay_a) and (args.b or args.replay_b)):
         ap.error("name both settings (--a and --b) or both recordings (--replay-a and --replay-b)")
     birth = json.loads(args.birth) if args.birth else reference_birth()
@@ -354,6 +373,13 @@ def main(argv: list[str] | None = None) -> int:
     side.mkdir(parents=True, exist_ok=True)
     results = {}
     for key, s, replay, chk in (("a", args.a, args.replay_a, args.checker_a), ("b", args.b, args.replay_b, args.checker_b)):
+        done = side / f"{key}.reading.json", side / f"{key}.recording.json"
+        if args.resume and not replay and all(x.exists() for x in done):
+            # Written as each side finished: the comparison resumes after the last finished side.
+            reading, page, rec, wall, chart, chart_id, s = resumed(birth, done, s)
+            results[key] = (reading, page, rec, wall, chart, chart_id)
+            print(f"{key.upper()}: resumed from {done[0]}", file=sys.stderr)
+            continue
         reading, page, rec, wall, chart, chart_id, s = run(birth, args.question, args.as_of, s, replay, chk,
                                                            args.client_backend, args.live_checker and bool(replay))
         if not replay:

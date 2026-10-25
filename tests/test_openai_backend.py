@@ -27,6 +27,7 @@ class Stub:
         self.requests: list[tuple[str, dict]] = []
         self.answers: dict[str, object] = {}
         self.bad_json_first = False                     # JSON mode: the first reply is not the schema
+        self.seen: dict = {}                            # (mode, first user message) -> requests so far
 
 
 STUB = Stub()
@@ -66,10 +67,34 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _drop(self):
+        """Close the connection without an answer (the client sees the server disconnect)."""
+        import socket
+        self.close_connection = True
+        try:
+            self.connection.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+
     def do_POST(self):
         mode = self.path.strip("/").split("/")[0]
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         STUB.requests.append((mode, body))
+        first = next((m["content"] for m in body["messages"] if m["role"] == "user"), "")
+        n = STUB.seen[(mode, first)] = STUB.seen.get((mode, first), 0) + 1
+        if mode == "drop" and n == 1:
+            return self._drop()                         # the first try of each request: a dropped connection
+        if mode == "dead" or (mode == "deadone" and "DEAD" in first):
+            return self._drop()                         # every try
+        if mode == "ratelimit" and n == 1:
+            data = json.dumps({"error": {"message": "rate limited"}}).encode()
+            self.send_response(429)
+            self.send_header("Retry-After", "1")
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         fmt = (body.get("response_format") or {}).get("type")
         if mode == "none" and fmt:
             return self._send(400, {"error": {"message": f"response_format {fmt} is not supported by this server"}})
@@ -95,8 +120,12 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(b"data: " + json.dumps({"id": "s1", "choices": [], "usage": usage}).encode() + b"\n\n")
             self.wfile.write(b"data: [DONE]\n\n")
             return
+        message = {"role": "assistant", "content": content}
+        if mode == "reasoning":                          # a reasoning model: its thinking first, the answer in content
+            message["reasoning_content"] = ('Let me think. {"propositions": [{"text": "a draft", "supported": false, '
+                                            '"evidence": "thinking"}]} No, the data states it.')
         self._send(200, {"id": "r1", "model": body["model"], "usage": usage,
-                         "choices": [{"message": {"role": "assistant", "content": content}, "finish_reason": "stop"}]})
+                         "choices": [{"message": message, "finish_reason": "stop"}]})
 
 
 @pytest.fixture(scope="module")
@@ -112,6 +141,7 @@ def server():
 def fresh():
     STUB.requests.clear()
     STUB.answers.clear()
+    STUB.seen.clear()
     STUB.bad_json_first = False
 
 
@@ -236,3 +266,117 @@ def test_depth_full_on_a_local_model_is_refused_before_any_request(server, chart
     r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career"], depth="astrologer",
                 writer_backend=f"openai:{server}/schema/v1:stub-writer", checker_backend=f"openai:{server}/schema/v1:stub-checker")
     assert r.writer["model"] == "stub-writer" and STUB.requests
+
+
+# --- retries, concurrency, reasoning models (2026-10-25: the DeepInfra benchmark's ReadError) ------------
+
+@pytest.fixture
+def retries(monkeypatch):
+    """Every retry the backends log, as (event, fields)."""
+    import jyotish.logs
+    seen = []
+    monkeypatch.setattr(jyotish.logs, "event", lambda name, level=None, **f: seen.append((name, f)))
+    return seen
+
+
+def test_a_dropped_connection_is_retried_then_answered_and_logged(server, retries):
+    b = OpenAIBackend(f"{server}/drop/v1", "stub-model", api_key="sk-must-not-appear", retry_base=0.01)
+    done = ask(b)
+    assert done.parsed is not None and len(STUB.requests) == 2
+    assert [(n, f["attempt"], f["reason"], f["provider"], f["model"]) for n, f in retries] == \
+        [("backend.retry", 1, "RemoteProtocolError", "openai-compatible", "stub-model")]
+    assert "sk-must-not-appear" not in str(retries)
+
+
+def test_a_429_waits_what_retry_after_asks(server, retries):
+    import time
+    b = OpenAIBackend(f"{server}/ratelimit/v1", "stub-model", retry_base=0.01)
+    t = time.perf_counter()
+    done = ask(b)
+    assert done.parsed is not None and time.perf_counter() - t >= 1.0     # Retry-After: 1, not the 0.01 s backoff
+    assert retries[0][1]["reason"] == "HTTP 429" and retries[0][1]["wait_s"] == 1.0
+
+
+def test_a_request_that_fails_every_retry_is_an_error_naming_the_server(server, retries):
+    b = OpenAIBackend(f"{server}/dead/v1", "stub-model", retry_base=0.01)
+    with pytest.raises(NarrationError, match=r"127\.0\.0\.1:\d+ did not answer after 5 attempts \(model stub-model\)"):
+        ask(b)
+    assert len(STUB.requests) == 5 and [f["attempt"] for _, f in retries] == [1, 2, 3, 4]
+
+
+@pytest.mark.parametrize("concurrency", ["1", "4"])
+def test_a_sentence_that_fails_every_retry_fails_alone_as_unchecked(server, retries, monkeypatch, concurrency):
+    monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", concurrency)
+    c = ModelChecker(OpenAIBackend(f"{server}/deadone/v1", "stub-checker", retry_base=0.01))
+    assert c.concurrency == int(concurrency)
+    items = [("Sentence one [fact:a].", "{}"), ("Sentence DEAD [fact:b].", "{}"), ("Sentence three [fact:c].", "{}")]
+    out = c.check_many(items)
+    assert [r.propositions[0].supported for r, _ in out] == [True, False, True]       # the batch carries on
+    bad, meta = out[1]
+    assert meta["unchecked"] is True and bad.propositions[0].text == "(unchecked)"
+    assert "did not answer after 5 attempts" in bad.propositions[0].evidence and meta["backend"]["model"] == "stub-checker"
+
+
+def test_a_reading_counts_a_sentence_its_checker_could_not_reach(server, chart, monkeypatch):
+    monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", "1")
+    STUB.answers["ReadingDraft"] = {"summary": "The house vote is for career [vote:career.house].", "areas": []}
+    checker = ModelChecker(OpenAIBackend(f"{server}/dead/v1", "stub-checker", retry_base=0.001))
+    r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career"], depth="astrologer",
+                writer_backend=f"openai:{server}/schema/v1:stub-writer", checker=checker)
+    assert r.unchecked_sentences >= 1 and r.summary.source == "engine"          # failed, never shown as checked
+
+
+def test_a_reasoning_models_answer_is_parsed_from_content_with_room_to_think(server):
+    from jyotish.narrate import OPENAI_CHECKER_MAX_TOKENS
+    c = ModelChecker(OpenAIBackend(f"{server}/reasoning/v1", "glm-like"))
+    result = c("Mars is in its own sign [fact:planets.Mars.dignity].", "{}")
+    assert result.propositions[0].supported is True and result.propositions[0].evidence == "stub"   # not the draft
+    assert c.last_meta["thinking"].startswith("Let me think.")
+    assert STUB.requests[0][1]["max_tokens"] == OPENAI_CHECKER_MAX_TOKENS >= 16000
+
+
+def test_concurrency_defaults_by_provider_and_the_environment_overrides(monkeypatch):
+    from jyotish.narrate import AnthropicBackend, checker_concurrency
+    monkeypatch.delenv("JYOTISH_CHECKER_CONCURRENCY", raising=False)
+    assert checker_concurrency(OpenAIBackend("https://api.deepinfra.com/v1/openai", "zai-org/GLM-4.7")) == 4
+    assert checker_concurrency(OpenAIBackend("http://localhost:11434/v1", "gpt-oss:20b")) == 1
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
+    assert checker_concurrency(AnthropicBackend("claude-opus-5-5")) == CONFIG.checker_concurrency == 16
+    monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", "2")
+    assert checker_concurrency(OpenAIBackend("https://api.deepinfra.com/v1/openai", "zai-org/GLM-4.7")) == 2
+
+
+def test_batches_on_a_keep_alive_server_each_get_their_own_client(monkeypatch):
+    """The fault found reproducing: one async client kept across batches, each batch a new event loop,
+    so a keep-alive connection from a closed loop failed the next batch ("Event loop is closed")."""
+    class KeepAlive(Handler):
+        protocol_version = "HTTP/1.1"
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), KeepAlive)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", "4")
+        c = ModelChecker(OpenAIBackend(f"http://127.0.0.1:{srv.server_address[1]}/schema/v1", "m"))
+        items = [(f"Sentence {i} [fact:x].", "{}") for i in range(8)]
+        for _ in range(3):
+            assert all(r.propositions[0].supported for r, _ in c.check_many(items))
+        assert c.backend._async_client is None                                  # closed at the end of each batch
+    finally:
+        srv.shutdown()
+
+
+def test_the_benchmark_writes_as_it_goes_and_resumes(server, tmp_path, monkeypatch):
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import checker_bench as cb
+    monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", "1")
+    rows = [r for r in cb.load() if not cb.run_validator([r])[r["id"]][0]][:6]
+    part = tmp_path / "part.jsonl"
+    spec = f"openai:{server}/schema/v1:stub-checker"
+    out, usage = cb.run_live(rows, backend=spec, partial=part)
+    assert len(part.read_text().splitlines()) == 6 and usage["calls"] == 6 and not usage["unchecked"]
+    STUB.requests.clear()
+    lines = part.read_text().splitlines()
+    part.write_text("\n".join(lines[:4]) + "\n")                              # interrupted after four rows
+    out2, usage2 = cb.run_live(rows, backend=spec, partial=part, resume=True)
+    assert usage2["resumed"] == 4 and len(STUB.requests) == 2 and out2 == out  # only the last two asked again

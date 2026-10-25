@@ -547,35 +547,83 @@ def run_validator(rows) -> dict[str, tuple[bool, str]]:
     return out
 
 
-def run_live(rows, config=None, backend: str | None = None) -> tuple[dict[str, tuple[bool, str]], dict]:
+PARTIAL = ROOT / "data" / "bench_partial"      # a live run's rows as they are checked (gitignored)
+
+
+def partial_path(spec: str | None) -> Path:
+    """Where a live run on `spec` writes its rows as it goes, for --resume."""
+    name = "anthropic" if not spec or spec == "anthropic" else spec.rsplit(":", 1)[-1]
+    return PARTIAL / f"{re.sub(r'[^A-Za-z0-9.]+', '-', name).strip('-').lower()}.jsonl"
+
+
+def run_live(rows, config=None, backend: str | None = None, resume: bool = False,
+             partial: Path | None = None) -> tuple[dict[str, tuple[bool, str]], dict]:
     """Validator, then the semantic checker on every row the validator passes, on `backend` ("anthropic"
-    or "openai:<base url>:<model>"; None: JYOTISH_CHECKER_BACKEND, Anthropic when unset). The usage names
-    the backend (provider, host, model)."""
+    or "openai:<base url>:<model>"; None: JYOTISH_CHECKER_BACKEND, Anthropic when unset). Rows are checked
+    in chunks and each is appended to `partial` as it is checked; with `resume` the rows already there are
+    not asked again. A row whose checker call failed after the backend's retries is unchecked: listed in
+    usage["unchecked"], and left out of the scores. The usage names the backend (provider, host, model)."""
     from jyotish.narrate import CONFIG, ModelChecker, make_backend
     config = config or CONFIG
     checker = ModelChecker(make_backend(backend, "checker", config), config)
+    partial = partial or partial_path(backend)
+    partial.parent.mkdir(parents=True, exist_ok=True)
+    done: dict[str, dict] = {}
+    if resume and partial.exists():
+        done = {r["id"]: r for r in map(json.loads, partial.read_text().splitlines()) if not r.get("unchecked")}
+        partial.write_text("".join(json.dumps(r) + "\n" for r in done.values()))   # unchecked rows are asked again
+    elif partial.exists():
+        partial.unlink()
     v = run_validator(rows)
-    out, usage, todo = {}, {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "calls": 0,
-                            "backend": checker.backend.describe()}, []
+    out, todo = {}, []
+    usage = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "calls": 0, "unchecked": [],
+             "resumed": 0, "backend": checker.backend.describe()}
     for row in rows:
         if v[row["id"]][0] or "[tradition:" in row["sentence"]:      # a [tradition:] sentence is never checked
             out[row["id"]] = v[row["id"]]
+        elif row["id"] in done:
+            r = done[row["id"]]
+            out[row["id"]] = (r["rejected"], r["reason"])
+            usage["resumed"] += 1
+            for k in ("input_tokens", "output_tokens", "cache_read_input_tokens"):
+                usage[k] += (r.get("usage") or {}).get(k) or 0
+            usage["calls"] += 1
         else:
             todo.append(row)
-    results = checker.check_many([(row["sentence"], row["facts"]) for row in todo])
-    for row, (result, meta) in zip(todo, results):
-        bad = [p for p in result.propositions if not p.supported]
-        out[row["id"]] = (bool(bad), "; ".join(f"{p.text!r}: {p.evidence}" for p in bad[:2]) or "supported")
-        u = (meta or {}).get("usage") or {}
-        usage["input_tokens"] += u.get("input_tokens") or 0
-        usage["output_tokens"] += u.get("output_tokens") or 0
-        usage["cache_read_input_tokens"] += u.get("cache_read_input_tokens") or 0
-        usage["calls"] += 1
+    size = max(8, 4 * checker.concurrency)
+    for i in range(0, len(todo), size):
+        chunk = todo[i:i + size]
+        results = checker.check_many([(row["sentence"], row["facts"]) for row in chunk])
+        with partial.open("a") as f:
+            for row, (result, meta) in zip(chunk, results):
+                meta = meta or {}
+                bad = [p for p in result.propositions if not p.supported]
+                rec = {"id": row["id"], "rejected": bool(bad), "unchecked": bool(meta.get("unchecked")),
+                       "reason": "; ".join(f"{p.text!r}: {p.evidence}" for p in bad[:2]) or "supported",
+                       "usage": meta.get("usage")}
+                f.write(json.dumps(rec) + "\n")
+                out[row["id"]] = (rec["rejected"], rec["reason"])
+                if rec["unchecked"]:
+                    usage["unchecked"].append(row["id"])
+                    continue
+                u = meta.get("usage") or {}
+                for k in ("input_tokens", "output_tokens", "cache_read_input_tokens"):
+                    usage[k] += u.get(k) or 0
+                usage["calls"] += 1
+        print(f"checked {min(i + size, len(todo))} of {len(todo)} rows ({len(usage['unchecked'])} unchecked)",
+              file=sys.stderr, flush=True)
     usage["backend"] = checker.backend.describe()           # with the structured mode the server took
     return out, usage
 
 
-def scores(rows, preds) -> dict:
+def scores(rows, preds, unchecked=()) -> dict:
+    """Precision, recall and F1, overall and per category; a row in `unchecked` (no verdict was had) is
+    left out rather than counted either way."""
+    rows = [r for r in rows if r["id"] not in set(unchecked)]
+    return _scores(rows, preds)
+
+
+def _scores(rows, preds) -> dict:
     def prf(rs):
         tp = sum(1 for r in rs if r["label"] == "reject" and preds[r["id"]][0])
         fp = sum(1 for r in rs if r["label"] == "accept" and preds[r["id"]][0])
@@ -636,7 +684,7 @@ def report(rows, vpred, live) -> str:
     else:
         from jyotish.costs import cost
         lp, usage, seconds = live
-        ls = scores(rows, lp)
+        ls = scores(rows, lp, usage.get("unchecked", ()))
         b = usage.get("backend") or {"provider": "anthropic", "host": "api.anthropic.com", "model": CONFIG.checker_model}
         usd = cost(b.get("model"), usage, b.get("host"))
         L += ["## Validator + semantic checker (live)", "",
@@ -645,7 +693,11 @@ def report(rows, vpred, live) -> str:
               + f"), checker effort {CONFIG.checker_effort}; {usage['calls']} checker calls, "
               f"{usage['input_tokens']} input and {usage['output_tokens']} output tokens, {seconds:.0f} s; cost "
               + (f"USD {usd:.2f} at jyotish.costs's prices." if usd is not None else "not known (no price for this model "
-                 "in jyotish.costs; never guessed)."), "", *_table(ls), "",
+                 "in jyotish.costs; never guessed).")
+              + (f" {usage['resumed']} rows were carried over from an interrupted run (--resume)." if usage.get("resumed") else "")
+              + (f" Unchecked (the call failed after every retry; left out of the scores): {len(usage['unchecked'])} rows, "
+                 f"{', '.join(usage['unchecked'])}." if usage.get("unchecked") else " Every row was checked."),
+              "", *_table(ls), "",
               "Misses and false rejects, with the checker's reason:", "", *_misses(rows, lp), ""]
     return "\n".join(L) + "\n"
 
@@ -667,12 +719,12 @@ def gate_recall(text: str) -> dict[str, float]:
     return out
 
 
-def rule_section(rows, preds, gate: dict[str, float], gate_name: str) -> list[str]:
+def rule_section(rows, preds, gate: dict[str, float], gate_name: str, unchecked=()) -> list[str]:
     """docs/models.md's rule: the checker's backend changes for client readings only when its recall is
     not worse on any category than the gate in use."""
     if not gate:
         return ["## Against the gate in use", "", f"No live run of {gate_name} on record to compare with.", ""]
-    here = scores(rows, preds)
+    here = scores(rows, preds, unchecked)
     L = ["## Against the gate in use", "",
          f"The rule (docs/models.md): this checker may gate client readings only if its recall is not worse on any "
          f"category than {gate_name}'s last live run (docs/checker_scorecard.md).", "",
@@ -700,7 +752,12 @@ def main(argv=None) -> int:
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--checker-backend", help="run the live checker on this backend (openai:<base url>:<model>) and "
                                               "write docs/checker_scorecard_<model>.md beside Opus's")
+    ap.add_argument("--resume", action="store_true",
+                    help="carry over the rows an interrupted live run already checked (data/bench_partial/)")
     a = ap.parse_args(argv)
+    from jyotish.envfile import load as load_env
+    for name in load_env(ROOT / ".env"):                  # keys from the gitignored .env; never a value printed
+        print(f"{name} read from .env", file=sys.stderr)
     if a.build:
         rows = build()
         BENCH.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
@@ -711,19 +768,20 @@ def main(argv=None) -> int:
     if a.checker_backend and a.checker_backend != "anthropic":
         # Another backend's scorecard, beside Opus's, which it never overwrites.
         t = time.time()
-        lp, usage = run_live(rows, backend=a.checker_backend)
+        lp, usage = run_live(rows, backend=a.checker_backend, resume=a.resume)
         path = scorecard_path(usage["backend"]["model"])
         gate = gate_recall(SCORECARD.read_text()) if SCORECARD.exists() else {}
-        text = report(rows, vpred, (lp, usage, time.time() - t)) + "\n".join(rule_section(rows, lp, gate, "Opus")) + "\n"
+        text = report(rows, vpred, (lp, usage, time.time() - t)) + \
+            "\n".join(rule_section(rows, lp, gate, "Opus", usage.get("unchecked", ()))) + "\n"
         path.write_text(text.replace("# Checker benchmark", f"# Checker benchmark: {usage['backend']['model']}", 1))
-        s = scores(rows, lp)["overall"]
+        s = scores(rows, lp, usage.get("unchecked", ()))["overall"]
         print(f"{usage['backend']['model']} on {usage['backend']['host']}: precision {s['precision']:.3f} recall "
               f"{s['recall']:.3f} F1 {s['f1']:.3f} -> {path}")
         return 0
     live = None
     if not a.offline and os.environ.get("ANTHROPIC_API_KEY"):
         t = time.time()
-        lp, usage = run_live(rows)
+        lp, usage = run_live(rows, resume=a.resume)
         live = (lp, usage, time.time() - t)
     text = report(rows, vpred, live)
     if live is None and SCORECARD.exists() and LIVE_HEADING in (old := SCORECARD.read_text()):

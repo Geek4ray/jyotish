@@ -19,3 +19,5 @@ data/sequestered.txt
 .env
 # The compose host's nightly database dumps (scripts/pg_backup.sh)
 backups/
+# A live benchmark run in progress (scripts/checker_bench.py --resume picks it up)
+data/bench_partial/

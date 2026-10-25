@@ -272,7 +272,7 @@ class Reading(BaseModel):
     attempts: int
     chart: dict[str, Any] = Field(default_factory=dict)   # birth data and every convention used
     narration_source: str = "live"      # "live", or "fixture:<path>" for an offline replay
-    unchecked_sentences: int = 0        # offline replay: sentences with no recorded checker verdict
+    unchecked_sentences: int = 0        # sentences no checker verdict was had for (a replay; a live call failed)
     narration_complete: bool = True     # false when some finding or the summary was not narrated within the checks
     depth: str = "astrologer"           # curious | learner | astrologer | full (SPEC Layer 7 prompt contract, item 1)
     facts_cited: dict[str, Any] = Field(default_factory=dict)   # depth full: path -> the chart's value, for every [fact:] shown
@@ -1322,6 +1322,11 @@ class Backend:
                           effort: str | None, max_tokens: int) -> Completion:
         raise NotImplementedError
 
+    async def aclose(self) -> None:
+        """End a batch of concurrent calls: close what was opened in its event loop."""
+
+    concurrency: int | None = None      # calls in flight at once by default; None: the config's
+
 
 class AnthropicBackend(Backend):
     """The Messages API with structured output (`output_format`), effort, adaptive thinking, the
@@ -1335,6 +1340,7 @@ class AnthropicBackend(Backend):
         self.model, self.config = model, config
         self.client = client or anthropic.Anthropic()
         self._async_client = async_client
+        self._own_async = async_client is None   # a client a test passes in is never closed here
 
     def user_message(self, text: str, cache: bool = False) -> dict:
         if not cache:
@@ -1377,12 +1383,17 @@ class AnthropicBackend(Backend):
     async def astructured(self, *, system, messages, schema, kind, effort, max_tokens) -> Completion:
         import time
         import anthropic
-        if self._async_client is None:
+        if self._async_client is None:          # one client per batch, made in its event loop (aclose ends it)
             self._async_client = anthropic.AsyncAnthropic()
         started = time.perf_counter()
         response = await self._async_client.beta.messages.parse(
             **self._kwargs(system, messages, schema, effort, None, max_tokens))
         return self._completion(response, kind, effort, started)
+
+    async def aclose(self) -> None:
+        if self._own_async and self._async_client is not None:
+            await self._async_client.close()
+            self._async_client = None
 
 
 # The engine's efforts mapped to reasoning_effort, which OpenAI-compatible reasoning models (gpt-oss)
@@ -1390,6 +1401,22 @@ class AnthropicBackend(Backend):
 OPENAI_EFFORT = {"low": "low", "medium": "medium", "high": "high", "xhigh": "high", "max": "high"}
 # What a server says when it does not take a response_format: a 400 or 422 naming one of these.
 _FORMAT_WORDS = ("response_format", "json_schema", "json_object", "structured", "schema", "format")
+# Retrying a request (2026-10-25): up to five attempts in all, on these statuses and on a dropped
+# connection or a timeout (RETRY_ERRORS), exponential backoff from OpenAIBackend.retry_base with jitter,
+# never longer than RETRY_CAP seconds, or what Retry-After asks.
+RETRY_ATTEMPTS = 5
+RETRY_STATUS = {429, 500, 502, 503, 529}
+RETRY_CAP = 60.0
+# A reasoning model spends its tokens on reasoning_content before the answer: the checker's max_tokens on
+# an OpenAI-compatible backend leaves room for both (a verdict is a few hundred tokens).
+OPENAI_CHECKER_MAX_TOKENS = 16000
+
+
+def RETRY_ERRORS() -> tuple[type[BaseException], ...]:
+    """The transport errors a request is sent again on: a dropped or refused connection, a protocol
+    break, a timeout (httpx is imported only when an OpenAI-compatible backend is used)."""
+    import httpx
+    return (httpx.ReadError, httpx.WriteError, httpx.ConnectError, httpx.RemoteProtocolError, httpx.TimeoutException)
 
 
 class OpenAIBackend(Backend):
@@ -1401,24 +1428,41 @@ class OpenAIBackend(Backend):
     (`provider.data_collection: deny`), only zero-data-retention endpoints are used (`zdr`), and a
     provider must honour every parameter sent (`require_parameters`), so the schema is never silently
     dropped (https://openrouter.ai/docs/features/provider-routing, read 2026-10-25). A server that
-    refuses `reasoning_effort` is asked again without it, and the record says so (`effort_sent`)."""
+    refuses `reasoning_effort` is asked again without it, and the record says so (`effort_sent`).
+
+    A request that meets a dropped connection, a timeout, or HTTP 429, 500, 502, 503 or 529 is sent
+    again with exponential backoff and jitter, up to RETRY_ATTEMPTS in all, waiting what a Retry-After
+    header asks; each retry is logged with the provider, host and model (never the key), and a request
+    that still fails is a NarrationError naming the server (2026-10-25: the live benchmark against
+    DeepInfra died on the first dropped connection). The checker's concurrent calls share one async
+    client per batch, opened in the batch's event loop and closed at its end (`aclose`): a pooled
+    keep-alive connection must not outlive the loop it was made in. A reasoning model (GLM-4.7) writes
+    reasoning_content before its answer: the answer is parsed from `content` only, and the checker's
+    max_tokens leaves room for the reasoning (OPENAI_CHECKER_MAX_TOKENS)."""
     provider = "openai-compatible"
 
     def __init__(self, base_url: str, model: str, api_key: str | None = None, client=None, async_client=None,
-                 timeout: float = 1800.0):
+                 timeout: float = 1800.0, retry_base: float = 1.0):
         from urllib.parse import urlparse
         self.base_url, self.model, self.api_key = base_url.rstrip("/"), model, api_key
         self.host = urlparse(self.base_url).netloc
         self.client, self._async_client, self.timeout = client, async_client, timeout
-        self.mode: str | None = None                    # "json_schema" | "json_object", once a call succeeded
+        self._own_async = async_client is None             # a client a test passes in is never closed here
+        self.retry_base = retry_base                       # seconds before the first retry; doubled each time
+        self.mode: str | None = None                       # "json_schema" | "json_object", once a call succeeded
         self.extra: dict = ({"provider": {"data_collection": "deny", "zdr": True, "require_parameters": True}}
                             if self.host.endswith("openrouter.ai") else {})
-        self.takes_effort = True                        # False once the server refused reasoning_effort
+        self.takes_effort = True                           # False once the server refused reasoning_effort
 
     @property
     def local(self) -> bool:
         from .costs import is_local
         return is_local(self.host)
+
+    @property
+    def concurrency(self) -> int:
+        """Calls in flight at once by default: 4 to a hosted provider, 1 to a server on this machine."""
+        return 1 if self.local else 4
 
     def describe(self) -> dict:
         return {"provider": self.provider, "host": self.host, "model": self.model, "base_url": self.base_url,
@@ -1476,7 +1520,7 @@ class OpenAIBackend(Backend):
         msg = choice.get("message") or {}
         finish = choice.get("finish_reason")
         stop = {"stop": "end_turn", "length": "max_tokens", "content_filter": "refusal"}.get(finish, finish)
-        content = msg.get("content")
+        content = msg.get("content")                    # the answer; reasoning_content is never parsed
         parsed, problem = self._parse(schema, content) if content else (None, "no content in the response")
         meta = {"kind": kind, "request_id": data.get("id"), "model": data.get("model") or self.model, "effort": effort,
                 "effort_sent": (OPENAI_EFFORT.get(effort, effort) if effort and self.takes_effort else None),
@@ -1489,13 +1533,89 @@ class OpenAIBackend(Backend):
         return Completion(parsed=parsed, assistant={"role": "assistant", "content": content or ""}, stop_reason=stop,
                           meta=meta, refusal=refusal), problem
 
-    def _stream(self, http, body) -> tuple[int, dict | str]:
+    # --- sending, with retries ------------------------------------------------------------------
+
+    def _wait(self, attempt: int, retry_after: str | None) -> float:
+        """Seconds before retry `attempt` (1-based): what Retry-After asks (seconds or an HTTP date),
+        else base x 2^(attempt-1) with up to as much again of jitter, capped at RETRY_CAP."""
+        import random
+        if retry_after:
+            try:
+                return min(float(retry_after), RETRY_CAP)
+            except ValueError:
+                from email.utils import parsedate_to_datetime
+                from datetime import datetime, timezone
+                try:
+                    return min(max(0.0, (parsedate_to_datetime(retry_after) - datetime.now(timezone.utc)).total_seconds()),
+                               RETRY_CAP)
+                except (TypeError, ValueError):
+                    pass
+        base = self.retry_base * 2 ** (attempt - 1)
+        return min(base + random.uniform(0, base), RETRY_CAP)
+
+    def _retry_log(self, attempt: int, reason: str, wait: float) -> None:
+        import logging
+        from . import logs
+        logs.event("backend.retry", logging.WARNING, provider=self.provider, host=self.host, model=self.model,
+                   attempt=attempt, of=RETRY_ATTEMPTS, reason=reason, wait_s=round(wait, 2))
+
+    def _failed(self, reason: str) -> NarrationError:
+        return NarrationError(f"{self.host} did not answer after {RETRY_ATTEMPTS} attempts (model {self.model})", [reason])
+
+    def _http(self):
+        import httpx
+        if self.client is None:
+            self.client = httpx.Client()
+        return self.client
+
+    def _post(self, body: dict) -> tuple[int, dict | str]:
+        """One request, sent again on a dropped connection, a timeout or a retryable status."""
+        import time
+        import httpx
+        http = self._http()
+        for attempt in range(1, RETRY_ATTEMPTS + 1):
+            try:
+                if body.get("stream"):
+                    status, data, retry_after = self._stream(http, body)
+                else:
+                    r = http.post(f"{self.base_url}/chat/completions", json=body, headers=self._headers(), timeout=self.timeout)
+                    status, retry_after = r.status_code, r.headers.get("retry-after")
+                    data = r.json() if status < 400 else r.text
+                if status not in RETRY_STATUS:
+                    return status, data
+                reason = f"HTTP {status}"
+            except RETRY_ERRORS() as e:
+                reason, retry_after = type(e).__name__, None
+            if attempt == RETRY_ATTEMPTS:
+                raise self._failed(reason)
+            wait = self._wait(attempt, retry_after)
+            self._retry_log(attempt, reason, wait)
+            time.sleep(wait)
+
+    async def _apost(self, client, body: dict) -> tuple[int, dict | str]:
+        import asyncio
+        for attempt in range(1, RETRY_ATTEMPTS + 1):
+            try:
+                r = await client.post(f"{self.base_url}/chat/completions", json=body, headers=self._headers(),
+                                      timeout=self.timeout)
+                if r.status_code not in RETRY_STATUS:
+                    return r.status_code, (r.json() if r.status_code < 400 else r.text)
+                reason, retry_after = f"HTTP {r.status_code}", r.headers.get("retry-after")
+            except RETRY_ERRORS() as e:
+                reason, retry_after = type(e).__name__, None
+            if attempt == RETRY_ATTEMPTS:
+                raise self._failed(reason)
+            wait = self._wait(attempt, retry_after)
+            self._retry_log(attempt, reason, wait)
+            await asyncio.sleep(wait)
+
+    def _stream(self, http, body) -> tuple[int, dict | str, str | None]:
         """An SSE completion gathered into one response dict (content, finish reason, usage)."""
         content, finish, usage, rid, model = [], None, None, None, None
         with http.stream("POST", f"{self.base_url}/chat/completions", json=body, headers=self._headers(),
                          timeout=self.timeout) as r:
             if r.status_code >= 400:
-                return r.status_code, r.read().decode(errors="replace")
+                return r.status_code, r.read().decode(errors="replace"), r.headers.get("retry-after")
             for line in r.iter_lines():
                 if not line.startswith("data:"):
                     continue
@@ -1509,31 +1629,36 @@ class OpenAIBackend(Backend):
                     content.append((ch.get("delta") or {}).get("content") or "")
                     finish = ch.get("finish_reason") or finish
         return 200, {"id": rid, "model": model, "usage": usage,
-                     "choices": [{"message": {"content": "".join(content)}, "finish_reason": finish}]}
+                     "choices": [{"message": {"content": "".join(content)}, "finish_reason": finish}]}, None
+
+    # --- the call ---------------------------------------------------------------------------------
+
+    def _refused(self, status, data) -> str | None:
+        """What to do with a non-retryable error: "effort" (ask again without reasoning_effort),
+        "mode" (try the next structured mode), or None (raise)."""
+        if self.takes_effort and status in (400, 422) and "reasoning_effort" in str(data):
+            return "effort"
+        if self.mode is None and self._unsupported(status, str(data)):
+            return "mode"
+        return None
 
     def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens) -> Completion:
         import time
-        import httpx
-        http = self.client or httpx.Client()
         last = ""
         for mode in self._modes():
             convo = list(messages)
             for retry in range(2):                      # one retry when the JSON does not match the schema
                 started = time.perf_counter()
-                body = self._body(system, convo, schema, effort, max_tokens, mode, max_tokens > STREAM_ABOVE)
-                if body.get("stream"):
-                    status, data = self._stream(http, body)
-                else:
-                    r = http.post(f"{self.base_url}/chat/completions", json=body, headers=self._headers(),
-                                  timeout=self.timeout)
-                    status, data = r.status_code, (r.json() if r.status_code < 400 else r.text)
+                status, data = self._post(self._body(system, convo, schema, effort, max_tokens, mode,
+                                                     max_tokens > STREAM_ABOVE))
                 if status >= 400:
                     last = f"HTTP {status}: {str(data)[:300]}"
-                    if self.takes_effort and status in (400, 422) and "reasoning_effort" in str(data):
+                    what = self._refused(status, data)
+                    if what == "effort":
                         self.takes_effort = False       # asked again without it
                         return self.structured(system=system, messages=messages, schema=schema, kind=kind,
                                                effort=effort, thinking=thinking, max_tokens=max_tokens)
-                    if self.mode is None and self._unsupported(status, str(data)):
+                    if what == "mode":
                         break                           # this server does not take this mode: try the next
                     raise NarrationError(f"{self.host} refused the request", [last])
                 done, problem = self._done(data, kind, effort, started, schema, mode)
@@ -1547,28 +1672,32 @@ class OpenAIBackend(Backend):
                              f"return the structured output a reading needs (model {self.model})", [last])
 
     async def astructured(self, *, system, messages, schema, kind, effort, max_tokens) -> Completion:
+        import asyncio
         import time
         import httpx
-        if self._async_client is None:
-            self._async_client = httpx.AsyncClient()
+        loop = asyncio.get_running_loop()
+        if self._async_client is None or (self._own_async and getattr(self, "_async_loop", None) is not loop):
+            # One client per batch, made in the batch's loop (aclose ends it).
+            self._async_client = httpx.AsyncClient(limits=httpx.Limits(max_connections=max(self.concurrency, 16)))
+            self._async_loop = loop
         last = ""
         for mode in self._modes():
             convo = list(messages)
             for retry in range(2):
                 started = time.perf_counter()
-                r = await self._async_client.post(f"{self.base_url}/chat/completions",
-                                                  json=self._body(system, convo, schema, effort, max_tokens, mode, False),
-                                                  headers=self._headers(), timeout=self.timeout)
-                if r.status_code >= 400:
-                    last = f"HTTP {r.status_code}: {r.text[:300]}"
-                    if self.takes_effort and r.status_code in (400, 422) and "reasoning_effort" in r.text:
+                status, data = await self._apost(self._async_client,
+                                                 self._body(system, convo, schema, effort, max_tokens, mode, False))
+                if status >= 400:
+                    last = f"HTTP {status}: {str(data)[:300]}"
+                    what = self._refused(status, data)
+                    if what == "effort":
                         self.takes_effort = False
                         return await self.astructured(system=system, messages=messages, schema=schema, kind=kind,
                                                       effort=effort, max_tokens=max_tokens)
-                    if self.mode is None and self._unsupported(r.status_code, r.text):
+                    if what == "mode":
                         break
                     raise NarrationError(f"{self.host} refused the request", [last])
-                done, problem = self._done(r.json(), kind, effort, started, schema, mode)
+                done, problem = self._done(data, kind, effort, started, schema, mode)
                 self.mode = mode
                 if done.parsed is not None or done.refusal or done.stop_reason == "max_tokens" or retry:
                     return done
@@ -1576,6 +1705,11 @@ class OpenAIBackend(Backend):
                           f"That reply did not match the JSON schema ({problem}). Return only the JSON object."}]
         raise NarrationError(f"{self.host} supports neither response_format json_schema nor json_object (model "
                              f"{self.model})", [last])
+
+    async def aclose(self) -> None:
+        if self._own_async and self._async_client is not None:
+            await self._async_client.aclose()
+            self._async_client = None
 
 
 # Depth full's message (the system prompt and the whole chart), measured on the reference chart on
@@ -1702,21 +1836,43 @@ class ModelDrafter:
         return done.parsed
 
 
+def checker_concurrency(backend: "Backend", config: NarrationConfig = CONFIG) -> int:
+    """Checker calls in flight at once: JYOTISH_CHECKER_CONCURRENCY when set; else the backend's own
+    default (an OpenAI-compatible server: 4 hosted, 1 local); else CONFIG.checker_concurrency (16,
+    Anthropic)."""
+    import os
+    env = os.environ.get("JYOTISH_CHECKER_CONCURRENCY", "").strip()
+    if env:
+        return max(1, int(env))
+    return getattr(backend, "concurrency", None) or config.checker_concurrency
+
+
 class ModelChecker:
     """The semantic checker (SPEC Layer 7 item 10): one structured call per sentence with only the
     sentence and the derivation it may draw on (a claim's finding; for a summary sentence, the
     findings it cites), at `checker_effort`. The calls of one attempt are independent, so
-    `check_many` sends them concurrently (`CONFIG.checker_concurrency` in flight at once; 1 sends them
-    one after another), and returns the results in the order asked."""
+    `check_many` sends them concurrently (checker_concurrency in flight at once; 1 sends them one
+    after another), and returns the results in the order asked. A call that fails after the backend's
+    retries fails that sentence alone, marked unchecked (`meta["unchecked"]`), never the batch."""
 
     def __init__(self, backend: Backend, config: NarrationConfig = CONFIG):
         self.backend, self.config = backend, config
         self.last_meta: dict | None = None
+        self.concurrency = checker_concurrency(backend, config)
 
     def _ask(self, sentence: str, derivation: str) -> dict:
+        tokens = OPENAI_CHECKER_MAX_TOKENS if isinstance(self.backend, OpenAIBackend) else min(self.config.max_tokens,
+                                                                                                STREAM_ABOVE)
         return dict(system=CHECKER_PROMPT, messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
-                    schema=CheckResult, kind="checker", effort=self.config.checker_effort,
-                    max_tokens=min(self.config.max_tokens, STREAM_ABOVE))
+                    schema=CheckResult, kind="checker", effort=self.config.checker_effort, max_tokens=tokens)
+
+    def _unchecked(self, e: Exception) -> tuple[CheckResult, dict]:
+        """A sentence the checker could not be asked about: it fails, as unchecked, with the reason."""
+        why = f"{e}" + (f" ({'; '.join(e.errors)})" if getattr(e, "errors", None) else "")
+        b = self.backend.describe() if isinstance(self.backend, Backend) else {}
+        return CheckResult(propositions=[Proposition(text="(unchecked)", supported=False,
+                                                     evidence=f"the checker could not be reached: {why}")]), \
+            {"kind": "checker", "unchecked": True, "error": why, "backend": b, "usage": None}
 
     @staticmethod
     def _result(done: Completion) -> tuple[CheckResult, dict]:
@@ -1729,22 +1885,31 @@ class ModelChecker:
         return done.parsed, done.meta
 
     def __call__(self, sentence: str, derivation: str) -> CheckResult:
-        result, self.last_meta = self._result(self.backend.structured(thinking=None, **self._ask(sentence, derivation)))
+        try:
+            result, self.last_meta = self._result(self.backend.structured(thinking=None, **self._ask(sentence, derivation)))
+        except NarrationError as e:
+            result, self.last_meta = self._unchecked(e)
         return result
 
     def check_many(self, items: list[tuple[str, str]]) -> list[tuple[CheckResult, dict]]:
-        if self.config.checker_concurrency <= 1:
+        if self.concurrency <= 1:
             return [(self(s, d), self.last_meta) for s, d in items]
         return _run_async(self._gather(items))
 
     async def _gather(self, items):
         import asyncio
-        gate = asyncio.Semaphore(self.config.checker_concurrency)
+        gate = asyncio.Semaphore(self.concurrency)
 
         async def one(sentence, derivation):
             async with gate:
-                return self._result(await self.backend.astructured(**self._ask(sentence, derivation)))
-        return await asyncio.gather(*(one(s, d) for s, d in items))
+                try:
+                    return self._result(await self.backend.astructured(**self._ask(sentence, derivation)))
+                except NarrationError as e:
+                    return self._unchecked(e)
+        try:
+            return await asyncio.gather(*(one(s, d) for s, d in items))
+        finally:
+            await self.backend.aclose()              # this batch's client, in this batch's loop
 
 
 class AnthropicDrafter(ModelDrafter):
@@ -2599,6 +2764,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                              if full else {}),
                           "wall_seconds": round(time.perf_counter() - started, 3)},
                    synthesis_sentences=synthesis,
+                   # A checker call that failed after its retries: that sentence failed, unchecked (2026-10-25).
+                   unchecked_sentences=sum(1 for m in checker_metas if (m or {}).get("unchecked")),
                    judgement_sentences=sum(len(a.judgements) for a in reading_areas),
                    model=_model_of(drafter, wcfg.model), attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),

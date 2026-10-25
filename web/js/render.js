@@ -343,7 +343,7 @@ export function renderReading(r) {
       : `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)}</p>`}
   </section>
   ${r.narration_complete === false ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}
-  ${r.unchecked_sentences ? `<p class="notice">Offline replay: ${num(r.unchecked_sentences)} sentence(s) have no recorded checker verdict and were not semantically checked; the code validator ran on all of them.</p>` : ""}
+  ${r.unchecked_sentences && String(r.narration_source || "").startsWith("fixture:") ? `<p class="notice">Offline replay: ${num(r.unchecked_sentences)} sentence(s) have no recorded checker verdict and were not semantically checked; the code validator ran on all of them.</p>` : ""}
   <section class="card summary" data-source="${esc(s.source || "model")}"><h2>Summary</h2>
     ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}
     <p class="summary-text">${summaryText}</p>

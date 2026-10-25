@@ -266,7 +266,7 @@ def render(reading: Reading, chart: Chart) -> str:
     if rv.get("status") == "reviewed":                    # only a reviewed reading says so
         L += [f"**Reviewed by {rv['reviewed_by']}** on {rv['reviewed_at'][:10]}. Edited sentences passed the same "
               "validator and checker as the writer's; the astrologer's notes are the reviewer's own words.", ""]
-    if reading.unchecked_sentences:
+    if reading.unchecked_sentences and reading.narration_source.startswith("fixture:"):   # live: failed, not shown
         L += [f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
                   "checker verdict and were not semantically checked; the code validator ran on all of them.", ""]
     if not reading.narration_complete:
