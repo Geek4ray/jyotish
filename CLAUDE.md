@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `client` (depth full's client's layer), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `client` (depth full's client's layer), `sheet` (the astrologer's technical sheet, engine-written), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -171,6 +171,19 @@ error is never on the client's page (one line counts the gaps), only in the JSON
 the comparison report. The suite stubs the client's writer (`tests/conftest.py`, EchoClient).
 `scripts/replay_accepted.py` replays a comparison's recordings and diffs accepted text against the committed
 readings (docs/replay_2026-10-24.md: none for r2). The live re-run is Ray's (docs/comparison_2026-10-23_r3.md).
+The two-audience page (2026-10-25, docs/spec_notes_2026-10-24.md): at depth full the client's view is "What the
+chart says for you" (`paragraph`: answer, for, against; no dates), "When" (`when`: windows in dates and months,
+the weighing as "the reading's view") and "What this chart does not tell" (`not_said_client`), written from
+accepted text only; the client's words also exclude cusp, sub-lord, arudha, dasha, Shadbala, Bhava Bala, rupa,
+a Sanskrit word with a plain phrase is refused for it (`client.CLIENT_PLAIN`) and one without (`client.SANSKRIT_TERMS`)
+is glossed in the same sentence, its glossary definition sent to the checker. The astrologer's technical sheet
+(`sheet.build`, `ReadingArea.sheet`) is fifteen numbered points written by the engine from the payload with no
+model call, each item citing its paths, at every depth (the service attaches it, `upgrade_reading` and GET
+/readings fill it in for older readings; `fullchart.cached_payload`); `tests/test_sheet.py` reads every point
+against the chart object. Page and site: the client's view, the tier line, then one "For the astrologer" toggle
+(sheet, analysis at depth full, findings; open with no client's view); the review page shows the sheet beside the
+paragraph; the reading page prints the client's view alone or both (strings in web/js/strings.js).
+`scripts/rebuild_pages.py` re-renders a comparison's pages from their JSON (docs/comparison_2026-10-23_r2/*.page.md).
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

@@ -83,3 +83,31 @@ the disclaimers, without the astrologer's toggle, the tier facts, the summary's 
 footnote marks, the citations or the site's chrome; "Both views" opens every "For the astrologer"
 toggle for the printout and closes again those that were closed. Every new label is in
 web/js/strings.js (astro.*, print.*, client.*), which render.js now reads as the review page does.
+
+**The rebuilt pages, the tests and the live run (part 4).** `scripts/rebuild_pages.py` re-renders a
+comparison's readings from their JSON with the current renderer, the reading first brought up to the
+current schema from its own chart (`upgrade_reading`: the technical sheet among the rest), and writes
+`<side>.page.md` beside the JSON; the model's text is the reading's own and no API is called. The r2
+pages are checked in that way (docs/comparison_2026-10-23_r2/a.page.md and b.page.md), beside the old
+pages in docs/comparison_2026-10-23_r2.md, and a test holds them to what the renderer makes today. The
+r2 readings were made before the client's layer, so neither has a client's view: each area shows the
+astrologer's view open, the sheet first, then B's analysis (its two gaps shown as "Not written within the
+checks") and the findings. The tests: every point of the sheet against the chart object on the
+reference chart (`tests/test_sheet.py`, 18), the client's words (the wider vocabulary, the plain-phrase
+list, the gloss rule, the paragraph's dates; `tests/test_client_layer.py`), both views in the browser at
+depth full and at astrologer depth, the print switch under print media, and the sheet beside the
+paragraph on the review page (`tests/test_web.py`), and an old reading given its sheet on GET
+(`tests/test_api.py`). No scorecard number moved: the benchmark, the reference and metamorphic tests and
+the harness's inputs are unchanged. The writer changed (the client's layer's prompt and schema: the
+paragraph without dates, the When, the wider words, the gloss rule), so it is measured again; the live
+run is Ray's, with the API key in the environment:
+
+    .venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer \
+        --b claude-opus-5-5,xhigh,full --as-of 2026-10-21 --database sqlite:///jyotish.db \
+        --out docs/comparison_2026-10-24.md
+
+It writes the report, docs/comparison_2026-10-24/ (both recordings with their `client_drafts`, both
+readings) and stores the pair for /compare. Then `scripts/rebuild_pages.py docs/comparison_2026-10-24` and
+`scripts/replay_accepted.py docs/comparison_2026-10-24` make its pages and check its replay. Still owed
+under the definition of done: the astrologer and a client trying the two views (item 8), and the
+independent review of this batch (item 9).

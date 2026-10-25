@@ -237,3 +237,29 @@ def test_every_offered_area_has_a_sheet_and_synastry_none(chart):
     assert set(s) == {"career", "marriage", "longevity"}
     assert texts(s["marriage"], 1)[0].startswith("7th from the lagna")
     assert texts(s["longevity"], 5)[0].startswith("D30 (trimsamsa): ")
+
+
+def test_the_rebuilt_r2_pages_are_the_current_renderers_and_show_both_views(tmp_path):
+    """docs/comparison_2026-10-23_r2/{a,b}.page.md (scripts/rebuild_pages.py) are what the renderer makes
+    from the readings' JSON today; each area has the technical sheet, B its analysis under the same toggle."""
+    import shutil
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    src = root / "docs" / "comparison_2026-10-23_r2"
+    for side in ("a", "b"):
+        shutil.copy(src / f"{side}.reading.json", tmp_path / f"{side}.reading.json")
+    sys.path.insert(0, str(root / "scripts"))
+    try:
+        import rebuild_pages
+        made = rebuild_pages.rebuild(tmp_path)
+    finally:
+        sys.path.remove(str(root / "scripts"))
+    for side, path in made.items():
+        committed = (src / f"{side}.page.md").read_text()
+        assert path.read_text() == committed, f"{side}.page.md is stale: run scripts/rebuild_pages.py"
+        assert committed.count("<summary>For the astrologer</summary>") == 3
+        assert committed.count("### The technical sheet") == 3 and "15. **Drafts, abstentions" in committed
+    b = (src / "b.page.md").read_text()
+    assert b.count("### Assessment") == 3 and b.count("### What the chart does not say") == 3
+    assert b.count("*Not written within the checks.*") == 2           # B's two gaps: career assessment, marriage timing
