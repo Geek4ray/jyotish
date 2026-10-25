@@ -80,3 +80,43 @@ def test_health_says_which_roles_are_ready_and_never_a_key(monkeypatch):
     assert s["checker"]["ready"] is True                                 # local: no key needed
     assert s["client"] == {"provider": "anthropic", "ready": False}      # no Anthropic key
     assert "sk-secret-value" not in str(s)
+
+
+# --- depth full on an open model (part 2) ----------------------------------------------------------
+
+def test_depth_full_on_a_local_model_is_refused_naming_the_payload_unless_allowed(monkeypatch):
+    from jyotish.narrate import NarrationError, OpenAIBackend, full_depth_guard
+    local = OpenAIBackend("http://localhost:11434/v1", "gpt-oss:20b")
+    monkeypatch.delenv("JYOTISH_ALLOW_LOCAL_FULL", raising=False)
+    with pytest.raises(NarrationError, match=r"300,000 characters, about 104,530 tokens.*JYOTISH_ALLOW_LOCAL_FULL=1"):
+        full_depth_guard(local, "s" * 100_000, "u" * 200_000)
+    monkeypatch.setenv("JYOTISH_ALLOW_LOCAL_FULL", "1")
+    full_depth_guard(local, "s" * 100_000, "u" * 200_000)            # allowed: the Modelfile's num_ctx decides
+
+
+def test_depth_full_on_a_hosted_model_too_small_for_the_chart_is_refused_before_any_call():
+    from jyotish.narrate import CONTEXT_TOKENS, NarrationError, OpenAIBackend, full_depth_guard
+    msg = "x" * 560_613                                               # depth full on the reference chart
+    with pytest.raises(NarrationError, match="exceed openai/gpt-oss-120b's context window of 131,072"):
+        full_depth_guard(OpenAIBackend("https://api.deepinfra.com/v1/openai", "openai/gpt-oss-120b"), "", msg)
+    with pytest.raises(NarrationError, match="202,752"):
+        full_depth_guard(OpenAIBackend("https://api.deepinfra.com/v1/openai", "zai-org/GLM-4.7"), "", msg)
+    full_depth_guard(OpenAIBackend("https://api.deepinfra.com/v1/openai", "Qwen/Qwen3.6-35B-A3B"), "", msg)
+    full_depth_guard(OpenAIBackend("https://api.example.com/v1", "unlisted/model"), "", msg)   # unknown: the server decides
+    full_depth_guard(None, "", msg)                                   # Anthropic, a replay or a stand-in: not this guard
+    assert CONTEXT_TOKENS["Qwen/Qwen3.6-35B-A3B"] == 262_144
+
+
+def test_models_md_names_the_variables_the_prices_and_the_rule():
+    from pathlib import Path
+    doc = (Path(__file__).resolve().parents[1] / "docs" / "models.md").read_text()
+    for needle in ("JYOTISH_WRITER_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b",
+                   "JYOTISH_CHECKER_BACKEND=openai:https://openrouter.ai/api/v1:z-ai/glm-4.7",
+                   '"data_collection": "deny", "zdr": true, "require_parameters": true',
+                   "JYOTISH_ALLOW_LOCAL_FULL=1", "195,340 tokens", "not worse **on any category**",
+                   "read from the providers' own pages on **2026-10-25**"):
+        assert needle in doc, needle
+    for (host, model), p in OPEN_PRICES.items():
+        if host == "api.deepinfra.com" and model in ("openai/gpt-oss-120b", "zai-org/GLM-4.7", "Qwen/Qwen3.6-35B-A3B"):
+            fmt = lambda x: f"{x:.2f}" if round(x, 2) == x else f"{x:g}"
+            assert f"{fmt(p[0])} / {fmt(p[1])}" in doc, (model, p)      # the doc's prices are the engine's

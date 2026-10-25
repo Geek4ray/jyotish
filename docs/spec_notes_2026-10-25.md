@@ -43,3 +43,24 @@ three backends; GET /costs/daily and /costs/readings show them. /health reports 
 host, model and whether it has what it needs to run (never a key), and says "live" only when all
 three do. httpx (BSD-3-Clause, already brought by the Anthropic SDK) is now a declared dependency; the
 licensing picture of SPEC's Tech stack does not change.
+
+**Providers (part 2).** docs/models.md documents three ways to run the narration, with the exact
+environment lines: hosted open-weight models on DeepInfra or OpenRouter (gpt-oss-120b for the writer
+and the client's layer, GLM-4.7 or Qwen3.6-35B-A3B for the checker; OpenRouter with its data policy in
+every request and in the account), Ollama on one's own machine (gpt-oss:20b at 16 GB, qwen3.6:27b or
+glm-4.7-flash at 32 GB, each given a context window by a Modelfile, since Ollama's OpenAI API cannot set
+one), and Anthropic as before. For each: the licences (gpt-oss Apache 2.0, GLM-4.7 MIT, Qwen3.6 Apache
+2.0), where the data goes and the provider's stated training and retention policy with its URL and the
+date read (2026-10-25), the prices, and the cost per reading at astrologer and full depth from the
+second comparison's token counts (astrologer depth 0.08 to 0.26 USD against Opus's 2.61, depending on
+provider and checker; Opus's counts, so an estimate until a comparison runs on the model). The
+benchmark section says it has not been run on an open checker yet. The message sizes are measured: on
+the reference chart the writer's message is 42,224 o200k tokens at astrologer depth and 195,340 at depth
+full, so depth full needs a writer whose window holds the whole chart: of the open models named only
+Qwen3.6-35B-A3B (262,144) does; gpt-oss-120b (131,072) and GLM-4.7 (202,752) do not. The engine refuses
+depth full before any call (`narrate.full_depth_guard`): on a local model unless JYOTISH_ALLOW_LOCAL_FULL
+is set, naming the message's characters and estimated tokens (2.87 characters a token, measured); on a
+hosted open model whose window is known (`narrate.CONTEXT_TOKENS`) and cannot hold the message and
+32,000 tokens to think and write. A model not listed is not refused; its server answers for its window.
+docs/deploy.md lists the variables and says the Fly deployment takes them as secrets, the checker staying
+on Anthropic until an open one passes the rule.

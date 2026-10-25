@@ -18,6 +18,8 @@ the rest.
 | `JYOTISH_CACHE_DIR` | The chart cache (assessed charts by birth data, conventions and engine hash). Safe to lose. | `/data/cache` |
 | `JYOTISH_SOURCE_URL` | Where users can get the source of the running version (the licence section below). | none: `/source` answers 404 |
 | `PORT` | The port to listen on, when the host sets one. | 8000 |
+| `JYOTISH_WRITER_BACKEND`, `JYOTISH_CHECKER_BACKEND`, `JYOTISH_CLIENT_BACKEND` | Each role's model: `anthropic`, or `openai:<base url with its path>:<model>` for a hosted open-weight model (docs/models.md). | `anthropic` |
+| `JYOTISH_OPENAI_KEY`, `JYOTISH_<ROLE>_KEY` | The key for an OpenAI-compatible backend (a role's own, else the shared one). Never stored, logged or returned. | none |
 | `JYOTISH_MODEL_FIXTURE` | Test only: every reading replays this recorded narration and calls no model (CI's smoke test). Never set it on a deployment; the log warns at start and `/health` says `"narration": "fixture"`. | none |
 
 Everything the service writes outside the database goes under `/data`, a volume.
@@ -149,6 +151,16 @@ the repository is public, so its address is enough):
 ```bash
 fly secrets set ANTHROPIC_API_KEY=<your key> JYOTISH_SOURCE_URL=https://github.com/Geek4ray/jyotish -a "$APP" --stage
 ```
+
+To run the narration on hosted open-weight models instead (docs/models.md: a fraction of the cost, each
+role on its own backend), set those variables as secrets in the same command, for example:
+
+```bash
+fly secrets set JYOTISH_OPENAI_KEY=<your DeepInfra key> JYOTISH_WRITER_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b JYOTISH_CLIENT_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b JYOTISH_CHECKER_BACKEND=anthropic -a "$APP" --stage
+```
+
+The checker stays on Anthropic (and `ANTHROPIC_API_KEY` stays set) until an open checker's benchmark is
+not worse on any category (docs/models.md, the rule). A local model (Ollama) is not reachable from Fly.
 
 **6. Deploy.** Fly builds the image from the Dockerfile on its own builders (about five minutes the first
 time) and starts the machine with `fly.toml`:

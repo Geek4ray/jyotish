@@ -1578,6 +1578,45 @@ class OpenAIBackend(Backend):
                              f"{self.model})", [last])
 
 
+# Depth full's message (the system prompt and the whole chart), measured on the reference chart on
+# 2026-10-25: 560,613 characters, 195,340 tokens in o200k (the tokenizer family of gpt-oss), 2.87
+# characters a token; astrologer depth's is 142,446 characters, 42,224 tokens (docs/models.md).
+CHARS_PER_TOKEN = 2.87
+FULL_OUTPUT_ROOM = 32000          # tokens left for the writer to think and write at depth full, at the least
+# The context windows of the hosted open models docs/models.md names, from the providers' pages read
+# 2026-10-25 (a model not listed is not refused here; its server says so if the message is too long).
+CONTEXT_TOKENS = {"openai/gpt-oss-120b": 131_072, "openai/gpt-oss-20b": 131_072, "zai-org/GLM-4.7": 202_752,
+                  "z-ai/glm-4.7": 202_752, "Qwen/Qwen3.6-35B-A3B": 262_144, "qwen/qwen3.6-35b-a3b": 262_144,
+                  "qwen/qwen3.6-27b": 262_144}
+
+
+def full_depth_guard(backend: "Backend | None", system: str, user: str) -> None:
+    """Depth full sends the writer the whole chart. On a local model it is refused unless
+    JYOTISH_ALLOW_LOCAL_FULL is set (the message is about 195,000 tokens; a local model's window is
+    what its Modelfile's num_ctx makes it, and the machine needs the memory for it); on a hosted open
+    model whose context window is known and cannot hold the message and room to write, it is refused
+    before any call is made."""
+    import os
+    if not isinstance(backend, OpenAIBackend):
+        return
+    chars = len(system) + len(user)
+    est = round(chars / CHARS_PER_TOKEN)
+    if backend.local:
+        if not os.environ.get("JYOTISH_ALLOW_LOCAL_FULL"):
+            raise NarrationError(
+                f"depth full sends the whole chart to the writer: {chars:,} characters, about {est:,} tokens, to "
+                f"{backend.model} on {backend.host}, a local model. Use astrologer depth, or set "
+                f"JYOTISH_ALLOW_LOCAL_FULL=1 once the model's num_ctx and the machine's memory hold "
+                f"{est + FULL_OUTPUT_ROOM:,} tokens (docs/models.md)", [])
+        return
+    window = CONTEXT_TOKENS.get(backend.model)
+    if window and est + FULL_OUTPUT_ROOM > window:
+        raise NarrationError(
+            f"depth full's message, about {est:,} tokens ({chars:,} characters), and {FULL_OUTPUT_ROOM:,} tokens to think "
+            f"and write exceed {backend.model}'s context window of {window:,} tokens on {backend.host}: use a writer "
+            f"with a larger window (docs/models.md) or astrologer depth", [])
+
+
 ROLES = ("writer", "checker", "client")
 BACKEND_SPEC = re.compile(r"^openai:(https?://[^/\s]+/[^:\s]*):(\S+)$")
 
@@ -2158,6 +2197,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     all_tags = set().union(*allowed.values()) if allowed else set()
     wcfg = writer_config(config, depth, writer_model, writer_effort)
     drafter = drafter or ModelDrafter(make_backend(writer_backend, "writer", wcfg, model=wcfg.model), wcfg)
+    if full:
+        full_depth_guard(getattr(drafter, "backend", None), system, user)
     writer_metas: list[dict | None] = []
     checker_metas: list[dict | None] = []
     checker = checker or ModelChecker(make_backend(checker_backend, "checker", config), config)
