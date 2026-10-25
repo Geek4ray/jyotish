@@ -152,6 +152,31 @@ client's layer is not in them (that comparison predates it); it adds a few thous
 | OpenRouter gpt-oss-120b + Qwen3.6-35B-A3B (list prices) | 0.10 | 0.41 (same) |
 | Ollama, any model | 0 per token | refused unless allowed |
 
+## Measuring a backend
+
+The checker, on the labelled benchmark (`tests/fixtures/checker_bench.jsonl`): every row the validator
+passes is checked by the named backend, and the scorecard goes to `docs/checker_scorecard_<model>.md`,
+per category, with a last section applying the rule against Opus's last live run (a category Opus's run
+did not have is named, and the rule waits for it):
+
+```bash
+.venv/bin/python scripts/checker_bench.py --checker-backend openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7
+```
+
+The writer, on the reference chart, against Opus under the same checker (each setting's model is an
+Anthropic writer or an `openai:` spec; `--checker-a` and `--checker-b` name each side's checker):
+
+```bash
+.venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer --b openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b,medium,astrologer --checker-a anthropic --checker-b anthropic --as-of 2026-10-21 --out docs/comparison_2026-10-25_gpt-oss.md
+```
+
+Two checkers on the same reading: one recording replayed on both sides, its drafts checked live by each
+side's checker (`--live-checker`):
+
+```bash
+.venv/bin/python scripts/compare_readings.py --replay-a docs/comparison_2026-10-23_r2/a.recording.json --replay-b docs/comparison_2026-10-23_r2/a.recording.json --live-checker --checker-a anthropic --checker-b openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7 --as-of 2026-10-21 --out docs/comparison_2026-10-25_checkers.md
+```
+
 ## What the benchmark says
 
 Not yet run on an open checker; its scorecards will be `docs/checker_scorecard_<model>.md`, per

@@ -64,3 +64,21 @@ hosted open model whose window is known (`narrate.CONTEXT_TOKENS`) and cannot ho
 32,000 tokens to think and write. A model not listed is not refused; its server answers for its window.
 docs/deploy.md lists the variables and says the Fly deployment takes them as secrets, the checker staying
 on Anthropic until an open one passes the rule.
+
+**Measurement (part 3).** `scripts/checker_bench.py --checker-backend openai:<url>:<model>` runs the live
+checker on that backend over every benchmark row the validator passes and writes
+`docs/checker_scorecard_<model>.md` beside Opus's `docs/checker_scorecard.md` (never over it): the
+validator's table, the checker's precision, recall and F1 per category, every miss with the checker's
+reason, the tokens and the cost at jyotish.costs's prices, the structured-output mode the server took,
+and a last section applying the rule against the gate in use. The rule, in docs/models.md: the
+checker's backend changes for client readings only when its benchmark recall is not worse on any
+category than the gate in use; the writer's may change whenever its pass rate and gaps are acceptable,
+because every sentence is checked. The verdict says which categories are worse; and since Opus's last
+live run (2026-10-22, 119 rows) predates rows the benchmark has since gained (147), a category Opus did
+not run is named and the verdict waits for Opus to be run again on it. `scripts/compare_readings.py`
+takes a backend in a setting ("openai:<url>:<model>,<effort>,<depth>", split at its last two commas)
+and a checker per side (`--checker-a`, `--checker-b`) and the client's layer's (`--client-backend`), so
+one command compares the Opus writer with an open one under the same checker; with `--live-checker`, a
+replayed recording's drafts are checked live on each side's checker, so the open checker and Opus's are
+compared on the same reading. Each role is priced by its own model and host in the report, and the
+table names each role's host. `service.make_reading` passes the three backends to narrate.

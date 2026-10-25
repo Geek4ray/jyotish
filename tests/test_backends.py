@@ -120,3 +120,40 @@ def test_models_md_names_the_variables_the_prices_and_the_rule():
         if host == "api.deepinfra.com" and model in ("openai/gpt-oss-120b", "zai-org/GLM-4.7", "Qwen/Qwen3.6-35B-A3B"):
             fmt = lambda x: f"{x:.2f}" if round(x, 2) == x else f"{x:g}"
             assert f"{fmt(p[0])} / {fmt(p[1])}" in doc, (model, p)      # the doc's prices are the engine's
+
+
+# --- measurement (part 3) ---------------------------------------------------------------------------
+
+def _bench():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import checker_bench
+    return checker_bench
+
+
+def test_a_backends_scorecard_sits_beside_opuss_under_its_own_name():
+    cb = _bench()
+    assert cb.scorecard_path("zai-org/GLM-4.7").name == "checker_scorecard_zai-org-glm-4.7.md"
+    assert cb.scorecard_path("gpt-oss:20b").name == "checker_scorecard_gpt-oss-20b.md"
+    assert cb.scorecard_path("Qwen/Qwen3.6-35B-A3B").parent == cb.SCORECARD.parent and cb.SCORECARD.name == "checker_scorecard.md"
+
+
+def test_the_gates_recall_is_read_per_category_from_its_scorecard():
+    cb = _bench()
+    gate = cb.gate_recall(cb.SCORECARD.read_text())
+    assert gate["overall"] == 0.973 and gate["dignity_changed"] == 1.0 and "accepted" in gate
+
+
+def test_the_rule_passes_only_when_not_worse_on_any_category_and_waits_for_the_unmeasured():
+    cb = _bench()
+    rows = [{"id": "a", "label": "reject", "category": "sign_changed"}, {"id": "b", "label": "reject", "category": "negated"},
+            {"id": "c", "label": "accept", "category": "accepted"}]
+    caught = {"a": (True, ""), "b": (True, ""), "c": (False, "")}
+    text = "\n".join(cb.rule_section(rows, caught, {"sign_changed": 1.0, "negated": 1.0}, "Opus"))
+    assert "it passes the rule" in text
+    missed = dict(caught, b=(False, ""))
+    assert "worse on negated: it does not pass the rule" in "\n".join(cb.rule_section(rows, missed, {"sign_changed": 1.0,
+                                                                                                     "negated": 1.0}, "Opus"))
+    waits = "\n".join(cb.rule_section(rows, caught, {"sign_changed": 1.0}, "Opus"))
+    assert "not yet decided: the gate has no run on negated" in waits

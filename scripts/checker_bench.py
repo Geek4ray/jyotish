@@ -547,13 +547,16 @@ def run_validator(rows) -> dict[str, tuple[bool, str]]:
     return out
 
 
-def run_live(rows, config=None) -> tuple[dict[str, tuple[bool, str]], dict]:
-    """Validator, then the semantic checker on every row the validator passes."""
-    from jyotish.narrate import CONFIG, AnthropicChecker
+def run_live(rows, config=None, backend: str | None = None) -> tuple[dict[str, tuple[bool, str]], dict]:
+    """Validator, then the semantic checker on every row the validator passes, on `backend` ("anthropic"
+    or "openai:<base url>:<model>"; None: JYOTISH_CHECKER_BACKEND, Anthropic when unset). The usage names
+    the backend (provider, host, model)."""
+    from jyotish.narrate import CONFIG, ModelChecker, make_backend
     config = config or CONFIG
-    checker = AnthropicChecker(config)
+    checker = ModelChecker(make_backend(backend, "checker", config), config)
     v = run_validator(rows)
-    out, usage, todo = {}, {"input_tokens": 0, "output_tokens": 0, "calls": 0}, []
+    out, usage, todo = {}, {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "calls": 0,
+                            "backend": checker.backend.describe()}, []
     for row in rows:
         if v[row["id"]][0] or "[tradition:" in row["sentence"]:      # a [tradition:] sentence is never checked
             out[row["id"]] = v[row["id"]]
@@ -564,9 +567,11 @@ def run_live(rows, config=None) -> tuple[dict[str, tuple[bool, str]], dict]:
         bad = [p for p in result.propositions if not p.supported]
         out[row["id"]] = (bool(bad), "; ".join(f"{p.text!r}: {p.evidence}" for p in bad[:2]) or "supported")
         u = (meta or {}).get("usage") or {}
-        usage["input_tokens"] += u.get("input_tokens", 0)
-        usage["output_tokens"] += u.get("output_tokens", 0)
+        usage["input_tokens"] += u.get("input_tokens") or 0
+        usage["output_tokens"] += u.get("output_tokens") or 0
+        usage["cache_read_input_tokens"] += u.get("cache_read_input_tokens") or 0
         usage["calls"] += 1
+    usage["backend"] = checker.backend.describe()           # with the structured mode the server took
     return out, usage
 
 
@@ -629,20 +634,72 @@ def report(rows, vpred, live) -> str:
               f"and F1, every miss with the checker's reason, the model ({CONFIG.model}), the checker effort "
               f"({CONFIG.checker_effort}) and the cost.", ""]
     else:
+        from jyotish.costs import cost
         lp, usage, seconds = live
         ls = scores(rows, lp)
+        b = usage.get("backend") or {"provider": "anthropic", "host": "api.anthropic.com", "model": CONFIG.checker_model}
+        usd = cost(b.get("model"), usage, b.get("host"))
         L += ["## Validator + semantic checker (live)", "",
-              f"Model {CONFIG.model}, checker effort {CONFIG.checker_effort}; {usage['calls']} checker calls, "
-              f"{usage['input_tokens']} input and {usage['output_tokens']} output tokens, {seconds:.0f} s. Cost: "
-              "the token counts at the account's current price (not computed here).", "", *_table(ls), "",
+              f"Checker {b.get('model')} on {b.get('host')} ({b.get('provider')}"
+              + (f", structured output by {b['structured']}" if b.get("structured") else "")
+              + f"), checker effort {CONFIG.checker_effort}; {usage['calls']} checker calls, "
+              f"{usage['input_tokens']} input and {usage['output_tokens']} output tokens, {seconds:.0f} s; cost "
+              + (f"USD {usd:.2f} at jyotish.costs's prices." if usd is not None else "not known (no price for this model "
+                 "in jyotish.costs; never guessed)."), "", *_table(ls), "",
               "Misses and false rejects, with the checker's reason:", "", *_misses(rows, lp), ""]
     return "\n".join(L) + "\n"
+
+
+def scorecard_path(model: str) -> Path:
+    """docs/checker_scorecard_<model>.md for a backend's run, beside Opus's docs/checker_scorecard.md."""
+    return ROOT / "docs" / f"checker_scorecard_{re.sub(r'[^A-Za-z0-9.]+', '-', model).strip('-').lower()}.md"
+
+
+def gate_recall(text: str) -> dict[str, float]:
+    """Per category, the recall of a scorecard's live section (the gate in use: Opus's)."""
+    if LIVE_HEADING not in text:
+        return {}
+    out = {}
+    for line in text[text.index(LIVE_HEADING):].splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 6 and cells[0] not in ("category", "---") and re.fullmatch(r"[0-9.]+", cells[4]):
+            out[cells[0]] = float(cells[4])
+    return out
+
+
+def rule_section(rows, preds, gate: dict[str, float], gate_name: str) -> list[str]:
+    """docs/models.md's rule: the checker's backend changes for client readings only when its recall is
+    not worse on any category than the gate in use."""
+    if not gate:
+        return ["## Against the gate in use", "", f"No live run of {gate_name} on record to compare with.", ""]
+    here = scores(rows, preds)
+    L = ["## Against the gate in use", "",
+         f"The rule (docs/models.md): this checker may gate client readings only if its recall is not worse on any "
+         f"category than {gate_name}'s last live run (docs/checker_scorecard.md).", "",
+         "| category | recall here | recall of the gate | not worse |", "| --- | --- | --- | --- |"]
+    worse = []
+    for cat in sorted(set(here) & set(gate) - {"accepted", "overall"}):
+        ok = round(here[cat]["recall"], 3) >= gate[cat]
+        worse += [] if ok else [cat]
+        L.append(f"| {cat} | {here[cat]['recall']:.3f} | {gate[cat]:.3f} | {'yes' if ok else 'no'} |")
+    unmeasured = sorted(set(here) - set(gate) - {"accepted", "overall"})
+    if unmeasured:
+        L += ["", f"Not in the gate's last run (the benchmark has grown since): {', '.join(unmeasured)}. The rule cannot be "
+                  "applied to these until the gate is run again (scripts/checker_bench.py with ANTHROPIC_API_KEY)."]
+    L += ["", ("Verdict: worse on " + ", ".join(worse) + ": it does not pass the rule, and client readings keep the gate "
+               "in use." if worse else
+               "Verdict: not worse on any category both runs measured, but not yet decided: the gate has no run on "
+               + ", ".join(unmeasured) + "." if unmeasured else
+               "Verdict: not worse on any category: it passes the rule."), ""]
+    return L
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--build", action="store_true")
     ap.add_argument("--offline", action="store_true")
+    ap.add_argument("--checker-backend", help="run the live checker on this backend (openai:<base url>:<model>) and "
+                                              "write docs/checker_scorecard_<model>.md beside Opus's")
     a = ap.parse_args(argv)
     if a.build:
         rows = build()
@@ -651,6 +708,18 @@ def main(argv=None) -> int:
         return 0
     rows = load()
     vpred = run_validator(rows)
+    if a.checker_backend and a.checker_backend != "anthropic":
+        # Another backend's scorecard, beside Opus's, which it never overwrites.
+        t = time.time()
+        lp, usage = run_live(rows, backend=a.checker_backend)
+        path = scorecard_path(usage["backend"]["model"])
+        gate = gate_recall(SCORECARD.read_text()) if SCORECARD.exists() else {}
+        text = report(rows, vpred, (lp, usage, time.time() - t)) + "\n".join(rule_section(rows, lp, gate, "Opus")) + "\n"
+        path.write_text(text.replace("# Checker benchmark", f"# Checker benchmark: {usage['backend']['model']}", 1))
+        s = scores(rows, lp)["overall"]
+        print(f"{usage['backend']['model']} on {usage['backend']['host']}: precision {s['precision']:.3f} recall "
+              f"{s['recall']:.3f} F1 {s['f1']:.3f} -> {path}")
+        return 0
     live = None
     if not a.offline and os.environ.get("ANTHROPIC_API_KEY"):
         t = time.time()

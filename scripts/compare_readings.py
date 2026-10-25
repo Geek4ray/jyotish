@@ -16,12 +16,26 @@ profile):
         --a claude-opus-5-5,medium,astrologer --b claude-opus-5-5,max,full \\
         --database sqlite:///jyotish.db
 
+A setting's model may be an OpenAI-compatible backend (docs/models.md), "openai:<base url>:<model>", so
+one command compares the Opus writer with an open one under the same checker (--checker-a and
+--checker-b name each side's checker; both default to JYOTISH_CHECKER_BACKEND, Anthropic when unset):
+    .venv/bin/python scripts/compare_readings.py --a claude-opus-5-5,medium,astrologer \\
+        --b openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b,medium,astrologer \\
+        --checker-a anthropic --checker-b anthropic --as-of 2026-10-21 --out docs/comparison_<date>_gpt-oss.md
+
+Two checkers on the same reading: replay one recording on both sides with --live-checker (its drafts as
+recorded, each side's sentences checked live on that side's checker):
+    .venv/bin/python scripts/compare_readings.py --replay-a <recording> --replay-b <recording> --live-checker \\
+        --checker-a anthropic --checker-b openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7 --out <md>
+
 Offline, from two recordings this script wrote (no API call):
     .venv/bin/python scripts/compare_readings.py --replay-a docs/comparison_<date>/a.recording.json \\
         --replay-b docs/comparison_<date>/b.recording.json --out /tmp/comparison.md
 
-Costs use jyotish.costs.PRICES (USD per million tokens, the Anthropic price list as cached on
-2026-10-06; check it before quoting a cost), the table the service's ledger uses. Thinking is billed as output and is inside output_tokens."""
+Costs use jyotish.costs (USD per million tokens: Anthropic's price list as cached on 2026-10-06, the
+open providers' pages as read on 2026-10-25; check them before quoting a cost), the table the service's
+ledger uses, each role priced by its own model and host. Thinking is billed as output and is inside
+output_tokens."""
 
 from __future__ import annotations
 
@@ -49,16 +63,26 @@ from jyotish.costs import PRICES, cost  # noqa: E402  (one price table: the serv
 
 
 def setting(text: str) -> dict:
-    """'model,effort,depth' -> {model, effort, depth}, checked against the engine's own lists."""
-    from jyotish.narrate import DEPTHS, EFFORTS, WRITER_MODELS
+    """'model,effort,depth' -> {model, effort, depth, backend}, checked against the engine's own lists. The
+    model is an Anthropic writer, or an OpenAI-compatible backend "openai:<base url>:<model>" (a URL has
+    colons, so the setting is split at its last two commas)."""
+    from jyotish.narrate import BACKEND_SPEC, DEPTHS, EFFORTS, WRITER_MODELS
     try:
-        model, effort, depth = (x.strip() for x in text.split(","))
+        model, effort, depth = (x.strip() for x in text.rsplit(",", 2))
     except ValueError:
         raise argparse.ArgumentTypeError(f"a setting is model,effort,depth, not {text!r}")
-    for value, allowed, what in ((model, WRITER_MODELS, "model"), (effort, EFFORTS, "effort"), (depth, DEPTHS, "depth")):
+    backend = None
+    if model.startswith("openai:"):
+        m = BACKEND_SPEC.match(model)
+        if not m:
+            raise argparse.ArgumentTypeError(f"an open model is openai:<base url with its path>:<model>, not {model!r}")
+        backend, model = model, m.group(2)
+    elif model not in WRITER_MODELS:
+        raise argparse.ArgumentTypeError(f"model {model!r} is not one of {', '.join(WRITER_MODELS)} or openai:<url>:<model>")
+    for value, allowed, what in ((effort, EFFORTS, "effort"), (depth, DEPTHS, "depth")):
         if value not in allowed:
             raise argparse.ArgumentTypeError(f"{what} {value!r} is not one of {', '.join(allowed)}")
-    return {"model": model, "effort": effort, "depth": depth}
+    return {"model": model, "effort": effort, "depth": depth, "backend": backend}
 
 
 def tokens(recording: list, kind: str | tuple[str, ...]) -> dict:
@@ -87,8 +111,16 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
     judgements = sum(len(a.judgements) for a in reading.areas)
     analysis_n = sum(len(sentences(t)) for a in reading.areas for t in (a.analysis or {}).values()) - judgements
     claims = sum(len(a.claims) for a in reading.areas)
-    writer, checker = tokens(recording, ("writer", "client")), tokens(recording, "checker")
-    wc, cc = cost(reading.writer.get("model", reading.model), writer), cost(reading.checker.get("model", ""), checker)
+    writer, checker, client = tokens(recording, "writer"), tokens(recording, "checker"), tokens(recording, "client")
+    host = lambda role: (((getattr(reading, role, None) or {}) or {}).get("backend") or {}).get("host")
+    wc = cost(reading.writer.get("model", reading.model), writer, host("writer"))
+    cc = cost(reading.checker.get("model", ""), checker, host("checker"))
+    kc = cost((getattr(reading, "client", None) or {}).get("model") or reading.writer.get("model", reading.model), client,
+              host("client") or host("writer")) if client["calls"] else 0.0
+    # The writer's side of the table is the writer and the client's layer together, as before; each is
+    # priced by its own model and host.
+    writer = {k: writer[k] + client[k] for k in writer}
+    wc = None if wc is None or kc is None else wc + kc
     rejected = [c for c in recording if c.get("kind") == "checker"
                 and any(not p["supported"] for p in c["result"]["propositions"])]
     return {"writer": reading.writer, "checker": reading.checker, "attempts": reading.attempts,
@@ -99,6 +131,7 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
             "validator_errors": sum(len(c.get("validator_errors") or []) for c in recording
                                     if c.get("kind") in ("writer", "client")),
             "client_layer": (getattr(reading, "usage", None) or {}).get("client"),
+            "backends": {r: ((getattr(reading, r, None) or {}).get("backend") or {}) for r in ("writer", "checker", "client")},
             "paragraphs_shown": sum(1 for a in reading.areas if a.paragraph),
             "gaps": [dict(g, area=a.name) for a in reading.areas for g in a.narration_gaps],
             "narration_gaps": sum(len(a.narration_gaps) for a in reading.areas),
@@ -134,9 +167,14 @@ def side_by_side(page_a: str, page_b: str) -> str:
     return '<table>\n<tr><th width="50%">A</th><th width="50%">B</th></tr>\n' + "\n".join(rows) + "\n</table>"
 
 
-ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}, effort {m['writer'].get('effort')}, "
+def _where(m: dict, role: str) -> str:
+    b = (m.get("backends") or {}).get(role) or {}
+    return f" on {b['host']}" if b.get("host") else ""
+
+
+ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}{_where(m, 'writer')}, effort {m['writer'].get('effort')}, "
                              f"thinking {m['writer'].get('thinking') or 'not sent'}"),
-        ("Checker", lambda m: f"{m['checker'].get('model')}, effort {m['checker'].get('effort')}"),
+        ("Checker", lambda m: f"{m['checker'].get('model')}{_where(m, 'checker')}, effort {m['checker'].get('effort')}"),
         ("Attempts", lambda m: m["attempts"]),
         ("Checked sentences shown", lambda m: m["sentences_checked_shown"]),
         ("Claims shown", lambda m: m["claims_shown"]),
@@ -200,9 +238,10 @@ def document(run_date: str, birth: dict, question: str, as_of: str, source: str,
     if ids:
         L += [f"Blind review: `/compare/{ids[0]}/{ids[1]}` (the reviewer sees A and B without their settings).", ""]
     L += ["| | A | B |", "|---|---|---|"] + [f"| {name} | {f(ma)} | {f(mb)} |" for name, f in ROWS] + [""]
-    L += ["Prices: USD per million tokens from `jyotish.costs.PRICES` (the Anthropic price list "
-          "as cached on 2026-10-06); thinking is billed as output. Wall time is the narration's (writer and "
-          "checker calls), not the chart's.", ""]
+    L += ["Prices: USD per million tokens from `jyotish.costs` (Anthropic's price list as cached on 2026-10-06, the "
+          "open providers' pages as read on 2026-10-25), each role by its own model and host; a model without a price "
+          "has no cost (–). Thinking is billed as output. Wall time is the narration's (writer and checker calls), not "
+          "the chart's.", ""]
     for label, rows in zip("AB", attempts):
         if rows:
             L += [f"Per attempt, {label} (the checker's seconds are the sum of its calls, which run concurrently):", ""] \
@@ -218,21 +257,35 @@ def document(run_date: str, birth: dict, question: str, as_of: str, source: str,
     return "\n".join(L)
 
 
-def run(birth_data: dict, question: str, as_of: str, s: dict, replay: str | None = None):
-    """(reading, page, recording, wall seconds, chart, chart id) for one setting."""
+def run(birth_data: dict, question: str, as_of: str, s: dict, replay: str | None = None, checker: str | None = None,
+        client: str | None = None, live_checker: bool = False):
+    """(reading, page, recording, wall seconds, chart, chart id) for one setting. `checker` and `client`
+    name the checker's and the client's layer's backends (None: the environment's); with `live_checker`
+    a replay's drafts are checked live on `checker` and its calls recorded."""
     from jyotish.service import BirthInput, assess_birth, make_reading
     birth = BirthInput(**birth_data)
     chart, _, chart_id = assess_birth(birth)
     if replay:
         rec = json.loads(Path(replay).read_text())
-        s = rec["settings"]
+        s = dict(rec["settings"])
+        anthropic_writer = not s.get("backend")
+        recording: list = []
+        t = time.perf_counter()
         reading, page = make_reading(birth, question, chart=chart, as_of=as_of, model_fixture=replay, depth=s["depth"],
-                                     writer_model=s["model"], writer_effort=s["effort"])
+                                     writer_model=s["model"] if anthropic_writer else None, writer_effort=s["effort"],
+                                     checker_backend=checker, live_checker=live_checker,
+                                     recording=recording if live_checker else None)
+        if live_checker:                                # the recorded writer calls, this run's checker calls
+            calls = [c for c in rec.get("calls", []) if c.get("kind") != "checker"] + \
+                    [c for c in recording if c.get("kind") == "checker"]
+            return reading, page, calls, round(time.perf_counter() - t, 1), chart, chart_id, s
         return reading, page, rec.get("calls", []), rec.get("wall_seconds"), chart, chart_id, s
-    recording: list = []
+    recording = []
     t = time.perf_counter()
-    reading, page = make_reading(birth, question, chart=chart, as_of=as_of, depth=s["depth"], writer_model=s["model"],
-                                 writer_effort=s["effort"], recording=recording)
+    reading, page = make_reading(birth, question, chart=chart, as_of=as_of, depth=s["depth"],
+                                 writer_model=None if s.get("backend") else s["model"], writer_effort=s["effort"],
+                                 recording=recording, writer_backend=s.get("backend"), checker_backend=checker,
+                                 client_backend=client)
     return reading, page, recording, round(time.perf_counter() - t, 1), chart, chart_id, s
 
 
@@ -286,6 +339,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--birth", help="birth data as JSON (BirthInput fields); default the reference chart")
     ap.add_argument("--out", help="the Markdown file (default docs/comparison_<today>.md)")
     ap.add_argument("--database", help="store both readings here (a database URL) for /compare/<a>/<b>")
+    ap.add_argument("--checker-a", help="A's checker backend: anthropic or openai:<url>:<model> (default: the environment's)")
+    ap.add_argument("--checker-b", help="B's checker backend (the same)")
+    ap.add_argument("--client-backend", help="the client's layer's backend on both sides (default: the environment's)")
+    ap.add_argument("--live-checker", action="store_true",
+                    help="with --replay-a/--replay-b: check the recorded drafts live on --checker-a/--checker-b")
     args = ap.parse_args(argv)
     if not ((args.a or args.replay_a) and (args.b or args.replay_b)):
         ap.error("name both settings (--a and --b) or both recordings (--replay-a and --replay-b)")
@@ -295,8 +353,9 @@ def main(argv: list[str] | None = None) -> int:
     side = out.with_suffix("")
     side.mkdir(parents=True, exist_ok=True)
     results = {}
-    for key, s, replay in (("a", args.a, args.replay_a), ("b", args.b, args.replay_b)):
-        reading, page, rec, wall, chart, chart_id, s = run(birth, args.question, args.as_of, s, replay)
+    for key, s, replay, chk in (("a", args.a, args.replay_a, args.checker_a), ("b", args.b, args.replay_b, args.checker_b)):
+        reading, page, rec, wall, chart, chart_id, s = run(birth, args.question, args.as_of, s, replay, chk,
+                                                           args.client_backend, args.live_checker and bool(replay))
         if not replay:
             save_recording(side / f"{key}.recording.json", args.question, s, rec, wall)
         (side / f"{key}.reading.json").write_text(json.dumps(reading.model_dump(mode="json"), indent=1,
@@ -309,7 +368,8 @@ def main(argv: list[str] | None = None) -> int:
         ids = tuple(store(args.database, birth, args.question, r[4], r[5], r[0], r[1]) for r in results.values())
         link(args.database, *ids)
     (ra, pa, reca, wa, *_), (rb, pb, recb, wb, *_) = results["a"], results["b"]
-    source = "replayed from recordings (no API call)" if args.replay_a or args.replay_b else "live"
+    source = ("the recordings' drafts, checked live on each side's checker" if args.live_checker
+              else "replayed from recordings (no API call)" if args.replay_a or args.replay_b else "live")
     out.write_text(document(today, birth, args.question, args.as_of, source, metrics(ra, reca, wa),
                             metrics(rb, recb, wb), pa, pb, ids, (per_attempt(reca), per_attempt(recb))))
     print(f"wrote {out}" + (f"; blind review at /compare/{ids[0]}/{ids[1]}" if ids else ""))

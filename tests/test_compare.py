@@ -152,8 +152,15 @@ def test_compare_script_refuses_an_unknown_setting():
     sys.path.insert(0, str(ROOT / "scripts"))
     import argparse
     import compare_readings as cr
-    assert cr.setting("claude-opus-5-5, max, full") == {"model": "claude-opus-5-5", "effort": "max", "depth": "full"}
-    for bad in ("claude-opus-5-5,max", "gpt-5,max,full", "claude-opus-5-5,maximum,full", "claude-opus-5-5,max,deep"):
+    assert cr.setting("claude-opus-5-5, max, full") == {"model": "claude-opus-5-5", "effort": "max", "depth": "full",
+                                                         "backend": None}
+    # An open model (docs/models.md): its spec in place of the model, split at the setting's last two commas.
+    spec = "openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b"
+    assert cr.setting(f"{spec},medium,astrologer") == {"model": "openai/gpt-oss-120b", "effort": "medium",
+                                                       "depth": "astrologer", "backend": spec}
+    assert cr.setting("openai:http://localhost:11434/v1:gpt-oss:20b,low,astrologer")["model"] == "gpt-oss:20b"
+    for bad in ("claude-opus-5-5,max", "gpt-5,max,full", "claude-opus-5-5,maximum,full", "claude-opus-5-5,max,deep",
+                "openai:localhost:gpt-oss,medium,astrologer"):
         with pytest.raises(argparse.ArgumentTypeError):
             cr.setting(bad)
 

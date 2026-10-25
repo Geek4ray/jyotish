@@ -154,13 +154,17 @@ def reading_header(birth: BirthInput, question: str, chart: Chart, as_of: str | 
 def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str | None = None,
                  model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None,
                  depth: str = DEPTH_DEFAULT, writer_model: str | None = None, writer_effort: str | None = None,
-                 recording: list | None = None, chart_id: str | None = None):
+                 recording: list | None = None, chart_id: str | None = None, writer_backend: str | None = None,
+                 checker_backend: str | None = None, client_backend: str | None = None, live_checker: bool = False):
     """(reading, page). The areas are the question's, then the chart's top three. With
     `model_fixture` the model is replayed from that recording (offline) and sentences with no
     recorded checker verdict are counted as unchecked. `writer_model` and `writer_effort` override
     the writer's settings (narrate.writer_config); `recording` collects every call. A live reading's
     [tradition:] sentences are recorded as candidate rules under `chart_id` (record_candidates); a
-    replay records none, since its sentences were recorded when it was made. NarrationError
+    replay records none, since its sentences were recorded when it was made. The three backends
+    (narrate.make_backend; None: JYOTISH_<ROLE>_BACKEND) go to narrate; with `live_checker` a replay
+    keeps the recording's drafts and checks them live on `checker_backend`, so two checkers can be
+    compared on the same reading (scripts/compare_readings.py --live-checker). NarrationError
     propagates."""
     from .narrate import FixtureChecker, FixtureDrafter, TAG, narrate, route, sentences
     from .page import render
@@ -174,9 +178,13 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
         replayed = json.loads(Path(model_fixture).read_text())
         drafter, checker = FixtureDrafter(replayed), FixtureChecker(replayed)
         client_drafter = FixtureDrafter(replayed, key="client_drafts")     # depth full's client's layer
+        if live_checker:
+            from .narrate import CONFIG, ModelChecker, make_backend
+            checker = ModelChecker(make_backend(checker_backend, "checker", CONFIG), CONFIG)
     reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress,
                       depth=depth, writer_model=writer_model, writer_effort=writer_effort, recording=recording,
-                      client_drafter=client_drafter)
+                      client_drafter=client_drafter, writer_backend=writer_backend, checker_backend=checker_backend,
+                      client_backend=client_backend)
     update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth, writer_model,
                                             writer_effort)}
     if model_fixture:
@@ -184,8 +192,9 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                [c.text for a in reading.areas for c in a.claims] + \
                [x for a in reading.areas for t in (a.paragraph, a.when, *(a.analysis or {}).values()) if t
                 for x in sentences(t)]
-        update |= {"narration_source": f"fixture:{model_fixture}",
-                   "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)}
+        verdicts = getattr(checker, "verdicts", None)            # none with a live checker: every sentence checked
+        update |= {"narration_source": f"fixture:{model_fixture}" + (" with a live checker" if live_checker else ""),
+                   "unchecked_sentences": sum(1 for x in said if x not in verdicts) if verdicts is not None else 0}
     from .narrate import with_sheets
     update["areas"] = with_sheets(reading.areas, chart, day)       # the technical sheet, at every depth
     reading = reading.model_copy(update=update)
