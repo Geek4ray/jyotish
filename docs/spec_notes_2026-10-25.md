@@ -184,3 +184,13 @@ benchmark exits keeping the rows checked so far, for --resume); before, the run 
 sentences unchecked. And the rule now treats a category the gate measured but the run did not (every row
 unchecked) as unmeasured, so the verdict waits: the stopped run had read "passes the rule" on the ten
 categories it reached. Its scorecard was not kept. The measurement resumes once the balance is topped up.
+
+**GLM-4.7 at checker effort low, measured (2026-10-25).** Resumed after the top-up (`--resume`), 8 checks
+at once, every one of the 124 checks answered at last (one row asked again in a third invocation):
+recall 1.000 on every category (86 of 86), 10 false rejects of 61 good sentences, the same as at high;
+against the gate in use (GLM-4.7 at high) it is not worse on any category and passes the rule. It is not
+the faster gate looked for: 547,803 output tokens against 603,884 at high (9% fewer per check), USD 1.04
+against 1.15; the wall time (7,359 s over three invocations, against 2,467 s) is not comparable, inflated
+by the balance running out and by 33 retries under load, but the token count says GLM-4.7 reasons almost
+as long at low as at high on these checks. The gate stays GLM-4.7 at high. A resumed run's scorecard now
+says its time is the last invocation's.

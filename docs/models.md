@@ -155,8 +155,17 @@ then writes from its fields; the checker is most of the cost and nearly all of t
 for 100 to 200 seconds a check at effort high, so a reading takes half an hour or more. This run sent 16
 checks at once (JYOTISH_CHECKER_CONCURRENCY=16) and DeepInfra dropped connections under it: 30 retries,
 and three checks failed all five tries (unchecked; one became Qwen's gap). Keep the default of 4. A
-faster gate is the next measurement: GLM-4.7 at a lower checker effort, or another checker, each held to
-the rule on the benchmark first.
+faster gate was the next measurement.
+
+**GLM-4.7 at checker effort low** (2026-10-25, `docs/checker_scorecard_zai-org-glm-4.7_effort-low.md`): it
+passes the rule against the gate in use (GLM-4.7 at high): recall 1.000 on every category (86 of 86), the
+same 10 false rejects. But it is barely cheaper and not faster on the benchmark's real checks: 547,803
+output tokens against 603,884 (4,418 a check against 4,870, 9% fewer), USD 1.04 against 1.15. Its wall time
+(7,359 s over three invocations, against 2,467 s) is not a fair comparison, since DeepInfra's balance ran
+out midway and the resumed part met 33 retries under load; but the token count, which does not depend on
+load, says the model thinks almost as long at low as at high on these sentences. So the gate stays GLM-4.7
+at high; a gate several times faster needs another approach (reasoning switched off, or a checker that does
+not reason at length), held to the rule on the benchmark first.
 
 ## (c) Anthropic, as before
 

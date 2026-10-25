@@ -699,7 +699,9 @@ def report(rows, vpred, live) -> str:
               f"Checker {b.get('model')} on {b.get('host')} ({b.get('provider')}"
               + (f", structured output by {b['structured']}" if b.get("structured") else "")
               + f"), checker effort {usage.get('effort') or CONFIG.checker_effort}; {usage['calls']} checker calls, "
-              f"{usage['input_tokens']} input and {usage['output_tokens']} output tokens, {seconds:.0f} s; cost "
+              f"{usage['input_tokens']} input and {usage['output_tokens']} output tokens, {seconds:.0f} s"
+              + (" in this invocation (the rows carried over were checked in earlier ones)" if usage.get("resumed") else "")
+              + "; cost "
               + (f"USD {usd:.2f} at jyotish.costs's prices." if usd is not None else "not known (no price for this model "
                  "in jyotish.costs; never guessed).")
               + (f" {usage['resumed']} rows were carried over from an interrupted run (--resume)." if usage.get("resumed") else "")
