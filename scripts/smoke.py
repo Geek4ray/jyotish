@@ -1,6 +1,8 @@
 """The deployed service, end to end, as a reviewer meets it (CI's image job; docs/deploy.md).
 
-    python scripts/smoke.py --url http://127.0.0.1:8001 --token <a reviewer token>
+    python scripts/smoke.py --url http://127.0.0.1:8001 --token=<a reviewer token>
+
+(--token= with the sign: a token may begin with "-", which argparse would otherwise read as an option.)
 
 Against a running service started with JYOTISH_MODEL_FIXTURE (a recorded narration replayed, no model
 called): /health reports a migrated database and the replay; a reading of the reference chart is

@@ -887,7 +887,7 @@ def test_the_ci_smoke_script_passes_against_a_served_app(tmp_path, monkeypatch):
     server, thread, url = _serve(db, None)
     try:
         # Its own process, as in CI (and a second sync Playwright cannot start beside this module's).
-        run = subprocess.run([sys.executable, str(ROOT / "scripts" / "smoke.py"), "--url", url, "--token", token,
+        run = subprocess.run([sys.executable, str(ROOT / "scripts" / "smoke.py"), "--url", url, f"--token={token}",
                               "--timeout", "120"], capture_output=True, text=True, timeout=300)
         assert run.returncode == 0, run.stdout + run.stderr
         assert run.stdout.splitlines()[-1] == "smoke test passed" and "ok    the server holds the answer" in run.stdout

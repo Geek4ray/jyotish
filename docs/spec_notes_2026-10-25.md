@@ -132,3 +132,16 @@ a dropped connection then an answer, a 429 with Retry-After, a request failing e
 failing every retry in a batch (sequential and concurrent), a reading counting it, a reply with
 reasoning_content, the concurrency defaults, a keep-alive server across three batches, and the
 benchmark's partial file and resume.
+
+Reproduced live against DeepInfra after the fix (2026-10-25): one trivial call answered by json_schema
+in 9.4 s with reasoning_content; two calls one at a time, four at once and sixteen at once, each with
+the checker's real body (up to 23,759 bytes), all answered with no retry needed (213 s, 158 s, 253 s:
+GLM-4.7 reasons for about 100 s a call at effort high). The fault reproduced was ours (the async client
+across event loops); the original ReadError did not recur, and if DeepInfra drops a connection the
+retries now carry the call. **The benchmarks** (8 calls at once, every one of the 124 checker rows
+answered): GLM-4.7 recall 1.000 on every category (86 of 86), precision 0.896 (10 false rejects of 61
+good sentences), 2,467 s, USD 1.15; Qwen3.6-35B-A3B recall 0.965 (83 of 86: it missed one
+contradicts_its_fact, one judgement_premise and one unstated_claim row), precision 0.965 (3 false
+rejects), 441 s, USD 0.53. Both are not worse than Opus's last live run on every category that run
+measured (14); eight categories added since have no Opus run, so the rule is not decided for either
+until Opus is run again on the 147 rows. docs/models.md carries the table.

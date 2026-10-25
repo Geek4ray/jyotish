@@ -198,7 +198,13 @@ JYOTISH_ALLOW_LOCAL_FULL, and on a hosted model whose known window cannot hold t
 (`CONTEXT_TOKENS`). `scripts/checker_bench.py --checker-backend` writes docs/checker_scorecard_<model>.md with the
 rule's verdict; `scripts/compare_readings.py` takes `openai:` settings, `--checker-a/-b`, `--live-checker`. The checker
 changes for client readings only when its recall is not worse on any category (docs/models.md). Tests:
-tests/test_backends.py, tests/test_openai_backend.py (a stub OpenAI-compatible server).
+tests/test_backends.py, tests/test_openai_backend.py (a stub OpenAI-compatible server). The OpenAI backend retries
+dropped connections, timeouts and 429/5xx (five attempts, backoff, Retry-After, `backend.retry` logged without the key),
+opens one async client per batch and closes it (`Backend.aclose`), defaults to 4 calls at once hosted and 1 local
+(JYOTISH_CHECKER_CONCURRENCY overrides; Anthropic 16); a checker call that fails after the retries fails its sentence
+as unchecked (`Reading.unchecked_sentences`). The benchmark writes data/bench_partial/ as it goes and both scripts take
+--resume and read keys from the gitignored .env (`jyotish.envfile`). Scorecards: docs/checker_scorecard_zai-org-glm-4.7.md,
+docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md (2026-10-25; the rule waits on Opus run again on 147 rows).
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

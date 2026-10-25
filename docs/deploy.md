@@ -53,7 +53,7 @@ The smoke test CI runs on every push (`scripts/smoke.py`) can be run against thi
 reviewer token and a service replaying a recording, so it is for a throwaway database, not the real one.
 In CI: the image on SQLite with `JYOTISH_MODEL_FIXTURE=/fixtures/narration_career_edited.json`, a token from
 `docker exec app jyotish reviewer add smoke`, then `python scripts/smoke.py --url http://127.0.0.1:8000
---token <token>`: `/health`, a reading of the reference chart posted and done, its review page opened in
+--token=<token>`: `/health`, a reading of the reference chart posted and done, its review page opened in
 Chromium, the token taken, the three intro screens and the career question answered, the answer read
 back from the server.
 

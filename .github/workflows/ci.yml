@@ -90,7 +90,7 @@ jobs:
             -e JYOTISH_MODEL_FIXTURE=/fixtures/narration_career_edited.json jyotish:ci
           for i in $(seq 60); do curl -fsS http://127.0.0.1:8000/health > /dev/null && break; sleep 2; done
           TOKEN=$(docker exec app jyotish reviewer add smoke | tail -1)
-          smoke-venv/bin/python scripts/smoke.py --url http://127.0.0.1:8000 --token "$TOKEN"
+          smoke-venv/bin/python scripts/smoke.py --url http://127.0.0.1:8000 --token="$TOKEN"
       - name: The smoke container's log
         if: always()
         run: docker logs app 2>&1 | tail -40; docker rm -f app || true

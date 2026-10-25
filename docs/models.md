@@ -179,8 +179,27 @@ side's checker (`--live-checker`):
 
 ## What the benchmark says
 
-Not yet run on an open checker; its scorecards will be `docs/checker_scorecard_<model>.md`, per
-category, beside Opus's `docs/checker_scorecard.md`. Until one
+Run on 2026-10-25 on DeepInfra, 147 rows (124 reaching the checker, every one answered; 8 calls at once):
+`docs/checker_scorecard_zai-org-glm-4.7.md` and `docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md`, beside
+Opus's `docs/checker_scorecard.md` (its last live run, 2026-10-22, on the 119 rows the benchmark had then).
+
+| | Opus 5.5 (2026-10-22, 119 rows) | GLM-4.7 | Qwen3.6-35B-A3B |
+| --- | --- | --- | --- |
+| Recall, overall | 0.973 (72 of 74) | 1.000 (86 of 86) | 0.965 (83 of 86) |
+| False rejects of 61 good sentences | 0 of 45 | 10 | 3 |
+| Semantic categories missed | 2 rows | none | contradicts_its_fact (0 of 1), judgement_premise (1 of 2), unstated_claim (1 of 2) |
+| Time, cost | 54 s | 2,467 s, USD 1.15 (603,884 output tokens: it reasons at length) | 441 s, USD 0.53 |
+
+The wording and tag categories (tier_word, forbidden_word, tag_not_offered, refers_to_another_claim and
+the rest) are the validator's to catch, before any checker, so they score the same for every checker;
+the semantic ones are the checkers'. Against the rule, both are not worse than Opus on every category
+Opus's last run measured; eight categories the benchmark has gained since (cites_too_narrowly,
+contradicts_its_fact, judgement_premise, nth_sign, ranking_not_cited, synthesis_does_not_follow,
+unstated_claim, untagged_unsupported) have no Opus run, so the rule is not yet decided for either: Opus
+must be run again on all 147 rows first (`scripts/checker_bench.py` with ANTHROPIC_API_KEY). On what is
+measured, GLM-4.7 caught every bad row, at the price of ten false rejects (each costs a regeneration, not
+a wrong sentence), and Qwen3.6-35B-A3B missed three semantic rows that Opus has not been run on; until
+the rule decides, client readings keep the Opus checker. Until one
 shows recall not worse than Opus's on every category, client readings keep the Opus checker (the rule
 above).
 
