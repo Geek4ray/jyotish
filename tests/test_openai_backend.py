@@ -190,8 +190,14 @@ def chart():
 
 
 def test_three_roles_on_three_backends_recorded_and_priced(server, chart, monkeypatch):
-    from tests.test_client_layer import PARAGRAPH, SUMMARY, WHEN, draft
+    import importlib.util
+    from pathlib import Path
     from jyotish.costs import reading_cost
+    # The client's-layer test's draft and client's view, loaded from its file (the tests are not a package).
+    spec = importlib.util.spec_from_file_location("client_layer_cases", Path(__file__).with_name("test_client_layer.py"))
+    cases = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cases)
+    PARAGRAPH, SUMMARY, WHEN, draft = cases.PARAGRAPH, cases.SUMMARY, cases.WHEN, cases.draft
     monkeypatch.setenv("JYOTISH_ALLOW_LOCAL_FULL", "1")      # the stub is local; depth full is allowed for this test
     STUB.answers["ReadingDraft"] = draft()
     STUB.answers["ClientDraft"] = {"summary": SUMMARY, "areas": [{"name": "career", "paragraph": PARAGRAPH, "when": WHEN}]}
