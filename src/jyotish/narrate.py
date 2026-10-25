@@ -219,8 +219,11 @@ class ReadingArea(BaseModel):
     # CONFIG.max_attempts: {finding_id, kind, last_error, attempt}. Shown as "not narrated
     # within the checks"; the reading never fails on narration alone.
     narration_gaps: list[dict[str, Any]] = Field(default_factory=list)
-    paragraph: str | None = None        # curious depth: the plain-language paragraph (checked like the summary)
+    paragraph: str | None = None        # curious depth: the plain-language paragraph (checked like the summary);
+                                        # depth full: "What the chart says for you" (jyotish.client)
     paragraph_cites: list[str] = Field(default_factory=list)
+    when: str | None = None             # depth full: "When", the client's windows in dates (jyotish.client)
+    when_cites: list[str] = Field(default_factory=list)
     other_placements: list[dict[str, Any]] = Field(default_factory=list)   # placements beyond the three offered
     astrologer_note: dict[str, Any] | None = None   # review step: {text, by, at}, the reviewer's words, never checked
     # Depth full: the checked sections (assessment, timing, not_said -> text), each accepted whole,
@@ -2019,6 +2022,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
 
     client_metas: list[dict | None] = []
     client_layer: dict[str, Any] = {}
+    kept_when: dict[str, str] = {}
+    when_error: dict[str, tuple[str, int]] = {}
     if full:
         # The client's layer (jyotish.client): written from the accepted claims and sections alone (the
         # [tradition:] sentences, never checked, left out), every sentence tagged with what it draws on.
@@ -2044,6 +2049,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             kept_summary, summary_error = client_layer["summary"], client_layer["summary_error"] or summary_error
             kept_para = dict(client_layer["paragraphs"])
             para_error.update(client_layer["para_errors"])
+            kept_when, when_error = dict(client_layer["whens"]), dict(client_layer["when_errors"])
         else:
             summary_error = ("nothing passed the checks to write the summary from", attempts)
 
@@ -2092,6 +2098,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         if (curious or full) and paragraph is None:
             err, at = para_error.get(name, ("no paragraph was drafted for this area", attempts))
             gaps.append({"finding_id": "paragraph", "kind": "paragraph", "last_error": err, "attempt": at})
+        when_text = kept_when.get(name)                 # the client's "When" (not `when`, the question's)
+        if full and when_text is None and name in when_error:
+            err, at = when_error[name]
+            gaps.append({"finding_id": "when", "kind": "when", "last_error": err, "attempt": at})
         analysis, traditions = (split_traditions({sec: kept_ana[(name, sec)] for sec in ANALYSIS_SECTIONS
                                                   if (name, sec) in kept_ana}) if full else (None, []))
         for sec in ANALYSIS_SECTIONS if full else ():
@@ -2108,6 +2118,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             disclaimer=disclaimer, narration_gaps=gaps, paragraph=paragraph,
             other_placements=other_placements(chart, name),
             paragraph_cites=[f"{k}:{v}" for k, v in TAG.findall(paragraph or "")],
+            when=when_text, when_cites=[f"{k}:{v}" for k, v in TAG.findall(when_text or "")],
             analysis=analysis, analysis_cites=list(dict.fromkeys(
                 f"{k}:{v}" for t in (analysis or {}).values() for k, v in TAG.findall(t))), traditions=traditions,
             judgements=[{"section": sec, "sentence": x} for sec, t in (analysis or {}).items() for x in sentences(t)
@@ -2150,7 +2161,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         [t for a in reading_areas for t in (a.analysis or {}).values()]
     # The client's paragraphs are footnoted from facts_cited too; they are not counted among the
     # analysis's syntheses (the paragraph restates accepted sentences, it adds no conclusion).
-    cited_texts = shown + [a.paragraph for a in reading_areas if a.paragraph]
+    cited_texts = shown + [t for a in reading_areas for t in (a.paragraph, a.when) if t]
     synthesis = sum(1 for t in shown for x in sentences(t) if is_synthesis(x, finding_data, facts))
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
                    chart=chart_header(chart), facts_cited={k: v for t in cited_texts for k, v in _cited_facts(t, facts).items()},

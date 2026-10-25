@@ -781,13 +781,16 @@ def test_full_depth_reading_on_the_site(page, full_url):
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
     # The client's layer first, the tier line after it, then the astrologer's analysis, closed.
-    order = career.evaluate("""el => [...el.children].map(c => c.matches('p.paragraph') ? 'paragraph'
-        : c.matches('.not-decided') ? 'not_decided' : c.matches('dl.facts') ? 'tier'
-        : c.matches('details.analysis-toggle') ? 'analysis' : c.matches('details.findings') ? 'findings' : null)
-        .filter(Boolean)""")
-    assert order[:4] == ["paragraph", "not_decided", "tier", "analysis"], order
+    sel = ".client-says, .client-when, .not-decided, dl.facts, details.analysis-toggle, details.findings"
+    order = career.evaluate("""el => [...el.querySelectorAll('""" + sel + """')].map(c => c.matches('.client-says') ? 'says'
+        : c.matches('.client-when') ? 'when' : c.matches('.not-decided') ? 'not_tell' : c.matches('dl.facts') ? 'tier'
+        : c.matches('details.analysis-toggle') ? 'analysis' : 'findings')""")
+    assert order[:5] == ["says", "when", "not_tell", "tier", "analysis"], order
+    assert career.locator(".client-says h3").inner_text() == "What the chart says for you"
     assert career.locator("p.paragraph").inner_text().startswith("Mars, which sits in its own sign in your 7th house")
-    assert career.locator(".not-decided h3").inner_text() == "What the chart does not decide"
+    assert career.locator(".client-when h3").inner_text() == "When"
+    assert career.locator("p.when").inner_text().startswith("Mars's own major period")
+    assert career.locator(".not-decided h3").inner_text() == "What this chart does not tell"
     assert career.locator(".not-decided li").inner_text().startswith("Which kind of work suits you")
     toggle = career.locator("details.analysis-toggle")
     assert toggle.locator("summary").inner_text() == "The astrologer's analysis" and toggle.get_attribute("open") is None

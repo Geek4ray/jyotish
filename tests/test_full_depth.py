@@ -146,8 +146,8 @@ def test_model_effort_and_usage_are_recorded_in_the_reading(chart):
     # under the writer and apart under `client`.
     assert r.usage["writer"]["calls"] == 2 and r.usage["writer"]["input_tokens"] == 1100
     assert r.usage["client"]["calls"] == 1 and r.usage["client"]["attempts"] == 1
-    # two assessment sentences, timing, the two not-said lists; then the paragraph and the summary
-    assert r.usage["checker"]["calls"] == 7
+    # two assessment sentences, timing, the two not-said lists; then the paragraph, the when and the summary
+    assert r.usage["checker"]["calls"] == 8
     assert r.usage["wall_seconds"] >= 0
 
 

@@ -2,6 +2,8 @@
 // every tier or stability word comes from the JSON: nothing here computes, rounds beyond
 // display precision, or rewords an engine field. Text from the JSON is always escaped.
 
+import { t } from "./strings.js";
+
 const TAG = /\[(rule|text|vote|chain|fact):([^\]\s]+)\]/g;
 
 export function esc(value) {
@@ -226,12 +228,13 @@ function areaCard(a, notes, depth) {
   </section>`;
 }
 
-// Depth full, the client's layer first: the plain paragraph, then what no fact decides, each sentence
-// footnoted like any other; the tier line follows it.
+// Depth full, the client's view first (2026-10-25): what the chart says for you, when, and what this
+// chart does not tell, each sentence footnoted like any other; the tier line follows it.
 function clientBlock(a, notes) {
   const items = splitSentences((a.analysis || {}).not_said_client || "");
-  return `${a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}${items.length
-    ? `<div class="not-decided"><h3 class="small">What the chart does not decide</h3><ul>${items.map((x) => `<li>${notes.text(x)}</li>`).join("")}</ul></div>` : ""}`;
+  return `<div class="client-view">${a.paragraph ? `<div class="client-says"><h3 class="small">${esc(t("client.says"))}</h3><p class="paragraph">${notes.text(a.paragraph)}</p></div>` : ""}${a.when
+    ? `<div class="client-when"><h3 class="small">${esc(t("client.when"))}</h3><p class="when">${notes.text(a.when)}</p></div>` : ""}${items.length
+    ? `<div class="not-decided"><h3 class="small">${esc(t("client.not_tell"))}</h3><ul>${items.map((x) => `<li>${notes.text(x)}</li>`).join("")}</ul></div>` : ""}</div>`;
 }
 
 // The engine's sentence split (narrate.sentences), so a list item is the sentence the checker read.

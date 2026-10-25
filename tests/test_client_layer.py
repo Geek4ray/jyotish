@@ -27,12 +27,11 @@ NOT_COMPUTED = "The KP family abstains on career [fact:areas.career.votes.kp.vot
 TRADITION = ("Phaladeepika holds that a lord of the tenth in its own sign gives a career of authority "
              "[tradition:Phaladeepika 10].")
 
+VIEW = ("In the reading's view, that dignity counts for more than Saturn's standing in the birth chart "
+        "[fact:vargas.D10.Saturn] [fact:shadbala.planets.Saturn.ratio].")
 PARAGRAPH = ("Your work house is led by Saturn, which sits in its own sign in the chart of career "
-             "[fact:houses.lagna.10.lord] [fact:vargas.D10.Saturn]. "
-             "In the reading's view, that dignity counts for more than Saturn's Shadbala figure "
-             "[fact:vargas.D10.Saturn] [fact:shadbala.planets.Saturn.ratio]. "
-             "You are now in the period of Jupiter, with Mercury beneath it "
-             "[fact:vimshottari.current].")
+             "[fact:houses.lagna.10.lord] [fact:vargas.D10.Saturn]. " + VIEW)
+WHEN = "You are now in the period of Jupiter, with Mercury beneath it [fact:vimshottari.current]."
 SUMMARY = "Your work house is led by Saturn, which sits in its own sign in the chart of career " \
           "[fact:houses.lagna.10.lord] [fact:vargas.D10.Saturn]."
 
@@ -55,8 +54,11 @@ class Replay:
         return self.drafts[min(len(self.calls), len(self.drafts)) - 1]
 
 
-def client(*pairs):
-    return Replay(*({"summary": s, "areas": [{"name": "career", "paragraph": p}]} for s, p in pairs), schema=ClientDraft)
+def client(*units):
+    """Client drafts from (summary, paragraph) or (summary, paragraph, when); the when defaults to WHEN."""
+    return Replay(*({"summary": u[0], "areas": [{"name": "career", "paragraph": u[1],
+                                                  "when": u[2] if len(u) > 2 else WHEN}]} for u in units),
+                  schema=ClientDraft)
 
 
 class Stub:
@@ -103,6 +105,60 @@ def test_the_clients_words_refuse_the_engines_vocabulary_and_an_unmarked_weighin
     assert any(needle in e for e in errs), errs
 
 
+@pytest.mark.parametrize("sentence,needle", [
+    ("The 10th cusp's star decides it [fact:lagnas.kp_cusps.H10].", "('cusp')"),
+    ("Its sub-lord is Ketu [fact:lagnas.kp_cusps.H10].", "('sub-lord')"),
+    ("The arudha of the 10th holds Jupiter [fact:jaimini.arudhas.A10].", "('arudha')"),
+    ("The dasha of Jupiter runs now [fact:vimshottari.current].", "('dasha')"),
+    ("Saturn's Shadbala is low [fact:shadbala.planets.Saturn.ratio].", "('Shadbala')"),
+    ("The 10th house is lowest by Bhava Bala [fact:bhava_bala.whole_sign.H10].", "('Bhava Bala')"),
+    ("It has 4.51 rupas [fact:bhava_bala.whole_sign.H10.rupas].", "('rupas')"),
+])
+def test_the_clients_words_refuse_the_wider_engine_vocabulary(sentence, needle):
+    errs = client_errors(sentence)
+    assert any("engine vocabulary " + needle in e for e in errs), errs
+
+
+@pytest.mark.parametrize("sentence,plain", [
+    ("Your lagna is Taurus [fact:lagnas.asc.sign].", "the rising sign"),
+    ("Saturn rules the 10th bhava [fact:houses.lagna.10.lord].", "house"),
+    ("Mars sits in a kendra [fact:planets.Mars.house].", "angular house"),
+    ("The Sun is the main karaka of your work [fact:areas.career.main_karaka].", "significator"),
+])
+def test_a_sanskrit_word_with_a_plain_phrase_is_refused_for_the_phrase(sentence, plain):
+    errs = client_errors(sentence)
+    assert any(f"say {plain!r}" in e for e in errs), errs
+
+
+def test_a_sanskrit_term_with_no_plain_phrase_needs_its_gloss_in_the_same_sentence():
+    bare = "Mars in its own sign in the 7th forms Ruchaka yoga [rule:yoga.ruchaka]."
+    assert any("is a Sanskrit term: gloss it" in e for e in client_errors(bare))
+    glossed = ("Mars in its own sign in the 7th forms Ruchaka yoga, a combination formed when Mars is in its own "
+               "sign in an angular house [rule:yoga.ruchaka].")
+    assert client_errors(glossed) == []
+    kt = ("The Sun and Mercury form a Kendra-Trikona Raja yoga, a combination of the lord of an angular house with "
+          "the lord of a trine [rule:yoga.kendra_trikona_raja].")
+    assert client_errors(kt) == []                          # "kendra" and "trikona" in the rule's own name pass
+    mks = ("Saturn is in marana karaka sthana (a placement in which a planet cannot give its good results) "
+           "[fact:sensitive.Saturn.marana_karaka_sthana].")
+    assert client_errors(mks) == []                         # "karaka" inside the term is not the plain-phrase word
+
+
+def test_the_paragraph_takes_no_date_and_the_when_does():
+    s = "The window from 2029-10-23 favours a change of work [fact:timing.career.windows.0]."
+    assert any("dates go under When" in e for e in client_errors(s, dates=False))
+    assert not any("dates go under When" in e for e in client_errors(s))
+
+
+def test_a_glossed_term_reaches_the_checker_with_its_definition():
+    from jyotish.client import with_glosses
+    s = ("Mars forms Ruchaka yoga, a combination formed when Mars is in its own sign in an angular house "
+         "[rule:yoga.ruchaka].")
+    d = json.loads(with_glosses(s, json.dumps({"findings": []})))
+    assert d["glossary"]["Ruchaka yoga"].startswith("The Pancha Mahapurusha combination of Mars")
+    assert with_glosses("Saturn sits well [fact:vargas.D10.Saturn].", "{}") == "{}"
+
+
 def test_a_weighing_marked_as_the_readings_view_is_a_judgement_and_passes_the_words():
     s = "In the reading's view, Saturn's dignity counts for more [fact:vargas.D10.Saturn]."
     assert client_errors(s) == [] and is_judgement(s)
@@ -117,9 +173,11 @@ def test_the_paragraph_cites_only_what_the_accepted_text_carries():
 
 
 def test_the_prompt_asks_for_the_answer_first_and_the_readings_view():
-    for words in ("the answer to the question", "then what argues for it", "then what argues against",
-                  "then the timing", "in the reading's view", "Never write \"I\"", "vote, family, term, percentile",
-                  "learned score, house system, sample"):
+    for words in ('"What the chart says for you"', "the answer to the question", "then what supports it",
+                  "then what works against it", "No dates or periods", '`when`, "When"', "in dates and months",
+                  "in the reading's view", "Never write \"I\"", "vote, family, term, percentile",
+                  "learned score, house system, sample, cusp", "sub-lord, arudha, dasha, Shadbala, Bhava Bala, rupa",
+                  "the rising sign (not lagna)", "with its gloss in the same sentence"):
         assert words in CLIENT_PROMPT, words
 
 
@@ -143,8 +201,9 @@ def test_the_paragraph_and_summary_are_written_from_accepted_text_and_checked(ch
     c = client((SUMMARY, PARAGRAPH))
     r = run(chart, w, c, checker=stub)
     a = r.areas[0]
-    assert a.paragraph == PARAGRAPH and r.summary.text == SUMMARY and r.summary.source == "model"
-    assert "fact:vimshottari.current" in a.paragraph_cites and not [g for g in a.narration_gaps if g["kind"] == "paragraph"]
+    assert a.paragraph == PARAGRAPH and a.when == WHEN and r.summary.text == SUMMARY and r.summary.source == "model"
+    assert "fact:vimshottari.current" in a.when_cites and "fact:vargas.D10.Saturn" in a.paragraph_cites
+    assert not [g for g in a.narration_gaps if g["kind"] in ("paragraph", "when")]
     # The client writer saw the accepted text only: the refused timing of attempt 1 never, the
     # accepted one, the judgement among them, the value of each fact cited, and nothing of the chart.
     sent = json.loads(c.calls[0]["user"])
@@ -158,9 +217,7 @@ def test_the_paragraph_and_summary_are_written_from_accepted_text_and_checked(ch
     assert sent["facts"]["vargas.D10.Saturn"] == {"sign": "Capricorn", "dignity": "own"}
     # Each sentence of the paragraph went to the checker; the weighing marked as a judgement.
     checked = {s: d for s, d in stub.calls}
-    view = "In the reading's view, that dignity counts for more than Saturn's Shadbala figure " \
-           "[fact:vargas.D10.Saturn] [fact:shadbala.planets.Saturn.ratio]."
-    assert checked[view]["judgement"] is True and "facts" in checked[view]
+    assert checked[VIEW]["judgement"] is True and "facts" in checked[VIEW] and WHEN in checked
     assert r.facts_cited["vimshottari.current"] and r.usage["client"]["calls"] == 1
 
 
@@ -177,7 +234,7 @@ def test_a_refused_paragraph_is_retried_and_a_passed_summary_held(chart):
     r = run(chart, Replay(draft()), c)
     assert r.areas[0].paragraph == PARAGRAPH and r.summary.text == SUMMARY and r.usage["client"]["attempts"] == 2
     ask = c.calls[1]["errors"][0]
-    assert ask.startswith(RETRY_HEAD) and "Held: the summary." in ask and "- the career paragraph:" in ask
+    assert ask.startswith(RETRY_HEAD) and "Held: the summary; the career when." in ask and "- the career paragraph:" in ask
     assert "engine vocabulary ('families')" in ask
 
 
@@ -221,7 +278,8 @@ def test_the_page_puts_the_clients_layer_first_and_the_analysis_under_its_toggle
     r = run(chart, Replay(draft()), client((SUMMARY, PARAGRAPH)))
     page = render(r, chart)
     career = page.split("## Career", 1)[1].split("\n## ", 1)[0]
-    marks = ["Your work house is led by Saturn", "**What the chart does not decide**", "- Which kind of work suits you",
+    marks = ["### What the chart says for you", "Your work house is led by Saturn", "### When",
+             "You are now in the period of Jupiter", "### What this chart does not tell", "- Which kind of work suits you",
              "- Tier: **", "<details><summary>The astrologer's analysis</summary>", "### Assessment", "### Timing",
              "### What the chart does not say", "- The KP family abstains", "</details>"]
     at = [career.index(m) for m in marks]

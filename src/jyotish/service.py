@@ -182,7 +182,8 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     if model_fixture:
         said = (sentences(reading.summary.text) if reading.summary.source == "model" else []) + \
                [c.text for a in reading.areas for c in a.claims] + \
-               [x for a in reading.areas for t in (a.paragraph, *(a.analysis or {}).values()) if t for x in sentences(t)]
+               [x for a in reading.areas for t in (a.paragraph, a.when, *(a.analysis or {}).values()) if t
+                for x in sentences(t)]
         update |= {"narration_source": f"fixture:{model_fixture}",
                    "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)}
     reading = reading.model_copy(update=update)

@@ -26,7 +26,10 @@ JUDGEMENT_MARK = "*(the reading's weighing; its premises checked, the weighing n
 # two lists (2026-10-24). The client's list, not_said_client, is shown under the paragraph.
 ANALYSIS_HEADINGS = {"assessment": "Assessment", "timing": "Timing", "not_said_astrologer": "What the chart does not say",
                      "not_said": "What the chart does not say"}
-CLIENT_LIST_HEADING = "What the chart does not decide"
+# The client's view at depth full (2026-10-25), the same words as web/js/strings.js's "client.*" keys.
+CLIENT_SAYS = "What the chart says for you"
+CLIENT_WHEN = "When"
+CLIENT_LIST_HEADING = "What this chart does not tell"
 
 
 def gap_line(n: int) -> str:
@@ -275,12 +278,14 @@ def render(reading: Reading, chart: Chart) -> str:
         full = reading.depth == "full"
         L += [f"## {a.name.replace('_', ' ').capitalize()}", ""]
         if full:
-            # The client's layer first: the paragraph, then what no fact decides; the tier line after.
+            # The client's view first: what the chart says, when, what it does not tell; the tier after.
             if a.paragraph:
-                L += [notes.render(a.paragraph), ""]
+                L += [f"### {CLIENT_SAYS}", "", notes.render(a.paragraph), ""]
+            if a.when:
+                L += [f"### {CLIENT_WHEN}", "", notes.render(a.when), ""]
             client_list = sentences((a.analysis or {}).get("not_said_client") or "")
             if client_list:
-                L += [f"**{CLIENT_LIST_HEADING}**", ""] + [f"- {notes.render(x)}" for x in client_list] + [""]
+                L += [f"### {CLIENT_LIST_HEADING}", ""] + [f"- {notes.render(x)}" for x in client_list] + [""]
         L += [f"- Tier: **{a.tier}** (classical score {_cell(a.score_classical)}; probability not calibrated)",
               f"- Stability: {_stab(a.stability)}",
               f"- Families agreeing: {a.families_agree_w:.2f} of {a.families_total_w:.2f} (weighted)"]

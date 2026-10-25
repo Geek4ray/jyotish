@@ -38,7 +38,11 @@ class EchoClient:
                          and all(k in ("fact", "vote") for k, _ in t)), None)
             para = (f"In plain words, this part of the reading rests on the chart's own figures "
                     f"{' '.join(f'[{k}:{v}]' for k, v in tags)}.") if tags else None
-            out.append({"name": name, "paragraph": para})
+            timing = next((t for s in sentences(a.get("timing") or "") if (t := TAG.findall(s))
+                           and all(k in ("fact", "vote") for k, _ in t)), None)
+            when = (f"In plain words, the timing of this part rests on the chart's own figures "
+                    f"{' '.join(f'[{k}:{v}]' for k, v in timing)}.") if timing else None
+            out.append({"name": name, "paragraph": para, "when": when})
         first = next((x["paragraph"] for x in out if x["paragraph"]), None)
         summary = re.sub(r"^In plain words, this part", "In plain words, the reading", first) if first else ""
         return ClientDraft(summary=summary, areas=out)

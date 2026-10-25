@@ -2,9 +2,11 @@
 of 2026-10-24).
 
 Depth full reasons for the astrologer: claims, then an analysis per area. Once those are accepted, a
-second writer call turns them into what the client reads: per area one plain paragraph (the answer
-first, in two or three sentences, then what argues for it, then what argues against, then the timing
-in dates) and the reading's summary. The call sees only accepted text and the value of every fact
+second writer call turns them into what the client reads (the client's view, 2026-10-25): per area
+"What the chart says for you" (`paragraph`: the answer in two or three sentences, what supports it,
+what works against it, no dates), "When" (`when`: the windows in dates and months, the reading's
+weighing carried over and marked "the reading's view") and the reading's summary; "What this chart
+does not tell" is the client's half of not-said, written in the first call. The call sees only accepted text and the value of every fact
 that text cites, never the chart, so it can add nothing the checks have not passed. Every sentence
 carries the tags of what it draws on, copied from the accepted text, and is validated and checked
 like the summary, in the client's words: no engine vocabulary (CLIENT_WORDS), no "I", and a weighing
@@ -23,11 +25,34 @@ from typing import Any, Callable
 
 from pydantic import BaseModel, Field
 
-# The engine's own words, which the client's text never uses (the request of 2026-10-24: no vote,
-# family, term, percentile, learned score, house system, sample), with the two the astrologer's list
-# carries besides (ayanamsa, derivation).
+# The engine's own words, which the client's text never uses (the requests of 2026-10-24 and -25: no
+# vote, family, term, percentile, learned score, house system, sample, cusp, sub-lord, arudha, dasha,
+# Shadbala, Bhava Bala, rupa), with the two the astrologer's list carries besides (ayanamsa, derivation).
 CLIENT_WORDS = re.compile(r"\bvot(?:e|es|ing)\b|\bfamil(?:y|ies)\b|\bterms?\b|\bpercentiles?\b|\blearned scores?\b|"
-                          r"\bhouse systems?\b|\bsampl(?:e|es|ed|er|ing)\b|\bayanamsas?\b|\bderivations?\b", re.I)
+                          r"\bhouse systems?\b|\bsampl(?:e|es|ed|er|ing)\b|\bayanamsas?\b|\bderivations?\b|"
+                          r"\bcusps?\b|\bsub-?lords?\b|\barudhas?\b|\b(?:maha|antar)?dashas?\b|\bshadbala\b|"
+                          r"\bbhava bala\b|\brupas?\b", re.I)
+# Sanskrit words that have a plain phrase: the client's text uses the phrase (the word, with its
+# phrase, is the astrologer's sheet's). "Kendra" and "trikona" inside the rule's own name
+# (Kendra-Trikona Raja yoga) and "karaka" inside marana karaka sthana or chara karaka are not these.
+CLIENT_PLAIN = {
+    "lagna": (r"\blagna\b", "the rising sign"), "bhava": (r"\bbhavas?\b(?! bala)", "house"),
+    "kendra": (r"\bkendras?\b(?!-trikona)", "angular house"), "trikona": (r"(?<!kendra-)\btrikonas?\b", "trine house"),
+    "karaka": (r"(?<!marana )(?<!chara )\bkarakas?\b", "significator"), "varga": (r"\bvargas?\b", "divisional chart"),
+    "rashi": (r"\brashis?\b", "sign"), "graha": (r"\bgrahas?\b", "planet"), "gochara": (r"\bgochara\b", "transit"),
+    "uccha": (r"\buccha\b", "exalted"), "neecha": (r"\bneecha\b(?! bhanga)", "debilitated"),
+    "swakshetra": (r"\bswakshetra\b", "own sign"),
+}
+# Sanskrit terms with no plain phrase: allowed in the client's text only glossed in the same sentence
+# (", a combination formed when …", "(…)"), the gloss checked against the term's glossary entry.
+SANSKRIT_TERMS = ("Pancha Mahapurusha yoga", "Ruchaka yoga", "Bhadra yoga", "Hamsa yoga", "Malavya yoga", "Sasa yoga",
+                  "Budhaditya yoga", "Gaja Kesari yoga", "Kendra-Trikona Raja yoga", "Parivartana yoga",
+                  "Dainya parivartana", "Neecha Bhanga", "moolatrikona", "Chandra lagna", "Sudarshana", "dusthana",
+                  "Bhavat Bhavam", "navamsa", "dasamsa", "trimsamsa", "vargottama", "marana karaka sthana",
+                  "avastha", "Mrita avastha", "nakshatra", "tara", "Vipat tara", "Pratyak tara", "Vadha tara",
+                  "Jaimini", "karakamsa", "chara karaka", "panchanga", "tithi", "nitya yoga", "Upapada")
+ENGLISH_ALIASES = {"exchange", "trine", "angular house", "star", "weekday", "bala", "D9", "D10", "D30"}
+GLOSS_AFTER = re.compile(r"^\s*(?:yoga\b)?\s*(?:,|\(|—|–|:)\s*\S")
 FIRST_PERSON = re.compile(r"\bI\b|\bI'(?:m|d|ve|ll)\b")
 # A sentence that ranks or weighs evidence: in the client's text it is the reading's view, said so.
 WEIGHING = re.compile(r"\b(?:more|most|greater|less) weight\b|\boutweigh\w*|\bweigh(?:s|ed|ing)?\b|"
@@ -38,9 +63,13 @@ VIEW = re.compile(r"\bthe reading's view\b", re.I)
 class ClientArea(BaseModel):
     name: str
     paragraph: str | None = Field(default=None, description=(
-        "The area for the client, in plain words: the answer first in two or three sentences, then what "
-        "argues for it, then what argues against it, then the timing in dates. Every sentence ends with the "
-        "tags of the accepted sentences it draws on. Null on a retry when the paragraph is held."))
+        "What the chart says for you, in plain words: the answer in two or three sentences, then what "
+        "supports it, then what works against it; no dates (they go in `when`). Every sentence ends with "
+        "the tags of the accepted sentences it draws on. Null on a retry when it is held."))
+    when: str | None = Field(default=None, description=(
+        "When, in plain words: the windows in dates and months as the accepted timing gives them, and the "
+        "reading's weighing of them marked 'in the reading's view'. Every sentence tagged. Null when the "
+        "area has no accepted timing, or on a retry when it is held."))
 
 
 class ClientDraft(BaseModel):
@@ -57,10 +86,13 @@ among them that weigh the evidence (`judgements`); and the value of every fact t
 cite. Write from these only. Add no fact, planet, sign, house, date or period they do not state, \
 and leave out what they do not settle.
 
-For each area write `paragraph`, five to nine sentences in this order: the answer to the question \
-for this area first, in two or three sentences; then what argues for it; then what argues against \
-it or limits it; then the timing, in the dates the accepted text gives. Then write `summary`: two \
-or three sentences answering the question across the areas, the answer first.
+For each area write two parts. `paragraph`, "What the chart says for you", four to seven \
+sentences in this order: the answer to the question for this area first, in two or three \
+sentences; then what supports it; then what works against it or limits it. No dates or periods \
+here. `when`, "When", two to five sentences: the windows the accepted timing gives, in dates and \
+months, the one to avoid if it gives one, and which window the reading weighs most, marked "in the \
+reading's view"; leave it null when the area has no accepted timing. Then write `summary`: two or \
+three sentences answering the question across the areas, the answer first.
 
 Every sentence ends with the tags of the accepted sentences it draws on, copied exactly \
 ([fact:…], [rule:…], [vote:…], [chain:…]); a sentence drawing on two cites the tags of both, and \
@@ -70,8 +102,13 @@ nakshatra or navamsa) as the accepted sentence does. Each sentence is checked ag
 cites, so say only what those sentences and facts state.
 
 Plain words. When you name a placement or a period, say in a few words what it means. Use none of \
-the engine's words: vote, family, term, percentile, learned score, house system, sample, ayanamsa, \
-derivation. Use none of the words strong, moderate, weak or mixed and no probability or confidence \
+the engine's words: vote, family, term, percentile, learned score, house system, sample, cusp, \
+sub-lord, arudha, dasha, Shadbala, Bhava Bala, rupa, ayanamsa, derivation. Where a plain phrase \
+exists, use it: the rising sign (not lagna), house (not bhava), angular house (not kendra), \
+significator (not karaka), divisional chart (not varga). A Sanskrit term with no plain phrase (a \
+yoga's name, nakshatra, navamsa, marana karaka sthana) comes with its gloss in the same sentence, \
+right after it ("Ruchaka yoga, a combination formed when Mars is in its own sign in an angular \
+house, …"), the gloss matching the term's meaning. Use none of the words strong, moderate, weak or mixed and no probability or confidence \
 words: the engine states the tier beside your paragraph. A window is a stretch of time the \
 reading's timing favours, not a prediction of when the client will act. Nothing about death, \
 illness, trades or investments, or another person's own life.
@@ -83,10 +120,51 @@ reading's. Any sentence that ranks or weighs evidence says "in the reading's vie
 "I"."""
 
 
-def client_errors(text: str | None, accepted: set[str] | None = None) -> list[str]:
-    """The client's words: no engine vocabulary, no "I", a weighing marked as the reading's view, and
-    (the paragraph and summary, `accepted` the tags of the accepted text they draw on) every sentence
-    tagged with tags from that text only."""
+def sanskrit_terms() -> list[tuple[str, re.Pattern, str]]:
+    """(term, pattern over its Sanskrit aliases, definition) for SANSKRIT_TERMS, from the glossary."""
+    from .narrate import glossary
+    out = []
+    for e in glossary():
+        if e["term"] not in SANSKRIT_TERMS:
+            continue
+        names = [a for a in [e["term"], *e["aliases"]] if "." not in a and "_" not in a and a not in ENGLISH_ALIASES]
+        names = sorted(set(names), key=len, reverse=True)
+        out.append((e["term"], re.compile(r"\b(?:" + "|".join(re.escape(n) for n in names) + r")\b",
+                                          0 if all(len(n) <= 3 for n in names) else re.I), e["definition"]))
+    return out
+
+
+def terms_in(sentence: str) -> dict[str, str]:
+    """The Sanskrit terms a sentence names, each with its glossary definition (for the checker)."""
+    from .narrate import TAG
+    bare = TAG.sub("", sentence)
+    return {t: d for t, rx, d in sanskrit_terms() if rx.search(bare)}
+
+
+def gloss_errors(s: str, bare: str) -> list[str]:
+    """A Sanskrit term the client's text uses: refused where a plain phrase exists (CLIENT_PLAIN), and
+    otherwise glossed in the same sentence, right after it (GLOSS_AFTER)."""
+    errors = []
+    for word, (rx, plain) in CLIENT_PLAIN.items():
+        if (m := re.search(rx, bare, re.I)):
+            errors.append(f"{m.group(0)!r} has a plain phrase: say {plain!r} in the client's text: {s!r}")
+    for term, rx, _ in sanskrit_terms():
+        for m in rx.finditer(bare):
+            if not GLOSS_AFTER.match(bare[m.end():]):
+                errors.append(f"{m.group(0)!r} is a Sanskrit term: gloss it in the same sentence, right after it "
+                              f"(', a …' or '(…)'), or use a plain phrase: {s!r}")
+                break
+    return errors
+
+
+DATE = re.compile(r"\b(?:19|20)\d{2}\b")
+
+
+def client_errors(text: str | None, accepted: set[str] | None = None, dates: bool = True) -> list[str]:
+    """The client's words: no engine vocabulary, a Sanskrit term glossed or replaced by its plain
+    phrase, no "I", a weighing marked as the reading's view, and (the paragraph, the when and the
+    summary, `accepted` the tags of the accepted text they draw on) every sentence tagged with tags
+    from that text only. `dates` False (the paragraph): no date, which belongs under When."""
     from .narrate import TAG, TRADITION, sentences
     errors = []
     for s in sentences(text or ""):
@@ -94,6 +172,9 @@ def client_errors(text: str | None, accepted: set[str] | None = None) -> list[st
         tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
         if (m := CLIENT_WORDS.search(bare)):
             errors.append(f"engine vocabulary ({m.group(0)!r}) in the client's text: say it in plain words: {s!r}")
+        errors += gloss_errors(s, bare)
+        if not dates and (m := DATE.search(bare)):
+            errors.append(f"a date ({m.group(0)!r}) in 'What the chart says for you': dates go under When: {s!r}")
         if FIRST_PERSON.search(bare):
             errors.append(f"the client's text never says 'I'; a weighing is 'in the reading's view': {s!r}")
         elif (m := WEIGHING.search(bare)) and not VIEW.search(bare):
@@ -165,6 +246,9 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
     summary = summary_error = None
     paragraphs: dict[str, str] = {}
     para_errors: dict[str, tuple[str, int]] = {}
+    whens: dict[str, str] = {}
+    when_errors: dict[str, tuple[str, int]] = {}
+    timed = [n for n in names if accepted[n].get("timing")]      # an area with accepted timing has a When
     writer_metas: list = []
     checker_metas: list = []
     errors: list[str] = []
@@ -183,6 +267,9 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             for n in names:
                 if n not in paragraphs:
                     para_errors[n] = (errors[0], attempts)
+            for n in timed:
+                if n not in whens:
+                    when_errors[n] = (errors[0], attempts)
             if "recording has no client draft" in str(e):
                 break                                   # a replay made before the client layer: nothing to retry
             continue
@@ -200,14 +287,23 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             text = next((a.paragraph for a in draft.areas if a.name == n), None) or ""
             errs = (validate_summary(text, area_tags[n], offered_votes=votes[n], where=f"{n} paragraph",
                                      family_rule=False, chains=chains[n], facts=facts, judgements=True)
-                    + client_errors(text, area_tags[n])
+                    + client_errors(text, area_tags[n], dates=False)
                     if text.strip() else [f"no paragraph for {n}: every area has one"])
             units[f"client:paragraph:{n}"] = (text, errs)
+        for n in timed:
+            if n in whens:
+                continue
+            text = next((a.when for a in draft.areas if a.name == n), None) or ""
+            errs = (validate_summary(text, area_tags[n], offered_votes=votes[n], where=f"{n} when",
+                                     family_rule=False, chains=chains[n], facts=facts, judgements=True)
+                    + client_errors(text, area_tags[n])
+                    if text.strip() else [f"no when for {n}: an area with accepted timing has one"])
+            units[f"client:when:{n}"] = (text, errs)
         if recording is not None:
             recording.append(dict(getattr(drafter, "last_meta", None) or {"kind": "client"}, attempt=attempts,
                                   client_draft=draft.model_dump(),
                                   validator_errors=[e for _, es in units.values() for e in es]))
-        checks = [(s, ids, data, label) for label, (text, errs) in units.items() if not errs
+        checks = [(s, ids, with_glosses(s, data), label) for label, (text, errs) in units.items() if not errs
                   for s, ids, data in _summary_checks(text, finding_data, facts)]
         progress("client check", {"attempt": attempts, "calls": len(checks)})
         if hasattr(checker, "check_many"):
@@ -228,25 +324,40 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
         failed: dict[str, list[str]] = {}
         for label, (text, errs) in units.items():
             why = errs or refused.get(label, [])
-            name = label.split(":")[-1] if label.startswith("client:paragraph:") else None
-            unit = "the summary" if name is None else f"the {name} paragraph"
+            kind = label.split(":")[1]                     # summary | paragraph | when
+            name = label.split(":")[2] if kind != "summary" else None
+            unit = "the summary" if name is None else f"the {name} {kind}"
+            store, errs_of = {"paragraph": (paragraphs, para_errors), "when": (whens, when_errors)}.get(kind, (None, None))
             if why:
                 failed[unit] = why
                 if name is None:
                     summary_error = (why[0], attempts)
                 else:
-                    para_errors[name] = (why[0], attempts)
+                    errs_of[name] = (why[0], attempts)
             elif name is None:
                 summary, summary_error = text, None
             else:
-                paragraphs[name] = text
-                para_errors.pop(name, None)
+                store[name] = text
+                errs_of.pop(name, None)
         if not failed:
             break
-        held = (["the summary"] if summary is not None else []) + [f"the {n} paragraph" for n in paragraphs]
+        held = (["the summary"] if summary is not None else []) + [f"the {n} paragraph" for n in paragraphs] + \
+            [f"the {n} when" for n in whens]
         errors = [retry_instruction(held, failed)]
         assert errors[0].startswith(RETRY_HEAD)
     return {"summary": summary, "summary_error": summary_error, "paragraphs": paragraphs,
             "para_errors": {n: e for n, e in para_errors.items() if n not in paragraphs},
+            "whens": whens, "when_errors": {n: e for n, e in when_errors.items() if n not in whens},
             "writer_metas": writer_metas, "checker_metas": checker_metas, "attempts": attempts,
-            "facts": _cited_facts(" ".join([summary or ""] + list(paragraphs.values())), facts)}
+            "facts": _cited_facts(" ".join([summary or ""] + list(paragraphs.values()) + list(whens.values())), facts)}
+
+
+def with_glosses(sentence: str, data: str) -> str:
+    """The checker's data for a client sentence, with the glossary definition of each Sanskrit term
+    it names, so its gloss is checked against the definition (the checker's prompt says how)."""
+    terms = terms_in(sentence)
+    if not terms:
+        return data
+    d = json.loads(data)
+    d["glossary"] = dict(d.get("glossary") or {}, **terms)
+    return json.dumps(d, indent=1, default=str)

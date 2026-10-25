@@ -101,7 +101,7 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
                                   facts=facts, judgements=full)
         if full:
             from .client import client_errors
-            errors += client_errors(text)
+            errors += client_errors(text, dates=kind != "paragraph")      # a paragraph's dates go under When
         scope_data = {fid: f for fid, f in data_by_id.items() if any(fid == x["finding_id"] for n in scope for x in offered[n])}
         to_check = _summary_checks(text, scope_data, facts)
     checks = []
