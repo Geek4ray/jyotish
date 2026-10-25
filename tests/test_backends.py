@@ -156,7 +156,11 @@ def test_the_rule_passes_only_when_not_worse_on_any_category_and_waits_for_the_u
     assert "worse on negated: it does not pass the rule" in "\n".join(cb.rule_section(rows, missed, {"sign_changed": 1.0,
                                                                                                      "negated": 1.0}, "Opus"))
     waits = "\n".join(cb.rule_section(rows, caught, {"sign_changed": 1.0}, "Opus"))
-    assert "not yet decided: the gate has no run on negated" in waits
+    assert "not yet decided: not measured by both on negated" in waits
+    # And the other way round: a category the gate measured that this run did not (all unchecked) waits too.
+    unmeasured_here = "\n".join(cb.rule_section(rows[:1] + rows[2:], {"a": (True, ""), "c": (False, "")},
+                                                 {"sign_changed": 1.0, "negated": 1.0}, "GLM"))
+    assert "not yet decided: not measured by both on negated" in unmeasured_here and "passes the rule" not in unmeasured_here
 
 
 def test_the_scripts_env_file_sets_only_unset_keys_and_returns_names_only(tmp_path, monkeypatch):
@@ -199,3 +203,12 @@ def test_compose_passes_each_roles_backend_to_the_service():
     for name in ("JYOTISH_WRITER_BACKEND", "JYOTISH_CHECKER_BACKEND", "JYOTISH_CLIENT_BACKEND", "JYOTISH_OPENAI_KEY",
                  "JYOTISH_CHECKER_CONCURRENCY"):
         assert env[name] == "${%s:-}" % name, name
+
+
+def test_a_run_at_another_checker_effort_never_writes_over_the_gates_scorecard():
+    cb = _bench()
+    assert cb.scorecard_path("zai-org/GLM-4.7", "low").name == "checker_scorecard_zai-org-glm-4.7_effort-low.md"
+    assert cb.scorecard_path("zai-org/GLM-4.7", "high") == cb.scorecard_path("zai-org/GLM-4.7") == cb.GATE   # the default
+    assert cb.partial_path("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "low").name == \
+        "zai-org-glm-4.7_effort-low.jsonl"
+    assert cb.gate_name_of("# Checker benchmark: zai-org/GLM-4.7 at checker effort low\n") == "zai-org/GLM-4.7"

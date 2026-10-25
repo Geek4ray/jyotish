@@ -171,3 +171,16 @@ tries: unchecked), its summary the writer's, 8 validator errors and 8 checker re
 176 s. The checker dominates cost and time (GLM-4.7 reasons 100 to 200 s a check). The run used 16 checks
 at once and met 30 retries and 3 unchecked calls: the default of 4 for a hosted provider stands. gpt-oss-120b
 stays the configured writer; whether an engine-written summary is acceptable is Ray's call.
+
+**GLM-4.7 at a lower checker effort: not yet measured (2026-10-25).** `scripts/checker_bench.py` takes
+`--checker-effort` (sent as reasoning_effort; DeepInfra honours it for GLM-4.7: a trivial call at low used
+355 output tokens against 881 at high), and a run at an effort other than the default writes
+`docs/checker_scorecard_<model>_effort-<effort>.md`, never over the gate's own scorecard. The run at effort
+low stopped being a measurement after 14 of 124 checks: from the fifteenth call DeepInfra answered HTTP 402,
+"You need positive balance to do inference" (the account's balance spent by the day's runs). Two faults it
+showed are fixed. HTTP 401, 402 and 403 (a refused key, no balance, no access) are not retried and do not
+fail a sentence: they raise `narrate.BackendFatal`, which stops the run with the server's message (the
+benchmark exits keeping the rows checked so far, for --resume); before, the run went on and marked 110
+sentences unchecked. And the rule now treats a category the gate measured but the run did not (every row
+unchecked) as unmeasured, so the verdict waits: the stopped run had read "passes the rule" on the ten
+categories it reached. Its scorecard was not kept. The measurement resumes once the balance is topped up.

@@ -86,6 +86,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._drop()                         # the first try of each request: a dropped connection
         if mode == "dead" or (mode == "deadone" and "DEAD" in first):
             return self._drop()                         # every try
+        if mode == "nobalance":                         # DeepInfra's answer when the balance has run out
+            return self._send(402, {"error": {"message": "You need positive balance to do inference."}})
         if mode == "ratelimit" and n == 1:
             data = json.dumps({"error": {"message": "rate limited"}}).encode()
             self.send_response(429)
@@ -380,3 +382,14 @@ def test_the_benchmark_writes_as_it_goes_and_resumes(server, tmp_path, monkeypat
     part.write_text("\n".join(lines[:4]) + "\n")                              # interrupted after four rows
     out2, usage2 = cb.run_live(rows, backend=spec, partial=part, resume=True)
     assert usage2["resumed"] == 4 and len(STUB.requests) == 2 and out2 == out  # only the last two asked again
+
+
+def test_no_balance_stops_the_run_at_once_instead_of_failing_every_sentence(server, retries, monkeypatch):
+    from jyotish.narrate import BackendFatal
+    monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", "4")
+    c = ModelChecker(OpenAIBackend(f"{server}/nobalance/v1", "stub-checker", retry_base=0.01))
+    with pytest.raises(BackendFatal, match=r"cannot serve stub-checker: the account has no balance \(HTTP 402"):
+        c.check_many([(f"Sentence {i} [fact:x].", "{}") for i in range(6)])
+    assert retries == [] and len(STUB.requests) <= 6                   # not retried; no sentence marked unchecked
+    with pytest.raises(BackendFatal):
+        c("One sentence [fact:x].", "{}")

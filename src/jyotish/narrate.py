@@ -294,6 +294,12 @@ class Reading(BaseModel):
     disclaimers: list[str]
 
 
+class BackendFatal(Exception):
+    """A backend that cannot serve any call (HTTP 401, 402 or 403: a bad key, no balance, no access): not
+    retried, and not a sentence's failure: it stops the run with the server's message (2026-10-25: a
+    benchmark marked 110 sentences unchecked when DeepInfra's balance ran out)."""
+
+
 class NarrationError(RuntimeError):
     """The model's draft failed validation on every attempt (`errors` holds the last list)."""
 
@@ -1406,6 +1412,7 @@ _FORMAT_WORDS = ("response_format", "json_schema", "json_object", "structured", 
 # never longer than RETRY_CAP seconds, or what Retry-After asks.
 RETRY_ATTEMPTS = 5
 RETRY_STATUS = {429, 500, 502, 503, 529}
+FATAL_STATUS = {401: "the key was refused", 402: "the account has no balance", 403: "the key has no access"}
 RETRY_CAP = 60.0
 # A reasoning model spends its tokens on reasoning_content before the answer: the checker's max_tokens on
 # an OpenAI-compatible backend leaves room for both (a verdict is a few hundred tokens).
@@ -1633,6 +1640,11 @@ class OpenAIBackend(Backend):
 
     # --- the call ---------------------------------------------------------------------------------
 
+    def _fatal(self, status, data) -> None:
+        if status in FATAL_STATUS:
+            raise BackendFatal(f"{self.host} cannot serve {self.model}: {FATAL_STATUS[status]} (HTTP {status}: "
+                               f"{str(data)[:300]})")
+
     def _refused(self, status, data) -> str | None:
         """What to do with a non-retryable error: "effort" (ask again without reasoning_effort),
         "mode" (try the next structured mode), or None (raise)."""
@@ -1651,6 +1663,7 @@ class OpenAIBackend(Backend):
                 started = time.perf_counter()
                 status, data = self._post(self._body(system, convo, schema, effort, max_tokens, mode,
                                                      max_tokens > STREAM_ABOVE))
+                self._fatal(status, data)
                 if status >= 400:
                     last = f"HTTP {status}: {str(data)[:300]}"
                     what = self._refused(status, data)
@@ -1687,6 +1700,7 @@ class OpenAIBackend(Backend):
                 started = time.perf_counter()
                 status, data = await self._apost(self._async_client,
                                                  self._body(system, convo, schema, effort, max_tokens, mode, False))
+                self._fatal(status, data)
                 if status >= 400:
                     last = f"HTTP {status}: {str(data)[:300]}"
                     what = self._refused(status, data)

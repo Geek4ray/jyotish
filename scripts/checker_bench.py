@@ -553,10 +553,15 @@ def run_validator(rows) -> dict[str, tuple[bool, str]]:
 PARTIAL = ROOT / "data" / "bench_partial"      # a live run's rows as they are checked (gitignored)
 
 
-def partial_path(spec: str | None) -> Path:
-    """Where a live run on `spec` writes its rows as it goes, for --resume."""
+def partial_path(spec: str | None, effort: str | None = None) -> Path:
+    """Where a live run on `spec` (at `effort`, when it is not the default) writes its rows as it goes."""
     name = "anthropic" if not spec or spec == "anthropic" else spec.rsplit(":", 1)[-1]
-    return PARTIAL / f"{re.sub(r'[^A-Za-z0-9.]+', '-', name).strip('-').lower()}.jsonl"
+    return PARTIAL / f"{re.sub(r'[^A-Za-z0-9.]+', '-', name).strip('-').lower()}{_effort_suffix(effort)}.jsonl"
+
+
+def _effort_suffix(effort: str | None) -> str:
+    from jyotish.narrate import CONFIG
+    return f"_effort-{effort}" if effort and effort != CONFIG.checker_effort else ""
 
 
 def run_live(rows, config=None, backend: str | None = None, resume: bool = False,
@@ -569,7 +574,7 @@ def run_live(rows, config=None, backend: str | None = None, resume: bool = False
     from jyotish.narrate import CONFIG, ModelChecker, make_backend
     config = config or CONFIG
     checker = ModelChecker(make_backend(backend, "checker", config), config)
-    partial = partial or partial_path(backend)
+    partial = partial or partial_path(backend, config.checker_effort)
     partial.parent.mkdir(parents=True, exist_ok=True)
     done: dict[str, dict] = {}
     if resume and partial.exists():
@@ -580,7 +585,7 @@ def run_live(rows, config=None, backend: str | None = None, resume: bool = False
     v = run_validator(rows)
     out, todo = {}, []
     usage = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "calls": 0, "unchecked": [],
-             "resumed": 0, "backend": checker.backend.describe()}
+             "resumed": 0, "backend": checker.backend.describe(), "effort": config.checker_effort}
     for row in rows:
         if v[row["id"]][0] or "[tradition:" in row["sentence"]:      # a [tradition:] sentence is never checked
             out[row["id"]] = v[row["id"]]
@@ -693,7 +698,7 @@ def report(rows, vpred, live) -> str:
         L += ["## Validator + semantic checker (live)", "",
               f"Checker {b.get('model')} on {b.get('host')} ({b.get('provider')}"
               + (f", structured output by {b['structured']}" if b.get("structured") else "")
-              + f"), checker effort {CONFIG.checker_effort}; {usage['calls']} checker calls, "
+              + f"), checker effort {usage.get('effort') or CONFIG.checker_effort}; {usage['calls']} checker calls, "
               f"{usage['input_tokens']} input and {usage['output_tokens']} output tokens, {seconds:.0f} s; cost "
               + (f"USD {usd:.2f} at jyotish.costs's prices." if usd is not None else "not known (no price for this model "
                  "in jyotish.costs; never guessed).")
@@ -705,9 +710,12 @@ def report(rows, vpred, live) -> str:
     return "\n".join(L) + "\n"
 
 
-def scorecard_path(model: str) -> Path:
-    """docs/checker_scorecard_<model>.md for a backend's run, beside Opus's docs/checker_scorecard.md."""
-    return ROOT / "docs" / f"checker_scorecard_{re.sub(r'[^A-Za-z0-9.]+', '-', model).strip('-').lower()}.md"
+def scorecard_path(model: str, effort: str | None = None) -> Path:
+    """docs/checker_scorecard_<model>.md for a backend's run, beside Opus's docs/checker_scorecard.md; at a
+    checker effort other than the default, docs/checker_scorecard_<model>_effort-<effort>.md, so a run at
+    another effort never writes over the gate's own scorecard."""
+    return ROOT / "docs" / (f"checker_scorecard_{re.sub(r'[^A-Za-z0-9.]+', '-', model).strip('-').lower()}"
+                            f"{_effort_suffix(effort)}.md")
 
 
 def gate_recall(text: str) -> dict[str, float]:
@@ -750,12 +758,16 @@ def rule_from_recall(here: dict[str, float], gate: dict[str, float], gate_name: 
         worse += [] if ok else [cat]
         L.append(f"| {cat} | {here[cat]:.3f} | {gate[cat]:.3f} | {'yes' if ok else 'no'} |")
     unmeasured = sorted(set(here) - set(gate) - {"accepted", "overall"})
+    # The other way round too: a category the gate measured that this run did not (every row of it
+    # unchecked) is not measured, and the verdict waits for it.
+    unmeasured = sorted(set(unmeasured) | (set(gate) - set(here) - {"accepted", "overall"}))
     if unmeasured:
-        L += ["", f"Not in the gate's last run (the benchmark has grown since): {', '.join(unmeasured)}. The rule cannot be "
-                  "applied to these until the gate is run again (scripts/checker_bench.py with ANTHROPIC_API_KEY)."]
+        L += ["", f"Measured by one run and not the other (the benchmark has grown since the gate's run, or every row "
+                  f"of the category was unchecked here): {', '.join(unmeasured)}. The rule cannot be applied to these "
+                  "until both runs measure them."]
     L += ["", ("Verdict: worse on " + ", ".join(worse) + ": it does not pass the rule, and client readings keep the gate "
                "in use." if worse else
-               "Verdict: not worse on any category both runs measured, but not yet decided: the gate has no run on "
+               "Verdict: not worse on any category both runs measured, but not yet decided: not measured by both on "
                + ", ".join(unmeasured) + "." if unmeasured else
                "Verdict: not worse on any category: it passes the rule."), ""]
     return L
@@ -774,6 +786,9 @@ def main(argv=None) -> int:
                     help="rewrite this scorecard's last section against --gate, from its own table (no model called)")
     ap.add_argument("--resume", action="store_true",
                     help="carry over the rows an interrupted live run already checked (data/bench_partial/)")
+    ap.add_argument("--checker-effort", choices=("low", "medium", "high", "xhigh", "max"), default=None,
+                    help="the checker's effort for this run (default CONFIG.checker_effort, high); an OpenAI-compatible "
+                         "backend sends it as reasoning_effort")
     a = ap.parse_args(argv)
     from jyotish.envfile import load as load_env
     for name in load_env(ROOT / ".env"):                  # keys from the gitignored .env; never a value printed
@@ -798,14 +813,24 @@ def main(argv=None) -> int:
     if a.checker_backend and a.checker_backend != "anthropic":
         # Another backend's scorecard, beside Opus's, which it never overwrites.
         t = time.time()
-        lp, usage = run_live(rows, backend=a.checker_backend, resume=a.resume)
-        path = scorecard_path(usage["backend"]["model"])
+        from dataclasses import replace as _replace
+        from jyotish.narrate import CONFIG
+        config = _replace(CONFIG, checker_effort=a.checker_effort) if a.checker_effort else CONFIG
+        from jyotish.narrate import BackendFatal
+        try:
+            lp, usage = run_live(rows, config=config, backend=a.checker_backend, resume=a.resume)
+        except BackendFatal as e:                      # no balance, a refused key: stop; the rows checked so far are kept
+            print(f"stopped: {e}\nThe rows checked so far are kept; run again with --resume once it is fixed.",
+                  file=sys.stderr)
+            return 2
+        path = scorecard_path(usage["backend"]["model"], config.checker_effort)
         gate_text = gate_path.read_text() if gate_path.exists() and gate_path != path else ""
         rel = gate_path.resolve().relative_to(ROOT) if gate_path.resolve().is_relative_to(ROOT) else gate_path
         text = report(rows, vpred, (lp, usage, time.time() - t)) + \
             "\n".join(rule_section(rows, lp, gate_recall(gate_text), gate_name_of(gate_text) if gate_text else "the gate",
                                     usage.get("unchecked", ()), str(rel))) + "\n"
-        path.write_text(text.replace("# Checker benchmark", f"# Checker benchmark: {usage['backend']['model']}", 1))
+        title = usage["backend"]["model"] + (f" at checker effort {config.checker_effort}" if _effort_suffix(config.checker_effort) else "")
+        path.write_text(text.replace("# Checker benchmark", f"# Checker benchmark: {title}", 1))
         s = scores(rows, lp, usage.get("unchecked", ()))["overall"]
         print(f"{usage['backend']['model']} on {usage['backend']['host']}: precision {s['precision']:.3f} recall "
               f"{s['recall']:.3f} F1 {s['f1']:.3f} -> {path}")
