@@ -184,6 +184,21 @@ against the chart object. Page and site: the client's view, the tier line, then 
 (sheet, analysis at depth full, findings; open with no client's view); the review page shows the sheet beside the
 paragraph; the reading page prints the client's view alone or both (strings in web/js/strings.js).
 `scripts/rebuild_pages.py` re-renders a comparison's pages from their JSON (docs/comparison_2026-10-23_r2/*.page.md).
+Model backends (2026-10-25, docs/models.md, docs/spec_notes_2026-10-25.md): the writer, the checker and the client's
+layer call a `narrate.Backend` (one structured completion against a schema; `ModelDrafter`, `ModelChecker` over it;
+`AnthropicDrafter`/`AnthropicChecker` are those on `AnthropicBackend`, the calls as before). `OpenAIBackend` (httpx) speaks
+the chat-completions API: response_format json_schema, else JSON mode with our validation and one retry, else a
+NarrationError naming the server; reasoning_effort dropped if refused; OpenRouter sent data_collection deny, zdr,
+require_parameters. Each role from JYOTISH_WRITER_BACKEND / _CHECKER_ / _CLIENT_ ("anthropic" or "openai:<base url with
+its path>:<model>"), keys JYOTISH_<ROLE>_KEY or JYOTISH_OPENAI_KEY. The reading records the three roles' model, effort and
+backend (`client` is new; its usage is apart from the writer's); `costs` prices each role by model and host
+(`OPEN_PRICES`, `PRICE_SOURCES`, read 2026-10-25; local free; unpriced never guessed); ledger revision 0003; /health
+shows each role's readiness. `narrate.full_depth_guard` refuses depth full on a local model unless
+JYOTISH_ALLOW_LOCAL_FULL, and on a hosted model whose known window cannot hold the ~195,000-token message
+(`CONTEXT_TOKENS`). `scripts/checker_bench.py --checker-backend` writes docs/checker_scorecard_<model>.md with the
+rule's verdict; `scripts/compare_readings.py` takes `openai:` settings, `--checker-a/-b`, `--live-checker`. The checker
+changes for client readings only when its recall is not worse on any category (docs/models.md). Tests:
+tests/test_backends.py, tests/test_openai_backend.py (a stub OpenAI-compatible server).
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

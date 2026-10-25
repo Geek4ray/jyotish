@@ -82,3 +82,21 @@ one command compares the Opus writer with an open one under the same checker; wi
 replayed recording's drafts are checked live on each side's checker, so the open checker and Opus's are
 compared on the same reading. Each role is priced by its own model and host in the report, and the
 table names each role's host. `service.make_reading` passes the three backends to narrate.
+
+**Tests, and what is owed (part 4).** `tests/test_openai_backend.py` drives the OpenAI-compatible backend
+against a stub server on this machine whose base URL's path sets its behaviour: structured output by
+json_schema with usage read into the engine's words (cached prompt tokens as cache reads); the JSON-mode
+fallback (json_schema refused, json_object asked with the schema in the system prompt, an invalid reply
+asked again once, the mode kept for later calls); a server taking neither, refused with an error naming
+it and the model; a server refusing reasoning_effort, asked again without it and recorded; a writer call
+above 16,000 tokens streamed and gathered; the checker's concurrent calls; one depth-full reading with the
+writer, the checker and the client's layer on three backends, each recorded with its base URL and
+structured mode, each role's usage apart, and the ledger's cost (nothing, the stub being local); and
+depth full on a local model refused before any request, astrologer depth on it not.
+`tests/test_backends.py` holds the spec parsing, the pricing per role and host, /health, the depth-full
+guard, docs/models.md's prices against the engine's, the scorecard's name and the rule's verdicts. No
+scorecard number moved. Owed under the definition of done: the live measurements (item 7 for the writer,
+item 5 for a new checker), which spend tokens and are Ray's: the benchmark on DeepInfra's GLM-4.7 and
+Qwen3.6-35B-A3B, Opus's benchmark run again on the 147 rows so the rule can be applied on every category,
+the comparison of gpt-oss-120b as writer under the Opus checker, and both on Ollama; and the independent
+review of this batch (item 9). Until a checker passes the rule, client readings keep Opus as the gate.
