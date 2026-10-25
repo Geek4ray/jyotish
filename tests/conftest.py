@@ -51,4 +51,4 @@ class EchoClient:
 @pytest.fixture(autouse=True)
 def _offline_client_layer(monkeypatch):
     import jyotish.narrate
-    monkeypatch.setattr(jyotish.narrate, "default_client_drafter", lambda wcfg, config: EchoClient())
+    monkeypatch.setattr(jyotish.narrate, "default_client_drafter", lambda *a, **k: EchoClient())

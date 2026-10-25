@@ -142,10 +142,11 @@ def test_model_effort_and_usage_are_recorded_in_the_reading(chart):
     assert r.writer == {"model": "claude-sonnet-5-5", "effort": "xhigh", "thinking": "adaptive",
                         "max_tokens": CONFIG.full_max_tokens}
     assert r.checker == {"model": CONFIG.checker_model, "effort": CONFIG.checker_effort}
-    # One writer call and one call of the client's layer (EchoClient: 100 input tokens), counted together
-    # under the writer and apart under `client`.
-    assert r.usage["writer"]["calls"] == 2 and r.usage["writer"]["input_tokens"] == 1100
-    assert r.usage["client"]["calls"] == 1 and r.usage["client"]["attempts"] == 1
+    # One writer call, and the client's layer's call (EchoClient: 100 input tokens) counted apart, since it
+    # may run on another backend and is priced by its own model (2026-10-25).
+    assert r.usage["writer"]["calls"] == 1 and r.usage["writer"]["input_tokens"] == 1000
+    assert r.usage["client"]["calls"] == 1 and r.usage["client"]["input_tokens"] == 100
+    assert r.usage["client"]["attempts"] == 1
     # two assessment sentences, timing, the two not-said lists; then the paragraph, the when and the summary
     assert r.usage["checker"]["calls"] == 8
     assert r.usage["wall_seconds"] >= 0

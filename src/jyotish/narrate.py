@@ -281,6 +281,7 @@ class Reading(BaseModel):
     # before them.
     writer: dict[str, Any] = Field(default_factory=dict)
     checker: dict[str, Any] = Field(default_factory=dict)
+    client: dict[str, Any] = Field(default_factory=dict)     # depth full: the client's layer's model, effort, backend
     usage: dict[str, Any] = Field(default_factory=dict)
     synthesis_sentences: int = 0        # depth full: sentences shown that rest on two or more findings or facts
     judgement_sentences: int = 0        # depth full: sentences shown that weigh (premises checked, weighing not)
@@ -1277,97 +1278,419 @@ def _meta(response, kind: str, effort: str, started: float | None = None) -> dic
     return out
 
 
-class AnthropicDrafter:
-    """Calls the Messages API with structured output. Keeps the conversation append-only
-    across regenerations (each failed draft and its errors stay in the history)."""
+# --- the model as a backend (2026-10-25; docs/models.md) ---------------------------------------
+#
+# The writer, the checker and the client's layer make one kind of call: a structured completion
+# against a pydantic schema, with an effort or thinking setting where the backend has one, streamed
+# where a long writer call needs it, returning the parsed object, the message to keep in the
+# conversation and the usage. A Backend makes that call; ModelDrafter and ModelChecker hold the
+# conversation and the checks and never name a vendor. Each role is configured on its own
+# (JYOTISH_WRITER_BACKEND, JYOTISH_CHECKER_BACKEND, JYOTISH_CLIENT_BACKEND): "anthropic", the
+# default, or "openai:<base url with its path>:<model>" for any OpenAI-compatible server.
 
-    def __init__(self, config: NarrationConfig = CONFIG, client=None, schema: type[BaseModel] | None = None,
-                 kind: str = "writer"):
+@dataclass
+class Completion:
+    """One structured call's result: the parsed object (None when there is none), the assistant
+    message to append to the conversation, why it stopped ("end_turn", "max_tokens", "refusal"), and
+    the call's record (`_meta`'s shape: kind, model, effort, usage, stop_reason, seconds, backend)."""
+    parsed: BaseModel | None
+    assistant: dict
+    stop_reason: str | None
+    meta: dict
+    refusal: str | None = None
+
+
+class Backend:
+    """The interface. `structured` is the one call; `astructured` the same for concurrent checks;
+    `user_message` formats the first message (a backend may mark it for its prompt cache);
+    `describe` is what the reading records (provider, host, model)."""
+    provider = "?"
+    host = "?"
+    model = "?"
+
+    def describe(self) -> dict:
+        return {"provider": self.provider, "host": self.host, "model": self.model}
+
+    def user_message(self, text: str, cache: bool = False) -> dict:
+        return {"role": "user", "content": text}
+
+    def structured(self, *, system: str, messages: list[dict], schema: type[BaseModel], kind: str,
+                   effort: str | None, thinking: str | None, max_tokens: int) -> Completion:
+        raise NotImplementedError
+
+    async def astructured(self, *, system: str, messages: list[dict], schema: type[BaseModel], kind: str,
+                          effort: str | None, max_tokens: int) -> Completion:
+        raise NotImplementedError
+
+
+class AnthropicBackend(Backend):
+    """The Messages API with structured output (`output_format`), effort, adaptive thinking, the
+    server-side refusal fallback and a stream above STREAM_ABOVE tokens, as the engine has called it
+    since Layer 7 was built."""
+    provider = "anthropic"
+    host = "api.anthropic.com"
+
+    def __init__(self, model: str, config: NarrationConfig = CONFIG, client=None, async_client=None):
         import anthropic
-        self.config = config
+        self.model, self.config = model, config
         self.client = client or anthropic.Anthropic()
+        self._async_client = async_client
+
+    def user_message(self, text: str, cache: bool = False) -> dict:
+        if not cache:
+            return {"role": "user", "content": text}
+        # The payload is cached: a regeneration resends it unchanged, and at depth full it is the
+        # whole chart (docs/spec_notes_2026-10-23.md has its size).
+        return {"role": "user", "content": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}]}
+
+    def _kwargs(self, system, messages, schema, effort, thinking, max_tokens) -> dict:
+        cfg = self.config
+        kwargs = dict(model=self.model, max_tokens=max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
+                      output_config={"effort": effort}, system=system, messages=messages, output_format=schema)
+        if thinking:
+            kwargs["thinking"] = {"type": thinking, "display": cfg.thinking_display}
+        return kwargs
+
+    def _completion(self, response, kind, effort, started) -> Completion:
+        meta = _meta(response, kind, effort, started)
+        meta["backend"] = self.describe()
+        thought = "\n".join(b.thinking for b in getattr(response, "content", None) or []
+                            if getattr(b, "type", None) == "thinking" and getattr(b, "thinking", ""))
+        if thought:                                   # the summarised reasoning, for the recording only
+            meta["thinking"] = thought
+        refusal = str(getattr(response, "stop_details", "")) if response.stop_reason == "refusal" else None
+        return Completion(parsed=getattr(response, "parsed_output", None),
+                          assistant={"role": "assistant", "content": getattr(response, "content", None)},
+                          stop_reason=response.stop_reason, meta=meta, refusal=refusal)
+
+    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens) -> Completion:
+        import time
+        started = time.perf_counter()
+        kwargs = self._kwargs(system, messages, schema, effort, thinking, max_tokens)
+        if max_tokens > STREAM_ABOVE:
+            with self.client.beta.messages.stream(**kwargs) as stream:
+                response = stream.get_final_message()
+        else:
+            response = self.client.beta.messages.parse(**kwargs)
+        return self._completion(response, kind, effort, started)
+
+    async def astructured(self, *, system, messages, schema, kind, effort, max_tokens) -> Completion:
+        import time
+        import anthropic
+        if self._async_client is None:
+            self._async_client = anthropic.AsyncAnthropic()
+        started = time.perf_counter()
+        response = await self._async_client.beta.messages.parse(
+            **self._kwargs(system, messages, schema, effort, None, max_tokens))
+        return self._completion(response, kind, effort, started)
+
+
+# The engine's efforts mapped to reasoning_effort, which OpenAI-compatible reasoning models (gpt-oss)
+# take as low, medium or high: xhigh and max are sent as high, and the reading records both.
+OPENAI_EFFORT = {"low": "low", "medium": "medium", "high": "high", "xhigh": "high", "max": "high"}
+# What a server says when it does not take a response_format: a 400 or 422 naming one of these.
+_FORMAT_WORDS = ("response_format", "json_schema", "json_object", "structured", "schema", "format")
+
+
+class OpenAIBackend(Backend):
+    """Any server speaking the OpenAI chat-completions API (DeepInfra, OpenRouter, Ollama, vLLM):
+    structured output through response_format json_schema where the server supports it; else JSON
+    mode (json_object) with the schema in the system prompt, our own validation and one retry; else a
+    NarrationError naming the server. Which mode a server took is found on the first call and kept.
+    OpenRouter is sent its data policy with every request: providers that collect data are excluded
+    (`provider.data_collection: deny`), only zero-data-retention endpoints are used (`zdr`), and a
+    provider must honour every parameter sent (`require_parameters`), so the schema is never silently
+    dropped (https://openrouter.ai/docs/features/provider-routing, read 2026-10-25). A server that
+    refuses `reasoning_effort` is asked again without it, and the record says so (`effort_sent`)."""
+    provider = "openai-compatible"
+
+    def __init__(self, base_url: str, model: str, api_key: str | None = None, client=None, async_client=None,
+                 timeout: float = 1800.0):
+        from urllib.parse import urlparse
+        self.base_url, self.model, self.api_key = base_url.rstrip("/"), model, api_key
+        self.host = urlparse(self.base_url).netloc
+        self.client, self._async_client, self.timeout = client, async_client, timeout
+        self.mode: str | None = None                    # "json_schema" | "json_object", once a call succeeded
+        self.extra: dict = ({"provider": {"data_collection": "deny", "zdr": True, "require_parameters": True}}
+                            if self.host.endswith("openrouter.ai") else {})
+        self.takes_effort = True                        # False once the server refused reasoning_effort
+
+    @property
+    def local(self) -> bool:
+        from .costs import is_local
+        return is_local(self.host)
+
+    def describe(self) -> dict:
+        return {"provider": self.provider, "host": self.host, "model": self.model, "base_url": self.base_url,
+                **({"structured": self.mode} if self.mode else {}), **({"local": True} if self.local else {})}
+
+    def _headers(self) -> dict:
+        return {"Content-Type": "application/json", **({"Authorization": f"Bearer {self.api_key}"} if self.api_key else {})}
+
+    def _body(self, system, messages, schema, effort, max_tokens, mode, stream) -> dict:
+        if mode == "json_schema":
+            fmt = {"type": "json_schema", "json_schema": {"name": schema.__name__, "schema": schema.model_json_schema()}}
+            sys_text = system
+        else:
+            fmt = {"type": "json_object"}
+            sys_text = (system + "\n\nReturn only one JSON object, with no other text, matching this JSON schema:\n"
+                        + json.dumps(schema.model_json_schema()))
+        body = {"model": self.model, "messages": [{"role": "system", "content": sys_text}, *messages],
+                "max_tokens": max_tokens, "response_format": fmt}
+        if effort and self.takes_effort:
+            body["reasoning_effort"] = OPENAI_EFFORT.get(effort, effort)
+        if stream:
+            body["stream"] = True
+            body["stream_options"] = {"include_usage": True}
+        return body | self.extra
+
+    @staticmethod
+    def _usage(u: dict | None) -> dict:
+        """The server's usage in the engine's words: cached prompt tokens are cache reads, the rest of
+        the prompt is input, completion tokens (reasoning included) are output."""
+        u = u or {}
+        cached = int(((u.get("prompt_tokens_details") or {}).get("cached_tokens")) or 0)
+        out = {"input_tokens": int(u.get("prompt_tokens") or 0) - cached, "output_tokens": int(u.get("completion_tokens") or 0),
+               "cache_read_input_tokens": cached, "cache_creation_input_tokens": 0}
+        if u.get("cost") is not None:
+            out["provider_cost_usd"] = u["cost"]     # what the server says it charged (OpenRouter); never priced from
+        return out
+
+    @staticmethod
+    def _unsupported(status: int, text: str) -> bool:
+        return status in (400, 404, 415, 422) and any(w in text.lower() for w in _FORMAT_WORDS)
+
+    def _modes(self) -> list[str]:
+        return [self.mode] if self.mode else ["json_schema", "json_object"]
+
+    def _parse(self, schema, content: str | None):
+        try:
+            return schema.model_validate_json(content or ""), None
+        except Exception as e:                          # invalid JSON or not the schema: said back to the model
+            return None, str(e).splitlines()[0][:300]
+
+    def _done(self, data: dict, kind, effort, started, schema, mode) -> tuple[Completion, str | None]:
+        import time
+        from datetime import datetime, timezone
+        choice = (data.get("choices") or [{}])[0]
+        msg = choice.get("message") or {}
+        finish = choice.get("finish_reason")
+        stop = {"stop": "end_turn", "length": "max_tokens", "content_filter": "refusal"}.get(finish, finish)
+        content = msg.get("content")
+        parsed, problem = self._parse(schema, content) if content else (None, "no content in the response")
+        meta = {"kind": kind, "request_id": data.get("id"), "model": data.get("model") or self.model, "effort": effort,
+                "effort_sent": (OPENAI_EFFORT.get(effort, effort) if effort and self.takes_effort else None),
+                "usage": self._usage(data.get("usage")), "stop_reason": stop, "structured": mode,
+                "timestamp": datetime.now(timezone.utc).isoformat(), "seconds": round(time.perf_counter() - started, 3),
+                "backend": self.describe()}
+        if msg.get("reasoning_content") or msg.get("reasoning"):
+            meta["thinking"] = msg.get("reasoning_content") or msg.get("reasoning")
+        refusal = msg.get("refusal") or (finish if stop == "refusal" else None)
+        return Completion(parsed=parsed, assistant={"role": "assistant", "content": content or ""}, stop_reason=stop,
+                          meta=meta, refusal=refusal), problem
+
+    def _stream(self, http, body) -> tuple[int, dict | str]:
+        """An SSE completion gathered into one response dict (content, finish reason, usage)."""
+        content, finish, usage, rid, model = [], None, None, None, None
+        with http.stream("POST", f"{self.base_url}/chat/completions", json=body, headers=self._headers(),
+                         timeout=self.timeout) as r:
+            if r.status_code >= 400:
+                return r.status_code, r.read().decode(errors="replace")
+            for line in r.iter_lines():
+                if not line.startswith("data:"):
+                    continue
+                chunk = line[5:].strip()
+                if chunk == "[DONE]":
+                    break
+                d = json.loads(chunk)
+                rid, model = d.get("id", rid), d.get("model", model)
+                usage = d.get("usage") or usage
+                for ch in d.get("choices") or []:
+                    content.append((ch.get("delta") or {}).get("content") or "")
+                    finish = ch.get("finish_reason") or finish
+        return 200, {"id": rid, "model": model, "usage": usage,
+                     "choices": [{"message": {"content": "".join(content)}, "finish_reason": finish}]}
+
+    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens) -> Completion:
+        import time
+        import httpx
+        http = self.client or httpx.Client()
+        last = ""
+        for mode in self._modes():
+            convo = list(messages)
+            for retry in range(2):                      # one retry when the JSON does not match the schema
+                started = time.perf_counter()
+                body = self._body(system, convo, schema, effort, max_tokens, mode, max_tokens > STREAM_ABOVE)
+                if body.get("stream"):
+                    status, data = self._stream(http, body)
+                else:
+                    r = http.post(f"{self.base_url}/chat/completions", json=body, headers=self._headers(),
+                                  timeout=self.timeout)
+                    status, data = r.status_code, (r.json() if r.status_code < 400 else r.text)
+                if status >= 400:
+                    last = f"HTTP {status}: {str(data)[:300]}"
+                    if self.takes_effort and status in (400, 422) and "reasoning_effort" in str(data):
+                        self.takes_effort = False       # asked again without it
+                        return self.structured(system=system, messages=messages, schema=schema, kind=kind,
+                                               effort=effort, thinking=thinking, max_tokens=max_tokens)
+                    if self.mode is None and self._unsupported(status, str(data)):
+                        break                           # this server does not take this mode: try the next
+                    raise NarrationError(f"{self.host} refused the request", [last])
+                done, problem = self._done(data, kind, effort, started, schema, mode)
+                self.mode = mode
+                if done.parsed is not None or done.refusal or done.stop_reason == "max_tokens" or retry:
+                    return done
+                convo += [done.assistant, {"role": "user", "content":
+                          f"That reply did not match the JSON schema ({problem}). Return only the JSON object, "
+                          "matching the schema."}]
+        raise NarrationError(f"{self.host} supports neither response_format json_schema nor json_object, so it cannot "
+                             f"return the structured output a reading needs (model {self.model})", [last])
+
+    async def astructured(self, *, system, messages, schema, kind, effort, max_tokens) -> Completion:
+        import time
+        import httpx
+        if self._async_client is None:
+            self._async_client = httpx.AsyncClient()
+        last = ""
+        for mode in self._modes():
+            convo = list(messages)
+            for retry in range(2):
+                started = time.perf_counter()
+                r = await self._async_client.post(f"{self.base_url}/chat/completions",
+                                                  json=self._body(system, convo, schema, effort, max_tokens, mode, False),
+                                                  headers=self._headers(), timeout=self.timeout)
+                if r.status_code >= 400:
+                    last = f"HTTP {r.status_code}: {r.text[:300]}"
+                    if self.takes_effort and r.status_code in (400, 422) and "reasoning_effort" in r.text:
+                        self.takes_effort = False
+                        return await self.astructured(system=system, messages=messages, schema=schema, kind=kind,
+                                                      effort=effort, max_tokens=max_tokens)
+                    if self.mode is None and self._unsupported(r.status_code, r.text):
+                        break
+                    raise NarrationError(f"{self.host} refused the request", [last])
+                done, problem = self._done(r.json(), kind, effort, started, schema, mode)
+                self.mode = mode
+                if done.parsed is not None or done.refusal or done.stop_reason == "max_tokens" or retry:
+                    return done
+                convo += [done.assistant, {"role": "user", "content":
+                          f"That reply did not match the JSON schema ({problem}). Return only the JSON object."}]
+        raise NarrationError(f"{self.host} supports neither response_format json_schema nor json_object (model "
+                             f"{self.model})", [last])
+
+
+ROLES = ("writer", "checker", "client")
+BACKEND_SPEC = re.compile(r"^openai:(https?://[^/\s]+/[^:\s]*):(\S+)$")
+
+
+def backend_spec(role: str) -> str:
+    """The configured backend of a role: JYOTISH_<ROLE>_BACKEND, "anthropic" when unset."""
+    import os
+    return os.environ.get(f"JYOTISH_{role.upper()}_BACKEND", "").strip() or "anthropic"
+
+
+def make_backend(spec: str | None, role: str, config: NarrationConfig = CONFIG, model: str | None = None) -> Backend:
+    """A backend from its spec: "anthropic" (the model from `model`, else the config's for the role) or
+    "openai:<base url with its path>:<model>" (the key from JYOTISH_<ROLE>_KEY, else JYOTISH_OPENAI_KEY;
+    none for a local server). The base URL keeps its path (…/v1), which is how the model after the last
+    colon of the URL's path is told from a port: "openai:http://localhost:11434/v1:gpt-oss:20b"."""
+    import os
+    spec = (spec or backend_spec(role)).strip()
+    if spec == "anthropic":
+        return AnthropicBackend(model or (config.checker_model if role == "checker" else config.model), config)
+    m = BACKEND_SPEC.match(spec)
+    if not m:
+        raise ValueError(f"the {role} backend must be 'anthropic' or 'openai:<base url with its path>:<model>' "
+                         f"(e.g. openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b), not {spec!r}")
+    key = os.environ.get(f"JYOTISH_{role.upper()}_KEY") or os.environ.get("JYOTISH_OPENAI_KEY") or None
+    return OpenAIBackend(m.group(1), m.group(2), key)
+
+
+def backends_status() -> dict[str, dict]:
+    """Each role's configured backend as /health reports it: provider, host, model, and whether it
+    has what it needs to run (a key for Anthropic or a hosted server; nothing for a local one). Never
+    a key."""
+    import os
+    out = {}
+    for role in ROLES:
+        spec = backend_spec(role)
+        if spec == "anthropic":
+            out[role] = {"provider": "anthropic", "ready": bool(os.environ.get("ANTHROPIC_API_KEY"))}
+            continue
+        m = BACKEND_SPEC.match(spec)
+        if not m:
+            out[role] = {"provider": "invalid", "ready": False}
+            continue
+        from .costs import is_local
+        from urllib.parse import urlparse
+        host = urlparse(m.group(1)).netloc
+        keyed = bool(os.environ.get(f"JYOTISH_{role.upper()}_KEY") or os.environ.get("JYOTISH_OPENAI_KEY"))
+        out[role] = {"provider": "openai-compatible", "host": host, "model": m.group(2),
+                     "ready": keyed or is_local(host)}
+    return out
+
+
+class ModelDrafter:
+    """The writer (and the client's layer): structured drafts through a Backend. Keeps the
+    conversation append-only across regenerations (each failed draft and its errors stay in the
+    history); `config` is the writer's settings as it runs them (the step-down changes its effort)."""
+
+    def __init__(self, backend: Backend, config: NarrationConfig = CONFIG, schema: type[BaseModel] | None = None,
+                 kind: str = "writer"):
+        self.backend, self.config = backend, config
         self.messages: list[dict] = []
         self.last_meta: dict | None = None
         self.schema = schema or ReadingDraft          # the client's layer: client.ClientDraft
         self.kind = kind                              # "writer", or "client" for the client's layer
 
-    def __call__(self, system: str, user: str, errors: list[str]) -> ReadingDraft:
+    def __call__(self, system: str, user: str, errors: list[str]) -> BaseModel:
         if not self.messages:
-            # The payload is cached: a regeneration resends it unchanged, and at depth full it is
-            # the whole chart (docs/spec_notes_2026-10-23.md has its size).
-            self.messages.append({"role": "user", "content": [
-                {"type": "text", "text": user, "cache_control": {"type": "ephemeral"}}]})
+            self.messages.append(self.backend.user_message(user, cache=True))
         elif len(errors) == 1 and errors[0].startswith(RETRY_HEAD):
             self.messages.append({"role": "user", "content": errors[0]})     # a section retry (retry_instruction)
         else:
             self.messages.append({"role": "user", "content":
                                   "The draft was rejected. Fix every one of these and return the whole draft again:\n- "
                                   + "\n- ".join(errors)})
-        import time
         cfg = self.config
-        started = time.perf_counter()
-        kwargs = dict(model=cfg.model, max_tokens=cfg.max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
-                      output_config={"effort": cfg.effort}, system=system, messages=self.messages,
-                      output_format=self.schema)
-        if cfg.thinking:
-            kwargs["thinking"] = {"type": cfg.thinking, "display": cfg.thinking_display}
-        if cfg.max_tokens > STREAM_ABOVE:
-            with self.client.beta.messages.stream(**kwargs) as stream:
-                response = stream.get_final_message()
-        else:
-            response = self.client.beta.messages.parse(**kwargs)
-        self.last_meta = _meta(response, self.kind, cfg.effort, started)
-        thought = "\n".join(b.thinking for b in getattr(response, "content", None) or []
-                             if getattr(b, "type", None) == "thinking" and getattr(b, "thinking", ""))
-        if thought:                                   # the summarised reasoning, for the recording only
-            self.last_meta["thinking"] = thought
-        if response.stop_reason == "refusal":
-            raise NarrationError("the model declined the request", [str(getattr(response, "stop_details", ""))])
-        self.messages.append({"role": "assistant", "content": response.content})
-        if response.parsed_output is None:
-            raise NarrationError("no structured output in the response", [response.stop_reason or ""])
-        return response.parsed_output
+        done = self.backend.structured(system=system, messages=self.messages, schema=self.schema, kind=self.kind,
+                                       effort=cfg.effort, thinking=cfg.thinking, max_tokens=cfg.max_tokens)
+        self.last_meta = done.meta
+        if done.refusal is not None or done.stop_reason == "refusal":
+            raise NarrationError("the model declined the request", [str(done.refusal or "")])
+        self.messages.append(done.assistant)
+        if done.parsed is None:
+            raise NarrationError("no structured output in the response", [done.stop_reason or ""])
+        return done.parsed
 
 
-class AnthropicChecker:
-    """The semantic checker (SPEC Layer 7 item 10): one structured call per sentence with only
-    the sentence and the derivation it may draw on (a claim's finding; for a summary sentence,
-    the findings it cites). Same model and config block as the writer, at `checker_effort`.
+class ModelChecker:
+    """The semantic checker (SPEC Layer 7 item 10): one structured call per sentence with only the
+    sentence and the derivation it may draw on (a claim's finding; for a summary sentence, the
+    findings it cites), at `checker_effort`. The calls of one attempt are independent, so
+    `check_many` sends them concurrently (`CONFIG.checker_concurrency` in flight at once; 1 sends them
+    one after another), and returns the results in the order asked."""
 
-    The calls of one attempt are independent, so `check_many` sends them concurrently through
-    the async client (`CONFIG.checker_concurrency` in flight at once; 1 sends them one after
-    another), and returns the results in the order asked."""
-
-    def __init__(self, config: NarrationConfig = CONFIG, client=None, async_client=None):
-        import anthropic
-        self.config = config
-        self.client = client or anthropic.Anthropic()
-        self._async_client = async_client
+    def __init__(self, backend: Backend, config: NarrationConfig = CONFIG):
+        self.backend, self.config = backend, config
         self.last_meta: dict | None = None
 
-    def _kwargs(self, sentence: str, derivation: str) -> dict:
-        cfg = self.config
-        return dict(model=cfg.checker_model, max_tokens=min(cfg.max_tokens, STREAM_ABOVE), betas=list(cfg.betas),
-                    fallbacks=cfg.fallbacks,
-                    output_config={"effort": cfg.checker_effort}, system=CHECKER_PROMPT,
-                    messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
-                    output_format=CheckResult)
+    def _ask(self, sentence: str, derivation: str) -> dict:
+        return dict(system=CHECKER_PROMPT, messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
+                    schema=CheckResult, kind="checker", effort=self.config.checker_effort,
+                    max_tokens=min(self.config.max_tokens, STREAM_ABOVE))
 
-    def _result(self, response, started: float) -> tuple[CheckResult, dict]:
-        meta = _meta(response, "checker", self.config.checker_effort, started)
-        if response.stop_reason == "refusal" or response.parsed_output is None:
+    @staticmethod
+    def _result(done: Completion) -> tuple[CheckResult, dict]:
+        if done.stop_reason == "refusal" or done.refusal is not None or done.parsed is None:
             # No verdict is not a pass: the sentence is rejected like an unsupported one, and the
             # rest of the attempt's checks stand.
             return CheckResult(propositions=[Proposition(
                 text="(no verdict)", supported=False,
-                evidence=f"the checker returned no result ({response.stop_reason or 'no structured output'})")]), meta
-        return response.parsed_output, meta
+                evidence=f"the checker returned no result ({done.stop_reason or 'no structured output'})")]), done.meta
+        return done.parsed, done.meta
 
     def __call__(self, sentence: str, derivation: str) -> CheckResult:
-        import time
-        started = time.perf_counter()
-        result, self.last_meta = self._result(self.client.beta.messages.parse(**self._kwargs(sentence, derivation)),
-                                              started)
+        result, self.last_meta = self._result(self.backend.structured(thinking=None, **self._ask(sentence, derivation)))
         return result
 
     def check_many(self, items: list[tuple[str, str]]) -> list[tuple[CheckResult, dict]]:
@@ -1377,17 +1700,36 @@ class AnthropicChecker:
 
     async def _gather(self, items):
         import asyncio
-        import time
-        import anthropic
-        client = self._async_client or anthropic.AsyncAnthropic()
         gate = asyncio.Semaphore(self.config.checker_concurrency)
 
         async def one(sentence, derivation):
             async with gate:
-                started = time.perf_counter()
-                response = await client.beta.messages.parse(**self._kwargs(sentence, derivation))
-                return self._result(response, started)
+                return self._result(await self.backend.astructured(**self._ask(sentence, derivation)))
         return await asyncio.gather(*(one(s, d) for s, d in items))
+
+
+class AnthropicDrafter(ModelDrafter):
+    """The writer on the Anthropic backend (the default): `client` is an anthropic.Anthropic, or a
+    test's stand-in for one."""
+
+    def __init__(self, config: NarrationConfig = CONFIG, client=None, schema: type[BaseModel] | None = None,
+                 kind: str = "writer"):
+        super().__init__(AnthropicBackend(config.model, config, client=client), config, schema, kind)
+
+    @property
+    def client(self):
+        return self.backend.client
+
+
+class AnthropicChecker(ModelChecker):
+    """The checker on the Anthropic backend (the default), at the config's checker model."""
+
+    def __init__(self, config: NarrationConfig = CONFIG, client=None, async_client=None):
+        super().__init__(AnthropicBackend(config.checker_model, config, client=client, async_client=async_client), config)
+
+    @property
+    def client(self):
+        return self.backend.client
 
 
 def _run_async(coro):
@@ -1425,8 +1767,29 @@ def anthropic_client_drafter(wcfg: NarrationConfig, config: NarrationConfig = CO
                                     thinking=config.full_thinking), schema=ClientDraft, kind="client")
 
 
+def _backend_of(role) -> dict:
+    """{"backend": provider, host, model} for a drafter or checker that has a Backend; nothing for a
+    replay or a test's stand-in."""
+    b = getattr(role, "backend", None)
+    return {"backend": b.describe()} if isinstance(b, Backend) else {}
+
+
+def _model_of(role, default: str) -> str:
+    """The model a role ran on: its backend's (an open model is named by its spec), else the config's."""
+    b = getattr(role, "backend", None)
+    return b.model if isinstance(b, Backend) else default
+
+
+def client_drafter_for(wcfg: NarrationConfig, config: NarrationConfig = CONFIG, spec: str | None = None) -> "ModelDrafter":
+    """The client's layer's writer on its configured backend (JYOTISH_CLIENT_BACKEND, or `spec`): the
+    writer's model on Anthropic, thinking adaptively at `client_effort`, its own conversation and schema."""
+    from .client import ClientDraft
+    cfg = replace(wcfg, effort=config.client_effort, max_tokens=config.client_max_tokens, thinking=config.full_thinking)
+    return ModelDrafter(make_backend(spec, "client", cfg, model=wcfg.model), cfg, schema=ClientDraft, kind="client")
+
+
 # What narrate builds when no client drafter is passed (the offline suite replaces it with a stub).
-default_client_drafter = anthropic_client_drafter
+default_client_drafter = client_drafter_for
 
 
 def _legacy_draft(d: dict) -> dict:
@@ -1757,7 +2120,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             recording: list | None = None, areas: list[str] | None = None,
             progress: Callable[[str, dict], None] | None = None, depth: str = "astrologer",
             writer_model: str | None = None, writer_effort: str | None = None,
-            client_drafter: Drafter | None = None) -> Reading:
+            client_drafter: Drafter | None = None, writer_backend: str | None = None,
+            checker_backend: str | None = None, client_backend: str | None = None) -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
@@ -1771,7 +2135,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     second writer call (`client_drafter`, jyotish.client) writes each area's plain paragraph and the
     summary from the accepted text alone, checked like the summary. `writer_model` and
     `writer_effort` override the writer's settings (the checker's never change); the reading
-    records both sides' settings and usage."""
+    records both sides' settings and usage. Each role's backend (`writer_backend`,
+    `checker_backend`, `client_backend`: "anthropic" or "openai:<base url>:<model>") defaults to
+    JYOTISH_<ROLE>_BACKEND (make_backend); the reading records the three, provider and host."""
     import time
     started = time.perf_counter()
     progress = progress or (lambda stage, info: None)
@@ -1791,10 +2157,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name, as_of)[0])) for name in areas}
     all_tags = set().union(*allowed.values()) if allowed else set()
     wcfg = writer_config(config, depth, writer_model, writer_effort)
-    drafter = drafter or AnthropicDrafter(wcfg)
+    drafter = drafter or ModelDrafter(make_backend(writer_backend, "writer", wcfg, model=wcfg.model), wcfg)
     writer_metas: list[dict | None] = []
     checker_metas: list[dict | None] = []
-    checker = checker or AnthropicChecker(config)
+    checker = checker or ModelChecker(make_backend(checker_backend, "checker", config), config)
     votes_offered = offered_votes(chart, areas)
     chains_offered = offered_chains(chart, areas)
     all_chains = {k: v for name in areas for k, v in chains_offered[name].items()}
@@ -2052,7 +2418,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             else:
                 para_error[name] = ("nothing in this area passed the checks to write the paragraph from", attempts)
         if accepted:
-            client_drafter = client_drafter or default_client_drafter(wcfg, config)
+            client_drafter = client_drafter or default_client_drafter(wcfg, config, client_backend)
             client_layer = _client.write(client_drafter, checker, question=question, as_of=as_of.isoformat(),
                                          accepted=accepted, finding_data=finding_data, facts=facts,
                                          votes=votes_offered, chains=chains_offered, max_attempts=config.max_attempts,
@@ -2178,17 +2544,22 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     synthesis = sum(1 for t in shown for x in sentences(t) if is_synthesis(x, finding_data, facts))
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
                    chart=chart_header(chart), facts_cited={k: v for t in cited_texts for k, v in _cited_facts(t, facts).items()},
-                   writer={"model": wcfg.model, "effort": wcfg.effort, "thinking": wcfg.thinking,
+                   writer={"model": _model_of(drafter, wcfg.model), "effort": wcfg.effort, "thinking": wcfg.thinking,
                            "max_tokens": wcfg.max_tokens,
-                           **({"efforts_by_attempt": efforts, "stepped_down": stepped} if stepped else {})},
-                   checker={"model": config.checker_model, "effort": config.checker_effort},
-                   usage={"writer": _usage(writer_metas + client_metas), "checker": _usage(checker_metas),
+                           **({"efforts_by_attempt": efforts, "stepped_down": stepped} if stepped else {}),
+                           **_backend_of(drafter)},
+                   checker={"model": _model_of(checker, config.checker_model), "effort": config.checker_effort,
+                            **_backend_of(checker)},
+                   client=({"model": _model_of(client_drafter, wcfg.model), "effort": config.client_effort,
+                            "thinking": config.full_thinking, **_backend_of(client_drafter)}
+                           if full and client_drafter is not None else {}),
+                   usage={"writer": _usage(writer_metas), "checker": _usage(checker_metas),
                           **({"client": _usage(client_metas) | {"attempts": client_layer.get("attempts", 0)}}
                              if full else {}),
                           "wall_seconds": round(time.perf_counter() - started, 3)},
                    synthesis_sentences=synthesis,
                    judgement_sentences=sum(len(a.judgements) for a in reading_areas),
-                   model=wcfg.model, attempts=attempts, summary=summary, areas=reading_areas,
+                   model=_model_of(drafter, wcfg.model), attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    depth=depth,
                    fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)

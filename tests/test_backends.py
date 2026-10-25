@@ -1,0 +1,82 @@
+"""The narration's model as a backend (2026-10-25; docs/models.md): the backend spec, the pricing per
+role and host, and what /health says. The stub OpenAI-compatible server's tests are below them."""
+
+import pytest
+
+from jyotish.costs import OPEN_PRICES, PRICES, cost, is_local, price, reading_cost
+from jyotish.narrate import CONFIG, AnthropicBackend, OpenAIBackend, backend_spec, backends_status, make_backend
+
+
+@pytest.mark.parametrize("spec,url,model", [
+    ("openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b", "https://api.deepinfra.com/v1/openai",
+     "openai/gpt-oss-120b"),
+    ("openai:https://openrouter.ai/api/v1:z-ai/glm-4.7", "https://openrouter.ai/api/v1", "z-ai/glm-4.7"),
+    ("openai:http://localhost:11434/v1:gpt-oss:20b", "http://localhost:11434/v1", "gpt-oss:20b"),   # a port, a tag
+    ("openai:http://127.0.0.1:11434/v1:qwen3.6:27b", "http://127.0.0.1:11434/v1", "qwen3.6:27b"),
+])
+def test_an_openai_spec_names_its_base_url_with_its_path_and_its_model(spec, url, model):
+    b = make_backend(spec, "checker")
+    assert isinstance(b, OpenAIBackend) and (b.base_url, b.model) == (url, model)
+
+
+def test_anthropic_is_the_default_and_a_bad_spec_says_what_a_good_one_looks_like(monkeypatch):
+    for role in ("writer", "checker", "client"):
+        monkeypatch.delenv(f"JYOTISH_{role.upper()}_BACKEND", raising=False)
+        assert backend_spec(role) == "anthropic"
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
+    b = make_backend(None, "checker")
+    assert isinstance(b, AnthropicBackend) and b.model == CONFIG.checker_model
+    with pytest.raises(ValueError, match="openai:<base url with its path>:<model>"):
+        make_backend("openai:localhost:gpt-oss", "writer")
+
+
+def test_the_key_is_the_roles_own_else_the_shared_one(monkeypatch):
+    monkeypatch.setenv("JYOTISH_OPENAI_KEY", "shared")
+    monkeypatch.setenv("JYOTISH_CHECKER_KEY", "checker-only")
+    assert make_backend("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "checker").api_key == "checker-only"
+    assert make_backend("openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b", "writer").api_key == "shared"
+
+
+def test_openrouter_is_sent_its_data_policy_and_others_are_not():
+    o = make_backend("openai:https://openrouter.ai/api/v1:z-ai/glm-4.7", "checker")
+    assert o.extra == {"provider": {"data_collection": "deny", "zdr": True, "require_parameters": True}}
+    assert make_backend("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "checker").extra == {}
+
+
+def test_prices_by_host_and_model_local_free_and_unknown_none():
+    t = {"input_tokens": 1_000_000, "output_tokens": 1_000_000, "cache_read_input_tokens": 1_000_000}
+    assert cost("claude-opus-5-5", t) == pytest.approx(4 + 20 + 0.2)
+    assert cost("openai/gpt-oss-120b", t, "api.deepinfra.com") == pytest.approx(0.037 + 0.17 + 0.037)
+    assert cost("zai-org/GLM-4.7", t, "api.deepinfra.com") == pytest.approx(0.40 + 1.75 + 0.08)
+    assert cost("gpt-oss:20b", t, "localhost:11434") == 0.0 and is_local("[::1]:11434") and not is_local("openrouter.ai")
+    assert price("some/unlisted-model", "api.deepinfra.com") is None and cost("some/unlisted-model", t, "x.y") is None
+    assert all(len(p) == 4 for p in list(PRICES.values()) + list(OPEN_PRICES.values()))
+
+
+def test_a_reading_is_priced_role_by_role_and_unpriced_when_one_role_is():
+    doc = {"depth": "full", "writer": {"model": "openai/gpt-oss-120b", "backend": {"host": "api.deepinfra.com"}},
+           "checker": {"model": "claude-opus-5-5", "backend": {"host": "api.anthropic.com"}},
+           "client": {"model": "gpt-oss:20b", "backend": {"host": "localhost:11434"}},
+           "usage": {"writer": {"calls": 2, "input_tokens": 100_000, "output_tokens": 20_000},
+                     "checker": {"calls": 10, "input_tokens": 50_000, "output_tokens": 10_000},
+                     "client": {"calls": 1, "input_tokens": 5_000, "output_tokens": 1_000}}}
+    v = reading_cost(doc)
+    want = (100_000 * 0.037 + 20_000 * 0.17) / 1e6 + (50_000 * 4 + 10_000 * 20) / 1e6 + 0.0
+    assert v["cost_usd"] == pytest.approx(want, abs=1e-6) and v["client_calls"] == 1 and v["client_model"] == "gpt-oss:20b"
+    assert v["backends"]["writer"]["host"] == "api.deepinfra.com"
+    doc["checker"] = {"model": "some/unlisted", "backend": {"host": "api.example.com"}}
+    assert reading_cost(doc)["cost_usd"] is None                         # never guessed
+
+
+def test_health_says_which_roles_are_ready_and_never_a_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("JYOTISH_WRITER_BACKEND", "openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b")
+    monkeypatch.setenv("JYOTISH_CHECKER_BACKEND", "openai:http://localhost:11434/v1:qwen3.6:27b")
+    monkeypatch.delenv("JYOTISH_CLIENT_BACKEND", raising=False)
+    monkeypatch.setenv("JYOTISH_OPENAI_KEY", "sk-secret-value")
+    s = backends_status()
+    assert s["writer"] == {"provider": "openai-compatible", "host": "api.deepinfra.com", "model": "openai/gpt-oss-120b",
+                           "ready": True}
+    assert s["checker"]["ready"] is True                                 # local: no key needed
+    assert s["client"] == {"provider": "anthropic", "ready": False}      # no Anthropic key
+    assert "sk-secret-value" not in str(s)

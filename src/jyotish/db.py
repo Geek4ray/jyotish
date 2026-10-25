@@ -282,6 +282,11 @@ class LedgerRow(Base):
     checker_tokens: Mapped[dict] = mapped_column(DOCUMENT)
     writer_calls: Mapped[int] = mapped_column(Integer, default=0)
     checker_calls: Mapped[int] = mapped_column(Integer, default=0)
+    # The client's layer (depth full), priced by its own model; the three roles' backends (revision 0003).
+    client_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    client_tokens: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
+    client_calls: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    backends: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
     cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)  # null: a model without a price
     seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
     replayed: Mapped[bool] = mapped_column(Boolean, default=False)       # a fixture replay costs nothing

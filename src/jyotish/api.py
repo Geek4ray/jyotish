@@ -751,8 +751,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     @app.get("/costs/daily")
     def costs_daily(request: Request, days: int = 30) -> list[dict]:
-        """The owner's daily totals from the ledger, newest day first: readings, the writer's and the
-        checker's tokens, and the cost (a day with a reading on an unpriced model says how many)."""
+        """The owner's daily totals from the ledger, newest day first: readings, the writer's, the
+        checker's and the client's layer's tokens, and the cost (a day with a reading on an unpriced
+        model says how many)."""
         from sqlalchemy import func
         from .db import LedgerRow
         credential(request, "owner")
@@ -769,7 +770,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                             "writer_tokens": {k: total("writer_tokens", k) for k in ("input_tokens", "output_tokens",
                                               "cache_read_input_tokens", "cache_creation_input_tokens")},
                             "checker_tokens": {k: total("checker_tokens", k) for k in ("input_tokens", "output_tokens",
-                                               "cache_read_input_tokens", "cache_creation_input_tokens")}})
+                                               "cache_read_input_tokens", "cache_creation_input_tokens")},
+                            "client_tokens": {k: total("client_tokens", k) for k in ("input_tokens", "output_tokens",
+                                              "cache_read_input_tokens", "cache_creation_input_tokens")}})
             return out
 
     @app.get("/costs/readings")
@@ -781,7 +784,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             return [{"reading_id": r.reading_id, "depth": r.depth, "writer_model": r.writer_model,
                      "checker_model": r.checker_model, "writer_tokens": r.writer_tokens,
                      "checker_tokens": r.checker_tokens, "writer_calls": r.writer_calls, "checker_calls": r.checker_calls,
-                     "cost_usd": r.cost_usd, "seconds": r.seconds, "replayed": r.replayed}
+                     "client_model": r.client_model, "client_tokens": r.client_tokens, "client_calls": r.client_calls,
+                     "backends": r.backends, "cost_usd": r.cost_usd, "seconds": r.seconds, "replayed": r.replayed}
                     for r in s.query(LedgerRow).filter_by(day=day).order_by(LedgerRow.created_at)]
 
     @app.get("/health")
@@ -794,6 +798,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         from .cache import engine_hash
         from .db import current_revision, head_revision
         from . import __version__
+        from .narrate import backends_status
+        backends = backends_status()                            # each role's provider, host, model, readiness
         db: dict[str, Any] = {"dialect": engine.dialect.name}
         try:
             db |= {"ok": True, "revision": current_revision(engine), "head": head_revision()}
@@ -801,8 +807,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             db |= {"ok": False, "error": type(e).__name__}
         body = {"status": "ok" if db["ok"] else "degraded",
                 "engine": {"version": __version__, "hash": engine_hash()}, "database": db,
-                "narration": ("fixture" if model_fixture else "live" if os.environ.get("ANTHROPIC_API_KEY")
+                "narration": ("fixture" if model_fixture else "live" if all(b["ready"] for b in backends.values())
                               else "no key"),
+                "backends": backends,
                 "source": os.environ.get("JYOTISH_SOURCE_URL") or None}
         return JSONResponse(body, status_code=200 if db["ok"] else 503)
 
