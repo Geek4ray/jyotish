@@ -164,8 +164,17 @@ output tokens against 603,884 (4,418 a check against 4,870, 9% fewer), USD 1.04 
 (7,359 s over three invocations, against 2,467 s) is not a fair comparison, since DeepInfra's balance ran
 out midway and the resumed part met 33 retries under load; but the token count, which does not depend on
 load, says the model thinks almost as long at low as at high on these sentences. So the gate stays GLM-4.7
-at high; a gate several times faster needs another approach (reasoning switched off, or a checker that does
-not reason at length), held to the rule on the benchmark first.
+at high.
+
+**GLM-4.7 with reasoning off** (2026-10-26, checker effort `none`, sent as DeepInfra's reasoning_effort none;
+`docs/checker_scorecard_zai-org-glm-4.7_effort-none.md`): every one of the 124 checks answered, no retry, in
+313 s against 2,467 s (7.9 times faster), 44,016 output tokens against 603,884 (14 times fewer), USD 0.17
+against 1.15. But recall falls to 0.884 (76 of 86) and false rejects rise to 18: it is worse than the gate
+on eight categories (negated 6 of 9, house_changed 8 of 9, dasha_lord_changed 5 of 6, cites_too_narrowly,
+judgement_premise and unstated_claim 1 of 2, synthesis_does_not_follow and wrong_dignity 0 of 1) and does
+not pass the rule. Without its reasoning GLM-4.7 lets through a negation, a wrong house or a wrong period
+lord, which is the gate's work. The gate stays GLM-4.7 at high; a checker effort is set for the service with
+JYOTISH_CHECKER_EFFORT (`none` only on an OpenAI-compatible backend).
 
 ## (c) Anthropic, as before
 

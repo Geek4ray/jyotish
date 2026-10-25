@@ -212,3 +212,8 @@ def test_a_run_at_another_checker_effort_never_writes_over_the_gates_scorecard()
     assert cb.partial_path("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "low").name == \
         "zai-org-glm-4.7_effort-low.jsonl"
     assert cb.gate_name_of("# Checker benchmark: zai-org/GLM-4.7 at checker effort low\n") == "zai-org/GLM-4.7"
+
+
+def test_a_reasoning_off_run_has_its_own_scorecard():
+    cb = _bench()
+    assert cb.scorecard_path("zai-org/GLM-4.7", "none").name == "checker_scorecard_zai-org-glm-4.7_effort-none.md"

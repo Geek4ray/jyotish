@@ -585,7 +585,7 @@ def run_live(rows, config=None, backend: str | None = None, resume: bool = False
     v = run_validator(rows)
     out, todo = {}, []
     usage = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "calls": 0, "unchecked": [],
-             "resumed": 0, "backend": checker.backend.describe(), "effort": config.checker_effort}
+             "resumed": 0, "backend": checker.backend.describe(), "effort": checker.effort}
     for row in rows:
         if v[row["id"]][0] or "[tradition:" in row["sentence"]:      # a [tradition:] sentence is never checked
             out[row["id"]] = v[row["id"]]
@@ -788,9 +788,9 @@ def main(argv=None) -> int:
                     help="rewrite this scorecard's last section against --gate, from its own table (no model called)")
     ap.add_argument("--resume", action="store_true",
                     help="carry over the rows an interrupted live run already checked (data/bench_partial/)")
-    ap.add_argument("--checker-effort", choices=("low", "medium", "high", "xhigh", "max"), default=None,
+    ap.add_argument("--checker-effort", choices=("none", "low", "medium", "high", "xhigh", "max"), default=None,
                     help="the checker's effort for this run (default CONFIG.checker_effort, high); an OpenAI-compatible "
-                         "backend sends it as reasoning_effort")
+                         "backend sends it as reasoning_effort, and 'none' switches reasoning off there")
     a = ap.parse_args(argv)
     from jyotish.envfile import load as load_env
     for name in load_env(ROOT / ".env"):                  # keys from the gitignored .env; never a value printed

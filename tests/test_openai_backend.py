@@ -393,3 +393,20 @@ def test_no_balance_stops_the_run_at_once_instead_of_failing_every_sentence(serv
     assert retries == [] and len(STUB.requests) <= 6                   # not retried; no sentence marked unchecked
     with pytest.raises(BackendFatal):
         c("One sentence [fact:x].", "{}")
+
+
+def test_checker_effort_none_switches_reasoning_off_and_is_an_openai_setting_only(server, monkeypatch):
+    from dataclasses import replace
+    from jyotish.narrate import AnthropicBackend, checker_effort
+    c = ModelChecker(OpenAIBackend(f"{server}/schema/v1", "stub-checker"), replace(CONFIG, checker_effort="none"))
+    c("Mars is in its own sign [fact:planets.Mars.dignity].", "{}")
+    assert STUB.requests[0][1]["reasoning_effort"] == "none" and c.last_meta["effort_sent"] == "none"
+    monkeypatch.setenv("JYOTISH_CHECKER_EFFORT", "low")                     # the environment's setting wins
+    assert checker_effort(OpenAIBackend(f"{server}/schema/v1", "m")) == "low"
+    monkeypatch.setenv("JYOTISH_CHECKER_EFFORT", "none")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
+    with pytest.raises(ValueError, match="'none' \\(reasoning off\\) is an OpenAI-compatible server's setting"):
+        checker_effort(AnthropicBackend("claude-opus-5-5"))
+    monkeypatch.setenv("JYOTISH_CHECKER_EFFORT", "lowest")
+    with pytest.raises(ValueError, match="must be one of none, low, medium, high, xhigh, max"):
+        checker_effort(OpenAIBackend(f"{server}/schema/v1", "m"))

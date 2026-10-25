@@ -1404,7 +1404,11 @@ class AnthropicBackend(Backend):
 
 # The engine's efforts mapped to reasoning_effort, which OpenAI-compatible reasoning models (gpt-oss)
 # take as low, medium or high: xhigh and max are sent as high, and the reading records both.
-OPENAI_EFFORT = {"low": "low", "medium": "medium", "high": "high", "xhigh": "high", "max": "high"}
+OPENAI_EFFORT = {"none": "none", "low": "low", "medium": "medium", "high": "high", "xhigh": "high", "max": "high"}
+# The checker's efforts (2026-10-26): the engine's five, and "none", reasoning switched off, which an
+# OpenAI-compatible server may take (DeepInfra documents reasoning_effort none|low|medium|high:
+# https://docs.deepinfra.com/chat/reasoning); Anthropic has no such setting, so it is refused there.
+CHECKER_EFFORTS = ("none",) + EFFORTS
 # What a server says when it does not take a response_format: a 400 or 422 naming one of these.
 _FORMAT_WORDS = ("response_format", "json_schema", "json_object", "structured", "schema", "format")
 # Retrying a request (2026-10-25): up to five attempts in all, on these statuses and on a dropped
@@ -1861,6 +1865,19 @@ def checker_concurrency(backend: "Backend", config: NarrationConfig = CONFIG) ->
     return getattr(backend, "concurrency", None) or config.checker_concurrency
 
 
+def checker_effort(backend: "Backend", config: NarrationConfig = CONFIG) -> str:
+    """The checker's effort: JYOTISH_CHECKER_EFFORT when set, else CONFIG.checker_effort (high). One of
+    CHECKER_EFFORTS; "none" (reasoning off) only on an OpenAI-compatible backend."""
+    import os
+    effort = os.environ.get("JYOTISH_CHECKER_EFFORT", "").strip() or config.checker_effort
+    if effort not in CHECKER_EFFORTS:
+        raise ValueError(f"the checker's effort must be one of {', '.join(CHECKER_EFFORTS)}, not {effort!r}")
+    if effort == "none" and not isinstance(backend, OpenAIBackend):
+        raise ValueError("checker effort 'none' (reasoning off) is an OpenAI-compatible server's setting; "
+                         "Anthropic has none")
+    return effort
+
+
 class ModelChecker:
     """The semantic checker (SPEC Layer 7 item 10): one structured call per sentence with only the
     sentence and the derivation it may draw on (a claim's finding; for a summary sentence, the
@@ -1873,12 +1890,13 @@ class ModelChecker:
         self.backend, self.config = backend, config
         self.last_meta: dict | None = None
         self.concurrency = checker_concurrency(backend, config)
+        self.effort = checker_effort(backend, config)
 
     def _ask(self, sentence: str, derivation: str) -> dict:
         tokens = OPENAI_CHECKER_MAX_TOKENS if isinstance(self.backend, OpenAIBackend) else min(self.config.max_tokens,
                                                                                                 STREAM_ABOVE)
         return dict(system=CHECKER_PROMPT, messages=[{"role": "user", "content": f"Sentence:\n{sentence}\n\nData:\n{derivation}"}],
-                    schema=CheckResult, kind="checker", effort=self.config.checker_effort, max_tokens=tokens)
+                    schema=CheckResult, kind="checker", effort=self.effort, max_tokens=tokens)
 
     def _unchecked(self, e: Exception) -> tuple[CheckResult, dict]:
         """A sentence the checker could not be asked about: it fails, as unchecked, with the reason."""
@@ -2768,7 +2786,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                            "max_tokens": wcfg.max_tokens,
                            **({"efforts_by_attempt": efforts, "stepped_down": stepped} if stepped else {}),
                            **_backend_of(drafter)},
-                   checker={"model": _model_of(checker, config.checker_model), "effort": config.checker_effort,
+                   checker={"model": _model_of(checker, config.checker_model),
+                            "effort": getattr(checker, "effort", config.checker_effort),
                             **_backend_of(checker)},
                    client=({"model": _model_of(client_drafter, wcfg.model), "effort": config.client_effort,
                             "thinking": config.full_thinking, **_backend_of(client_drafter)}
