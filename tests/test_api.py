@@ -211,3 +211,16 @@ def test_source_redirects_to_the_configured_url(client, monkeypatch):
     monkeypatch.setenv("JYOTISH_SOURCE_URL", "https://example.org/jyotish")
     r = client.get("/source", follow_redirects=False)
     assert r.status_code in (302, 307) and r.headers["location"] == "https://example.org/jyotish"
+
+
+def test_a_reading_stored_before_the_sheet_gets_it_when_read(app, client, done):
+    # A reading made before the technical sheet (2026-10-25) has none stored; GET gives every area one,
+    # made from its chart, without writing it back.
+    assert all(a["sheet"] for a in done["reading"]["areas"])
+    with app.state.Session.begin() as s:
+        row = s.get(ReadingRow, done["id"])
+        row.document = dict(row.document, areas=[{k: v for k, v in a.items() if k != "sheet"} for a in row.document["areas"]])
+    r = client.get(f"/readings/{done['id']}").json()
+    assert [a["sheet"]["points"][0]["title"] for a in r["reading"]["areas"]] == ["Houses (bhava)"] * 3
+    with app.state.Session() as s:
+        assert all("sheet" not in a for a in s.get(ReadingRow, done["id"]).document["areas"])

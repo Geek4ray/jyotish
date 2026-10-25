@@ -9,7 +9,7 @@
 // reading as a whole. Answers and words are judgements: never shown to the client, never checked.
 // Every label comes from strings.js.
 import { chrome } from "./chrome.js";
-import { esc } from "./render.js";
+import { esc, sheetBlock } from "./render.js";
 import { pickLanguage, t } from "./strings.js";
 
 pickLanguage();
@@ -227,6 +227,14 @@ function gapNote(area) {
     <ul class="small">${gaps.map((g) => `<li data-finding="${esc(g.finding_id)}"><code>${esc(g.finding_id)}</code>: ${esc(g.last_error)}</li>`).join("")}</ul></details>`;
 }
 
+// The technical sheet beside the paragraph the reviewer judges (2026-10-25): the engine's figures for the
+// area, closed until opened. Marked .quoted like the reading: it is the engine's text, not the page's.
+function sheetNote(area) {
+  const a = areaOf(area);
+  if (!a || !a.sheet) return "";
+  return `<details class="sheet-review quoted"><summary class="small">${esc(t("astro.sheet_review", { area: areaName(area) }))}</summary>${sheetBlock(a.sheet)}</details>`;
+}
+
 function footer(nextLabel = t("nav.next"), { back = true } = {}) {
   return `<div class="step-nav">
     ${back ? `<button type="button" class="button secondary back">${esc(t("nav.back"))}</button>` : "<span></span>"}
@@ -262,7 +270,7 @@ const VIEWS = {
   match(s) {
     const cur = state.local.choice ?? latest(s.area, s.k);
     const own = MODE === "blind" ? latest(s.area, "blind_reading") : undefined;
-    return `${stepHead(s)}<p class="small muted">${esc(t("match.lead", { area: areaName(s.area) }))}</p>${quoted(s.area)}${gapNote(s.area)}
+    return `${stepHead(s)}<p class="small muted">${esc(t("match.lead", { area: areaName(s.area) }))}</p><div class="judged">${quoted(s.area)}${sheetNote(s.area)}</div>${gapNote(s.area)}
       ${own ? `<p class="small own">${esc(t("match.your_blind", { answer: t(`blind_reading.${own}`) }))}</p>` : ""}
       <h3 class="question">${esc(t("match.q", { area: areaName(s.area) }))}</h3>
       ${beside(s, choices(["agree", "partly", "disagree"].map((x) => [x, t(`match.${x}`)]), cur))}${footer()}`;

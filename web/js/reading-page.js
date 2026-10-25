@@ -1,6 +1,7 @@
 import { getStatic, pollReading, source } from "./api.js";
 import { chrome } from "./chrome.js";
 import { renderFailure, renderProgress, renderReading, renderTiming } from "./render.js";
+import { t } from "./strings.js";
 
 const screen = document.body.dataset.screen;          // "reading" or "timing"
 chrome(screen === "timing" ? "when" : "reading");
@@ -13,10 +14,36 @@ function chartLink(status) {
   return `<p class="chart-link"><a href="/chart.html?chart=${encodeURIComponent(status.chart_id)}${asOf}">The chart: D1, D9, D10, dashas and strengths →</a></p>`;
 }
 
+// The print view (2026-10-25): the client's view alone, or both views, by a switch. "Both" opens every
+// "For the astrologer" toggle for the printout and closes again the ones that were closed.
+function printBar() {
+  return `<div class="print-bar" role="group" aria-label="${t("print.label")}"><span class="small muted">${t("print.label")}:</span>
+    <label><input type="radio" name="print-view" value="client"${document.body.dataset.print === "both" ? "" : " checked"}> ${t("print.client")}</label>
+    <label><input type="radio" name="print-view" value="both"${document.body.dataset.print === "both" ? " checked" : ""}> ${t("print.both")}</label>
+    <button type="button" class="button secondary" id="print-go">${t("print.go")}</button></div>`;
+}
+
+document.body.dataset.print = "client";
+let reopened = [];
+window.addEventListener("beforeprint", () => {
+  if (document.body.dataset.print !== "both") return;
+  reopened = [...document.querySelectorAll("details.for-astrologer:not([open])")];
+  reopened.forEach((d) => { d.open = true; });
+});
+window.addEventListener("afterprint", () => { reopened.forEach((d) => { d.open = false; }); reopened = []; });
+
+function wirePrint() {
+  root.querySelectorAll('input[name="print-view"]').forEach((r) =>
+    r.addEventListener("change", () => { if (r.checked) document.body.dataset.print = r.value; }));
+  const go = root.querySelector("#print-go");
+  if (go) go.addEventListener("click", () => window.print());
+}
+
 function show(status) {
   root.dataset.state = status.status;
   if (status.status === "done") {
-    root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : renderReading(status.reading));
+    root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : printBar() + renderReading(status.reading));
+    wirePrint();
     document.title = `${screen === "timing" ? "When" : "Reading"}: ${status.reading.question} — Jyotish Engine`;
   } else if (status.status === "failed") {
     root.innerHTML = chartLink(status) + renderProgress(status) + renderFailure(status);

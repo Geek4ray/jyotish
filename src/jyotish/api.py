@@ -404,6 +404,18 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 raise HTTPException(status_code=404, detail="no such chart")
             return Chart.model_validate(row.document)
 
+    def with_sheets(document: dict | None, chart_id: str | None) -> dict | None:
+        """A done reading's document with every area's technical sheet (jyotish.sheet): a reading stored
+        before the sheet existed gets it from its chart as it is read (not stored; the payload is cached)."""
+        areas = (document or {}).get("areas") or []
+        if not areas or all(a.get("sheet") for a in areas) or not chart_id:
+            return document
+        from datetime import date as _date
+        from .sheet import sheets
+        made = sheets(chart_of(chart_id), _date.fromisoformat(document["as_of"]), [a["name"] for a in areas],
+                      {a["name"]: a.get("judgements") or [] for a in areas})
+        return dict(document, areas=[a if a.get("sheet") else dict(a, sheet=made.get(a["name"])) for a in areas])
+
     @app.get("/charts/{chart_id}/chart.svg")
     def chart_svg(chart_id: str, vargas: str = "D1,D9,D10") -> Response:
         """D1, D9 and D10 (or those named in `vargas`) in the North-Indian style, drawn by the
@@ -488,7 +500,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         guided = {"reviewer": who, "mode": mode, "intro_done": intro_done, "answers": answers_of(s, row, who),
                   "shown": sorted(shown), "units": us}
         # A reading in a comparison this reviewer has not answered shows no settings here either (F7).
-        document = blind(row.document) if comparison_pending(s, row, who) else row.document
+        document = blind(row.document) if comparison_pending(s, row, who) else with_sheets(row.document, row.chart_id)
         if mode == "blind":
             return {"id": row.id, "chart_id": row.chart_id, "review_status": row.review_status,
                     "reading": redact(document, shown), **guided}
@@ -827,7 +839,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                          page=None, error=row.error)
             return ReadingStatus(id=row.id, status=row.status, progress=row.progress, chart_id=row.chart_id,
                                  question=row.question, created_at=row.created_at, updated_at=row.updated_at,
-                                 reading=row.document, page=row.page, error=row.error,
+                                 reading=with_sheets(row.document, row.chart_id) if row.status == "done" else row.document,
+                                 page=row.page, error=row.error,
                                  review_status=row.review_status if row.status == "done" else None)
 
     # Static files last, so /readings is never shadowed.

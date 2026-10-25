@@ -214,18 +214,36 @@ function areaCard(a, notes, depth) {
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
-    ${depth === "full" ? `<details class="astrologer analysis-toggle"><summary>The astrologer's analysis</summary>${analysisBlock(a, notes)}</details>` : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
-    ${a.claims.length ? (depth === "curious" || depth === "full"
-      ? `<details class="astrologer${depth === "full" ? " findings" : ""}"${paraGap ? " open" : ""}><summary>${depth === "full" ? "The findings, one by one" : "Show the astrologer's reading"}</summary><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}</details>`
-      : `<ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>${otherPlacements(a)}`)
-      : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`}
+    ${astrologerView(a, notes, depth, paraGap)}
     ${paraGap ? "" : gapsList(gaps)}
     ${a.school_conflicts.map(conflict).join("")}
     ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
     ${a.astrologer_note ? astrologerNote(a.astrologer_note) : ""}
     ${a.disclaimer ? `<p class="disclaimer">${esc(a.disclaimer)}</p>` : ""}
   </section>`;
+}
+
+// The astrologer's view, at every depth (2026-10-25): the engine's technical sheet, then at depth full
+// the model's analysis, then the findings, under one toggle; open where the area has no client's view
+// (astrologer depth) or the client's paragraph is a gap.
+function astrologerView(a, notes, depth, paraGap) {
+  const clientView = (depth === "curious" && a.paragraph) || (depth === "full" && (a.paragraph || a.when));
+  const gaps = a.narration_gaps || [];
+  const claims = a.claims.length
+    ? `<h3 class="small findings-head">${esc(t("astro.findings"))}</h3><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>`
+    : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`;
+  return `<details class="astrologer for-astrologer"${paraGap || !clientView ? " open" : ""}><summary>${esc(t("astro.toggle"))}</summary>
+    ${a.sheet ? sheetBlock(a.sheet, notes) : ""}${depth === "full" ? analysisBlock(a, notes) : ""}${claims}${otherPlacements(a)}</details>`;
+}
+
+// The technical sheet (jyotish.sheet): numbered points, each item with the chart paths it reads.
+export function sheetBlock(sheet, notes) {
+  const text = notes ? (x) => notes.text(x) : (x) => esc(x.replace(TAG, "").replace(/\s+([.,;])/g, "$1"));
+  const points = sheet.points.map((p) => `<li class="sheet-point" data-point="${p.n}"><strong>${esc(p.title)}</strong>
+    <ul>${p.items.map((it) => `<li>${text(it.text)}${it.facts.length ? ` <span class="facts">${it.facts.map((f) => `<code>${esc(f)}</code>`).join(" ")}</span>` : ""}</li>`).join("")}</ul>
+    ${p.table ? table(p.table.rows, p.table.columns) : ""}</li>`).join("");
+  return `<div class="sheet" data-area="${esc(sheet.area)}"><h3 class="small">${esc(t("astro.sheet"))}</h3><ol class="sheet-points">${points}</ol></div>`;
 }
 
 // Depth full, the client's view first (2026-10-25): what the chart says for you, when, and what this
@@ -343,7 +361,7 @@ export function renderReading(r) {
   ${areas}
   ${dependsSection(r.depends_on_birth_time)}
   ${r.disclaimers.length ? `<section class="card"><h2>Disclaimers</h2>${r.disclaimers.map((k) => `<p class="disclaimer">${esc(DISCLAIMER_TEXT[k] || k)}</p>`).join("")}</section>` : ""}
-  <section class="card"><h2>Citations</h2><ol class="footnotes" id="footnotes">${notes.html()}</ol></section>`;
+  <section class="card citations"><h2>Citations</h2><ol class="footnotes" id="footnotes">${notes.html()}</ol></section>`;
 }
 
 export function renderTiming(r) {

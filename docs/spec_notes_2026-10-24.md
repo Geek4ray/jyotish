@@ -66,3 +66,20 @@ when the reading has none. The payload behind it is kept for the last few charts
 one toggle, "For the astrologer", holding the sheet, then (depth full) the model's analysis sections,
 then the findings; it is open where the area has no client's view (astrologer depth) or the client's
 paragraph is a gap. `tests/test_sheet.py` reads every point's figures against the chart object itself.
+
+**Both views on every page (part 3).** The website renders the reading the way the Markdown page does,
+at every depth where the data exists: the client's view (depth full's three parts, or curious depth's
+paragraph), the tier line, then one toggle, "For the astrologer", holding the technical sheet
+(numbered points, each item with its chart paths in small type, point 10 as a table), then at depth
+full the model's analysis sections and the tradition sentences, then the findings with their learner
+blocks. The toggle is open where the area has no client's view (astrologer depth) or the client's
+paragraph is a gap. A reading stored before the sheet gets one from its chart when it is read (GET
+/readings/{id} and the review view; not written back), so old readings show both views too; a blind
+review withholds an area, sheet and all, until it is answered, as before. The review page shows the
+reviewer the area's sheet beside the paragraph he judges: under the quoted reading, closed until opened,
+its tags stripped, marked like the quote as the engine's text and not the page's. The reading page has
+a print switch: "The client's view" (the default) prints the summary, each area's client's view and
+the disclaimers, without the astrologer's toggle, the tier facts, the summary's chips, the notices, the
+footnote marks, the citations or the site's chrome; "Both views" opens every "For the astrologer"
+toggle for the printout and closes again those that were closed. Every new label is in
+web/js/strings.js (astro.*, print.*, client.*), which render.js now reads as the review page does.

@@ -319,7 +319,7 @@ def test_curious_reading_on_the_site(page, curious_url):
     assert page.locator('section.area[data-area="longevity"] p.paragraph').count() == 1
     toggle = career.locator("details.astrologer")
     assert toggle.count() == 1 and toggle.get_attribute("open") is None    # the claims are one click away
-    assert toggle.locator(":scope > summary").inner_text() == "Show the astrologer's reading"
+    assert toggle.locator(":scope > summary").inner_text() == "For the astrologer"
     assert not career.locator("li.claim").first.is_visible()
     toggle.locator(":scope > summary").click()
     assert career.locator("li.claim").first.is_visible() and toggle.locator("details.learner").count() >= 1
@@ -391,7 +391,7 @@ def test_curious_paragraph_gap_opens_the_claims_on_the_site(page, curious_url):
     toggle = career.locator("details.astrologer")
     assert toggle.get_attribute("open") is not None and career.locator("li.claim").first.is_visible()
     order = career.evaluate("""el => [...el.querySelectorAll('.gap-lead, .gaps, details.astrologer')].map(e => e.className)""")
-    assert order == ["gap-lead muted", "gaps small muted", "astrologer"]     # the gap note above the claims, once
+    assert order == ["gap-lead muted", "gaps small muted", "astrologer for-astrologer"]   # the gap note first, once
     assert "the house of career" not in career.inner_text()                  # the error is never on this page
     marriage = page.locator('section.area[data-area="marriage"]')
     assert marriage.locator("details.astrologer").get_attribute("open") is None
@@ -780,21 +780,29 @@ def test_full_depth_reading_on_the_site(page, full_url):
     submit_reference(page, full_url, question="How will my career go?", depth="full")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
-    # The client's layer first, the tier line after it, then the astrologer's analysis, closed.
-    sel = ".client-says, .client-when, .not-decided, dl.facts, details.analysis-toggle, details.findings"
+    # The client's view first, the tier line after it, then the astrologer's view, closed.
+    sel = ".client-says, .client-when, .not-decided, dl.facts, details.for-astrologer"
     order = career.evaluate("""el => [...el.querySelectorAll('""" + sel + """')].map(c => c.matches('.client-says') ? 'says'
         : c.matches('.client-when') ? 'when' : c.matches('.not-decided') ? 'not_tell' : c.matches('dl.facts') ? 'tier'
-        : c.matches('details.analysis-toggle') ? 'analysis' : 'findings')""")
-    assert order[:5] == ["says", "when", "not_tell", "tier", "analysis"], order
+        : 'astrologer')""")
+    assert order == ["says", "when", "not_tell", "tier", "astrologer"], order
     assert career.locator(".client-says h3").inner_text() == "What the chart says for you"
     assert career.locator("p.paragraph").inner_text().startswith("Mars, which sits in its own sign in your 7th house")
     assert career.locator(".client-when h3").inner_text() == "When"
     assert career.locator("p.when").inner_text().startswith("Mars's own major period")
     assert career.locator(".not-decided h3").inner_text() == "What this chart does not tell"
     assert career.locator(".not-decided li").inner_text().startswith("Which kind of work suits you")
-    toggle = career.locator("details.analysis-toggle")
-    assert toggle.locator("summary").inner_text() == "The astrologer's analysis" and toggle.get_attribute("open") is None
-    toggle.locator("summary").click()
+    toggle = career.locator("details.for-astrologer")
+    assert toggle.locator(":scope > summary").inner_text() == "For the astrologer" and toggle.get_attribute("open") is None
+    toggle.locator(":scope > summary").click()
+    # Inside: the technical sheet, then the model's analysis, then the findings.
+    inner = toggle.evaluate("""el => [...el.querySelectorAll('.sheet, .analysis, .findings-head')].map(e => e.className)""")
+    assert [c.split()[0] for c in inner][:2] == ["sheet", "analysis"], inner
+    points = toggle.locator(".sheet-point")
+    assert points.count() == 15 and points.first.locator("strong").inner_text() == "Houses (bhava)"
+    assert points.first.locator("li").first.inner_text().startswith("10th from the lagna: Aquarius, lord Saturn")
+    assert points.first.locator("li .facts code").first.inner_text() == "houses.lagna.10"
+    assert toggle.locator('.sheet-point[data-point="10"] table tr').count() == 8          # header and seven families
     sections = career.locator(".analysis-section")
     assert sections.evaluate_all("els => els.map(e => e.dataset.section)") == ["assessment", "timing",
                                                                               "not_said_astrologer"]
@@ -910,3 +918,62 @@ def test_the_review_page_shows_each_gap_with_its_error(browser, guided_url):
     assert [f for f, _ in items] == [g["finding_id"] for g in career["narration_gaps"]]
     assert all(g["last_error"] in t for (_, t), g in zip(items, career["narration_gaps"]))
     plain_words(rev)                                           # the page's own words stay plain
+
+
+# --- the two-audience page (2026-10-25) ---------------------------------------------------------------
+
+def test_astrologer_depth_opens_the_astrologers_view_with_the_sheet(page, base_url):
+    """No client's view at astrologer depth: the toggle is open, the sheet first, the findings after."""
+    submit_reference(page, base_url)
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    career = page.locator('section.area[data-area="career"]')
+    toggle = career.locator("details.for-astrologer")
+    assert toggle.get_attribute("open") is not None and career.locator(".client-view").count() == 0
+    assert toggle.locator(".sheet-point").count() == 15 and toggle.locator(".sheet").is_visible()
+    order = toggle.evaluate("""el => [...el.querySelectorAll('.sheet, .findings-head')].map(e => e.className.split(' ')[0])""")
+    assert order == ["sheet", "small"]                                     # the sheet, then the findings
+
+
+def test_the_print_switch_prints_the_clients_view_alone_or_both(page, full_url):
+    submit_reference(page, full_url, question="How will my career go?", depth="full")
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    career = page.locator('section.area[data-area="career"]')
+    bar = page.locator(".print-bar")
+    assert bar.locator('input[value="client"]').is_checked() and page.get_attribute("body", "data-print") == "client"
+    page.emulate_media(media="print")
+    try:
+        assert career.locator(".client-says").is_visible() and not career.locator("details.for-astrologer").is_visible()
+        assert not bar.is_visible() and not page.locator(".citations").is_visible()
+        page.emulate_media(media="screen")
+        bar.locator('input[value="both"]').check()
+        assert page.get_attribute("body", "data-print") == "both"
+        page.evaluate("window.dispatchEvent(new Event('beforeprint'))")
+        page.emulate_media(media="print")
+        toggle = career.locator("details.for-astrologer")
+        assert toggle.is_visible() and toggle.get_attribute("open") is not None
+        assert toggle.locator(".sheet-point").first.is_visible()           # opened for the printout
+        page.evaluate("window.dispatchEvent(new Event('afterprint'))")
+        assert toggle.get_attribute("open") is None                        # closed again afterwards
+    finally:
+        page.emulate_media(media="screen")
+
+
+def test_the_review_page_shows_the_sheet_beside_the_paragraph(browser, guided_url):
+    rid, reading = new_reading(guided_url)
+    assert all(a.get("sheet") for a in reading["areas"])
+    rev = browser.new_context(viewport={"width": 1280, "height": 900}).new_page()
+    sign_in(rev, guided_url, rid, "tok-1")
+    rev.wait_for_selector('#review[data-step="intro:1"], #review[data-step="match:career"]')
+    if rev.get_attribute("#review", "data-step") == "intro:1":
+        for i in (1, 2, 3):
+            at(rev, f"intro:{i}")
+            rev.keyboard.press("Enter")
+    at(rev, "match:career")
+    judged = rev.locator("#guided-panel .judged")
+    assert judged.locator("blockquote.quoted").count() == 1
+    sheet = judged.locator("details.sheet-review")
+    assert sheet.locator("summary").inner_text().startswith("The technical sheet for career")
+    sheet.locator("summary").click()
+    assert sheet.locator(".sheet-point").count() == 15
+    assert "[fact:" not in sheet.inner_text()                               # tags stripped on the review page
+    plain_words(rev)

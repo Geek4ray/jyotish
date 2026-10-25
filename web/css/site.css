@@ -331,3 +331,25 @@ blockquote.paragraph-quote { border-left: 3px solid var(--accent); padding: 4px 
 .summary-line .words { font-family: var(--display); color: var(--text); }
 .summary-line .change { margin-left: auto; min-height: 32px; padding: 4px 12px; font-size: 13px; }
 @media (max-width: 900px) { .question-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* The technical sheet (2026-10-25): numbered points, each item with the chart paths it reads. */
+.sheet-points { padding-left: 1.4em; }
+.sheet-point { margin: 10px 0; }
+.sheet-point > ul { margin: 4px 0 0; padding-left: 1.1em; font-size: 14px; }
+.sheet-point .facts { color: var(--muted, #6b6b6b); font-size: 11px; }
+.sheet-point .facts code { margin-right: 4px; }
+.client-view h3 { margin: 14px 0 4px; }
+.sheet-review { margin-top: 8px; }
+.sheet-review > summary { cursor: pointer; color: var(--accent); }
+
+/* The print view: the client's view alone, or both, by the switch on the reading page. */
+.print-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0 16px; }
+@media print {
+  .site-header, .site-footer, .tabbar, .print-bar, .chart-link { display: none !important; }
+  body[data-print="client"] .for-astrologer, body[data-print="client"] .depends,
+  body[data-print="client"] .citations, body[data-print="client"] dl.facts, body[data-print="client"] .chips,
+  body[data-print="client"] .notice, body[data-print="client"] sup.fns, body[data-print="client"] .gaps,
+  body[data-print="client"] .header-line { display: none !important; }
+  details > summary { list-style: none; }
+  .card { break-inside: avoid-page; box-shadow: none; }
+}
