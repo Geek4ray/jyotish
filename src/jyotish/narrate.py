@@ -237,6 +237,9 @@ class ReadingArea(BaseModel):
     # Depth full: the sentences of the analysis that weigh ({section, sentence}), shown as the
     # reading's weighing; their premises were checked, their weighing never is.
     judgements: list[dict[str, str]] = Field(default_factory=list)
+    # The astrologer's technical sheet (jyotish.sheet): fifteen numbered points written by the engine
+    # from the whole-chart payload, no model call; at every depth.
+    sheet: dict[str, Any] | None = None
 
 
 class ReadingSummary(BaseModel):
@@ -1562,7 +1565,8 @@ def _label(stability: float | None) -> str | None:
 
 def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     """A reading JSON brought up to the current schema from its own chart: the engine-derived
-    fields a reading written before them lacks (each claim's learner block, the timing line).
+    fields a reading written before them lacks (each claim's learner block, the timing line, the
+    technical sheet).
     The model's text is not touched."""
     as_of = date.fromisoformat(reading.as_of)
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
@@ -1580,7 +1584,16 @@ def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     if summary.timing_line is None:
         lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading.areas if a.windows]
         summary = summary.model_copy(update={"timing_line": " ".join(x for x in lines if x) or None})
+    if any(a.sheet is None for a in areas):
+        areas = with_sheets(areas, chart, as_of)
     return reading.model_copy(update={"areas": areas, "summary": summary})
+
+
+def with_sheets(areas: list["ReadingArea"], chart: Chart, as_of: date) -> list["ReadingArea"]:
+    """The areas with their technical sheets (jyotish.sheet), made from the chart."""
+    from .sheet import sheets
+    made = sheets(chart, as_of, [a.name for a in areas], {a.name: a.judgements for a in areas})
+    return [a if a.sheet else a.model_copy(update={"sheet": made.get(a.name)}) for a in areas]
 
 
 def engine_summary(areas: list["ReadingArea"], routed: list[str], sc, period: str | None,

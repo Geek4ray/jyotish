@@ -186,6 +186,8 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                 for x in sentences(t)]
         update |= {"narration_source": f"fixture:{model_fixture}",
                    "unchecked_sentences": sum(1 for x in said if x not in checker.verdicts)}
+    from .narrate import with_sheets
+    update["areas"] = with_sheets(reading.areas, chart, day)       # the technical sheet, at every depth
     reading = reading.model_copy(update=update)
     if not model_fixture:
         record_candidates(reading, chart, chart_id)

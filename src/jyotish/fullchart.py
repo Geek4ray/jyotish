@@ -587,3 +587,18 @@ def chart_hash(chart: Chart) -> str:
     can be traced to the chart it was written about without its birth data."""
     doc = chart.model_dump_json(exclude={"uncertainty": {"seconds"}})
     return hashlib.sha256(doc.encode()).hexdigest()
+
+
+_CACHE: dict[tuple, dict] = {}
+_CACHE_SIZE = 8
+
+
+def cached_payload(chart: Chart, as_of: date, start: date, end: date, areas: list[str]) -> dict[str, Any]:
+    """`payload`, kept for the last few (chart, dates, areas): the technical sheet (jyotish.sheet) is made
+    at every depth and a page may be rendered more than once from one chart. Callers do not mutate it."""
+    key = (chart_hash(chart), as_of, start, end, tuple(areas))
+    if key not in _CACHE:
+        if len(_CACHE) >= _CACHE_SIZE:
+            _CACHE.pop(next(iter(_CACHE)))
+        _CACHE[key] = payload(chart, as_of, start, end, areas)
+    return _CACHE[key]

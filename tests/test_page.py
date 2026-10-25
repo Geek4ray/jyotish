@@ -71,7 +71,8 @@ def test_full_page_with_a_claim_for_every_finding_in_every_area(chart):
     n = sum(len(a.claims) for a in areas)
     assert n > 18 * 5
     md = render(reading.model_copy(update={"areas": areas}), chart)
-    assert md.count("\n### ") == n
+    assert md.split("## Learner", 1)[1].count("\n### ") == n          # one learner heading per claim
+    assert md.count(f"\n### The technical sheet") == sum(1 for a in areas if a.name != "synastry")
     assert md.count("pada | basis | house | sign | occupants | benefics") >= 1
     assert "marana karaka sthana:" in md                       # longevity's arudha shape
 

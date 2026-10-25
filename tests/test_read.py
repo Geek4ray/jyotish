@@ -282,7 +282,7 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
     md = out.with_suffix(".md").read_text()
     career = md[md.index("## Career"):md.index("## Marriage")]
     assert career.index("In your chart the Sun and Mercury sit together in the 10th house") < \
-        career.index("<details><summary>Show the astrologer's reading")
+        career.index("<details><summary>For the astrologer")
     assert career.index("<details>") < career.index("1. ") < career.index("</details>")
     assert "*These are periods the engine scores as favourable for career; it does not predict when you will act.*" in md
 
@@ -306,11 +306,11 @@ def test_curious_paragraph_gap_opens_the_claims_under_the_gap_note(tmp_path):
     career = md[md.index("## Career"):md.index("## Marriage")]
     note = career.index("The plain paragraph for this area did not pass the checks")
     line = "parts of this area could not be written within the checks."
-    assert note < career.index(line) < career.index("<details open><summary>Show the astrologer's reading") \
+    assert note < career.index(line) < career.index("<details open><summary>For the astrologer") \
         < career.index("1. ") < career.index("</details>")
     assert career.count(line) == 1 and "the house of career" not in career     # once, above the claims; no error
     marriage = md[md.index("## Marriage"):md.index("## Longevity")]
-    assert "<details><summary>Show the astrologer's reading" in marriage and "did not pass the checks" not in marriage
+    assert "<details><summary>For the astrologer" in marriage and "did not pass the checks" not in marriage
     assert marriage.index("</details>") < marriage.index("could not be written within the checks.")
 
 

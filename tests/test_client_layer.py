@@ -280,7 +280,8 @@ def test_the_page_puts_the_clients_layer_first_and_the_analysis_under_its_toggle
     career = page.split("## Career", 1)[1].split("\n## ", 1)[0]
     marks = ["### What the chart says for you", "Your work house is led by Saturn", "### When",
              "You are now in the period of Jupiter", "### What this chart does not tell", "- Which kind of work suits you",
-             "- Tier: **", "<details><summary>The astrologer's analysis</summary>", "### Assessment", "### Timing",
+             "- Tier: **", "<details><summary>For the astrologer</summary>", "### The technical sheet",
+             "1. **Houses (bhava)**", "15. **Drafts, abstentions", "### Assessment", "### Timing",
              "### What the chart does not say", "- The KP family abstains", "</details>"]
     at = [career.index(m) for m in marks]
     assert at == sorted(at), list(zip(marks, at))

@@ -32,6 +32,28 @@ CLIENT_WHEN = "When"
 CLIENT_LIST_HEADING = "What this chart does not tell"
 
 
+FOR_ASTROLOGER = "For the astrologer"
+SHEET_HEADING = "The technical sheet (the engine's figures, no model)"
+
+
+def sheet_lines(notes: "_Notes", sh: dict) -> list[str]:
+    """The technical sheet (jyotish.sheet) as Markdown: numbered points, each item with the payload
+    paths it reads; point 10 as a table."""
+    L = [f"### {SHEET_HEADING}", ""]
+    for p in sh["points"]:
+        L.append(f"{p['n']}. **{p['title']}**")
+        for it in p["items"]:
+            cite = (" — " + ", ".join(f"`{f}`" for f in it["facts"])) if it["facts"] else ""
+            L.append(f"   - {notes.render(it['text'])}{cite}")
+        if p.get("table"):
+            t = p["table"]
+            L += ["", "   | " + " | ".join(t["columns"]) + " |", "   |" + "---|" * len(t["columns"])]
+            L += ["   | " + " | ".join("–" if r[c] is None else str(r[c]) for c in t["columns"]) + " |"
+                  for r in t["rows"]]
+            L.append("")
+    return L + [""]
+
+
 def gap_line(n: int) -> str:
     """What the page says of an area's narration gaps. A checker's or validator's error is never
     shown here (the page is the client's): it stays in the reading's JSON and on the review page."""
@@ -274,6 +296,12 @@ def render(reading: Reading, chart: Chart) -> str:
     as_of = date.fromisoformat(reading.as_of)
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
     learner: list[tuple[str, Any, dict]] = []
+    # The technical sheet needs only the chart: the reading's own, or made now for a reading without one.
+    sheets_by_area = {a.name: a.sheet for a in reading.areas if a.sheet}
+    if len(sheets_by_area) < len(reading.areas):
+        from .sheet import sheets
+        sheets_by_area = sheets(chart, as_of, [a.name for a in reading.areas],
+                                {a.name: a.judgements for a in reading.areas}) | sheets_by_area
     for a in reading.areas:
         full = reading.depth == "full"
         L += [f"## {a.name.replace('_', ' ').capitalize()}", ""]
@@ -293,14 +321,23 @@ def render(reading: Reading, chart: Chart) -> str:
             L.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})" for p in a.polarity))
         L.append("")
         curious = reading.depth == "curious"
-        # A curious paragraph that ended as a gap: its gap note first, then the claims open.
+        # A curious paragraph that ended as a gap: its gap note first, then the astrologer's view open.
         para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
         if curious and a.paragraph:
             L += [notes.render(a.paragraph), ""]
+        gaps = [f"*{gap_line(len(a.narration_gaps))}*"] if a.narration_gaps else []
+        if para_gap:
+            L += ["The plain paragraph for this area did not pass the checks; the astrologer's reading is shown "
+                  "instead.", ""] + gaps + [""]
+        # The astrologer's view, at every depth (2026-10-25): the engine's technical sheet, then at depth
+        # full the model's analysis, then the findings. Open where the area has no client's view
+        # (astrologer depth) or the client's paragraph is a gap.
+        client_view = bool(curious and a.paragraph) or bool(full and (a.paragraph or a.when))
+        L += [f"<details{' open' if para_gap or not client_view else ''}><summary>{FOR_ASTROLOGER}</summary>", ""]
+        if sheets_by_area.get(a.name):
+            L += sheet_lines(notes, sheets_by_area[a.name])
         if full:
-            # The astrologer's analysis under its toggle: the checked sections, each the writer's
-            # argument over the cited facts; the tier above is the engine's.
-            L += ["<details><summary>The astrologer's analysis</summary>", ""]
+            # The model's analysis: the checked sections, each the writer's argument over the cited facts.
             weighed = {j["sentence"] for j in a.judgements}
             legacy = "not_said" in (a.analysis or {})
             for sec, heading in ANALYSIS_HEADINGS.items():
@@ -320,16 +357,8 @@ def render(reading: Reading, chart: Chart) -> str:
                       f"unverified, from the {ANALYSIS_HEADINGS.get(x['section'], x['section']).lower()})"
                       for x in a.traditions]
                 L.append("")
-            L += ["</details>", ""]
-            if a.claims:
-                L += ["<details><summary>The findings, one by one</summary>", ""]
-        gaps = [f"*{gap_line(len(a.narration_gaps))}*"] if a.narration_gaps else []
-        if para_gap:
-            L += ["The plain paragraph for this area did not pass the checks; the astrologer's reading is shown "
-                  "instead.", ""] + gaps + [""]
-        if curious and a.claims:
-            L += [f"<details{' open' if para_gap else ''}><summary>Show the astrologer's reading</summary>", ""]
         if a.claims:
+            L += ["### The findings, one by one", ""]
             L += [f"{i}. {_claim(notes, c)}" for i, c in enumerate(a.claims, 1)]
             missing = [c.finding_id for c in a.claims if c.finding_id not in by_id]
             if missing:
@@ -343,8 +372,7 @@ def render(reading: Reading, chart: Chart) -> str:
             L += ["", "Other placements the engine weighed (not narrated; the three strongest are above):", ""]
             L += [f"- `{o['rule_id']}` ({o['planet']}, scale {o['scale']:.3g}; {o.get('effect_status') or 'effect'}): "
                   f"{o['classical_effect']}" for o in a.other_placements]
-        if (curious or full) and a.claims:
-            L += ["", "</details>"]
+        L += ["", "</details>"]
         if gaps and not para_gap:
             L += [""] + gaps
         if a.astrologer_note:
