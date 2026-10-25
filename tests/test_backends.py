@@ -173,3 +173,29 @@ def test_the_scripts_env_file_sets_only_unset_keys_and_returns_names_only(tmp_pa
     assert names == ["JYOTISH_OPENAI_KEY", "JYOTISH_CHECKER_CONCURRENCY"] and "sk-from-file" not in str(names)
     assert os.environ["JYOTISH_OPENAI_KEY"] == "sk-from-file" and os.environ["ANTHROPIC_API_KEY"] == "from-the-shell"
     assert os.environ["POSTGRES_PASSWORD"] == "" and load(tmp_path / "missing") == []
+
+
+# --- the gate in use: GLM-4.7 (2026-10-25) -----------------------------------------------------------
+
+def test_the_gate_in_use_is_glm_and_qwen_does_not_pass_against_it():
+    cb = _bench()
+    assert cb.GATE.name == "checker_scorecard_zai-org-glm-4.7.md"
+    gate_text = cb.GATE.read_text()
+    assert cb.gate_name_of(gate_text) == "zai-org/GLM-4.7" and cb.gate_name_of(cb.SCORECARD.read_text()) == "claude-opus-5-5"
+    glm = cb.gate_recall(gate_text)
+    assert glm["overall"] == 1.0 and all(v == 1.0 for v in glm.values())
+    qwen = cb.gate_recall(cb.scorecard_path("Qwen/Qwen3.6-35B-A3B").read_text())
+    verdict = "\n".join(cb.rule_from_recall(qwen, glm, "zai-org/GLM-4.7"))
+    assert "worse on contradicts_its_fact, judgement_premise, unstated_claim: it does not pass the rule" in verdict
+    assert "Verdict: not worse" not in verdict
+    committed = cb.scorecard_path("Qwen/Qwen3.6-35B-A3B").read_text()
+    assert "the gate in use, zai-org/GLM-4.7" in committed and "does not pass the rule" in committed
+
+
+def test_compose_passes_each_roles_backend_to_the_service():
+    import yaml
+    from pathlib import Path
+    env = yaml.safe_load((Path(__file__).resolve().parents[1] / "docker-compose.yml").read_text())["services"]["app"]["environment"]
+    for name in ("JYOTISH_WRITER_BACKEND", "JYOTISH_CHECKER_BACKEND", "JYOTISH_CLIENT_BACKEND", "JYOTISH_OPENAI_KEY",
+                 "JYOTISH_CHECKER_CONCURRENCY"):
+        assert env[name] == "${%s:-}" % name, name

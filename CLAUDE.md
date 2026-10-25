@@ -204,7 +204,10 @@ opens one async client per batch and closes it (`Backend.aclose`), defaults to 4
 (JYOTISH_CHECKER_CONCURRENCY overrides; Anthropic 16); a checker call that fails after the retries fails its sentence
 as unchecked (`Reading.unchecked_sentences`). The benchmark writes data/bench_partial/ as it goes and both scripts take
 --resume and read keys from the gitignored .env (`jyotish.envfile`). Scorecards: docs/checker_scorecard_zai-org-glm-4.7.md,
-docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md (2026-10-25; the rule waits on Opus run again on 147 rows).
+docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md (2026-10-25). The gate in use is GLM-4.7 on DeepInfra (Ray's decision, no
+Anthropic): `checker_bench.py` compares against it by default (`GATE`, `--gate`; `--apply-rule` re-applies the rule to a
+scorecard from its table); against it Qwen fails on three categories. The local `.env` sets all three roles on DeepInfra
+(gpt-oss-120b writer and client's layer, GLM-4.7 checker); docker-compose passes the variables.
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

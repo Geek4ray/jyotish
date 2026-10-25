@@ -26,9 +26,14 @@ change, so read them again before you rely on them. The numbers the engine price
 
 - **The checker** is the gate. Its backend changes for client readings only when its benchmark recall
   (`scripts/checker_bench.py`, the share of bad sentences it refuses) is not worse **on any category**
-  than the gate in use, per the scorecards `docs/checker_scorecard.md` (Opus) and
-  `docs/checker_scorecard_<model>.md` (each other backend). A cheaper checker that misses one kind of
-  error more often is not a cheaper gate; it is a weaker one.
+  than the gate in use, per the scorecards `docs/checker_scorecard_<model>.md` (each backend) and
+  `docs/checker_scorecard.md` (Opus, the earlier gate). A cheaper checker that misses one kind of error
+  more often is not a cheaper gate; it is a weaker one.
+- **The gate in use**, since 2026-10-25, is **GLM-4.7 on DeepInfra** (`docs/checker_scorecard_zai-org-glm-4.7.md`):
+  Ray's decision to run the narration without Anthropic. On the benchmark it caught every bad row (86 of
+  86) and is not worse than Opus's last run on any of the 14 categories that run measured; the 8 the
+  benchmark has gained since have no Opus run to compare with, and GLM-4.7 caught every row of them.
+  `scripts/checker_bench.py` compares against it by default (`--gate` names another).
 - **The writer** (and the client's layer) may change whenever its pass rate and gaps are acceptable on
   the comparison (`scripts/compare_readings.py`), because every sentence it writes is checked: a weaker
   writer costs attempts and gaps, never an unchecked sentence.
@@ -124,6 +129,16 @@ Depth full on a local model is refused unless `JYOTISH_ALLOW_LOCAL_FULL=1` is se
 195,000 tokens, and the model's num_ctx and the machine's memory must hold that and room to write. On
 16 or 32 GB they do not.
 
+## In use: DeepInfra for all three roles
+
+Since 2026-10-25 the narration runs on DeepInfra, with no Anthropic call: GLM-4.7 checks, gpt-oss-120b
+writes and writes the client's layer (the lines under (a)); depth full needs the Qwen writer. The
+repository's `.env` (gitignored) holds these lines and the key; the scripts read it, docker-compose passes
+the variables to the service, and a shell running `jyotish read` or `uvicorn` loads them with
+`set -a; . ./.env; set +a`. The writer on gpt-oss-120b has not yet been measured against the checker
+(`scripts/compare_readings.py`, the second command under Measuring); its pass rate and gaps decide whether
+it stays.
+
 ## (c) Anthropic, as before
 
 Leave the three variables unset (or set them to `anthropic`) and set `ANTHROPIC_API_KEY`. Claude Opus
@@ -181,7 +196,9 @@ side's checker (`--live-checker`):
 
 Run on 2026-10-25 on DeepInfra, 147 rows (124 reaching the checker, every one answered; 8 calls at once):
 `docs/checker_scorecard_zai-org-glm-4.7.md` and `docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md`, beside
-Opus's `docs/checker_scorecard.md` (its last live run, 2026-10-22, on the 119 rows the benchmark had then).
+Opus's `docs/checker_scorecard.md` (its last live run, 2026-10-22, on the 119 rows the benchmark had then;
+it could not be run again on the 147: the Anthropic account has no credit, and the narration now runs
+without Anthropic).
 
 | | Opus 5.5 (2026-10-22, 119 rows) | GLM-4.7 | Qwen3.6-35B-A3B |
 | --- | --- | --- | --- |
@@ -192,14 +209,13 @@ Opus's `docs/checker_scorecard.md` (its last live run, 2026-10-22, on the 119 ro
 
 The wording and tag categories (tier_word, forbidden_word, tag_not_offered, refers_to_another_claim and
 the rest) are the validator's to catch, before any checker, so they score the same for every checker;
-the semantic ones are the checkers'. Against the rule, both are not worse than Opus on every category
-Opus's last run measured; eight categories the benchmark has gained since (cites_too_narrowly,
-contradicts_its_fact, judgement_premise, nth_sign, ranking_not_cited, synthesis_does_not_follow,
-unstated_claim, untagged_unsupported) have no Opus run, so the rule is not yet decided for either: Opus
-must be run again on all 147 rows first (`scripts/checker_bench.py` with ANTHROPIC_API_KEY). On what is
-measured, GLM-4.7 caught every bad row, at the price of ten false rejects (each costs a regeneration, not
-a wrong sentence), and Qwen3.6-35B-A3B missed three semantic rows that Opus has not been run on; until
-the rule decides, client readings keep the Opus checker. Until one
+the semantic ones are the checkers'. Against Opus's last run, both are not worse on every category it
+measured (14); eight categories the benchmark has gained since (cites_too_narrowly, contradicts_its_fact,
+judgement_premise, nth_sign, ranking_not_cited, synthesis_does_not_follow, unstated_claim,
+untagged_unsupported) have no Opus run. GLM-4.7 caught every bad row, at the price of ten false rejects
+(each costs a regeneration, not a wrong sentence), and is the gate in use (above). Against it,
+Qwen3.6-35B-A3B is worse on contradicts_its_fact, judgement_premise and unstated_claim and does not pass
+the rule (its scorecard's last section); it is cheaper and faster, and stays a candidate for the writer. Until one
 shows recall not worse than Opus's on every category, client readings keep the Opus checker (the rule
 above).
 

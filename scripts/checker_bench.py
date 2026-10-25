@@ -63,6 +63,9 @@ COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
 COMPARISON_R2 = ROOT / "docs" / "comparison_2026-10-23_r2" / "b.recording.json"   # the re-run after F1-F13
 FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
 LIVE_HEADING = "## Validator + semantic checker (live)"
+# The gate in use for client readings (docs/models.md): GLM-4.7 on DeepInfra since 2026-10-25, Ray's decision
+# to run the narration without Anthropic; Opus's scorecard (SCORECARD) is the earlier gate's.
+GATE = ROOT / "docs" / "checker_scorecard_zai-org-glm-4.7.md"
 
 
 # --- the chart behind the reading ---------------------------------------------------------------
@@ -708,7 +711,7 @@ def scorecard_path(model: str) -> Path:
 
 
 def gate_recall(text: str) -> dict[str, float]:
-    """Per category, the recall of a scorecard's live section (the gate in use: Opus's)."""
+    """Per category, the recall of a scorecard's live section (a gate's, or a candidate's own)."""
     if LIVE_HEADING not in text:
         return {}
     out = {}
@@ -719,21 +722,33 @@ def gate_recall(text: str) -> dict[str, float]:
     return out
 
 
-def rule_section(rows, preds, gate: dict[str, float], gate_name: str, unchecked=()) -> list[str]:
+def rule_section(rows, preds, gate: dict[str, float], gate_name: str, unchecked=(), gate_file: str = "") -> list[str]:
     """docs/models.md's rule: the checker's backend changes for client readings only when its recall is
     not worse on any category than the gate in use."""
+    here = {cat: x["recall"] for cat, x in scores(rows, preds, unchecked).items()}
+    return rule_from_recall(here, gate, gate_name, gate_file)
+
+
+def gate_name_of(text: str) -> str:
+    """The checker a scorecard measured: its title's model, else the live section's ("Model …" / "Checker …")."""
+    m = re.search(r"^# Checker benchmark: (\S+)", text, re.M) or re.search(r"^(?:Model|Checker) (\S+?)[,\s]", text, re.M)
+    return m.group(1) if m else "the gate"
+
+
+def rule_from_recall(here: dict[str, float], gate: dict[str, float], gate_name: str, gate_file: str = "") -> list[str]:
+    """The rule's section from two per-category recall tables (this checker's, the gate's)."""
     if not gate:
         return ["## Against the gate in use", "", f"No live run of {gate_name} on record to compare with.", ""]
-    here = scores(rows, preds, unchecked)
+    where = f" ({gate_file})" if gate_file else ""
     L = ["## Against the gate in use", "",
          f"The rule (docs/models.md): this checker may gate client readings only if its recall is not worse on any "
-         f"category than {gate_name}'s last live run (docs/checker_scorecard.md).", "",
+         f"category than the gate in use, {gate_name}{where}.", "",
          "| category | recall here | recall of the gate | not worse |", "| --- | --- | --- | --- |"]
     worse = []
     for cat in sorted(set(here) & set(gate) - {"accepted", "overall"}):
-        ok = round(here[cat]["recall"], 3) >= gate[cat]
+        ok = round(here[cat], 3) >= gate[cat]
         worse += [] if ok else [cat]
-        L.append(f"| {cat} | {here[cat]['recall']:.3f} | {gate[cat]:.3f} | {'yes' if ok else 'no'} |")
+        L.append(f"| {cat} | {here[cat]:.3f} | {gate[cat]:.3f} | {'yes' if ok else 'no'} |")
     unmeasured = sorted(set(here) - set(gate) - {"accepted", "overall"})
     if unmeasured:
         L += ["", f"Not in the gate's last run (the benchmark has grown since): {', '.join(unmeasured)}. The rule cannot be "
@@ -752,12 +767,27 @@ def main(argv=None) -> int:
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--checker-backend", help="run the live checker on this backend (openai:<base url>:<model>) and "
                                               "write docs/checker_scorecard_<model>.md beside Opus's")
+    ap.add_argument("--gate", type=Path, default=None,
+                    help="the gate in use's scorecard, compared against per category (default docs/models.md's gate: "
+                         "docs/checker_scorecard_zai-org-glm-4.7.md)")
+    ap.add_argument("--apply-rule", type=Path, default=None, metavar="SCORECARD",
+                    help="rewrite this scorecard's last section against --gate, from its own table (no model called)")
     ap.add_argument("--resume", action="store_true",
                     help="carry over the rows an interrupted live run already checked (data/bench_partial/)")
     a = ap.parse_args(argv)
     from jyotish.envfile import load as load_env
     for name in load_env(ROOT / ".env"):                  # keys from the gitignored .env; never a value printed
         print(f"{name} read from .env", file=sys.stderr)
+    gate_path = a.gate or GATE
+    if a.apply_rule:
+        text = a.apply_rule.read_text()
+        here, gate_text = gate_recall(text), gate_path.read_text()
+        head = text[:text.index("## Against the gate in use")] if "## Against the gate in use" in text else text
+        rel = gate_path.resolve().relative_to(ROOT) if gate_path.resolve().is_relative_to(ROOT) else gate_path
+        a.apply_rule.write_text(head + "\n".join(rule_from_recall(here, gate_recall(gate_text), gate_name_of(gate_text),
+                                                                   str(rel))) + "\n")
+        print(f"{a.apply_rule}: the rule applied against {gate_name_of(gate_text)} ({rel})")
+        return 0
     if a.build:
         rows = build()
         BENCH.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
@@ -770,9 +800,11 @@ def main(argv=None) -> int:
         t = time.time()
         lp, usage = run_live(rows, backend=a.checker_backend, resume=a.resume)
         path = scorecard_path(usage["backend"]["model"])
-        gate = gate_recall(SCORECARD.read_text()) if SCORECARD.exists() else {}
+        gate_text = gate_path.read_text() if gate_path.exists() and gate_path != path else ""
+        rel = gate_path.resolve().relative_to(ROOT) if gate_path.resolve().is_relative_to(ROOT) else gate_path
         text = report(rows, vpred, (lp, usage, time.time() - t)) + \
-            "\n".join(rule_section(rows, lp, gate, "Opus", usage.get("unchecked", ()))) + "\n"
+            "\n".join(rule_section(rows, lp, gate_recall(gate_text), gate_name_of(gate_text) if gate_text else "the gate",
+                                    usage.get("unchecked", ()), str(rel))) + "\n"
         path.write_text(text.replace("# Checker benchmark", f"# Checker benchmark: {usage['backend']['model']}", 1))
         s = scores(rows, lp, usage.get("unchecked", ()))["overall"]
         print(f"{usage['backend']['model']} on {usage['backend']['host']}: precision {s['precision']:.3f} recall "

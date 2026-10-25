@@ -212,26 +212,32 @@ Misses and false rejects, with the checker's reason:
 
 ## Against the gate in use
 
-The rule (docs/models.md): this checker may gate client readings only if its recall is not worse on any category than Opus's last live run (docs/checker_scorecard.md).
+The rule (docs/models.md): this checker may gate client readings only if its recall is not worse on any category than the gate in use, zai-org/GLM-4.7 (docs/checker_scorecard_zai-org-glm-4.7.md).
 
 | category | recall here | recall of the gate | not worse |
 | --- | --- | --- | --- |
+| cites_too_narrowly | 1.000 | 1.000 | yes |
+| contradicts_its_fact | 0.000 | 1.000 | no |
 | dasha_lord_changed | 1.000 | 1.000 | yes |
 | dignity_changed | 1.000 | 1.000 | yes |
 | family_not_cited | 1.000 | 1.000 | yes |
 | forbidden_word | 1.000 | 1.000 | yes |
 | house_changed | 1.000 | 1.000 | yes |
+| judgement_premise | 0.500 | 1.000 | no |
 | negated | 1.000 | 1.000 | yes |
+| nth_sign | 1.000 | 1.000 | yes |
 | planet_swapped | 1.000 | 1.000 | yes |
-| refers_to_another_claim | 1.000 | 0.000 | yes |
+| ranking_not_cited | 1.000 | 1.000 | yes |
+| refers_to_another_claim | 1.000 | 1.000 | yes |
 | sign_changed | 1.000 | 1.000 | yes |
+| synthesis_does_not_follow | 1.000 | 1.000 | yes |
 | tag_not_offered | 1.000 | 1.000 | yes |
 | tier_word | 1.000 | 1.000 | yes |
+| unstated_claim | 0.500 | 1.000 | no |
 | unsupported_clause | 1.000 | 1.000 | yes |
 | untagged | 1.000 | 1.000 | yes |
+| untagged_unsupported | 1.000 | 1.000 | yes |
 | wrong_dignity | 1.000 | 1.000 | yes |
 
-Not in the gate's last run (the benchmark has grown since): cites_too_narrowly, contradicts_its_fact, judgement_premise, nth_sign, ranking_not_cited, synthesis_does_not_follow, unstated_claim, untagged_unsupported. The rule cannot be applied to these until the gate is run again (scripts/checker_bench.py with ANTHROPIC_API_KEY).
-
-Verdict: not worse on any category both runs measured, but not yet decided: the gate has no run on cites_too_narrowly, contradicts_its_fact, judgement_premise, nth_sign, ranking_not_cited, synthesis_does_not_follow, unstated_claim, untagged_unsupported.
+Verdict: worse on contradicts_its_fact, judgement_premise, unstated_claim: it does not pass the rule, and client readings keep the gate in use.
 

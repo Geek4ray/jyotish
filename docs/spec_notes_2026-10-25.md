@@ -145,3 +145,17 @@ contradicts_its_fact, one judgement_premise and one unstated_claim row), precisi
 rejects), 441 s, USD 0.53. Both are not worse than Opus's last live run on every category that run
 measured (14); eight categories added since have no Opus run, so the rule is not decided for either
 until Opus is run again on the 147 rows. docs/models.md carries the table.
+
+**The gate in use is GLM-4.7 (2026-10-25, Ray's decision).** Opus could not be run again on the 147 rows
+(the Anthropic account has no credit), and Ray runs the narration without Anthropic: GLM-4.7 on DeepInfra
+is the checker for client readings, gpt-oss-120b the writer and the client's layer (Qwen3.6-35B-A3B for a
+depth-full writer). The evidence: GLM-4.7 caught every bad row of the benchmark (86 of 86, 10 false
+rejects of 61 good sentences) and is not worse than Opus's last run on any of the 14 categories that run
+measured; the 8 categories added since have no Opus run, and GLM-4.7 caught every row of them. The rule
+now compares against the gate in use: `scripts/checker_bench.py` takes `--gate <scorecard>` (by default
+GLM-4.7's) and `--apply-rule <scorecard>`, which rewrites a scorecard's last section against the gate from
+its own table without calling a model. Against GLM-4.7, Qwen3.6-35B-A3B is worse on contradicts_its_fact
+(0 of 1), judgement_premise (1 of 2) and unstated_claim (1 of 2) and does not pass. The local `.env`
+(gitignored) sets the three roles; docker-compose passes JYOTISH_WRITER_BACKEND, _CHECKER_, _CLIENT_,
+JYOTISH_OPENAI_KEY and JYOTISH_CHECKER_CONCURRENCY to the service; docs/deploy.md's Fly secrets are the
+DeepInfra ones. Not yet measured: gpt-oss-120b as the writer under GLM-4.7 (scripts/compare_readings.py).

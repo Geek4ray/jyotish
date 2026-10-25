@@ -152,15 +152,15 @@ the repository is public, so its address is enough):
 fly secrets set ANTHROPIC_API_KEY=<your key> JYOTISH_SOURCE_URL=https://github.com/Geek4ray/jyotish -a "$APP" --stage
 ```
 
-To run the narration on hosted open-weight models instead (docs/models.md: a fraction of the cost, each
-role on its own backend), set those variables as secrets in the same command, for example:
+The narration runs on DeepInfra, with no Anthropic call (docs/models.md: GLM-4.7 is the gate in use since
+2026-10-25). Set its variables as secrets in the same command instead of ANTHROPIC_API_KEY:
 
 ```bash
-fly secrets set JYOTISH_OPENAI_KEY=<your DeepInfra key> JYOTISH_WRITER_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b JYOTISH_CLIENT_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b JYOTISH_CHECKER_BACKEND=anthropic -a "$APP" --stage
+fly secrets set JYOTISH_OPENAI_KEY=<your DeepInfra key> JYOTISH_WRITER_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b JYOTISH_CLIENT_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b JYOTISH_CHECKER_BACKEND=openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7 JYOTISH_SOURCE_URL=https://github.com/Geek4ray/jyotish -a "$APP" --stage
 ```
 
-The checker stays on Anthropic (and `ANTHROPIC_API_KEY` stays set) until an open checker's benchmark is
-not worse on any category (docs/models.md, the rule). A local model (Ollama) is not reachable from Fly.
+`/health` then says `"narration": "live"` with each role's host and model. A local model (Ollama) is not
+reachable from Fly.
 
 **6. Deploy.** Fly builds the image from the Dockerfile on its own builders (about five minutes the first
 time) and starts the machine with `fly.toml`:

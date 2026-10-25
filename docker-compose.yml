@@ -23,6 +23,12 @@ services:
     environment:
       JYOTISH_DATABASE_URL: postgresql+psycopg://jyotish:${POSTGRES_PASSWORD}@db:5432/jyotish
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Each role's model (docs/models.md): "anthropic" when unset, or an OpenAI-compatible backend.
+      JYOTISH_WRITER_BACKEND: ${JYOTISH_WRITER_BACKEND:-}
+      JYOTISH_CHECKER_BACKEND: ${JYOTISH_CHECKER_BACKEND:-}
+      JYOTISH_CLIENT_BACKEND: ${JYOTISH_CLIENT_BACKEND:-}
+      JYOTISH_OPENAI_KEY: ${JYOTISH_OPENAI_KEY:-}
+      JYOTISH_CHECKER_CONCURRENCY: ${JYOTISH_CHECKER_CONCURRENCY:-}
       JYOTISH_CANDIDATE_RULES: /data/candidate_rules.jsonl
       JYOTISH_CACHE_DIR: /data/cache
       JYOTISH_SOURCE_URL: ${JYOTISH_SOURCE_URL:-}
