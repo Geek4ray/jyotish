@@ -31,6 +31,7 @@ class Handler(BaseHTTPRequestHandler):
     requests: list = []
     claims: dict = {"career": AREA["career"]["claims"]}     # the other areas' from their votes (the chart fixture)
     delay = 0.0                                             # seconds between streamed pieces and before a verdict
+    check_delay = None                                      # seconds before a verdict (default: 10 x delay)
 
     def log_message(self, *a):
         pass
@@ -41,7 +42,7 @@ class Handler(BaseHTTPRequestHandler):
         name = body["response_format"]["json_schema"]["name"]
         users = [m["content"] for m in body["messages"] if m["role"] == "user"]
         if name == "CheckResult":
-            time.sleep(Handler.delay * 10)
+            time.sleep(Handler.delay * 10 if Handler.check_delay is None else Handler.check_delay)
             sentence = users[0].split("\n")[1]
             ok = sentence != REFUSED
             content = json.dumps({"propositions": [{"text": sentence, "supported": ok,
@@ -203,3 +204,52 @@ def test_the_log_numbers_events_and_the_api_serves_them(tmp_path, backends):
         assert timeline["instant_s"] <= timeline["first_sentence_s"] <= timeline["done_s"]
         bare = lambda t: t.split(" [")[0]                       # the page renders tags as footnotes
         assert bare(REFUSED) not in done["page"] and bare(REPLACEMENT) in done["page"]   # only what passed
+
+
+def test_a_removed_text_seen_again_is_not_shown_and_a_replacement_is():
+    # The race CI met (2026-10-26): the checker's verdict removed the unit before the loop validated the
+    # same draft; the loop's text must not bring the refused sentence back.
+    events = []
+    live = Live(events.append)
+    live.stream("claim:career:x", "Refused one [rule:x].", True)
+    live.removed("claim:career:x", "the checker")
+    live.text("claim:career:x", "Refused one [rule:x].")
+    live.stream("claim:career:x", "Refused", False)
+    assert [e["type"] for e in events] == ["sentence", "removed"]
+    live.stream("claim:career:x", "The replacement [rule:x].", True)
+    assert events[-1] == {"type": "sentence", "unit": "claim:career:x", "area": "career", "kind": "claim", "i": 0,
+                          "text": "The replacement [rule:x]."}
+    # A text removed and then accepted on a later check (the same text sent again) is shown again, accepted.
+    live.stream("summary", "Same text [vote:a].", True)
+    live.removed("summary", "the checker")
+    live.accepted("summary")
+    assert [e["type"] for e in events[-3:]] == ["removed", "unit", "accepted"]
+    assert events[-2]["sentences"] == ["Same text [vote:a]."]
+
+
+def test_a_late_verdict_for_a_replaced_text_is_dropped():
+    from concurrent.futures import Future
+    from jyotish.narrate import CheckResult, Proposition
+    events = []
+    live = Live(events.append)
+    live.stream("claim:career:x", "The replacement [rule:x].", True)
+    late = Future()
+    late.set_result((CheckResult(propositions=[Proposition(text="old", supported=False, evidence="no")]), None))
+    live._verdict("claim:career:x", "The refused text [rule:x].", late)
+    assert [e["type"] for e in events] == ["sentence"]              # not removed by the old text's verdict
+
+
+def test_a_verdict_before_the_loop_validates_does_not_bring_the_sentence_back(chart, backends):
+    # CI's order (2026-10-26): the stream is slow and the checker quick, so the refused claim's verdict
+    # comes while the writer is still streaming the rest of the area, before the loop validates it.
+    Handler.delay, Handler.check_delay = 0.01, 0.0
+    try:
+        events = []
+        narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"], live=Live(events.append))
+    finally:
+        Handler.delay, Handler.check_delay = 0.0, None
+    mine = [e for e in events if e.get("unit") == UNIT]
+    removed = [e["type"] for e in mine].index("removed")
+    shown_after = [e.get("text") or " ".join(e.get("sentences", [])) for e in mine[removed:] if e["type"] in ("sentence", "unit")]
+    assert shown_after and all(t == REPLACEMENT for t in shown_after)
+    assert mine[-1]["type"] == "accepted"

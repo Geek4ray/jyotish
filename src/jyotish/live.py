@@ -179,6 +179,7 @@ class Live:
         self.shown: dict[str, list[str]] = {}       # unit -> the sentences on the page
         self.state: dict[str, str] = {}             # unit -> verifying | accepted | removed
         self.verified: dict[str, set[int]] = {}
+        self.removed_as: dict[str, list[str]] = {}    # unit -> the sentences it was removed with
         self.timeline: dict[str, float] = {}
         self.checker: "SharedChecker | None" = None
 
@@ -203,13 +204,19 @@ class Live:
         with self.lock:
             if self.state.get(unit) == "accepted":
                 return
-            if self.state.get(unit) == "removed":    # the replacement: shown afresh
-                self.shown.pop(unit, None)
-                self.state.pop(unit, None)
-                self.verified.pop(unit, None)
             parts = sentences(text)
             if not done:
                 parts = parts[:-1]                   # the last one may still be being written
+            if self.state.get(unit) == "removed":
+                # The text it was removed with, seen again (the loop validating the draft after the verdict
+                # came, or a retry sending it unchanged), is not shown again; a different text is the
+                # replacement, shown afresh.
+                old = self.removed_as.get(unit, [])
+                if parts == old[:len(parts)] and (not done or parts == old):
+                    return
+                self.shown.pop(unit, None)
+                self.state.pop(unit, None)
+                self.verified.pop(unit, None)
             have = self.shown.setdefault(unit, [])
             if parts[:len(have)] != have:            # the writer's text changed under us: replace it
                 self.shown[unit] = list(parts)
@@ -232,12 +239,16 @@ class Live:
             if self.state.get(unit) in ("removed", "accepted") or unit not in self.shown:
                 return
             self.state[unit] = "removed"
+            self.removed_as[unit] = list(self.shown.get(unit, []))
             self.emit({"type": "removed", "unit": unit, "why": why})
 
     def accepted(self, unit: str) -> None:
         with self.lock:
             if self.state.get(unit) == "accepted":
                 return
+            if self.state.get(unit) == "removed":    # passed on a later check of the same text: shown again
+                self.emit({"type": "unit", "unit": unit, "area": unit_area(unit), "kind": unit_kind(unit),
+                           "sentences": self.removed_as.get(unit, [])})
             self.state[unit] = "accepted"
             self.emit({"type": "accepted", "unit": unit})
 
@@ -318,16 +329,21 @@ class Live:
             if self.state.get(unit) != "verifying":
                 return
             shown = self.shown.get(unit, [])
-            if all(p.supported for p in result.propositions):
+            # The verdict is for the text it was asked about: a late one for a text since replaced is dropped.
+            if unit_kind(unit) == "claim":            # a claim is checked whole
+                idx = list(range(len(shown))) if shown and all(x in sentence for x in shown) else []
+            else:
                 idx = [i for i, x in enumerate(shown) if x == sentence or sentence.startswith(x) or x in sentence]
-                if unit_kind(unit) == "claim":
-                    idx = list(range(len(shown)))      # a claim is checked whole
+            if not idx:
+                return
+            if all(p.supported for p in result.propositions):
                 for i in idx:
                     if i not in self.verified.setdefault(unit, set()):
                         self.verified[unit].add(i)
                         self.emit({"type": "verified", "unit": unit, "i": i})
             else:
                 self.state[unit] = "removed"
+                self.removed_as[unit] = list(shown)
                 self.emit({"type": "removed", "unit": unit, "why": "the checker"})
 
 
