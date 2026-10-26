@@ -1996,9 +1996,15 @@ class ModelChecker:
                     return self._result(await self.backend.astructured(**self._ask(sentence, derivation)))
                 except NarrationError as e:
                     return self._unchecked(e)
+        tasks = [asyncio.ensure_future(one(s, d)) for s, d in items]
         try:
-            return await asyncio.gather(*(one(s, d) for s, d in items))
+            return await asyncio.gather(*tasks)
         finally:
+            # A fatal answer (no balance) ends the batch: the calls still in flight are cancelled before the
+            # client closes, so none meets a closed connection and retries it (CI, 2026-10-26).
+            for t in tasks:
+                t.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
             await self.backend.aclose()              # this batch's client, in this batch's loop
 
 
