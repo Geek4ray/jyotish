@@ -95,6 +95,52 @@ Not verified: whether DeepInfra accepts `reasoning_effort` as a parameter for gp
 says the level is set in the system prompt). The engine sends it and, if a server refuses it, asks
 again without it and records that it did (`effort_sent`).
 
+## (a2) Fast providers: Cerebras and Groq, for the writer and the client's layer
+
+Both serve gpt-oss-120b on their own hardware, several times faster than a GPU host, and both speak the
+OpenAI API, so each is one more `openai:` spec. Each provider is sent **its own key only**:
+`JYOTISH_CEREBRAS_KEY` for `api.cerebras.ai` and `JYOTISH_GROQ_KEY` for `api.groq.com` (`narrate.PROVIDER_KEYS`).
+The DeepInfra key (`JYOTISH_OPENAI_KEY`) is never sent to them, and `JYOTISH_<ROLE>_KEY` overrides either for one
+role. Both are writers here, not checkers: the checker stays on DeepInfra, behind the rule.
+
+```bash
+# Cerebras
+JYOTISH_CEREBRAS_KEY=<your Cerebras key>
+JYOTISH_WRITER_BACKEND=openai:https://api.cerebras.ai/v1:gpt-oss-120b
+JYOTISH_CLIENT_BACKEND=openai:https://api.cerebras.ai/v1:gpt-oss-120b
+# Groq
+JYOTISH_GROQ_KEY=<your Groq key>
+JYOTISH_WRITER_BACKEND=openai:https://api.groq.com/openai/v1:openai/gpt-oss-120b
+JYOTISH_CLIENT_BACKEND=openai:https://api.groq.com/openai/v1:openai/gpt-oss-120b
+```
+
+Read on **2026-10-26** from each provider's own pages; neither dates its pages, so the date is the day they
+were read. The engine prices from `OPEN_PRICES` in `src/jyotish/costs.py`.
+
+| | Cerebras | Groq |
+| --- | --- | --- |
+| Base URL, model id | `https://api.cerebras.ai/v1`, `gpt-oss-120b` (<https://inference-docs.cerebras.ai/resources/openai>); gpt-oss-20b is not offered (<https://inference-docs.cerebras.ai/models/overview>) | `https://api.groq.com/openai/v1`, `openai/gpt-oss-120b` and `openai/gpt-oss-20b` (<https://console.groq.com/docs/openai>, <https://console.groq.com/docs/models>) |
+| Price, $ per million in / out / cached | 0.35 / 0.75 / no cached price: the prompt cache is on by default with "no additional fee", so cached tokens are priced at input (<https://inference-docs.cerebras.ai/models/openai-oss>, <https://inference-docs.cerebras.ai/capabilities/prompt-caching>; the pricing page loads its table by script and could not be read) | 0.15 / 0.60 / 0.075 (<https://console.groq.com/docs/model/openai/gpt-oss-120b>) |
+| Context, output | 131k context and 40k output on a paid key; 65k and 32k on the free tier (the model page) | 131,072 context, 65,536 output (the models page) |
+| Structured output | json_object, json_schema and `strict: true` (constrained decoding) for gpt-oss-120b (<https://inference-docs.cerebras.ai/capabilities/structured-outputs>); `tools` and `response_format` together are refused; the engine sends json_schema without `strict` (the schema as a hint) and validates the reply itself | json_schema, `strict: true` constrained or best effort (<https://console.groq.com/docs/structured-outputs>); **streaming is not supported with structured output**, so the engine sends a json_schema call to Groq whole (`OpenAIBackend.streams_schema`), and the live page shows Groq's draft when it arrives rather than sentence by sentence |
+| reasoning_effort | low, medium, high; medium by default; reasoning cannot be switched off (<https://inference-docs.cerebras.ai/capabilities/reasoning>) | low, medium, high for gpt-oss, no `none`; its default not stated (<https://console.groq.com/docs/reasoning>) |
+| Temperature | taken | taken; a temperature of 0 is sent as 1e-8 (<https://console.groq.com/docs/openai>) |
+| Speed, as claimed | about 3,000 tokens a second (the model page) | about 500 tokens a second for 120b (the models page) |
+| Rate limits, as stated | free trial 5 requests a minute and 30k uncached tokens a minute on the rate-limits page, 30 a minute on the model page (the two disagree); pay as you go 1,000 a minute, 1M uncached tokens a minute (<https://inference-docs.cerebras.ai/support/rate-limits>) | 30 requests a minute, 1,000 a day, 8k tokens a minute, 200k a day for gpt-oss on the Developer plan's base limits (<https://console.groq.com/docs/rate-limits>); the free plan's are shown only in an account's settings |
+| Training and retention, as stated | "We do not retain inputs and outputs associated with our training, inference and chatbot Services" (privacy policy, section 6, effective 2024-08-27, <https://www.cerebras.ai/privacy-policy>); training on API inputs is not addressed on either page read | "Groq is not permitted to use Inputs or Outputs for training or fine-tuning" unless the customer permits it (Services Agreement 4.2, last modified 2026-06-22, <https://console.groq.com/docs/legal/services-agreement>); "By default, Groq does not retain customer data for inference requests"; reliability and abuse logs up to 30 days, which zero data retention (Data Controls) turns off (<https://console.groq.com/docs/your-data>) |
+
+Not verified: whether Cerebras streams a json_schema completion (its pages do not say; a live run shows
+it), whether Cerebras trains on API inputs (not stated), which Cerebras free-tier limit is current, and
+Groq's free-plan limits. Groq's 8k tokens a minute is below one writer call: at astrologer depth one area's
+message is 14,700 to 19,200 tokens on the reference chart (career, marriage, longevity, at 2.87 characters a
+token), and the summary's call about 50,000. So on Groq's base limits a reading waits on its rate limit; a
+paid tier lifts it.
+
+**A checker's temperature.** `JYOTISH_<ROLE>_TEMPERATURE` sends `temperature` to an OpenAI-compatible
+server (none is sent by default, so the server samples) and the reading records it with the backend;
+`scripts/checker_bench.py --checker-temperature 0` runs the benchmark at it and names the scorecard
+`…_temp-0.md`.
+
 ## (b) Locally, with Ollama
 
 Ollama (<https://ollama.com>) serves an OpenAI-compatible API at `http://localhost:11434/v1` and takes
@@ -154,7 +200,8 @@ gpt-oss-120b writes every claim through the checks for a cent, but not the summa
 then writes from its fields; the checker is most of the cost and nearly all of the time: GLM-4.7 reasons
 for 100 to 200 seconds a check at effort high, so a reading takes half an hour or more. This run sent 16
 checks at once (JYOTISH_CHECKER_CONCURRENCY=16) and DeepInfra dropped connections under it: 30 retries,
-and three checks failed all five tries (unchecked; one became Qwen's gap). Keep the default of 4. A
+and three checks failed all five tries (unchecked; one became Qwen's gap). The default was 4 then (8 since
+2026-10-26: "Timing" below). A
 faster gate was the next measurement.
 
 **GLM-4.7 at checker effort low** (2026-10-25, `docs/checker_scorecard_zai-org-glm-4.7_effort-low.md`): it
@@ -268,6 +315,30 @@ Qwen3.6-35B-A3B is worse on contradicts_its_fact, judgement_premise and unstated
 the rule (its scorecard's last section); it is cheaper and faster, and stays a candidate for the writer. Until one
 shows recall not worse than Opus's on every category, client readings keep the Opus checker (the rule
 above).
+
+## Timing: the instant page and the live narration
+
+Each row below is one live reading of the reference chart: astrologer depth, the career question, as of
+2026-10-26. It goes through the service's pipeline, with the instant page and the live view
+(`scripts/live_timing.py`, which appends to `docs/live_timings.jsonl` and writes the reading to
+`docs/live_2026-10-26/`). The seconds are measured from the start of the reading (the chart comes from the
+cache). There are 37 findings offered across career, marriage and longevity, written as three areas in
+parallel, then the summary.
+
+| Stack (writer / checker, concurrency) | Instant page | First sentence | First verified | First area done | Done | Cost, USD | Claims, gaps | Summary | Retries |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| gpt-oss-120b / GLM-4.7 high, DeepInfra, 8 | 3.0 s | 36 s | 67 s | 1,063 s | 2,549 s | 0.40 | 31, 6 | engine's (three refusals) | 5, all answered |
+| gpt-oss-120b / GLM-4.7 high, DeepInfra, 16 | 2.9 s | 39 s | 71 s | 607 s | 1,215 s | 0.37 | 33, 4 | the writer's | 0 |
+
+What the rows say:
+
+- **The instant page is about 3 seconds:** every engine field, the technical sheet and the engine's lines.
+- **The first written sentence is on the page in under 40 seconds,** and the first verified one in about 70.
+- **The rest waits on GLM-4.7.** It thinks for minutes over some sentences, and an area is finished only when its slowest check returns, so the first area takes 10 to 18 minutes.
+- **Concurrency.** DeepInfra took 16 checks at once with no retry in this run, but 30 retries the day before (the writer comparison above). 8 met 5 retries, all answered.
+- **The hosted default is now 8** (`OpenAIBackend.concurrency`). Set `JYOTISH_CHECKER_CONCURRENCY=16` where a run shows the provider takes it.
+- **Gaps.** The gaps are placement claims that joined two placements in one sentence (refused by the validator three times) and two longevity votes the checker refused. The single-call reading on 2026-10-25 had none: one run each, so this is not yet a measured difference.
+- **Cost.** The per-area split roughly doubles the writer's input tokens (each area's message, plus the whole one for the summary), which is about USD 0.01 at gpt-oss-120b's price on DeepInfra.
 
 ## On the Fly deployment
 

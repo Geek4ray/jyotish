@@ -89,3 +89,16 @@ A reading in a comparison has no live view (409), since its sentences would show
 **Timeline.** `usage.timeline` records `instant_s`, `first_sentence_s`, `first_verified_s`, `first_area_s` and `done_s`.
 
 **Cost of the split.** Parallel areas send each area its own payload, and the summary call sends the whole one. At astrologer depth on the reference chart, the three area messages are 14,700 to 19,200 tokens each and the summary's about 50,000, against 49,600 for the single call. So the input tokens roughly double, and the time falls to the slowest area's.
+
+**Measured on DeepInfra** (`docs/models.md`, "Timing"; one live reading each, the reference chart at astrologer depth, gpt-oss-120b writing, GLM-4.7 at high checking):
+
+| Checker concurrency | Instant page | First sentence | First verified | First area | Done | Cost, USD | Claims, gaps | Retries |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 8 | 3.0 s | 36 s | 67 s | 1,063 s | 2,549 s | 0.40 | 31, 6 | 5 |
+| 16 | 2.9 s | 39 s | 71 s | 607 s | 1,215 s | 0.37 | 33, 4 | 0 |
+
+The hosted default concurrency is now 8 (it was 4). On 2026-10-25, 16 at once drew 30 retries and three unchecked sentences.
+
+The live split met gaps the single call (2026-10-25) did not: placement claims joining two placements in one sentence, and two longevity votes. With one run each, the difference is not yet measured.
+
+CI on ff2b997 found a race: a verdict removed a claim before the loop validated the same draft, and the loop showed it again. It is fixed in bc1c03a, whose test forces that order.

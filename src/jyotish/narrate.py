@@ -1496,8 +1496,9 @@ class OpenAIBackend(Backend):
 
     @property
     def concurrency(self) -> int:
-        """Calls in flight at once by default: 4 to a hosted provider, 1 to a server on this machine."""
-        return 1 if self.local else 4
+        """Calls in flight at once by default: 8 to a hosted provider (DeepInfra measured at 8 and 16 on
+        2026-10-26, docs/models.md "Timing"), 1 to a server on this machine."""
+        return 1 if self.local else 8
 
     def describe(self) -> dict:
         return {"provider": self.provider, "host": self.host, "model": self.model, "base_url": self.base_url,
@@ -1910,7 +1911,7 @@ class ModelDrafter:
 
 def checker_concurrency(backend: "Backend", config: NarrationConfig = CONFIG) -> int:
     """Checker calls in flight at once: JYOTISH_CHECKER_CONCURRENCY when set; else the backend's own
-    default (an OpenAI-compatible server: 4 hosted, 1 local); else CONFIG.checker_concurrency (16,
+    default (an OpenAI-compatible server: 8 hosted, 1 local); else CONFIG.checker_concurrency (16,
     Anthropic)."""
     import os
     env = os.environ.get("JYOTISH_CHECKER_CONCURRENCY", "").strip()

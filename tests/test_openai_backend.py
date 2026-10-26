@@ -340,7 +340,7 @@ def test_a_reasoning_models_answer_is_parsed_from_content_with_room_to_think(ser
 def test_concurrency_defaults_by_provider_and_the_environment_overrides(monkeypatch):
     from jyotish.narrate import AnthropicBackend, checker_concurrency
     monkeypatch.delenv("JYOTISH_CHECKER_CONCURRENCY", raising=False)
-    assert checker_concurrency(OpenAIBackend("https://api.deepinfra.com/v1/openai", "zai-org/GLM-4.7")) == 4
+    assert checker_concurrency(OpenAIBackend("https://api.deepinfra.com/v1/openai", "zai-org/GLM-4.7")) == 8
     assert checker_concurrency(OpenAIBackend("http://localhost:11434/v1", "gpt-oss:20b")) == 1
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-a-key")
     assert checker_concurrency(AnthropicBackend("claude-opus-5-5")) == CONFIG.checker_concurrency == 16
