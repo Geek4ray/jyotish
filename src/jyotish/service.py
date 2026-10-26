@@ -155,7 +155,8 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                  model_fixture: str | None = None, progress: Callable[[str, dict], None] | None = None,
                  depth: str = DEPTH_DEFAULT, writer_model: str | None = None, writer_effort: str | None = None,
                  recording: list | None = None, chart_id: str | None = None, writer_backend: str | None = None,
-                 checker_backend: str | None = None, client_backend: str | None = None, live_checker: bool = False):
+                 checker_backend: str | None = None, client_backend: str | None = None, live_checker: bool = False,
+                 on_instant: Callable | None = None):
     """(reading, page). The areas are the question's, then the chart's top three. With
     `model_fixture` the model is replayed from that recording (offline) and sentences with no
     recorded checker verdict are counted as unchecked. `writer_model` and `writer_effort` override
@@ -164,8 +165,9 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     replay records none, since its sentences were recorded when it was made. The three backends
     (narrate.make_backend; None: JYOTISH_<ROLE>_BACKEND) go to narrate; with `live_checker` a replay
     keeps the recording's drafts and checks them live on `checker_backend`, so two checkers can be
-    compared on the same reading (scripts/compare_readings.py --live-checker). NarrationError
-    propagates."""
+    compared on the same reading (scripts/compare_readings.py --live-checker). Before any model call
+    the instant page (narrate.instant_reading: every engine field, narration pending) is made and
+    handed to `on_instant(reading, page)`. NarrationError propagates."""
     from .narrate import FixtureChecker, FixtureDrafter, TAG, narrate, route, sentences
     from .page import render
     if chart.scored is None:
@@ -173,6 +175,17 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     asked, _ = route(question, chart)
     areas = list(dict.fromkeys(asked + list(chart.scored.top)))
     day = date.fromisoformat(as_of) if as_of else date.today()
+    import time as _time
+    started = _time.perf_counter()
+    instant_s = None
+    if on_instant is not None:
+        from .narrate import instant_reading, with_sheets
+        first = instant_reading(chart, question, as_of=day, areas=areas, depth=depth)
+        first = first.model_copy(update={"chart": reading_header(birth, question, chart, as_of, model_fixture, depth,
+                                                                 writer_model, writer_effort),
+                                         "areas": with_sheets(first.areas, chart, day)})
+        instant_s = round(_time.perf_counter() - started, 3)
+        on_instant(first, render(first, chart))
     drafter = checker = client_drafter = None
     if model_fixture:
         replayed = json.loads(Path(model_fixture).read_text())
@@ -197,6 +210,9 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                    "unchecked_sentences": sum(1 for x in said if x not in verdicts) if verdicts is not None else 0}
     from .narrate import with_sheets
     update["areas"] = with_sheets(reading.areas, chart, day)       # the technical sheet, at every depth
+    if instant_s is not None:                                       # seconds from the start to the instant page
+        update["usage"] = dict(reading.usage, timeline=dict((reading.usage or {}).get("timeline") or {},
+                                                            instant_s=instant_s))
     reading = reading.model_copy(update=update)
     if not model_fixture:
         record_candidates(reading, chart, chart_id)

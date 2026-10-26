@@ -240,6 +240,9 @@ class ReadingArea(BaseModel):
     # The astrologer's technical sheet (jyotish.sheet): fifteen numbered points written by the engine
     # from the whole-chart payload, no model call; at every depth.
     sheet: dict[str, Any] | None = None
+    # The instant page: one engine-written line per offered finding (engine_line), shown while the
+    # narration is pending; never checked, since every word is a field's.
+    engine_lines: list[str] = Field(default_factory=list)
 
 
 class ReadingSummary(BaseModel):
@@ -285,6 +288,9 @@ class Reading(BaseModel):
     usage: dict[str, Any] = Field(default_factory=dict)
     synthesis_sentences: int = 0        # depth full: sentences shown that rest on two or more findings or facts
     judgement_sentences: int = 0        # depth full: sentences shown that weigh (premises checked, weighing not)
+    # "pending": the instant page (instant_reading), every engine field and engine-written sentence, the
+    # model's narration still being written; "done": the reading as narrated and checked (2026-10-26).
+    narration_status: str = "done"
     review: dict[str, Any] = Field(default_factory=lambda: {"status": "draft"})   # draft | reviewed (SPEC Layer 6b)
     summary: ReadingSummary
     areas: list[ReadingArea]
@@ -1321,7 +1327,9 @@ class Backend:
         return {"role": "user", "content": text}
 
     def structured(self, *, system: str, messages: list[dict], schema: type[BaseModel], kind: str,
-                   effort: str | None, thinking: str | None, max_tokens: int) -> Completion:
+                   effort: str | None, thinking: str | None, max_tokens: int, on_text=None) -> Completion:
+        """`on_text(piece)`, when given, is told the answer's text as it streams (None: it starts
+        again, a request sent again after a dropped stream); the call is then streamed."""
         raise NotImplementedError
 
     async def astructured(self, *, system: str, messages: list[dict], schema: type[BaseModel], kind: str,
@@ -1375,12 +1383,17 @@ class AnthropicBackend(Backend):
                           assistant={"role": "assistant", "content": getattr(response, "content", None)},
                           stop_reason=response.stop_reason, meta=meta, refusal=refusal)
 
-    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens) -> Completion:
+    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens, on_text=None) -> Completion:
         import time
         started = time.perf_counter()
         kwargs = self._kwargs(system, messages, schema, effort, thinking, max_tokens)
-        if max_tokens > STREAM_ABOVE:
+        if max_tokens > STREAM_ABOVE or on_text is not None:
             with self.client.beta.messages.stream(**kwargs) as stream:
+                if on_text is not None:
+                    for event in stream:
+                        delta = getattr(event, "delta", None)
+                        if getattr(event, "type", None) == "content_block_delta" and getattr(delta, "type", None) == "text_delta":
+                            on_text(delta.text)
                 response = stream.get_final_message()
         else:
             response = self.client.beta.messages.parse(**kwargs)
@@ -1579,7 +1592,7 @@ class OpenAIBackend(Backend):
             self.client = httpx.Client()
         return self.client
 
-    def _post(self, body: dict) -> tuple[int, dict | str]:
+    def _post(self, body: dict, on_text=None) -> tuple[int, dict | str]:
         """One request, sent again on a dropped connection, a timeout or a retryable status."""
         import time
         import httpx
@@ -1587,7 +1600,9 @@ class OpenAIBackend(Backend):
         for attempt in range(1, RETRY_ATTEMPTS + 1):
             try:
                 if body.get("stream"):
-                    status, data, retry_after = self._stream(http, body)
+                    if on_text is not None and attempt > 1:
+                        on_text(None)                  # the text starts again
+                    status, data, retry_after = self._stream(http, body, on_text)
                 else:
                     r = http.post(f"{self.base_url}/chat/completions", json=body, headers=self._headers(), timeout=self.timeout)
                     status, retry_after = r.status_code, r.headers.get("retry-after")
@@ -1620,7 +1635,7 @@ class OpenAIBackend(Backend):
             self._retry_log(attempt, reason, wait)
             await asyncio.sleep(wait)
 
-    def _stream(self, http, body) -> tuple[int, dict | str, str | None]:
+    def _stream(self, http, body, on_text=None) -> tuple[int, dict | str, str | None]:
         """An SSE completion gathered into one response dict (content, finish reason, usage)."""
         content, finish, usage, rid, model = [], None, None, None, None
         with http.stream("POST", f"{self.base_url}/chat/completions", json=body, headers=self._headers(),
@@ -1637,7 +1652,10 @@ class OpenAIBackend(Backend):
                 rid, model = d.get("id", rid), d.get("model", model)
                 usage = d.get("usage") or usage
                 for ch in d.get("choices") or []:
-                    content.append((ch.get("delta") or {}).get("content") or "")
+                    piece = (ch.get("delta") or {}).get("content") or ""
+                    content.append(piece)
+                    if piece and on_text is not None:
+                        on_text(piece)
                     finish = ch.get("finish_reason") or finish
         return 200, {"id": rid, "model": model, "usage": usage,
                      "choices": [{"message": {"content": "".join(content)}, "finish_reason": finish}]}, None
@@ -1658,15 +1676,17 @@ class OpenAIBackend(Backend):
             return "mode"
         return None
 
-    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens) -> Completion:
+    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens, on_text=None) -> Completion:
         import time
         last = ""
         for mode in self._modes():
             convo = list(messages)
             for retry in range(2):                      # one retry when the JSON does not match the schema
                 started = time.perf_counter()
+                if on_text is not None and retry:
+                    on_text(None)
                 status, data = self._post(self._body(system, convo, schema, effort, max_tokens, mode,
-                                                     max_tokens > STREAM_ABOVE))
+                                                     max_tokens > STREAM_ABOVE or on_text is not None), on_text)
                 self._fatal(status, data)
                 if status >= 400:
                     last = f"HTTP {status}: {str(data)[:300]}"
@@ -1674,7 +1694,7 @@ class OpenAIBackend(Backend):
                     if what == "effort":
                         self.takes_effort = False       # asked again without it
                         return self.structured(system=system, messages=messages, schema=schema, kind=kind,
-                                               effort=effort, thinking=thinking, max_tokens=max_tokens)
+                                               effort=effort, thinking=thinking, max_tokens=max_tokens, on_text=on_text)
                     if what == "mode":
                         break                           # this server does not take this mode: try the next
                     raise NarrationError(f"{self.host} refused the request", [last])
@@ -1832,6 +1852,7 @@ class ModelDrafter:
         self.last_meta: dict | None = None
         self.schema = schema or ReadingDraft          # the client's layer: client.ClientDraft
         self.kind = kind                              # "writer", or "client" for the client's layer
+        self.on_text = None                           # the live view's reader of the streamed draft (jyotish.live)
 
     def __call__(self, system: str, user: str, errors: list[str]) -> BaseModel:
         if not self.messages:
@@ -1843,8 +1864,9 @@ class ModelDrafter:
                                   "The draft was rejected. Fix every one of these and return the whole draft again:\n- "
                                   + "\n- ".join(errors)})
         cfg = self.config
+        stream = {"on_text": self.on_text} if self.on_text is not None else {}
         done = self.backend.structured(system=system, messages=self.messages, schema=self.schema, kind=self.kind,
-                                       effort=cfg.effort, thinking=cfg.thinking, max_tokens=cfg.max_tokens)
+                                       effort=cfg.effort, thinking=cfg.thinking, max_tokens=cfg.max_tokens, **stream)
         self.last_meta = done.meta
         if done.refusal is not None or done.stop_reason == "refusal":
             raise NarrationError("the model declined the request", [str(done.refusal or "")])
@@ -1916,11 +1938,15 @@ class ModelChecker:
                 evidence=f"the checker returned no result ({done.stop_reason or 'no structured output'})")]), done.meta
         return done.parsed, done.meta
 
-    def __call__(self, sentence: str, derivation: str) -> CheckResult:
+    def ask_one(self, sentence: str, derivation: str) -> tuple[CheckResult, dict]:
+        """One check and its record, sharing no state (the live view's pool calls it from threads)."""
         try:
-            result, self.last_meta = self._result(self.backend.structured(thinking=None, **self._ask(sentence, derivation)))
+            return self._result(self.backend.structured(thinking=None, **self._ask(sentence, derivation)))
         except NarrationError as e:
-            result, self.last_meta = self._unchecked(e)
+            return self._unchecked(e)
+
+    def __call__(self, sentence: str, derivation: str) -> CheckResult:
+        result, self.last_meta = self.ask_one(sentence, derivation)
         return result
 
     def check_many(self, items: list[tuple[str, str]]) -> list[tuple[CheckResult, dict]]:
@@ -2193,6 +2219,50 @@ def with_sheets(areas: list["ReadingArea"], chart: Chart, as_of: date) -> list["
     from .sheet import sheets
     made = sheets(chart, as_of, [a.name for a in areas], {a.name: a.judgements for a in areas})
     return [a if a.sheet else a.model_copy(update={"sheet": made.get(a.name)}) for a in areas]
+
+
+def engine_line(f: dict, area: str) -> str:
+    """A finding in the engine's own words, from its fields alone: a vote's family and direction, a
+    chain's facts, a rule's name and planets. Shown on the instant page while the narration is written."""
+    where = area.replace("_", " ")
+    if f["kind"] == "vote":
+        family = "KP" if f["family"] == "kp" else f["family"]
+        return f"The {family} vote is {f['direction']} {where}."
+    if f["kind"] == "chain":                         # its first facts: who it is about, its sign chain, the loop
+        facts = [x.rstrip(". ") for x in (f.get("facts") or [])][:3]
+        return "; ".join(facts) + "." if facts else ""
+    pl = f.get("placement")
+    if pl:                                          # a placement: its planet, lordship, house or sign
+        lord = f", lord of the {' and the '.join(_ORD[h] for h in pl['lord_of'])}," if pl.get("lord_of") else ""
+        at = f"in the {_ORD[pl['house']]}" if pl.get("house") else f"in {pl['sign']}" if pl.get("sign") else ""
+        return f"{pl['planet']}{lord} is {at} (a draft placement, weighing nothing yet)."
+    name = rule_names(f["rule_id"])[0]
+    planets = [p for p in (f.get("planets") or []) if p]
+    return f"{name[:1].upper()}{name[1:]} forms" + (f" with {', '.join(planets)}" if planets else "") + f" for {where}."
+
+
+class _NoNarration:
+    """The instant page's writer: it declines at once, so narrate assembles every engine field and the
+    engine's summary with no model call."""
+    last_meta = None
+
+    def __call__(self, system, user, errors):
+        raise NarrationError("narration pending", [])
+
+
+def instant_reading(chart: Chart, question: str, *, as_of: date, areas: list[str], depth: str = "astrologer",
+                    config: NarrationConfig = CONFIG) -> "Reading":
+    """The reading before any model call (2026-10-26): the tiers, scores, windows, timing line and
+    the engine's summary as narrate assembles them, each area's engine-written lines, and
+    narration_status "pending"; no claim, no gap (the narration is not over), nothing unchecked."""
+    r = narrate(chart, question, drafter=_NoNarration(), checker=lambda s, d: CheckResult(propositions=[]),
+                client_drafter=_NoNarration(), as_of=as_of, areas=areas, depth=depth,
+                config=replace(config, max_attempts=1))
+    lines = {name: [engine_line(f, name) for f in findings(chart, name, as_of)[0]] for name in areas}
+    return r.model_copy(update={
+        "narration_status": "pending", "attempts": 0, "narration_complete": False, "writer": {}, "checker": {},
+        "client": {}, "usage": {},
+        "areas": [a.model_copy(update={"narration_gaps": [], "engine_lines": lines.get(a.name, [])}) for a in r.areas]})
 
 
 def engine_summary(areas: list["ReadingArea"], routed: list[str], sc, period: str | None,

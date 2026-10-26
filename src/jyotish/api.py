@@ -350,9 +350,15 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
             def on(event: str, info: dict) -> None:
                 stage(reading_id, log, f"{event} {info['attempt']}", keep, **info)
+
+            def instant(first, page) -> None:
+                # The instant page (2026-10-26): stored at once, the job still running, its narration pending.
+                log.append("instant")
+                update(reading_id, document=first.model_dump(mode="json"), page=page,
+                       progress={"stage": "narration", **keep, "log": list(log)})
             reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of, depth=req.depth,
                                          model_fixture=model_fixture, progress=on, writer_model=req.writer_model,
-                                         writer_effort=req.writer_effort, chart_id=chart_id)
+                                         writer_effort=req.writer_effort, chart_id=chart_id, on_instant=instant)
             log.append("done")
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,
                    progress={"stage": "done", "attempts": reading.attempts, "narration_complete": reading.narration_complete,
@@ -449,7 +455,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         row = s.get(ReadingRow, reading_id)
         if row is None:
             raise HTTPException(status_code=404, detail="no such reading")
-        if row.status != "done" or row.document is None:
+        # A running reading with its instant page (narration pending) can be opened too (2026-10-26).
+        if row.document is None or row.status not in ("done", "running"):
             raise HTTPException(status_code=409, detail=f"the reading is {row.status}, not done")
         return row, Reading(**row.document)
 

@@ -41,7 +41,11 @@ function wirePrint() {
 
 function show(status) {
   root.dataset.state = status.status;
-  if (status.status === "done") {
+  // The instant page (2026-10-26): a running job with a reading shows it at once, narration pending.
+  if (status.status === "running" && status.reading) {
+    root.dataset.state = "pending";
+    root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : renderReading(status.reading));
+  } else if (status.status === "done") {
     root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : printBar() + renderReading(status.reading));
     wirePrint();
     document.title = `${screen === "timing" ? "When" : "Reading"}: ${status.reading.question} — Jyotish Engine`;

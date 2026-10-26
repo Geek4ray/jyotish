@@ -31,3 +31,24 @@ It missed b-arudha (cites_too_narrowly) and kind-judgement-premise (judgement_pr
 probe minutes before: worse than the gate on those two categories, it does not pass the rule, and the gate
 stays GLM-4.7 at high. The two runs disagreeing on the same rows show that a checker's verdicts vary run
 to run (no temperature is sent); the rule compares single runs, which carry that noise on both sides.
+
+## Layer 7 — the instant first page (2026-10-26)
+
+POST /readings now stores the reading before any model call. `narrate.instant_reading` runs narration with no drafter. This gives every engine field: the chart header, the scores and tiers, the windows, the timing line, the technical sheet (`with_sheets`) and the engine's summary. Each area also gets `engine_lines`, the engine's own sentence for each finding offered:
+
+- "The house vote is for career."
+- the first three facts of a chain;
+- for a draft placement, its planet, its lordship and its house, marked as weighing nothing.
+
+These lines are engine wording, the same kind of text as the timing line, and they are not checked.
+
+The stored reading has `narration_status: "pending"`, `attempts: 0` and no claims or gaps.
+
+- **API:** the job stores the reading with status `running`, progress stage `narration` and `instant` in its log. GET /readings/{id} returns it.
+- **Markdown page:** carries the notice "The written analysis is being prepared; …" and marks each area "The written analysis is being prepared.", followed by the engine's lines. It shows no "Narration incomplete" notice and no "No claims were drafted" line.
+- **Site:** renders a running job's reading at once (`data-state="pending"`), with the same marks.
+- **Review step:** opens a running reading (`_reading_for_review` accepts `running` when a document exists). It shows only what passed, which is nothing yet, and gives each area the same mark.
+
+The finished reading replaces the pending one and records `usage.timeline.instant_s`.
+
+Measured on the reference chart: 0.9 s at astrologer depth and 2.9 s at depth full for the instant reading. The chart and score stages come before it and are cached by birth data.

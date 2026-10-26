@@ -33,6 +33,11 @@ CLIENT_LIST_HEADING = "What this chart does not tell"
 
 
 FOR_ASTROLOGER = "For the astrologer"
+# The instant page (2026-10-26): the engine's fields at once, the model's text while it is written.
+PENDING = "The written analysis is being prepared."
+PENDING_NOTICE = ("The written analysis is being prepared; every engine field on this page is complete, "
+                  "and the checked text is added as it passes.")
+ENGINE_LINES = "The engine's own lines (no model)"
 SHEET_HEADING = "The technical sheet (the engine's figures, no model)"
 
 
@@ -269,7 +274,10 @@ def render(reading: Reading, chart: Chart) -> str:
     if reading.unchecked_sentences and reading.narration_source.startswith("fixture:"):   # live: failed, not shown
         L += [f"> Offline replay: {reading.unchecked_sentences} sentence(s) on this page have no recorded "
                   "checker verdict and were not semantically checked; the code validator ran on all of them.", ""]
-    if not reading.narration_complete:
+    pending = reading.narration_status == "pending"
+    if pending:
+        L += [f"> {PENDING_NOTICE}", ""]
+    elif not reading.narration_complete:
         n = sum(len(a.narration_gaps) for a in reading.areas)
         L += [f"> Narration incomplete: {n} finding(s) were not narrated within the checks"
               + (", and the summary is the engine's own" if s.source == "engine" else "") + ".", ""]
@@ -320,6 +328,10 @@ def render(reading: Reading, chart: Chart) -> str:
         if a.polarity:
             L.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})" for p in a.polarity))
         L.append("")
+        if pending:
+            L += [f"*{PENDING}*", ""]
+            if a.engine_lines:
+                L += [f"**{ENGINE_LINES}**", ""] + [f"- {x}" for x in a.engine_lines if x] + [""]
         curious = reading.depth == "curious"
         # A curious paragraph that ended as a gap: its gap note first, then the astrologer's view open.
         para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
@@ -365,7 +377,7 @@ def render(reading: Reading, chart: Chart) -> str:
                 raise ValueError(f"the reading cites findings this chart does not offer: {', '.join(missing)} "
                                  "(different birth data, settings or engine version)")
             learner += [(a.name, c, by_id[c.finding_id]) for c in a.claims]
-        elif not a.narration_gaps:
+        elif not a.narration_gaps and not pending:
             offered = len(findings(chart, a.name, as_of)[0])
             L.append(f"No claims were drafted for this area ({offered} finding(s) offered).")
         if a.other_placements:

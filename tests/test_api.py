@@ -62,7 +62,7 @@ def test_post_then_get_returns_the_reading_and_page(done):
 
 def test_progress_runs_chart_score_draft_check_done(done):
     assert done["progress"]["stage"] == "done" and done["progress"]["attempts"] == 1
-    assert done["progress"]["log"] == ["chart", "score", "draft 1", "check 1", "done"]
+    assert done["progress"]["log"] == ["chart", "score", "instant", "draft 1", "check 1", "done"]
 
 
 def test_same_reading_as_the_cli(done, tmp_path):
@@ -105,7 +105,7 @@ def test_narration_that_never_passes_is_done_with_gaps(tmp_path):
     with TestClient(app) as c:
         r = wait(c, c.post("/readings", json=BODY).json()["id"])
     assert r["status"] == "done" and r["progress"]["narration_complete"] is False
-    assert r["progress"]["log"] == ["chart", "score", "draft 1", "draft 2", "draft 3", "check 3", "done"]
+    assert r["progress"]["log"] == ["chart", "score", "instant", "draft 1", "draft 2", "draft 3", "check 3", "done"]
     reading = Reading(**r["reading"])
     assert reading.summary.source == "engine" and not reading.narration_complete
     gaps = {g["finding_id"]: g for a in reading.areas for g in a.narration_gaps}

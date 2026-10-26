@@ -977,3 +977,22 @@ def test_the_review_page_shows_the_sheet_beside_the_paragraph(browser, guided_ur
     assert sheet.locator(".sheet-point").count() == 15
     assert "[fact:" not in sheet.inner_text()                               # tags stripped on the review page
     plain_words(rev)
+
+
+def test_a_pending_reading_renders_at_once_with_each_area_marked(page, base_url):
+    # The instant page (2026-10-26): the engine's fields and lines, every area "being prepared",
+    # no gap notice and no "no claims" line.
+    submit_reference(page, base_url)
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams(location.search).get('id')).then(r => r.json())")["reading"]
+    for a in reading["areas"]:
+        a.update(claims=[], narration_gaps=[], engine_lines=["The house vote is for career."])
+    reading.update(narration_status="pending", narration_complete=False)
+    page.route(f"{base_url}/pending-reading.json", lambda route: route.fulfill(json=reading))
+    page.goto(f"{base_url}/reading.html?src=/pending-reading.json")
+    page.wait_for_selector("#reading[data-state=done] #pending")
+    assert page.locator(".pending-mark").count() == len(reading["areas"])
+    assert page.locator("#incomplete").count() == 0
+    assert "No claims were drafted" not in page.inner_text("#reading")
+    assert page.locator("ul.engine-lines li").first.inner_text() == "The house vote is for career."
+    assert page.locator("section.area .tier").count() == len(reading["areas"])

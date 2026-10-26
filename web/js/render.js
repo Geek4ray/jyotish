@@ -196,7 +196,7 @@ function firedChips(s) {
       <span class="chip">Rules stable / unstable: <strong>${num(s.stable_findings)} / ${num(s.unstable_findings)}</strong></span>`;
 }
 
-function areaCard(a, notes, depth) {
+function areaCard(a, notes, depth, pending) {
   // A curious paragraph that ended as a gap: its gap note first, then the claims open.
   const gaps = a.narration_gaps || [];
   const paraGap = depth === "curious" && gaps.some((g) => g.finding_id === "paragraph");
@@ -213,6 +213,7 @@ function areaCard(a, notes, depth) {
       <div><dt>Families agreeing (weighted)</dt><dd class="num">${num(a.families_agree_w)} of ${num(a.families_total_w)}</dd></div>
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
+    ${pending ? pendingBlock(a) : ""}
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
     ${astrologerView(a, notes, depth, paraGap)}
@@ -224,13 +225,21 @@ function areaCard(a, notes, depth) {
   </section>`;
 }
 
+// The instant page (2026-10-26): the area's mark while the model's text is written, and the engine's
+// own lines (votes, chains, rules in the engine's wording), which need no checking.
+function pendingBlock(a) {
+  const lines = (a.engine_lines || []).filter(Boolean);
+  return `<div class="pending" data-area="${esc(a.name)}"><p class="pending-mark muted">${esc(t("pending.area"))}</p>${lines.length
+    ? `<h3 class="small">${esc(t("pending.engine_lines"))}</h3><ul class="engine-lines">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</div>`;
+}
+
 // The astrologer's view, at every depth (2026-10-25): the engine's technical sheet, then at depth full
 // the model's analysis, then the findings, under one toggle; open where the area has no client's view
 // (astrologer depth) or the client's paragraph is a gap.
 function astrologerView(a, notes, depth, paraGap) {
   const clientView = (depth === "curious" && a.paragraph) || (depth === "full" && (a.paragraph || a.when));
   const gaps = a.narration_gaps || [];
-  const claims = a.claims.length
+  const claims = a.claims.length || a.pending
     ? `<h3 class="small findings-head">${esc(t("astro.findings"))}</h3><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>`
     : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`;
   return `<details class="astrologer for-astrologer"${paraGap || !clientView ? " open" : ""}><summary>${esc(t("astro.toggle"))}</summary>
@@ -332,7 +341,8 @@ export function renderReading(r) {
   const summaryText = notes.text(s.text);
   // A blind view (the comparison) carries no depth: the reading's own content says which it is.
   const depth = r.depth || (r.areas.some((a) => a.analysis) ? "full" : r.areas.some((a) => a.paragraph) ? "curious" : "astrologer");
-  const areas = r.areas.map((a) => areaCard(a, notes, depth)).join("");
+  const pending = r.narration_status === "pending";
+  const areas = r.areas.map((a) => areaCard(pending ? { ...a, pending } : a, notes, depth, pending)).join("");
   return `
   <section class="identity">
     <span class="kicker">Your question</span>
@@ -342,7 +352,8 @@ export function renderReading(r) {
     ${r.model ? `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)} · ${r.writer && r.writer.model ? `writer ${esc(r.writer.model)} at effort ${esc(r.writer.effort)}` : `model ${esc(r.model)}`} · ${num(r.attempts)} attempt(s) · narration ${esc(r.narration_source)}</p>`
       : `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)}</p>`}
   </section>
-  ${r.narration_complete === false ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}
+  ${pending ? `<p class="notice pending-notice" id="pending">${esc(t("pending.notice"))}</p>` : ""}
+  ${r.narration_complete === false && !pending ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}
   ${r.unchecked_sentences && String(r.narration_source || "").startsWith("fixture:") ? `<p class="notice">Offline replay: ${num(r.unchecked_sentences)} sentence(s) have no recorded checker verdict and were not semantically checked; the code validator ran on all of them.</p>` : ""}
   <section class="card summary" data-source="${esc(s.source || "model")}"><h2>Summary</h2>
     ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}

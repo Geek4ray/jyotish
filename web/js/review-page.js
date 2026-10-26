@@ -221,6 +221,8 @@ function quoted(area) {
 // engine gave it: for the reviewer only (the client's page says only that a part could not be
 // written). Marked .quoted like the reading under review: it is the engine's text, not the page's.
 function gapNote(area) {
+  // A reading still being written (2026-10-26): only the text that passed is under review so far.
+  if (state.view.reading.narration_status === "pending") return `<p class="small muted pending-mark">${esc(t("pending.area"))}</p>`;
   const gaps = (areaOf(area) || {}).narration_gaps || [];
   if (!gaps.length) return "";
   return `<details class="gaps-review quoted"><summary class="small">${esc(t("gaps.summary", { n: gaps.length }))}</summary>
