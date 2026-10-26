@@ -52,3 +52,40 @@ The stored reading has `narration_status: "pending"`, `attempts: 0` and no claim
 The finished reading replaces the pending one and records `usage.timeline.instant_s`.
 
 Measured on the reference chart: 0.9 s at astrologer depth and 2.9 s at depth full for the instant reading. The chart and score stages come before it and are cached by birth data.
+
+## Layer 7 — the narration as it is written and checked (2026-10-26)
+
+`jyotish.live` and `CONFIG.live` (on by default) apply on a model backend. A recording's replay (a drafter passed in) keeps the single call per reading it was recorded with.
+
+**The areas in parallel.** Each area is written by a writer call of its own, the areas in parallel (`narrate._narrate_parallel`, which runs `narrate` on one area with `write_summary=False`). The call is told to leave the summary empty (`AREA_ONLY_NOTE`).
+
+**Checks.** Every area's checks run on one pool (`live.SharedChecker`) at the checker's concurrency. The provider's limit is the reading's, not each area's.
+
+**Held units.** Every unit is held once it passes, at every depth: `section_retries`, which was depth full's alone. A retry asks only for the failed units, with their reasons. At curious depth this now covers the paragraph too.
+
+**The client's layer.** At depth full it runs per area, as soon as its area is accepted (`client.write`, `want="areas"`).
+
+**The summary, last.** At depth full it is the client's layer over every area's accepted text (`want="summary"`). At the other depths it is a writer call of its own (`SummaryDraft`) over the reading's payload and the accepted claims. It is validated and checked as the summary always was, and if it never passes, the engine's summary stands.
+
+**Streaming.** `Backend.structured(on_text=)` streams the draft (Anthropic: text deltas; OpenAI-compatible: SSE). `live.JsonStrings` reads the partial JSON, and `Live.draft_stream` maps each string to its unit:
+
+- `claim:<area>:<id>`
+- `paragraph:<area>`
+- `when:<area>`
+- `analysis:<area>:<section>`
+- `summary`
+
+Each complete sentence is shown "being verified". A unit whose text closes is validated at once and, when it passes, its checks are started. The attempt's check step finds them in flight, with the same validator and the same check data; nothing decides differently. A verdict marks its sentence "verified", or removes the unit. The loop's own decision then emits `accepted` or `removed`, and the writer's replacement streams the same way.
+
+**Events.** The events are `sentence`, `unit`, `verified`, `removed`, `accepted`, `area` and `done`. The service's `events` callback receives them. The API keeps them per reading in memory (`LiveLog`, numbered from 1) and serves them two ways:
+
+- GET /readings/{id}/events: server-sent events, resumable by Last-Event-ID, ending at `done`.
+- GET /readings/{id}/live?since=N: the polling fallback.
+
+A reading in a comparison has no live view (409), since its sentences would show what the blind view withholds.
+
+**The site.** `web/js/live.js` follows the events and falls back to polling (`?live=poll` forces it). A sentence the checker has not passed always carries the mark "being verified". When the reading is done, the page is drawn again from the stored reading, which holds only what passed. The Markdown page and the review page are rendered from the stored document, so they never show an unverified sentence.
+
+**Timeline.** `usage.timeline` records `instant_s`, `first_sentence_s`, `first_verified_s`, `first_area_s` and `done_s`.
+
+**Cost of the split.** Parallel areas send each area its own payload, and the summary call sends the whole one. At astrologer depth on the reference chart, the three area messages are 14,700 to 19,200 tokens each and the summary's about 50,000, against 49,600 for the single call. So the input tokens roughly double, and the time falls to the slowest area's.

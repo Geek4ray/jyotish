@@ -80,6 +80,12 @@ class NarrationConfig:
     # alone; it reads a few thousand tokens, so it runs at `client_effort`, thinking adaptively.
     client_effort: str = "high"
     client_max_tokens: int = 32000
+    # The live narration (2026-10-26; jyotish.live): on a model backend, each area is written by a writer
+    # call of its own, the areas in parallel, each draft streamed to the page sentence by sentence, every
+    # unit checked as soon as it is written and held once it passes, at every depth (section_retries);
+    # the client's layer per area as soon as its area is accepted; the summary last. A recording's
+    # replay (a drafter passed in) keeps the one call per reading it was recorded with.
+    live: bool = True
 
 
 CONFIG = NarrationConfig()
@@ -1477,6 +1483,11 @@ class OpenAIBackend(Backend):
         self.extra: dict = ({"provider": {"data_collection": "deny", "zdr": True, "require_parameters": True}}
                             if self.host.endswith("openrouter.ai") else {})
         self.takes_effort = True                           # False once the server refused reasoning_effort
+        self.temperature: float | None = None              # JYOTISH_<ROLE>_TEMPERATURE; None sends none
+        # Groq does not stream structured output ("Streaming and tool use are not currently supported with
+        # Structured Outputs", console.groq.com/docs/structured-outputs, read 2026-10-26): a json_schema call
+        # there is sent whole, and the live view shows its draft when it arrives.
+        self.streams_schema = not (self.host == "api.groq.com" or self.host.endswith(".groq.com"))
 
     @property
     def local(self) -> bool:
@@ -1490,7 +1501,8 @@ class OpenAIBackend(Backend):
 
     def describe(self) -> dict:
         return {"provider": self.provider, "host": self.host, "model": self.model, "base_url": self.base_url,
-                **({"structured": self.mode} if self.mode else {}), **({"local": True} if self.local else {})}
+                **({"structured": self.mode} if self.mode else {}), **({"local": True} if self.local else {}),
+                **({"temperature": self.temperature} if self.temperature is not None else {})}
 
     def _headers(self) -> dict:
         return {"Content-Type": "application/json", **({"Authorization": f"Bearer {self.api_key}"} if self.api_key else {})}
@@ -1507,6 +1519,10 @@ class OpenAIBackend(Backend):
                 "max_tokens": max_tokens, "response_format": fmt}
         if effort and self.takes_effort:
             body["reasoning_effort"] = OPENAI_EFFORT.get(effort, effort)
+        if self.temperature is not None:
+            body["temperature"] = self.temperature
+        if stream and mode == "json_schema" and not self.streams_schema:
+            stream = False
         if stream:
             body["stream"] = True
             body["stream_options"] = {"include_usage": True}
@@ -1759,7 +1775,9 @@ FULL_OUTPUT_ROOM = 32000          # tokens left for the writer to think and writ
 # 2026-10-25 (a model not listed is not refused here; its server says so if the message is too long).
 CONTEXT_TOKENS = {"openai/gpt-oss-120b": 131_072, "openai/gpt-oss-20b": 131_072, "zai-org/GLM-4.7": 202_752,
                   "z-ai/glm-4.7": 202_752, "Qwen/Qwen3.6-35B-A3B": 262_144, "qwen/qwen3.6-35b-a3b": 262_144,
-                  "qwen/qwen3.6-27b": 262_144}
+                  "qwen/qwen3.6-27b": 262_144,
+                  # Cerebras's id for gpt-oss-120b: 131k on a paid key, 65k on the free tier (read 2026-10-26).
+                  "gpt-oss-120b": 131_072}
 
 
 def full_depth_guard(backend: "Backend | None", system: str, user: str) -> None:
@@ -1812,8 +1830,22 @@ def make_backend(spec: str | None, role: str, config: NarrationConfig = CONFIG, 
     if not m:
         raise ValueError(f"the {role} backend must be 'anthropic' or 'openai:<base url with its path>:<model>' "
                          f"(e.g. openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b), not {spec!r}")
-    key = os.environ.get(f"JYOTISH_{role.upper()}_KEY") or os.environ.get("JYOTISH_OPENAI_KEY") or None
-    return OpenAIBackend(m.group(1), m.group(2), key)
+    from urllib.parse import urlparse
+    host = urlparse(m.group(1)).netloc
+    # A provider with a key of its own is sent that key only, never another provider's (2026-10-26).
+    own = next((name for suffix, name in PROVIDER_KEYS.items() if host == suffix or host.endswith("." + suffix)), None)
+    key = os.environ.get(f"JYOTISH_{role.upper()}_KEY") or (os.environ.get(own) if own else
+                                                             os.environ.get("JYOTISH_OPENAI_KEY")) or None
+    backend = OpenAIBackend(m.group(1), m.group(2), key)
+    temp = os.environ.get(f"JYOTISH_{role.upper()}_TEMPERATURE", "").strip()
+    if temp:
+        backend.temperature = float(temp)
+    return backend
+
+
+# The key each fast provider is sent (docs/models.md); any other OpenAI-compatible host is sent
+# JYOTISH_OPENAI_KEY (DeepInfra's, by default), and JYOTISH_<ROLE>_KEY overrides both for a role.
+PROVIDER_KEYS = {"api.cerebras.ai": "JYOTISH_CEREBRAS_KEY", "api.groq.com": "JYOTISH_GROQ_KEY"}
 
 
 def backends_status() -> dict[str, dict]:
@@ -2410,6 +2442,16 @@ def is_synthesis(sentence: str, finding_data: dict[str, dict], facts: dict | Non
     return facts is not None and not is_judgement(sentence) and len(ids) + len(_cited_facts(sentence, facts)) > 1
 
 
+# The live narration's writer call for one area (2026-10-26): the summary is written last.
+AREA_ONLY_NOTE = ("This call writes this one area only. Leave `summary` empty: the reading's summary is written "
+                  "last, from the text of every area that passed the checks.")
+
+
+def _live_unit(label: str, name: str | None) -> str:
+    """The live view's unit for a check's label in the narration loop."""
+    return label if label == "summary" or label.startswith(("paragraph:", "analysis:")) else f"claim:{name}:{label}"
+
+
 def _usage(metas: list[dict | None]) -> dict[str, Any]:
     """The calls of one side and their token usage, summed (a replayed call has none)."""
     keys = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
@@ -2427,7 +2469,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             progress: Callable[[str, dict], None] | None = None, depth: str = "astrologer",
             writer_model: str | None = None, writer_effort: str | None = None,
             client_drafter: Drafter | None = None, writer_backend: str | None = None,
-            checker_backend: str | None = None, client_backend: str | None = None) -> Reading:
+            checker_backend: str | None = None, client_backend: str | None = None,
+            live=None, write_summary: bool = True, _collect: dict | None = None) -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
@@ -2443,8 +2486,15 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     `writer_effort` override the writer's settings (the checker's never change); the reading
     records both sides' settings and usage. Each role's backend (`writer_backend`,
     `checker_backend`, `client_backend`: "anthropic" or "openai:<base url>:<model>") defaults to
-    JYOTISH_<ROLE>_BACKEND (make_backend); the reading records the three, provider and host."""
+    JYOTISH_<ROLE>_BACKEND (make_backend); the reading records the three, provider and host.
+
+    `live` (jyotish.live.Live) is shown the narration as it is written and checked. With
+    CONFIG.live and no drafter passed in (a model backend, not a replay), two or more areas are
+    written in parallel (`_narrate_parallel`), each by this function on its one area with
+    `write_summary` False, and the summary last; every unit is held once it passes at every depth.
+    `_collect` receives the calls' records (the parallel reading sums them)."""
     import time
+    from .live import NoLive, SharedChecker
     started = time.perf_counter()
     progress = progress or (lambda stage, info: None)
     if chart.scored is None:
@@ -2453,6 +2503,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     sc = chart.scored
     routed, when = route(question, chart)
     areas = list(areas) if areas is not None else routed
+    live = live or NoLive()
+    live_mode = config.live and drafter is None
+    if live_mode and len(areas) > 1:
+        return _narrate_parallel(chart, question, as_of=as_of, config=config, recording=recording, areas=areas,
+                                 progress=progress, depth=depth, writer_model=writer_model, writer_effort=writer_effort,
+                                 writer_backend=writer_backend, checker_backend=checker_backend,
+                                 client_backend=client_backend, checker=checker, live=live, started=started)
     system = system_prompt(depth)
     curious, full = depth == "curious", depth == "full"
     facts = None
@@ -2460,6 +2517,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         from .fullchart import payload as whole_chart
         facts = whole_chart(chart, as_of, *full_range(as_of, config), areas)
     user, allowed = payload(chart, question, areas, depth, as_of, facts)
+    if not write_summary:
+        user += "\n\n" + AREA_ONLY_NOTE
     area_tags = {name: set().union(*(set(f["allowed_tags"]) for f in findings(chart, name, as_of)[0])) for name in areas}
     all_tags = set().union(*allowed.values()) if allowed else set()
     wcfg = writer_config(config, depth, writer_model, writer_effort)
@@ -2469,6 +2528,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     writer_metas: list[dict | None] = []
     checker_metas: list[dict | None] = []
     checker = checker or ModelChecker(make_backend(checker_backend, "checker", config), config)
+    own_pool = live_mode and not isinstance(checker, SharedChecker)
+    if own_pool:                                      # the stream's checks and the loop's on one pool
+        checker = SharedChecker(checker, getattr(checker, "concurrency", None) or config.checker_concurrency)
+    if live_mode and live.checker is None:
+        live.checker = checker
     votes_offered = offered_votes(chart, areas)
     chains_offered = offered_chains(chart, areas)
     all_chains = {k: v for name in areas for k, v in chains_offered[name].items()}
@@ -2494,15 +2558,77 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     # Depth full, section retries (CONFIG.section_retries): a unit that passed is held and never
     # validated, checked or rewritten again; every unit that passes the validator is checked in the
     # same attempt, and the next draft is asked for the failed units only (retry_instruction).
-    held = full and config.section_retries
+    held = config.section_retries and (full or live_mode)
     # The writer's settings as it runs them: a drafter with its own config (AnthropicDrafter) is the
     # authority, so a step down starts from the effort it actually uses.
     if isinstance(getattr(drafter, "config", None), NarrationConfig):
         wcfg = drafter.config
     effort_now, efforts, stepped = wcfg.effort, [], []
+
+    def v_claim(name: str, fid: str, text: str) -> list[str]:
+        return validate(text, allowed[fid], offered_votes=votes_offered[name], family_rule=not curious,
+                        chains=chains_offered[name], facts=facts)
+
+    def v_summary(text: str) -> list[str]:
+        return validate_summary(text, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains,
+                                facts=facts)
+
+    def v_para(name: str, text: str) -> list[str]:
+        return validate_summary(text, area_tags[name], offered_votes=votes_offered[name], where=f"{name} paragraph",
+                                family_rule=False, chains=chains_offered[name])
+
+    def v_section(name: str, sec: str, text: str) -> list[str]:
+        return (validate_summary(text, area_tags[name], offered_votes=votes_offered[name], where=f"{name} {sec}",
+                                 chains=chains_offered[name], facts=facts, traditions=True, judgements=True)
+                + (client_errors(text) if sec in CLIENT_SECTIONS else []))
+
+    def is_held(unit: str) -> bool:
+        kind, _, rest = unit.partition(":")
+        if kind == "summary":
+            return full or not write_summary or (held and kept_summary is not None)
+        if kind == "claim":
+            name, _, fid = rest.partition(":")
+            return (name, fid) in kept and held
+        if kind == "paragraph":
+            return not curious or (held and rest in kept_para)
+        if kind == "analysis":
+            name, _, sec = rest.partition(":")
+            return not full or (held and (name, sec) in kept_ana)
+        return True
+
+    def early(unit: str, text: str) -> None:
+        """A unit whose text closed in the stream: validated now and, when it passes, its checks
+        started (the loop validates it again, with the same validator, and finds them in flight)."""
+        kind, _, rest = unit.partition(":")
+        if kind == "claim":
+            name, _, fid = rest.partition(":")
+            if name not in areas or fid not in allowed:
+                return
+            errs = v_claim(name, fid, text) + ([] if TAG.search(text) else ["untagged"])
+            if errs:
+                live.removed(unit, "the validator")
+            else:
+                live.watch(unit, text, _check_payload(finding_data[fid], text, facts))
+            return
+        if kind == "summary":
+            errs = v_summary(text)
+        elif kind == "paragraph" and rest in areas:
+            errs = v_para(rest, text)
+        elif kind == "analysis" and rest.partition(":")[0] in areas and rest.partition(":")[2] in ("assessment", "timing"):
+            errs = v_section(*rest.split(":"), text)
+        else:
+            return
+        if errs:
+            live.removed(unit, "the validator")
+            return
+        for s_, _, data in _summary_checks(text, finding_data, facts if kind != "paragraph" else None):
+            live.watch(unit, s_, data)
+
     for attempts in range(1, config.max_attempts + 1):
-        progress("draft", {"attempt": attempts})
+        progress("draft", {"attempt": attempts, **({"area": areas[0]} if not write_summary else {})})
         efforts.append(effort_now)
+        if live_mode and hasattr(drafter, "on_text"):
+            drafter.on_text = live.draft_stream(is_held, early)
         try:
             draft = drafter(system, user, errors)
         except NarrationError as e:                        # a refusal or no structured output
@@ -2532,9 +2658,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         entry = dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                      draft=draft.model_dump())
         # Depth full: the summary is the client's layer's, written after this loop from accepted text.
-        summary_held = (held and kept_summary is not None) or full
-        summary_errs = [] if summary_held else validate_summary(
-            draft.summary, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains, facts=facts)
+        summary_held = (held and kept_summary is not None) or full or not write_summary
+        summary_errs = [] if summary_held else v_summary(draft.summary)
         if held and not summary_held and not draft.summary.strip():
             summary_errs = ["no summary: it is not held, so the draft needs one"]
         errors = list(summary_errs)
@@ -2557,8 +2682,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     errors.append(f"two claims for {c.finding_id} in {da.name}")
                     unit_errors.setdefault(f"the claim for {c.finding_id} ({da.name})", []).append(errors[-1])
                     continue
-                errs = validate(c.text, allowed[c.finding_id], offered_votes=votes_offered[da.name],
-                                family_rule=not curious, chains=chains_offered[da.name], facts=facts)
+                errs = v_claim(da.name, c.finding_id, c.text)
                 if not TAG.search(c.text):
                     errs.append(f"claim without a tag: {c.text!r}")
                 claim_errs[(da.name, c.finding_id)] = errs
@@ -2570,11 +2694,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             # Each area's paragraph is read like the summary: tags offered for the area's findings,
             # families named and cited, and no tier word (the engine states the tier).
             for name in areas:
+                if held and name in kept_para:
+                    continue                                 # held, at curious depth in the live narration
                 text = next((d.paragraph for d in draft.areas if d.name == name), None)
-                para_errs[name] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
-                                                    where=f"{name} paragraph", family_rule=False,
-                                                    chains=chains_offered[name])
+                para_errs[name] = (v_para(name, text)
                                    if text else [f"no paragraph for {name}: at curious depth every area has one"])
+                if held:
+                    unit_errors[f"the {name} paragraph"] = list(para_errs[name])
                 errors += para_errs[name]
         ana_errs: dict[tuple[str, str], list[str]] = {}
         sections: dict[tuple[str, str], str] = {}
@@ -2589,16 +2715,24 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     text = section_text(an, sec)
                     if text:
                         sections[(name, sec)] = text
-                    ana_errs[(name, sec)] = (validate_summary(text, area_tags[name], offered_votes=votes_offered[name],
-                                                              where=f"{name} {sec}", chains=chains_offered[name],
-                                                              facts=facts, traditions=True, judgements=True)
-                                             + (client_errors(text) if sec in CLIENT_SECTIONS else [])
+                    ana_errs[(name, sec)] = (v_section(name, sec, text)
                                              if text else [f"no {sec} for {name}: at full depth every area has one"])
                     unit_errors[f"the {name} {sec}"] = list(ana_errs[(name, sec)])
                     errors += ana_errs[(name, sec)]
         entry["validator_errors"] = list(errors)
         if recording is not None:
             recording.append(entry)
+        # The live view: every unit as validated, shown if the stream did not show it, removed if refused.
+        shown_units = ([("summary", draft.summary, summary_errs)] if not summary_held else []) + \
+            [(f"claim:{n}:{c.finding_id}", c.text, claim_errs[(n, c.finding_id)]) for n, c in drafted] + \
+            [(f"paragraph:{n}", next((d.paragraph for d in draft.areas if d.name == n), None) or "", e)
+             for n, e in para_errs.items()] + \
+            [(f"analysis:{n}:{sec}", sections.get((n, sec), ""), e) for (n, sec), e in ana_errs.items()]
+        for unit, text, errs in shown_units:
+            if errs:
+                live.removed(unit, "the validator")
+            elif text:
+                live.text(unit, text)
         for name, errs in para_errs.items():
             if errs:
                 para_error[name] = (errs[0], attempts)
@@ -2633,6 +2767,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 checks += [(s_, ids, data, f"analysis:{name}:{sec}", name)
                            for s_, ids, data in _summary_checks(sections[(name, sec)], finding_data, facts)]
         progress("check", {"attempt": attempts, "calls": len(checks)})
+        for sentence, _, data, label, name in checks:
+            live.watch(_live_unit(label, name), sentence, data)
         # The checks of one attempt are independent: a checker with `check_many` runs them
         # concurrently (AnthropicChecker); any other checker is called one by one.
         if hasattr(checker, "check_many"):
@@ -2668,25 +2804,33 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 continue
             if key in rejected:
                 last_error[key] = (rejected[key], attempts)
+                live.removed(f"claim:{name}:{c.finding_id}", "the checker")
             else:
                 kept[key] = c
+                live.accepted(f"claim:{name}:{c.finding_id}")
         for name, errs in para_errs.items():
             if not errs:
                 if f"paragraph:{name}" in rejected:
                     para_error[name] = (rejected[f"paragraph:{name}"], attempts)
+                    live.removed(f"paragraph:{name}", "the checker")
                 else:
                     kept_para[name] = paragraphs[name]
+                    live.accepted(f"paragraph:{name}")
         for (name, sec), errs in ana_errs.items():
             if not errs:
                 if f"analysis:{name}:{sec}" in rejected:
                     ana_error[(name, sec)] = (rejected[f"analysis:{name}:{sec}"], attempts)
+                    live.removed(f"analysis:{name}:{sec}", "the checker")
                 else:
                     kept_ana[(name, sec)] = sections[(name, sec)]
+                    live.accepted(f"analysis:{name}:{sec}")
         if not summary_errs and not summary_held:
             if "summary" in rejected:
                 summary_error = (rejected["summary"], attempts)
+                live.removed("summary", "the checker")
             else:
                 kept_summary = draft.summary
+                live.accepted("summary")
         if not errors:
             clean = True
             break
@@ -2696,8 +2840,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             stray = [e for e in errors if e not in named and not e.startswith("unsupported by ")]
             if stray:
                 unit_errors.setdefault("the draft", []).extend(stray)
-            heldnow = (["the summary"] if kept_summary is not None else []) + \
+            heldnow = (["the summary"] if kept_summary is not None or not write_summary else []) + \
                 [f"the {n} {sec}" for n in areas for sec in ANALYSIS_SECTIONS if (n, sec) in kept_ana] + \
+                [f"the {n} paragraph" for n in kept_para] + \
                 [f"the claim for {fid} ({n})" for n, fid in kept]
             errors = [retry_instruction(heldnow, {u: e for u, e in unit_errors.items() if e})]
 
@@ -2730,10 +2875,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             client_layer = _client.write(client_drafter, checker, question=question, as_of=as_of.isoformat(),
                                          accepted=accepted, finding_data=finding_data, facts=facts,
                                          votes=votes_offered, chains=chains_offered, max_attempts=config.max_attempts,
-                                         recording=recording, progress=progress)
+                                         recording=recording, progress=progress, live=live if live_mode else None,
+                                         want="all" if write_summary else "areas")
             client_metas = client_layer["writer_metas"]
             checker_metas += client_layer["checker_metas"]
-            kept_summary, summary_error = client_layer["summary"], client_layer["summary_error"] or summary_error
+            if write_summary:
+                kept_summary, summary_error = client_layer["summary"], client_layer["summary_error"] or summary_error
             kept_para = dict(client_layer["paragraphs"])
             para_error.update(client_layer["para_errors"])
             kept_when, when_error = dict(client_layer["whens"]), dict(client_layer["when_errors"])
@@ -2795,6 +2942,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             if sec not in analysis:
                 err, at = ana_error.get((name, sec), (f"no {sec} was drafted for this area", attempts))
                 gaps.append({"finding_id": f"analysis.{sec}", "kind": "analysis", "last_error": err, "attempt": at})
+        live.area_done(name, [g["finding_id"] for g in gaps])
         disclaimer = DISCLAIMERS["third_party"] if name in THIRD_PARTY_AREAS else (
             DISCLAIMERS[DISCLAIMER_KEYS[name]] if name in DISCLAIMER_KEYS else None)
         reading_areas.append(ReadingArea(
@@ -2850,6 +2998,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     # analysis's syntheses (the paragraph restates accepted sentences, it adds no conclusion).
     cited_texts = shown + [t for a in reading_areas for t in (a.paragraph, a.when) if t]
     synthesis = sum(1 for t in shown for x in sentences(t) if is_synthesis(x, finding_data, facts))
+    if own_pool:
+        checker.close()
+    if _collect is not None:
+        _collect.update(writer=writer_metas, checker=checker_metas, client=client_metas,
+                        client_attempts=client_layer.get("attempts", 0), facts=facts)
     return Reading(as_of=as_of.isoformat(), weights=sc.weights, engine=chart.meta.engine, question=question,
                    chart=chart_header(chart), facts_cited={k: v for t in cited_texts for k, v in _cited_facts(t, facts).items()},
                    writer={"model": _model_of(drafter, wcfg.model), "effort": wcfg.effort, "thinking": wcfg.thinking,
@@ -2874,3 +3027,168 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    depth=depth,
                    fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)
+
+
+# --- the live narration: the areas in parallel, the summary last (2026-10-26) --------------------
+
+class SummaryDraft(BaseModel):
+    summary: str = Field(description="Two or three tagged sentences answering the question across the areas, "
+                                     "from the claims that passed the checks; every sentence ends with its tags.")
+
+
+SUMMARY_ONLY_NOTE = ("This call writes the reading's summary only, across the areas, from the claims above that "
+                     "passed the checks: two or three sentences, every one ending with the tags it rests on.")
+
+
+def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas: list[str], as_of: date,
+                   config: NarrationConfig, depth: str, wcfg: NarrationConfig, writer_backend: str | None,
+                   client_backend: str | None, checker, live, recording: list | None,
+                   progress: Callable[[str, dict], None], facts: dict | None,
+                   finding_data: dict[str, dict]) -> dict[str, Any]:
+    """The summary, after every area: at depth full by the client's layer from every area's accepted
+    text (client.write, want "summary"); else by one writer call of its own (SummaryDraft) over the
+    reading's payload and the accepted claims, validated and checked like the summary always was, up
+    to max_attempts. Returns {text, error, writer, checker, client, attempts}; text None is a gap
+    (the engine's summary stands)."""
+    from . import client as _client
+    votes, chains = offered_votes(chart, areas), offered_chains(chart, areas)
+    out = {"text": None, "error": None, "writer": [], "checker": [], "client": [], "attempts": 0}
+    if depth == "full":
+        accepted = {}
+        for r in parts:
+            for a in r.areas:
+                if a.claims or a.analysis:
+                    accepted[a.name] = _client.accepted_text(a.name, [c.text for c in a.claims], dict(a.analysis or {}))
+        if not accepted:
+            out["error"] = ("nothing passed the checks to write the summary from", 1)
+            return out
+        layer = _client.write(default_client_drafter(wcfg, config, client_backend), checker, question=question,
+                              as_of=as_of.isoformat(), accepted=accepted, finding_data=finding_data, facts=facts,
+                              votes=votes, chains=chains, max_attempts=config.max_attempts, recording=recording,
+                              progress=progress, live=live, want="summary")
+        out.update(text=layer["summary"], error=layer["summary_error"], client=layer["writer_metas"],
+                   checker=layer["checker_metas"], attempts=layer["attempts"])
+        return out
+    curious = depth == "curious"
+    user, allowed = payload(chart, question, areas, depth, as_of, None)
+    claims = "\n".join(f"- {a.name}: {c.text}" for r in parts for a in r.areas for c in a.claims)
+    user += "\n\nThe claims that passed the checks, area by area:\n" + (claims or "(none)") + "\n\n" + SUMMARY_ONLY_NOTE
+    all_tags = set().union(*allowed.values()) if allowed else set()
+    all_votes: dict[str, set[str]] = {}
+    for name in areas:
+        for fam, tag in votes[name].items():
+            all_votes.setdefault(fam, set()).add(tag)
+    all_chains = {k: v for name in areas for k, v in chains[name].items()}
+    drafter = ModelDrafter(make_backend(writer_backend, "writer", wcfg, model=wcfg.model), wcfg, schema=SummaryDraft)
+    errors: list[str] = []
+    for attempt in range(1, config.max_attempts + 1):
+        out["attempts"] = attempt
+        progress("summary", {"attempt": attempt})
+        drafter.on_text = live.draft_stream(lambda u: u != "summary")
+        try:
+            draft = drafter(system_prompt(depth), user, errors)
+        except NarrationError as e:
+            out["writer"].append(drafter.last_meta)
+            errors = [str(e)] + list(e.errors)
+            out["error"] = (errors[0], attempt)
+            continue
+        out["writer"].append(drafter.last_meta)
+        text = draft.summary or ""
+        errs = (validate_summary(text, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains)
+                if text.strip() else ["no summary: this call writes only the summary"])
+        if recording is not None:
+            recording.append(dict(drafter.last_meta or {"kind": "writer"}, attempt=attempt, summary_draft=text,
+                                  validator_errors=errs))
+        if errs:
+            live.removed("summary", "the validator")
+            errors, out["error"] = errs, (errs[0], attempt)
+            continue
+        live.text("summary", text)
+        checks = _summary_checks(text, finding_data, None)
+        for s_, _, data in checks:
+            live.watch("summary", s_, data)
+        outcomes = checker.check_many([(s_, data) for s_, _, data in checks])
+        out["checker"] += [m for _, m in outcomes]
+        refused = [f"unsupported by the derivations of {', '.join(ids)} (summary): {p_.text!r} ({p_.evidence}) in {s_!r}"
+                   for (s_, ids, _), (res, _) in zip(checks, outcomes) for p_ in res.propositions if not p_.supported]
+        if recording is not None:
+            recording += [dict(m or {"kind": "checker"}, attempt=attempt, finding_id="summary", sentence=s_,
+                               result=res.model_dump()) for (s_, _, _), (res, m) in zip(checks, outcomes)]
+        if refused:
+            live.removed("summary", "the checker")
+            errors, out["error"] = refused, (refused[0], attempt)
+            continue
+        live.accepted("summary")
+        out.update(text=text, error=None)
+        return out
+    return out
+
+
+def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: NarrationConfig, recording: list | None,
+                      areas: list[str], progress: Callable[[str, dict], None], depth: str, writer_model: str | None,
+                      writer_effort: str | None, writer_backend: str | None, checker_backend: str | None,
+                      client_backend: str | None, checker, live, started: float) -> "Reading":
+    """The live narration of two or more areas: each area by `narrate` on that area alone, in a thread
+    of its own (its writer streamed, its units checked as written, held once passed, and at depth full
+    its client's paragraph and when as soon as it is accepted), every area's checks on one pool of the
+    checker's concurrency (the provider's limit is the reading's); then the summary (_write_summary);
+    then one Reading, the areas in the asked order, the calls' usage summed."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from .live import SharedChecker
+    inner = checker or ModelChecker(make_backend(checker_backend, "checker", config), config)
+    shared = SharedChecker(inner, getattr(inner, "concurrency", None) or config.checker_concurrency)
+    live.checker = shared
+    collect: dict[str, dict] = {name: {} for name in areas}
+    wcfg = writer_config(config, depth, writer_model, writer_effort)
+    try:
+        with ThreadPoolExecutor(max_workers=len(areas), thread_name_prefix="area") as pool:
+            futs = {name: pool.submit(narrate, chart, question, as_of=as_of, config=config, recording=recording,
+                                      areas=[name], progress=progress, depth=depth, writer_model=writer_model,
+                                      writer_effort=writer_effort, writer_backend=writer_backend,
+                                      client_backend=client_backend, checker=shared, live=live,
+                                      write_summary=False, _collect=collect[name])
+                    for name in areas}
+            parts = [futs[name].result() for name in areas]
+        facts = None
+        if depth == "full":
+            from .fullchart import payload as whole_chart
+            facts = whole_chart(chart, as_of, *full_range(as_of, config), areas)
+        finding_data = {f["finding_id"]: f for name in areas for f in findings(chart, name, as_of)[0]}
+        summ = _write_summary(chart, question, parts, areas=areas, as_of=as_of, config=config, depth=depth, wcfg=wcfg,
+                              writer_backend=writer_backend, client_backend=client_backend, checker=shared, live=live,
+                              recording=recording, progress=progress, facts=facts, finding_data=finding_data)
+    finally:
+        shared.close()
+    base = parts[0]
+    reading_areas = [a for r in parts for a in r.areas]
+    routed, _ = route(question, chart)
+    when_line = " ".join(x for x in (timing_line(a.name, a.windows, a.avoid_window)
+                                     for a in reading_areas if a.windows) if x) or None
+    source, text = "model", summ["text"]
+    if text is None:
+        source, text = "engine", engine_summary(reading_areas, routed, chart.scored, base.summary.current_period, when_line)
+    summary = base.summary.model_copy(update={
+        "timing_line": when_line, "source": source, "text": text, "cites": [f"{k}:{v}" for k, v in TAG.findall(text)],
+        "timing_note": timing_note([a.name for a in reading_areas if a.windows]) if when_line else None})
+    metas = lambda role: [m for name in areas for m in collect[name].get(role, [])]
+    writer_metas, checker_metas = metas("writer") + summ["writer"], metas("checker") + summ["checker"]
+    client_metas = metas("client") + summ["client"]
+    full = depth == "full"
+    usage = {"writer": _usage(writer_metas), "checker": _usage(checker_metas),
+             **({"client": _usage(client_metas) | {"attempts": max([summ["attempts"]] + [collect[n].get("client_attempts", 0)
+                                                                                           for n in areas])}}
+                if full else {}),
+             "wall_seconds": round(time.perf_counter() - started, 3),
+             "parallel_areas": len(areas), "summary_attempts": summ["attempts"]}
+    facts_cited = {k: v for r in parts for k, v in r.facts_cited.items()} | _cited_facts(text, facts)
+    summary_synth = sum(1 for x in sentences(text) if is_synthesis(x, finding_data, facts)) if source == "model" else 0
+    return base.model_copy(update={
+        "areas": reading_areas, "summary": summary, "usage": usage, "facts_cited": facts_cited,
+        "attempts": max(r.attempts for r in parts),
+        "synthesis_sentences": sum(r.synthesis_sentences for r in parts) + summary_synth,
+        "unchecked_sentences": sum(1 for m in checker_metas if (m or {}).get("unchecked")),
+        "judgement_sentences": sum(r.judgement_sentences for r in parts),
+        "narration_complete": source == "model" and not any(a.narration_gaps for a in reading_areas),
+        "depends_on_birth_time": [d for r in parts for d in r.depends_on_birth_time],
+        "disclaimers": sorted({d for r in parts for d in r.disclaimers})})

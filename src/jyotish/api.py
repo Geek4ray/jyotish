@@ -322,6 +322,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         log.append(name)
         update(reading_id, status="running", progress={"stage": name.split()[0], **info, **keep, "log": list(log)})
 
+    # The live narration's events, per reading, in this process (jyotish.live.LiveLog, 2026-10-26).
+    from .live import LiveLog
+    LIVE = app.state.live = LiveLog()
+
     def run(reading_id: str, req: ReadingRequest) -> None:
         from .narrate import NarrationError
         from .service import assess_birth, birth_key_of, chart_line, make_reading, reading_header
@@ -358,11 +362,13 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                        progress={"stage": "narration", **keep, "log": list(log)})
             reading, page = make_reading(birth, req.question, chart=chart, as_of=req.as_of, depth=req.depth,
                                          model_fixture=model_fixture, progress=on, writer_model=req.writer_model,
-                                         writer_effort=req.writer_effort, chart_id=chart_id, on_instant=instant)
+                                         writer_effort=req.writer_effort, chart_id=chart_id, on_instant=instant,
+                                         events=LIVE.writer(reading_id))
             log.append("done")
             update(reading_id, status="done", document=reading.model_dump(mode="json"), page=page,
                    progress={"stage": "done", "attempts": reading.attempts, "narration_complete": reading.narration_complete,
                              **keep, "log": list(log)})
+            LIVE.append(reading_id, {"type": "done", "status": "done"})
             from .db import record_cost
             with Session.begin() as s:
                 ledger = record_cost(s, s.get(ReadingRow, reading_id))
@@ -374,6 +380,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             log.append("failed")
             update(reading_id, status="failed", progress={"stage": "failed", **keep, "log": list(log)},
                    error={"message": str(e), "errors": list(e.errors)})
+            LIVE.append(reading_id, {"type": "done", "status": "failed"})
             logs.event("reading.failed", logging.WARNING, reading_id=reading_id, error=type(e).__name__)
         except Exception as e:                      # the job reports its failure; it never raises into the pool
             log.append("failed")
@@ -383,6 +390,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                            "runs in (it is never sent by the browser).")
             update(reading_id, status="failed", progress={"stage": "failed", **keep, "log": list(log)},
                    error={"message": message})
+            LIVE.append(reading_id, {"type": "done", "status": "failed"})
             logs.event("reading.failed", logging.WARNING, reading_id=reading_id, error=type(e).__name__)
 
     @app.post("/readings", status_code=202, response_model=Accepted)
@@ -856,6 +864,55 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                  reading=with_sheets(row.document, row.chart_id) if row.status == "done" else row.document,
                                  page=row.page, error=row.error,
                                  review_status=row.review_status if row.status == "done" else None)
+
+    def live_row(reading_id: str, request: Request) -> str:
+        """The reading's status, for its live view; a reading in a blind comparison has none (its
+        sentences would show what the blind view withholds)."""
+        with Session() as s:
+            row = s.get(ReadingRow, reading_id)
+            if row is None:
+                raise HTTPException(status_code=404, detail="no such reading")
+            if compared_with(s, row.id):
+                raise HTTPException(status_code=409, detail="a reading in a comparison has no live view")
+            return row.status
+
+    @app.get("/readings/{reading_id}/live")
+    def get_live(reading_id: str, request: Request, since: int = 0) -> dict:
+        """The polling fallback of the live view: the events after version `since`, the version now,
+        and whether the reading is finished (then GET /readings/{id} has all of it)."""
+        status = live_row(reading_id, request)
+        events, version, done = LIVE.since(reading_id, max(0, since))
+        return {"version": version, "events": events, "done": done or status in ("done", "failed"),
+                "status": status}
+
+    @app.get("/readings/{reading_id}/events")
+    def get_events(reading_id: str, request: Request, since: int = 0):
+        """The live view as server-sent events: each event's `id` is its version (a reconnect sends
+        Last-Event-ID), its `event` its type; the stream ends after `done`. Comments keep it open."""
+        import json as _json
+        from fastapi.responses import StreamingResponse
+        live_row(reading_id, request)
+        start = int(request.headers.get("last-event-id") or since or 0)
+
+        def stream():
+            n = start
+            yield "retry: 2000\n\n"
+            while True:
+                events, n_now, done = LIVE.wait(reading_id, n, timeout=15)
+                for e in events:
+                    yield f"id: {e['seq']}\nevent: {e['type']}\ndata: {_json.dumps(e)}\n\n"
+                n = n_now
+                if done:
+                    return
+                if not events:
+                    with Session() as s:
+                        row = s.get(ReadingRow, reading_id)
+                        if row is None or (row.status in ("done", "failed") and not LIVE.known(reading_id)):
+                            yield f"event: done\ndata: {_json.dumps({'type': 'done', 'status': row.status if row else 'gone'})}\n\n"
+                            return
+                    yield ": waiting\n\n"
+        return StreamingResponse(stream(), media_type="text/event-stream",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     # Static files last, so /readings is never shadowed.
     if examples_dir is not None and Path(examples_dir).is_dir():

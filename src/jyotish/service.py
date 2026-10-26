@@ -156,7 +156,7 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                  depth: str = DEPTH_DEFAULT, writer_model: str | None = None, writer_effort: str | None = None,
                  recording: list | None = None, chart_id: str | None = None, writer_backend: str | None = None,
                  checker_backend: str | None = None, client_backend: str | None = None, live_checker: bool = False,
-                 on_instant: Callable | None = None):
+                 on_instant: Callable | None = None, events: Callable[[dict], None] | None = None):
     """(reading, page). The areas are the question's, then the chart's top three. With
     `model_fixture` the model is replayed from that recording (offline) and sentences with no
     recorded checker verdict are counted as unchecked. `writer_model` and `writer_effort` override
@@ -167,7 +167,11 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     keeps the recording's drafts and checks them live on `checker_backend`, so two checkers can be
     compared on the same reading (scripts/compare_readings.py --live-checker). Before any model call
     the instant page (narrate.instant_reading: every engine field, narration pending) is made and
-    handed to `on_instant(reading, page)`. NarrationError propagates."""
+    handed to `on_instant(reading, page)`; `events(event)` is told the narration as it is written and
+    checked (jyotish.live: a sentence shown, verified, removed; an area done). The reading's
+    `usage.timeline` has the seconds from the start to the instant page, the first sentence shown,
+    the first sentence verified, the first area finished and the reading done. NarrationError
+    propagates."""
     from .narrate import FixtureChecker, FixtureDrafter, TAG, narrate, route, sentences
     from .page import render
     if chart.scored is None:
@@ -186,6 +190,10 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                                          "areas": with_sheets(first.areas, chart, day)})
         instant_s = round(_time.perf_counter() - started, 3)
         on_instant(first, render(first, chart))
+    live = None
+    if events is not None:
+        from .live import Live
+        live = Live(events, t0=started)
     drafter = checker = client_drafter = None
     if model_fixture:
         replayed = json.loads(Path(model_fixture).read_text())
@@ -197,7 +205,7 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress,
                       depth=depth, writer_model=writer_model, writer_effort=writer_effort, recording=recording,
                       client_drafter=client_drafter, writer_backend=writer_backend, checker_backend=checker_backend,
-                      client_backend=client_backend)
+                      client_backend=client_backend, live=live)
     update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth, writer_model,
                                             writer_effort)}
     if model_fixture:
@@ -210,9 +218,10 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
                    "unchecked_sentences": sum(1 for x in said if x not in verdicts) if verdicts is not None else 0}
     from .narrate import with_sheets
     update["areas"] = with_sheets(reading.areas, chart, day)       # the technical sheet, at every depth
-    if instant_s is not None:                                       # seconds from the start to the instant page
-        update["usage"] = dict(reading.usage, timeline=dict((reading.usage or {}).get("timeline") or {},
-                                                            instant_s=instant_s))
+    if instant_s is not None or live is not None:                    # seconds from the start (2026-10-26)
+        update["usage"] = dict(reading.usage, timeline={**({"instant_s": instant_s} if instant_s is not None else {}),
+                                                        **(live.timeline if live is not None else {}),
+                                                        "done_s": round(_time.perf_counter() - started, 3)})
     reading = reading.model_copy(update=update)
     if not model_fixture:
         record_candidates(reading, chart, chart_id)

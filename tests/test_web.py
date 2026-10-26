@@ -996,3 +996,86 @@ def test_a_pending_reading_renders_at_once_with_each_area_marked(page, base_url)
     assert "No claims were drafted" not in page.inner_text("#reading")
     assert page.locator("ul.engine-lines li").first.inner_text() == "The house vote is for career."
     assert page.locator("section.area .tier").count() == len(reading["areas"])
+
+
+LIVE_LOG = """
+window.__live = [];
+new MutationObserver((records) => {
+  for (const r of records) {
+    for (const n of r.addedNodes) if (n.nodeType === 1 && n.matches(".live-sentence"))
+      window.__live.push(["shown", n.closest(".live-unit").dataset.unit, n.textContent]);
+    for (const n of r.removedNodes) if (n.nodeType === 1 && n.matches(".live-unit"))
+      window.__live.push(["removed", n.dataset.unit]);
+    if (r.type === "attributes" && r.target.matches(".live-sentence.verified"))
+      window.__live.push(["verified", r.target.closest(".live-unit").dataset.unit, r.target.textContent]);
+  }
+}).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+"""
+
+
+@pytest.fixture(scope="module")
+def live_url(tmp_path_factory):
+    """The site on a live narration: the writer and the checker are test_live's stub server, slowed so
+    the page can be watched (a piece every 20 ms, a verdict after 0.2 s)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("live_cases", ROOT / "tests" / "test_live.py")
+    cases = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cases)
+    from http.server import ThreadingHTTPServer
+    from jyotish.narrate import engine_line, findings
+    from jyotish.uncertainty import assess
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    for name in c.scored.areas:
+        if name != "career":
+            cases.Handler.claims[name] = [{"finding_id": f["finding_id"], "text": engine_line(f, name)[:-1] + f" [{f['allowed_tags'][0]}]."}
+                                          for f in findings(c, name, cases.AS_OF)[0] if f["kind"] == "vote"]
+    cases.Handler.delay = 0.02
+    stub = ThreadingHTTPServer(("127.0.0.1", 0), cases.Handler)
+    threading.Thread(target=stub.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{stub.server_address[1]}/v1"
+    mp = pytest.MonkeyPatch()
+    for k, v in {"JYOTISH_OPENAI_KEY": "stub-key", "JYOTISH_CHECKER_CONCURRENCY": "4",
+                 "JYOTISH_WRITER_BACKEND": f"openai:{base}:stub-writer",
+                 "JYOTISH_CHECKER_BACKEND": f"openai:{base}:stub-checker"}.items():
+        mp.setenv(k, v)
+    server, thread, url = _serve(tmp_path_factory.mktemp("live") / "live.db", None)
+    yield url, cases
+    server.should_exit = True
+    thread.join(5)
+    stub.shutdown()
+    mp.undo()
+
+
+def test_the_site_shows_sentences_being_verified_verified_and_removed(page, live_url):
+    url, cases = live_url
+    page.add_init_script(LIVE_LOG)
+    submit_reference(page, url, question="How will my career go?")
+    page.wait_for_selector("#reading[data-state=pending] .live-sentence.verifying", timeout=60_000)
+    # Every sentence on the page that the checker has not passed carries the mark.
+    marks = page.evaluate("[...document.querySelectorAll('.live-sentence.verifying')].every(s => s.querySelector('.live-state').textContent === 'being verified')")
+    assert marks and page.locator("#reading").get_attribute("data-live-mode") == "sse"
+    page.wait_for_selector("#reading[data-state=done]", timeout=120_000)
+    log = page.evaluate("window.__live")
+    unit = [x for x in log if x[1] == cases.UNIT]
+    bare = lambda t: t.split(" [")[0]
+    assert unit[0][0] == "shown" and bare(cases.REFUSED) in unit[0][2]
+    assert ["removed", cases.UNIT] in unit
+    after = unit[unit.index(["removed", cases.UNIT]):]
+    assert any(x[0] == "shown" and bare(cases.REPLACEMENT) in x[2] for x in after)
+    assert any(x[0] == "verified" and bare(cases.REPLACEMENT) in x[2] for x in after)
+    assert any(x[0] == "verified" for x in log)
+    # Drawn again from the stored reading: only what passed, no live marks left.
+    text = page.inner_text("#reading")
+    assert bare(cases.REPLACEMENT) in text and bare(cases.REFUSED) not in text
+    assert page.locator(".live-state").count() == 0 and page.locator("#pending").count() == 0
+
+
+def test_the_site_follows_by_polling_when_asked(page, live_url):
+    url, _ = live_url
+    submit_reference(page, url, question="How will my career go?")
+    page.wait_for_selector("#reading[data-state=pending]", timeout=60_000)
+    page.goto(page.url + "&live=poll")
+    page.wait_for_selector("#reading[data-state=pending][data-live-mode=poll], #reading[data-state=done]", timeout=60_000)
+    page.wait_for_selector("#reading[data-state=done]", timeout=120_000)
+    assert page.locator("section.area li.claim").count() > 0

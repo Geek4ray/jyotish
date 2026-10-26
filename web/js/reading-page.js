@@ -1,7 +1,8 @@
-import { getStatic, pollReading, source } from "./api.js";
+import { getReading, getStatic, pollReading, source } from "./api.js";
 import { chrome } from "./chrome.js";
 import { renderFailure, renderProgress, renderReading, renderTiming } from "./render.js";
 import { t } from "./strings.js";
+import { follow } from "./live.js";
 
 const screen = document.body.dataset.screen;          // "reading" or "timing"
 chrome(screen === "timing" ? "when" : "reading");
@@ -39,13 +40,22 @@ function wirePrint() {
   if (go) go.addEventListener("click", () => window.print());
 }
 
+let following = false;
+
 function show(status) {
-  root.dataset.state = status.status;
-  // The instant page (2026-10-26): a running job with a reading shows it at once, narration pending.
+  // The instant page (2026-10-26): a running job with a reading shows it at once, narration pending, and
+  // the narration fills in as it is written and checked (live.js); the page is drawn once, then followed.
   if (status.status === "running" && status.reading) {
+    if (following) return;
+    following = true;
     root.dataset.state = "pending";
     root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : renderReading(status.reading));
-  } else if (status.status === "done") {
+    if (screen !== "timing") follow(status.id, root, async () => show(await getReading(status.id)));
+    return;
+  }
+  if (following && status.status !== "done" && status.status !== "failed") return;
+  root.dataset.state = status.status;
+  if (status.status === "done") {
     root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : printBar() + renderReading(status.reading));
     wirePrint();
     document.title = `${screen === "timing" ? "When" : "Reading"}: ${status.reading.question} — Jyotish Engine`;

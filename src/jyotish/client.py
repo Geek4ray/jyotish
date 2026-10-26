@@ -215,11 +215,16 @@ def tags_of(texts: list[str]) -> set[str]:
 
 def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: dict[str, dict[str, Any]],
           finding_data: dict[str, dict], facts: dict, votes: dict, chains: dict, max_attempts: int,
-          recording: list | None, progress: Callable[[str, dict], None]) -> dict[str, Any]:
+          recording: list | None, progress: Callable[[str, dict], None], live=None,
+          want: str = "all") -> dict[str, Any]:
     """The client's layer: up to `max_attempts` calls; each paragraph and the summary that passes the
     validator is checked in its attempt and held once it passes, and a retry asks only for the failed
     ones with their reasons. Returns {summary, summary_error, paragraphs, para_errors, writer_metas,
-    checker_metas, attempts}; a unit that never passed is None with its last error."""
+    checker_metas, attempts}; a unit that never passed is None with its last error.
+
+    `want` (the live narration, 2026-10-26): "all"; "areas", each area's paragraph and when, the
+    summary left to a later call; "summary", the summary alone from every area's accepted text.
+    `live` (jyotish.live.Live) is shown each unit as it streams, is validated and is checked."""
     from .narrate import (RETRY_HEAD, NarrationError, _cited_facts, _summary_checks, retry_instruction,
                           validate_summary)
     from .fullchart import resolve
@@ -238,6 +243,14 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
                     pass
     user = client_input(question, as_of, {n: {k: v for k, v in accepted[n].items() if k != "name"} for n in names},
                         cited)
+    need_summary = want != "areas"
+    unit_names = names if want != "summary" else []
+    if want == "areas":
+        user += ("\n\nThis call writes each area's paragraph and when only. Leave `summary` empty: it is written "
+                 "last, from every area's accepted text.")
+    elif want == "summary":
+        user += ("\n\nThis call writes the summary only, across the areas above. Leave every area's `paragraph` "
+                 "and `when` null: they are written and held.")
     all_votes: dict[str, set[str]] = {}
     for n in names:
         for fam, tag in votes[n].items():
@@ -248,13 +261,18 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
     para_errors: dict[str, tuple[str, int]] = {}
     whens: dict[str, str] = {}
     when_errors: dict[str, tuple[str, int]] = {}
-    timed = [n for n in names if accepted[n].get("timing")]      # an area with accepted timing has a When
+    timed = [n for n in unit_names if accepted[n].get("timing")]  # an area with accepted timing has a When
     writer_metas: list = []
     checker_metas: list = []
     errors: list[str] = []
     attempts = 0
     for attempts in range(1, max_attempts + 1):
         progress("client", {"attempt": attempts})
+        if live is not None and hasattr(drafter, "on_text"):
+            drafter.on_text = live.draft_stream(
+                lambda u: (u == "summary" and (not need_summary or summary is not None))
+                or (u.startswith("paragraph:") and (u[10:] in paragraphs or u[10:] not in unit_names))
+                or (u.startswith("when:") and (u[5:] in whens or u[5:] not in timed)))
         try:
             draft = drafter(CLIENT_PROMPT, user, errors)
         except NarrationError as e:
@@ -264,7 +282,7 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
                 recording.append(dict(getattr(drafter, "last_meta", None) or {"kind": "client"}, attempt=attempts,
                                       client_draft=None, validator_errors=[], writer_error=errors))
             summary_error = summary_error or (errors[0], attempts)
-            for n in names:
+            for n in unit_names:
                 if n not in paragraphs:
                     para_errors[n] = (errors[0], attempts)
             for n in timed:
@@ -275,13 +293,13 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             continue
         writer_metas.append(getattr(drafter, "last_meta", None))
         units: dict[str, tuple[str, list[str]]] = {}     # label -> (text, validator errors)
-        if summary is None:
+        if need_summary and summary is None:
             text = draft.summary or ""
             errs = (validate_summary(text, all_tags, offered_votes=all_votes, family_rule=False, chains=all_chains,
                                      facts=facts, judgements=True) + client_errors(text, all_tags)
                     if text.strip() else ["no summary: it is not held, so the draft needs one"])
             units["client:summary"] = (text, errs)
-        for n in names:
+        for n in unit_names:
             if n in paragraphs:
                 continue
             text = next((a.paragraph for a in draft.areas if a.name == n), None) or ""
@@ -305,6 +323,14 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
                                   validator_errors=[e for _, es in units.values() for e in es]))
         checks = [(s, ids, with_glosses(s, data), label) for label, (text, errs) in units.items() if not errs
                   for s, ids, data in _summary_checks(text, finding_data, facts)]
+        if live is not None:
+            for label, (text, errs) in units.items():
+                if errs:
+                    live.removed(label[7:], "the validator")
+                elif text:
+                    live.text(label[7:], text)
+            for s, _, data, label in checks:
+                live.watch(label[7:], s, data)
         progress("client check", {"attempt": attempts, "calls": len(checks)})
         if hasattr(checker, "check_many"):
             outcomes = checker.check_many([(s, data) for s, _, data, _ in checks])
@@ -328,6 +354,8 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             name = label.split(":")[2] if kind != "summary" else None
             unit = "the summary" if name is None else f"the {name} {kind}"
             store, errs_of = {"paragraph": (paragraphs, para_errors), "when": (whens, when_errors)}.get(kind, (None, None))
+            if live is not None:
+                (live.removed(label[7:], "the checker") if why else live.accepted(label[7:]))
             if why:
                 failed[unit] = why
                 if name is None:
@@ -341,7 +369,8 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
                 errs_of.pop(name, None)
         if not failed:
             break
-        held = (["the summary"] if summary is not None else []) + [f"the {n} paragraph" for n in paragraphs] + \
+        held = (["the summary"] if summary is not None or not need_summary else []) + \
+            [f"the {n} paragraph" for n in paragraphs] + \
             [f"the {n} when" for n in whens]
         errors = [retry_instruction(held, failed)]
         assert errors[0].startswith(RETRY_HEAD)

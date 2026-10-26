@@ -229,7 +229,8 @@ function areaCard(a, notes, depth, pending) {
 // own lines (votes, chains, rules in the engine's wording), which need no checking.
 function pendingBlock(a) {
   const lines = (a.engine_lines || []).filter(Boolean);
-  return `<div class="pending" data-area="${esc(a.name)}"><p class="pending-mark muted">${esc(t("pending.area"))}</p>${lines.length
+  return `<div class="pending" data-area="${esc(a.name)}"><p class="pending-mark muted">${esc(t("pending.area"))}</p>
+    <div class="live-units" data-area="${esc(a.name)}" aria-live="polite"></div>${lines.length
     ? `<h3 class="small">${esc(t("pending.engine_lines"))}</h3><ul class="engine-lines">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</div>`;
 }
 
@@ -357,6 +358,7 @@ export function renderReading(r) {
   ${r.unchecked_sentences && String(r.narration_source || "").startsWith("fixture:") ? `<p class="notice">Offline replay: ${num(r.unchecked_sentences)} sentence(s) have no recorded checker verdict and were not semantically checked; the code validator ran on all of them.</p>` : ""}
   <section class="card summary" data-source="${esc(s.source || "model")}"><h2>Summary</h2>
     ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}
+    ${pending ? `<div class="live-units" data-area="summary" aria-live="polite"></div><p class="muted small">${esc(t("live.summary_engine"))}</p>` : ""}
     <p class="summary-text">${summaryText}</p>
     ${s.timing_line && s.source !== "engine" ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span>${s.timing_note ? `<span class="timing-note">${esc(s.timing_note)}</span>` : ""}</div>` : ""}
     ${s.timing_note && s.source === "engine" ? `<p class="timing-note">${esc(s.timing_note)}</p>` : ""}

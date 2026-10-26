@@ -353,3 +353,15 @@ blockquote.paragraph-quote { border-left: 3px solid var(--accent); padding: 4px 
   details > summary { list-style: none; }
   .card { break-inside: avoid-page; box-shadow: none; }
 }
+
+/* The live narration (2026-10-26): a sentence being verified is marked as such until the checker passes it. */
+.live-units:empty { display: none; }
+.live-unit { border-left: 2px solid var(--rule); padding: 2px 0 2px 10px; margin: 8px 0; }
+.live-unit.accepted { border-left-color: var(--accent, currentColor); }
+.live-kind { display: block; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-size: 11px; }
+.live-text { margin: 2px 0; }
+.live-sentence.verifying { color: var(--muted); }
+.live-state { font-size: 11px; border: 1px solid var(--rule); border-radius: 8px; padding: 0 5px; margin-left: 2px; white-space: nowrap; }
+.live-sentence.verifying .live-state { border-style: dashed; }
+.live-sentence.verified .live-state { color: var(--muted); }
+@media print { .live-units, .live-state { display: none; } }

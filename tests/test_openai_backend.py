@@ -410,3 +410,34 @@ def test_checker_effort_none_switches_reasoning_off_and_is_an_openai_setting_onl
     monkeypatch.setenv("JYOTISH_CHECKER_EFFORT", "lowest")
     with pytest.raises(ValueError, match="must be one of none, low, medium, high, xhigh, max"):
         checker_effort(OpenAIBackend(f"{server}/schema/v1", "m"))
+
+
+def test_each_fast_provider_is_sent_its_own_key_and_never_another(monkeypatch):
+    from jyotish.narrate import make_backend
+    monkeypatch.setenv("JYOTISH_OPENAI_KEY", "deepinfra-key")
+    monkeypatch.setenv("JYOTISH_CEREBRAS_KEY", "cerebras-key")
+    monkeypatch.setenv("JYOTISH_CHECKER_KEY", "")
+    monkeypatch.setenv("JYOTISH_WRITER_KEY", "")
+    monkeypatch.delenv("JYOTISH_GROQ_KEY", raising=False)
+    assert make_backend("openai:https://api.cerebras.ai/v1:gpt-oss-120b", "writer").api_key == "cerebras-key"
+    assert make_backend("openai:https://api.groq.com/openai/v1:openai/gpt-oss-120b", "writer").api_key is None
+    assert make_backend("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "checker").api_key == "deepinfra-key"
+
+
+def test_a_role_s_temperature_is_sent_and_recorded(server, monkeypatch):
+    from jyotish.narrate import make_backend
+    monkeypatch.setenv("JYOTISH_CHECKER_TEMPERATURE", "0")
+    b = make_backend(f"openai:{server}/schema/v1:stub-checker", "checker")
+    done = ask(b)
+    assert STUB.requests[-1][1]["temperature"] == 0.0 and done.meta["backend"]["temperature"] == 0.0
+    monkeypatch.setenv("JYOTISH_CHECKER_TEMPERATURE", "")
+    assert "temperature" not in (ask(make_backend(f"openai:{server}/schema/v1:stub-checker", "checker")) and STUB.requests[-1][1])
+
+
+def test_groq_is_never_asked_to_stream_structured_output():
+    from jyotish.narrate import OpenAIBackend, ReadingDraft
+    groq = OpenAIBackend("https://api.groq.com/openai/v1", "openai/gpt-oss-120b")
+    body = groq._body("s", [], ReadingDraft, "high", 64000, "json_schema", True)
+    assert "stream" not in body and body["response_format"]["type"] == "json_schema"
+    assert OpenAIBackend("https://api.cerebras.ai/v1", "gpt-oss-120b")._body("s", [], ReadingDraft, "high", 64000,
+                                                                             "json_schema", True)["stream"] is True

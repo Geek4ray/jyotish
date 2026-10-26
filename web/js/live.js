@@ -1,0 +1,114 @@
+// The live narration (2026-10-26): the reading's sentences as the writer drafts them and the checker
+// reads them. A sentence is shown "being verified" until the checker passes it, then "verified"; a unit
+// the validator or the checker refuses is removed, and the writer's replacement comes the same way.
+// Server-sent events (GET /readings/{id}/events), with polling by version number as the fallback
+// (GET /readings/{id}/live?since=N). Nothing here is the reading: when it is done the page is drawn
+// again from GET /readings/{id}, which holds only what passed.
+import { esc } from "./render.js";
+import { t } from "./strings.js";
+
+const TAG = /\s*\[(rule|text|vote|chain|fact|tradition):[^\]]*\]/g;
+const plain = (text) => text.replace(TAG, "").replace(/\s+([.,;])/g, "$1").trim();
+
+function kindLabel(unit) {
+  const [kind, , sec] = unit.split(":");
+  return t(kind === "analysis" ? `live.kind.${sec}` : `live.kind.${kind}`);
+}
+
+function container(root, unit) {
+  const area = unit === "summary" ? "summary" : unit.split(":")[1];
+  return root.querySelector(`.live-units[data-area="${CSS.escape(area)}"]`);
+}
+
+function unitEl(root, unit) {
+  const box = container(root, unit);
+  if (!box) return null;
+  let el = box.querySelector(`.live-unit[data-unit="${CSS.escape(unit)}"]`);
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "live-unit";
+    el.dataset.unit = unit;
+    el.innerHTML = `<span class="live-kind small">${esc(kindLabel(unit))}</span><p class="live-text"></p>`;
+    box.appendChild(el);
+  }
+  return el;
+}
+
+function sentenceHtml(i, text) {
+  return `<span class="live-sentence verifying" data-i="${i}">${esc(plain(text))} <span class="live-state">${esc(t("live.verifying"))}</span></span> `;
+}
+
+function verify(span) {
+  span.classList.replace("verifying", "verified");
+  span.querySelector(".live-state").textContent = t("live.verified");
+}
+
+export function applyEvent(root, e) {
+  if (e.type === "sentence") {
+    const el = unitEl(root, e.unit);
+    if (el) el.querySelector(".live-text").insertAdjacentHTML("beforeend", sentenceHtml(e.i, e.text));
+  } else if (e.type === "unit") {
+    const el = unitEl(root, e.unit);
+    if (el) el.querySelector(".live-text").innerHTML = e.sentences.map((s, i) => sentenceHtml(i, s)).join("");
+  } else if (e.type === "verified") {
+    const span = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"] .live-sentence[data-i="${e.i}"]`);
+    if (span) verify(span);
+  } else if (e.type === "accepted") {
+    const el = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"]`);
+    if (el) {
+      el.classList.add("accepted");
+      el.querySelectorAll(".live-sentence.verifying").forEach(verify);
+    }
+  } else if (e.type === "removed") {
+    const el = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"]`);
+    if (el) el.remove();
+  } else if (e.type === "area") {
+    const mark = root.querySelector(`.pending[data-area="${CSS.escape(e.area)}"] .pending-mark`);
+    if (mark) mark.textContent = t("live.area_done");
+  }
+}
+
+// Follow a reading's live view until it is done; `onDone(status)` then draws the stored reading.
+export function follow(id, root, onDone) {
+  let version = 0;
+  let finished = false;
+  const apply = (e) => {
+    if (finished || (e.seq && e.seq <= version)) return;
+    if (e.seq) version = e.seq;
+    root.dataset.live = String(version);
+    if (e.type === "done") {
+      finished = true;
+      onDone(e.status || "done");
+      return;
+    }
+    applyEvent(root, e);
+  };
+  const poll = async () => {
+    root.dataset.liveMode = "poll";
+    while (!finished) {
+      let body = null;
+      try {
+        const r = await fetch(`/readings/${encodeURIComponent(id)}/live?since=${version}`);
+        body = r.ok ? await r.json() : null;
+      } catch { body = null; }
+      if (!body) { finished = true; onDone("unknown"); return; }
+      body.events.forEach(apply);
+      if (body.done && !finished) { finished = true; onDone(body.status); return; }
+      await new Promise((res) => setTimeout(res, 1000));
+    }
+  };
+  if (!window.EventSource || new URLSearchParams(location.search).get("live") === "poll") return poll();
+  root.dataset.liveMode = "sse";
+  const es = new EventSource(`/readings/${encodeURIComponent(id)}/events?since=${version}`);
+  for (const type of ["sentence", "unit", "verified", "accepted", "removed", "area", "done"]) {
+    es.addEventListener(type, (m) => {
+      const e = JSON.parse(m.data);
+      if (e.type === "done") es.close();
+      apply(e);
+    });
+  }
+  es.onerror = () => {
+    // The browser reconnects by itself (Last-Event-ID); a stream that is closed for good falls back to polling.
+    if (!finished && es.readyState === EventSource.CLOSED) poll();
+  };
+}
