@@ -21,6 +21,7 @@ OPEN_PRICES = {
     ("api.deepinfra.com", "openai/gpt-oss-20b"): (0.03, 0.14, 0.03, 0.0),
     ("api.deepinfra.com", "zai-org/GLM-4.7"): (0.40, 1.75, 0.08, 0.0),
     ("api.deepinfra.com", "Qwen/Qwen3.6-35B-A3B"): (0.10, 0.95, 0.10, 0.0),
+    ("api.deepinfra.com", "zai-org/GLM-5.3-Flash"): (0.15, 0.50, 0.03, 0.0),     # read 2026-10-26, its model page
     # OpenRouter's list price per model (its default endpoint); a request may be routed to a cheaper or
     # dearer endpoint, and OpenRouter returns what it charged (usage.cost, kept as provider_cost_usd).
     ("openrouter.ai", "openai/gpt-oss-120b"): (0.15, 0.60, 0.075, 0.0),

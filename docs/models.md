@@ -176,6 +176,19 @@ not pass the rule. Without its reasoning GLM-4.7 lets through a negation, a wron
 lord, which is the gate's work. The gate stays GLM-4.7 at high; a checker effort is set for the service with
 JYOTISH_CHECKER_EFFORT (`none` only on an OpenAI-compatible backend).
 
+**A faster model: GLM-5.3-Flash** (2026-10-26, `docs/checker_scorecard_zai-org-glm-5.3-flash.md`). Five of
+DeepInfra's faster models were first probed on the benchmark's 32 hardest reject rows (the semantic
+categories reasoning-off GLM-4.7 failed) and 10 good sentences: GLM-5.3-Flash caught 32 of 32 with 1 false
+reject and the fewest tokens; DeepSeek-V4.1-Flash 31 (the quickest, 363 s), gpt-oss-120b 31 (4 false
+rejects), Qwen3.8-Flash 30, GLM-5.3 29. On the full benchmark, at effort high, GLM-5.3-Flash answered every
+check with no retry in 995 s against GLM-4.7's 2,467 s (2.5 times faster), 125,055 output tokens against
+603,884, USD 0.10 against 1.15 (USD 0.15 / 0.50 / 0.03 per million, its model page, read 2026-10-26), with
+recall 0.977 (84 of 86) and one false reject against GLM-4.7's ten. It missed one cites_too_narrowly row
+(b-arudha) and one judgement_premise row (kind-judgement-premise), each category 1 of 2 where the gate
+caught both: it does not pass the rule, and the gate stays GLM-4.7. Both rows were caught in the probe run
+minutes before: the checker samples (the backend sends no temperature), so a single benchmark run carries
+run-to-run noise for every checker, the gate's 86 of 86 included.
+
 ## (c) Anthropic, as before
 
 Leave the three variables unset (or set them to `anthropic`) and set `ANTHROPIC_API_KEY`. Claude Opus

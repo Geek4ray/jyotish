@@ -211,6 +211,8 @@ scorecard from its table); against it Qwen fails on three categories. The local 
 JYOTISH_CHECKER_EFFORT or CONFIG.checker_effort (`narrate.checker_effort`; `none`, reasoning off, only on an OpenAI-compatible
 backend; `checker_bench.py --checker-effort`). GLM-4.7 at low passes the rule but saves 9% of tokens; with reasoning off it
 is 7.9 times faster and fails the rule on eight categories (docs/spec_notes_2026-10-26.md): the gate stays GLM-4.7 at high.
+GLM-5.3-Flash (2.5 times faster, 11 times cheaper, one false reject) fails the rule on two categories by one row each: the
+gate stays GLM-4.7 at high.
 Layer 6b (SPEC): the chart display (`display.py`; `/charts/{id}/chart.svg`, `/tables.json`,
 `/chart.html`) and the review step (`review.py`; `/review/{id}`, reviewer tokens in JYOTISH_REVIEWERS,
 the `reviews` and `exclusions` tables) are done. The review page is the guided review: one step at a time,

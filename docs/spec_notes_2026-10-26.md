@@ -17,3 +17,17 @@ dasha_lord_changed, cites_too_narrowly, judgement_premise, unstated_claim, synth
 wrong_dignity) and does not pass the rule: the gate stays GLM-4.7 at high. With effort low already
 measured (passes, 9% fewer tokens, no faster), the reasoning GLM-4.7 does at high is what catches these
 errors; a faster gate needs another model, held to the same rule.
+
+## Layer 7 — a faster checker model: GLM-5.3-Flash (2026-10-26)
+
+Probed first on the benchmark's 32 hardest reject rows and 10 good sentences, five faster DeepInfra
+models: GLM-5.3-Flash 32 of 32 caught, 1 false reject, 54,282 output tokens; DeepSeek-V4.1-Flash 31 of
+32 (363 s, the quickest); gpt-oss-120b 31 (4 false rejects); Qwen3.8-Flash 30; GLM-5.3 29. GLM-5.3-Flash
+on the full benchmark (`docs/checker_scorecard_zai-org-glm-5.3-flash.md`, effort high, 8 at once, every
+check answered, no retry): 995 s against GLM-4.7's 2,467 s, 125,055 output tokens against 603,884, USD
+0.10 against 1.15 (its price, USD 0.15 / 0.50 / 0.03 per million, read 2026-10-26 from its model page, is
+in costs.OPEN_PRICES); recall 0.977 (84 of 86), precision 0.988 (one false reject against GLM-4.7's ten).
+It missed b-arudha (cites_too_narrowly) and kind-judgement-premise (judgement_premise), both caught in the
+probe minutes before: worse than the gate on those two categories, it does not pass the rule, and the gate
+stays GLM-4.7 at high. The two runs disagreeing on the same rows show that a checker's verdicts vary run
+to run (no temperature is sent); the rule compares single runs, which carry that noise on both sides.
