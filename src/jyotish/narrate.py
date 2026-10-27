@@ -2492,7 +2492,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             writer_model: str | None = None, writer_effort: str | None = None,
             client_drafter: Drafter | None = None, writer_backend: str | None = None,
             checker_backend: str | None = None, client_backend: str | None = None,
-            live=None, write_summary: bool = True, _collect: dict | None = None) -> Reading:
+            live=None, write_summary: bool = True, _collect: dict | None = None,
+            live_mode: bool | None = None, replay: dict | None = None) -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
@@ -2514,7 +2515,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     CONFIG.live and no drafter passed in (a model backend, not a replay), two or more areas are
     written in parallel (`_narrate_parallel`), each by this function on its one area with
     `write_summary` False, and the summary last; every unit is held once it passes at every depth.
-    `_collect` receives the calls' records (the parallel reading sums them)."""
+    `_collect` receives the calls' records (the parallel reading sums them). `replay` is a recording
+    made in live mode (recording_fixture: each unit's drafts): it drives the same per-area loop, each
+    area and the summary replaying their own drafts (review R5); `live_mode` forces the mode."""
     import time
     from .live import NoLive, SharedChecker
     started = time.perf_counter()
@@ -2526,12 +2529,20 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     routed, when = route(question, chart)
     areas = list(areas) if areas is not None else routed
     live = live or NoLive()
-    live_mode = config.live and drafter is None
+    if live_mode is None:
+        live_mode = replay is not None or (config.live and drafter is None)
     if live_mode and len(areas) > 1:
         return _narrate_parallel(chart, question, as_of=as_of, config=config, recording=recording, areas=areas,
                                  progress=progress, depth=depth, writer_model=writer_model, writer_effort=writer_effort,
                                  writer_backend=writer_backend, checker_backend=checker_backend,
-                                 client_backend=client_backend, checker=checker, live=live, started=started)
+                                 client_backend=client_backend, checker=checker, live=live, started=started,
+                                 replay=replay)
+    if live_mode and recording is not None and not isinstance(recording, _Scoped):
+        recording = _Scoped(recording, areas[0])          # a one-area live reading: its unit is the area
+    if replay is not None:                                # a live recording's unit replays its own drafts
+        drafter = drafter or FixtureDrafter({"drafts": replay.get("scoped_drafts", {}).get(areas[0], [])})
+        client_drafter = client_drafter or FixtureDrafter(
+            {"client_drafts": replay.get("scoped_client_drafts", {}).get(areas[0], [])}, key="client_drafts")
     system = system_prompt(depth)
     curious, full = depth == "curious", depth == "full"
     facts = None
@@ -3053,6 +3064,38 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
 
 # --- the live narration: the areas in parallel, the summary last (2026-10-26) --------------------
 
+class _Scoped:
+    """A recording whose every entry is tagged with the live narration's unit it belongs to (an area, or
+    "summary"), so a live recording can be replayed unit by unit (recording_fixture; review R5)."""
+
+    def __init__(self, base: list, scope: str):
+        self.base, self.scope = base, scope
+
+    def append(self, entry: dict) -> None:
+        self.base.append(dict(entry, scope=self.scope))
+
+    def __iadd__(self, entries):
+        for e in entries:
+            self.append(e)
+        return self
+
+
+def recording_fixture(calls: list[dict]) -> dict[str, Any]:
+    """A recording's replayable drafts: one list for a reading written in one call (`drafts`,
+    `client_drafts`); per unit for the live narration (`live`, `scoped_drafts`, `scoped_client_drafts`,
+    each keyed by area or "summary"), which service.make_reading replays through the same per-area loop."""
+    if not any(c.get("scope") for c in calls):
+        return {"drafts": [c["draft"] for c in calls if c.get("kind") == "writer" and c.get("draft")],
+                "client_drafts": [c["client_draft"] for c in calls if c.get("kind") == "client" and c.get("client_draft")]}
+    out: dict[str, Any] = {"live": True, "scoped_drafts": {}, "scoped_client_drafts": {}}
+    for c in calls:
+        if c.get("kind") == "writer" and c.get("draft"):
+            out["scoped_drafts"].setdefault(c["scope"], []).append(c["draft"])
+        elif c.get("kind") == "client" and c.get("client_draft"):
+            out["scoped_client_drafts"].setdefault(c["scope"], []).append(c["client_draft"])
+    return out
+
+
 class SummaryDraft(BaseModel):
     summary: str = Field(description="Two or three tagged sentences answering the question across the areas, "
                                      "from the claims that passed the checks; every sentence ends with its tags.")
@@ -3066,7 +3109,7 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
                    config: NarrationConfig, depth: str, wcfg: NarrationConfig, writer_backend: str | None,
                    client_backend: str | None, checker, live, recording: list | None,
                    progress: Callable[[str, dict], None], facts: dict | None,
-                   finding_data: dict[str, dict]) -> dict[str, Any]:
+                   finding_data: dict[str, dict], replay: dict | None = None) -> dict[str, Any]:
     """The summary, after every area: at depth full by the client's layer from every area's accepted
     text (client.write, want "summary"); else by one writer call of its own (SummaryDraft) over the
     reading's payload and the accepted claims, validated and checked like the summary always was, up
@@ -3084,7 +3127,10 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
         if not accepted:
             out["error"] = ("nothing passed the checks to write the summary from", 1)
             return out
-        layer = _client.write(default_client_drafter(wcfg, config, client_backend), checker, question=question,
+        client = (FixtureDrafter({"client_drafts": replay.get("scoped_client_drafts", {}).get("summary", [])},
+                                 key="client_drafts") if replay is not None
+                  else default_client_drafter(wcfg, config, client_backend))
+        layer = _client.write(client, checker, question=question,
                               as_of=as_of.isoformat(), accepted=accepted, finding_data=finding_data, facts=facts,
                               votes=votes, chains=chains, max_attempts=config.max_attempts, recording=recording,
                               progress=progress, live=live, want="summary")
@@ -3101,7 +3147,9 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
         for fam, tag in votes[name].items():
             all_votes.setdefault(fam, set()).add(tag)
     all_chains = {k: v for name in areas for k, v in chains[name].items()}
-    drafter = ModelDrafter(make_backend(writer_backend, "writer", wcfg, model=wcfg.model), wcfg, schema=SummaryDraft)
+    drafter = (FixtureDrafter({"drafts": replay.get("scoped_drafts", {}).get("summary", [])}, schema=SummaryDraft)
+               if replay is not None else
+               ModelDrafter(make_backend(writer_backend, "writer", wcfg, model=wcfg.model), wcfg, schema=SummaryDraft))
     errors: list[str] = []
     for attempt in range(1, config.max_attempts + 1):
         out["attempts"] = attempt
@@ -3120,7 +3168,7 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
                 if text.strip() else ["no summary: this call writes only the summary"])
         if recording is not None:
             recording.append(dict(drafter.last_meta or {"kind": "writer"}, attempt=attempt, summary_draft=text,
-                                  validator_errors=errs))
+                                  draft={"summary": text}, validator_errors=errs))
         if errs:
             live.removed("summary", "the validator")
             errors, out["error"] = errs, (errs[0], attempt)
@@ -3149,7 +3197,8 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
 def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: NarrationConfig, recording: list | None,
                       areas: list[str], progress: Callable[[str, dict], None], depth: str, writer_model: str | None,
                       writer_effort: str | None, writer_backend: str | None, checker_backend: str | None,
-                      client_backend: str | None, checker, live, started: float) -> "Reading":
+                      client_backend: str | None, checker, live, started: float,
+                      replay: dict | None = None) -> "Reading":
     """The live narration of two or more areas: each area by `narrate` on that area alone, in a thread
     of its own (its writer streamed, its units checked as written, held once passed, and at depth full
     its client's paragraph and when as soon as it is accepted), every area's checks on one pool of the
@@ -3165,11 +3214,12 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
     wcfg = writer_config(config, depth, writer_model, writer_effort)
     try:
         with ThreadPoolExecutor(max_workers=len(areas), thread_name_prefix="area") as pool:
-            futs = {name: pool.submit(narrate, chart, question, as_of=as_of, config=config, recording=recording,
+            futs = {name: pool.submit(narrate, chart, question, as_of=as_of, config=config,
+                                      recording=None if recording is None else _Scoped(recording, name),
                                       areas=[name], progress=progress, depth=depth, writer_model=writer_model,
                                       writer_effort=writer_effort, writer_backend=writer_backend,
                                       client_backend=client_backend, checker=shared, live=live,
-                                      write_summary=False, _collect=collect[name])
+                                      write_summary=False, _collect=collect[name], live_mode=True, replay=replay)
                     for name in areas}
             parts = [futs[name].result() for name in areas]
         facts = None
@@ -3179,7 +3229,8 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
         finding_data = {f["finding_id"]: f for name in areas for f in findings(chart, name, as_of)[0]}
         summ = _write_summary(chart, question, parts, areas=areas, as_of=as_of, config=config, depth=depth, wcfg=wcfg,
                               writer_backend=writer_backend, client_backend=client_backend, checker=shared, live=live,
-                              recording=recording, progress=progress, facts=facts, finding_data=finding_data)
+                              recording=None if recording is None else _Scoped(recording, "summary"), progress=progress,
+                              facts=facts, finding_data=finding_data, replay=replay)
     finally:
         shared.close()
     base = parts[0]

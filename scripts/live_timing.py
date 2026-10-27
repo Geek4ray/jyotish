@@ -80,9 +80,11 @@ def main(argv: list[str] | None = None) -> int:
     chart, _, _ = assess_birth(birth)
     concurrency = ModelChecker(make_backend(None, "checker", CONFIG), CONFIG).concurrency
     events: list[dict] = []
+    recording: list[dict] = []
     started = time.perf_counter()
     reading, page = make_reading(birth, QUESTION, chart=chart, as_of=args.as_of, depth=args.depth,
-                                 writer_effort=args.writer_effort, on_instant=lambda r, p: None, events=events.append)
+                                 writer_effort=args.writer_effort, on_instant=lambda r, p: None, events=events.append,
+                                 recording=recording)
     wall = round(time.perf_counter() - started, 1)
     doc = reading.model_dump(mode="json")
     cost = reading_cost(doc)
@@ -106,6 +108,13 @@ def main(argv: list[str] | None = None) -> int:
         out.mkdir(parents=True, exist_ok=True)
         (out / f"{args.label}.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
         (out / f"{args.label}.md").write_text(page)
+        # The recording, replayable offline unit by unit (service.make_reading's model_fixture); the models'
+        # reasoning is left out to keep it small.
+        from jyotish.narrate import recording_fixture
+        calls = [{k: v for k, v in c.items() if k != "thinking"} for c in recording]
+        (out / f"{args.label}.recording.json").write_text(json.dumps(
+            {"note": "Recorded by scripts/live_timing.py.", "question": QUESTION, **recording_fixture(calls), "calls": calls},
+            indent=1, ensure_ascii=False, default=str) + "\n")
         with ROWS.open("a") as f:
             f.write(json.dumps(row) + "\n")
     return 0

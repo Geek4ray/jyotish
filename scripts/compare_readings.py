@@ -42,6 +42,8 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import logging
+import os
 import sys
 import time
 from datetime import date
@@ -141,7 +143,10 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
             "writer_tokens": writer, "checker_tokens": checker,
             "cost_usd": None if wc is None or cc is None else round(wc + cc, 4),
             "writer_cost_usd": None if wc is None else round(wc, 4), "checker_cost_usd": None if cc is None else round(cc, 4),
-            "wall_seconds": wall_seconds}
+            "wall_seconds": wall_seconds,
+            # The live narration's timeline (2026-10-26): seconds from the start, as service.make_reading measured.
+            "timeline": (getattr(reading, "usage", None) or {}).get("timeline") or {},
+            "retries": (getattr(reading, "usage", None) or {}).get("retries")}
 
 
 def _sections(page: str) -> dict[str, str]:
@@ -174,7 +179,9 @@ def _where(m: dict, role: str) -> str:
 
 ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}{_where(m, 'writer')}, effort {m['writer'].get('effort')}, "
                              f"thinking {m['writer'].get('thinking') or 'not sent'}"),
-        ("Checker", lambda m: f"{m['checker'].get('model')}{_where(m, 'checker')}, effort {m['checker'].get('effort')}"),
+        ("Checker", lambda m: f"{m['checker'].get('model')}{_where(m, 'checker')}, effort {m['checker'].get('effort')}"
+                              + (f", temperature {t:g}" if (t := ((m.get('backends') or {}).get('checker') or {}).get('temperature'))
+                                 is not None else "")),
         ("Attempts", lambda m: m["attempts"]),
         ("Checked sentences shown", lambda m: m["sentences_checked_shown"]),
         ("Claims shown", lambda m: m["claims_shown"]),
@@ -198,7 +205,12 @@ ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}{_where(m, 'writer')}, 
                    f"({m['checker_tokens']['calls']})"),
         ("Cost, USD (writer + checker)", lambda m: "–" if m["cost_usd"] is None else
          f"{m['cost_usd']:.2f} ({m['writer_cost_usd']:.2f} + {m['checker_cost_usd']:.2f})"),
-        ("Narration wall time, s", lambda m: "–" if m["wall_seconds"] is None else f"{m['wall_seconds']:.1f}")]
+        ("Narration wall time, s", lambda m: "–" if m["wall_seconds"] is None else f"{m['wall_seconds']:.1f}"),
+        ("Seconds to the instant page / first sentence / first verified / first area / done",
+         lambda m: " / ".join("–" if m["timeline"].get(k) is None else f"{m['timeline'][k]:.1f}"
+                              for k in ("instant_s", "first_sentence_s", "first_verified_s", "first_area_s", "done_s"))),
+        ("Backend retries (host model: count)", lambda m: "; ".join(f"{k}: {v}" for k, v in (m["retries"] or {}).items())
+         or ("0" if m["retries"] is not None else "–"))]
 
 
 def per_attempt(recording: list) -> list[dict]:
@@ -282,11 +294,33 @@ def run(birth_data: dict, question: str, as_of: str, s: dict, replay: str | None
         return reading, page, rec.get("calls", []), rec.get("wall_seconds"), chart, chart_id, s
     recording = []
     t = time.perf_counter()
-    reading, page = make_reading(birth, question, chart=chart, as_of=as_of, depth=s["depth"],
-                                 writer_model=None if s.get("backend") else s["model"], writer_effort=s["effort"],
-                                 recording=recording, writer_backend=s.get("backend"), checker_backend=checker,
-                                 client_backend=client)
+    from jyotish import logs
+    retries = Retries()
+    logging.getLogger(logs.LOGGER).addHandler(retries)
+    try:
+        # The instant page and the live view as the service runs them, so the timeline is measured.
+        reading, page = make_reading(birth, question, chart=chart, as_of=as_of, depth=s["depth"],
+                                     writer_model=None if s.get("backend") else s["model"], writer_effort=s["effort"],
+                                     recording=recording, writer_backend=s.get("backend"), checker_backend=checker,
+                                     client_backend=client, on_instant=lambda r, p: None, events=lambda e: None)
+    finally:
+        logging.getLogger(logs.LOGGER).removeHandler(retries)
+    reading = reading.model_copy(update={"usage": dict(reading.usage, retries=retries.by)})
     return reading, page, recording, round(time.perf_counter() - t, 1), chart, chart_id, s
+
+
+class Retries(logging.Handler):
+    """Counts the backends' retries by host and model (the log has no key and no birth data)."""
+
+    def __init__(self):
+        super().__init__()
+        self.by: dict[str, int] = {}
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if record.getMessage() == "backend.retry":
+            f = getattr(record, "fields", {}) or {}
+            k = f"{f.get('host')} {f.get('model')}"
+            self.by[k] = self.by.get(k, 0) + 1
 
 
 def resumed(birth_data: dict, files: tuple[Path, Path], s: dict | None):
@@ -303,11 +337,10 @@ def resumed(birth_data: dict, files: tuple[Path, Path], s: dict | None):
 
 
 def save_recording(path: Path, question: str, s: dict, recording: list, wall: float | None) -> None:
+    from jyotish.narrate import recording_fixture
+    # A live reading's drafts are kept per unit (each area, the summary), so it replays through the same loop.
     path.write_text(json.dumps({"note": "Recorded by scripts/compare_readings.py.", "question": question, "settings": s,
-                                "wall_seconds": wall, "drafts": [c["draft"] for c in recording
-                                                                 if c.get("kind") == "writer" and c.get("draft")],
-                                "client_drafts": [c["client_draft"] for c in recording
-                                                  if c.get("kind") == "client" and c.get("client_draft")],
+                                "wall_seconds": wall, **recording_fixture(recording),
                                 "calls": recording}, indent=1, ensure_ascii=False, default=str) + "\n")
 
 
@@ -355,6 +388,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--checker-a", help="A's checker backend: anthropic or openai:<url>:<model> (default: the environment's)")
     ap.add_argument("--checker-b", help="B's checker backend (the same)")
     ap.add_argument("--client-backend", help="the client's layer's backend on both sides (default: the environment's)")
+    ap.add_argument("--checker-temperature-a", type=float, help="A's checker temperature (JYOTISH_CHECKER_TEMPERATURE)")
+    ap.add_argument("--checker-temperature-b", type=float, help="B's checker temperature")
     ap.add_argument("--resume", action="store_true",
                     help="a side whose reading and recording this script already wrote under --out is loaded, not run "
                          "again (an interrupted comparison picks up where it stopped)")
@@ -373,6 +408,8 @@ def main(argv: list[str] | None = None) -> int:
     side.mkdir(parents=True, exist_ok=True)
     results = {}
     for key, s, replay, chk in (("a", args.a, args.replay_a, args.checker_a), ("b", args.b, args.replay_b, args.checker_b)):
+        temp = getattr(args, f"checker_temperature_{key}")
+        os.environ["JYOTISH_CHECKER_TEMPERATURE"] = "" if temp is None else str(temp)
         done = side / f"{key}.reading.json", side / f"{key}.recording.json"
         if args.resume and not replay and all(x.exists() for x in done):
             # Written as each side finished: the comparison resumes after the last finished side.

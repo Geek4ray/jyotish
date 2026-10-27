@@ -441,3 +441,38 @@ def test_groq_is_never_asked_to_stream_structured_output():
     assert "stream" not in body and body["response_format"]["type"] == "json_schema"
     assert OpenAIBackend("https://api.cerebras.ai/v1", "gpt-oss-120b")._body("s", [], ReadingDraft, "high", 64000,
                                                                              "json_schema", True)["stream"] is True
+
+
+def test_a_streamed_reply_retried_in_json_mode_starts_its_text_again(server):
+    # Review R5: on a JSON-mode retry the streamed text restarts, and on_text is told so (None).
+    STUB.bad_json_first = True
+    seen = []
+    b = OpenAIBackend(f"{server}/jsonmode/v1", "stub-model", api_key="k")
+    done = b.structured(system="Check it.", messages=[{"role": "user", "content": "Sentence:\nMars [fact:x].\n\nData:\n{}"}],
+                        schema=CheckResult, kind="checker", effort="high", thinking=None, max_tokens=4000,
+                        on_text=seen.append)
+    assert done.parsed is not None and None in seen
+    after = "".join(x for x in seen[seen.index(None) + 1:] if x)
+    assert json.loads(after)["propositions"][0]["supported"] is True
+
+
+def test_the_anthropic_stream_hands_each_text_delta_to_on_text():
+    # Review R5: the Anthropic path of on_text, with a stand-in client.
+    from types import SimpleNamespace as NS
+    from jyotish.narrate import AnthropicBackend
+    final = NS(content=[], stop_reason="end_turn", usage=None, model="claude-opus-5-5", _request_id="r",
+               parsed_output=CheckResult(propositions=[]))
+    events = [NS(type="content_block_delta", delta=NS(type="text_delta", text=t)) for t in ('{"propo', 'sitions": []}')]
+    events.insert(1, NS(type="content_block_delta", delta=NS(type="thinking_delta", thinking="hmm")))
+
+    class Stream:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def __iter__(self): return iter(events)
+        def get_final_message(self): return final
+    client = NS(beta=NS(messages=NS(stream=lambda **k: Stream(), parse=None)))
+    seen = []
+    done = AnthropicBackend("claude-opus-5-5", client=client).structured(
+        system="s", messages=[{"role": "user", "content": "x"}], schema=CheckResult, kind="checker", effort="high",
+        thinking=None, max_tokens=4000, on_text=seen.append)
+    assert seen == ['{"propo', 'sitions": []}'] and done.parsed == CheckResult(propositions=[])

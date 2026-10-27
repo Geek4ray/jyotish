@@ -32,6 +32,7 @@ class Handler(BaseHTTPRequestHandler):
     claims: dict = {"career": AREA["career"]["claims"]}     # the other areas' from their votes (the chart fixture)
     delay = 0.0                                             # seconds between streamed pieces and before a verdict
     check_delay = None                                      # seconds before a verdict (default: 10 x delay)
+    answer = None                                           # (schema name, body, user messages) -> content, or None
 
     def log_message(self, *a):
         pass
@@ -41,7 +42,10 @@ class Handler(BaseHTTPRequestHandler):
         Handler.requests.append(body)
         name = body["response_format"]["json_schema"]["name"]
         users = [m["content"] for m in body["messages"] if m["role"] == "user"]
-        if name == "CheckResult":
+        own = Handler.answer(name, body, users) if Handler.answer else None
+        if own is not None:
+            content = own
+        elif name == "CheckResult":
             time.sleep(Handler.delay * 10 if Handler.check_delay is None else Handler.check_delay)
             sentence = users[0].split("\n")[1]
             ok = sentence != REFUSED
@@ -267,3 +271,100 @@ def test_a_tradition_sentence_is_never_marked_verified_and_a_judgement_is_marked
     assert marks == [None, "tradition", "judgement"]
     live.accepted("analysis:career:assessment")
     assert events[-1] == {"type": "accepted", "unit": "analysis:career:assessment", "verified": [0, 2]}
+
+
+def test_a_live_recording_replays_offline_through_the_same_per_area_loop(chart, backends, tmp_path):
+    # Review R5: a recording made in live mode keeps each unit's drafts and replays through the per-area
+    # loop, the summary from its own drafts; the replay accepts what the live run accepted.
+    from jyotish.narrate import recording_fixture
+    from jyotish.service import BirthInput, make_reading
+    birth = BirthInput(date="2001-03-12", time="10:10:25", tz="Asia/Kolkata", lat=REFERENCE_LAT, lon=REFERENCE_LON,
+                       node="mean", place="Rewari, Haryana")
+    recording = []
+    live, _ = make_reading(birth, "How will my career go?", chart=chart, as_of=AS_OF.isoformat(), recording=recording)
+    fixture = recording_fixture(recording)
+    areas = [a.name for a in live.areas]
+    assert fixture["live"] and set(fixture["scoped_drafts"]) == set(areas) | {"summary"}
+    assert len(fixture["scoped_drafts"]["career"]) >= 2                  # the refused claim's retry at least
+    assert fixture["scoped_drafts"]["summary"] == [{"summary": DRAFT["summary"]}]
+    path = tmp_path / "live.recording.json"
+    path.write_text(json.dumps({"question": "How will my career go?", **fixture, "calls": recording}, default=str))
+    Handler.requests.clear()
+    replayed, _ = make_reading(birth, "How will my career go?", chart=chart, as_of=AS_OF.isoformat(),
+                               model_fixture=str(path))
+    assert Handler.requests == []                                    # offline
+    assert replayed.usage["parallel_areas"] == len(areas) and replayed.summary.text == live.summary.text
+    texts = lambda r: {a.name: [c.text for c in a.claims] for a in r.areas}
+    assert texts(replayed) == texts(live)
+
+
+def test_curious_depth_streams_each_paragraph_and_holds_it(chart, backends):
+    # Review R5: curious, the form's default depth, in live mode: each area's paragraph is a unit of its
+    # own, shown, checked and accepted; the summary is the writer's own call.
+    from jyotish.narrate import engine_line, findings
+    votes = {n: [f for f in findings(chart, n, AS_OF)[0] if f["kind"] == "vote"][:2] for n in ("career", "marriage")}
+    para = {n: " ".join(engine_line(f, n)[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes[n]) for n in votes}
+
+    def answer(name, body, users):
+        if name in ("ReadingDraft",):
+            area = next(n for n in Handler.claims if f"{n}.house" in users[0])
+            return json.dumps({"summary": "", "areas": [{"name": area, "claims": Handler.claims[area][3:],
+                                                         "paragraph": para[area]}]})
+        return None
+    Handler.answer = answer
+    try:
+        events = []
+        r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"], depth="curious",
+                    live=Live(events.append))
+    finally:
+        Handler.answer = None
+    for n in ("career", "marriage"):
+        unit = [e["type"] for e in events if e.get("unit") == f"paragraph:{n}"]
+        assert unit[0] == "sentence" and unit[-1] == "accepted"
+        assert next(a for a in r.areas if a.name == n).paragraph == para[n]
+
+
+def test_depth_full_runs_the_clients_layer_per_area_and_the_summary_last(chart, backends, monkeypatch):
+    # Review R5: depth full in live mode: each area's analysis, then its client's paragraph and when as
+    # soon as it is accepted; the summary by the client's layer after every area; a tradition sentence
+    # never marked verified (R3).
+    import jyotish.narrate as n
+    monkeypatch.setenv("JYOTISH_ALLOW_LOCAL_FULL", "1")
+    monkeypatch.setattr(n, "default_client_drafter", n.client_drafter_for)       # the real client's layer
+    monkeypatch.setenv("JYOTISH_CLIENT_BACKEND", f"openai:{backends}:stub-client")
+    trad = "The texts associate the lord of the tenth with one's work [tradition:BPHS 24]."
+    analysis = {"assessment": "The 10th house from the lagna holds the Sun and Mercury [fact:houses.lagna.10]. " + trad,
+                "timing": "The running Vimshottari period is Jupiter-Mercury-Mercury [fact:vimshottari.current].",
+                "not_said_client": ["Which employer comes next is not decided here [fact:houses.lagna.10]."],
+                "not_said_astrologer": ["The learned score is not computed [fact:not_computed]."]}
+    para = "In plain words, the 10th house from the rising sign holds the Sun and Mercury [fact:houses.lagna.10]."
+    when = "In plain words, the running period is Jupiter-Mercury-Mercury [fact:vimshottari.current]."
+
+    def answer(name, body, users):
+        if name == "ClientDraft":
+            names = [x for x in ("career", "marriage") if f'"{x}"' in users[0]]
+            return json.dumps({"summary": para, "areas": [{"name": x, "paragraph": para, "when": when} for x in names]})
+        if name == "ReadingDraft":
+            area = next(x for x in ("career", "marriage") if f"{x}.house" in users[0])
+            claims = [c for c in Handler.claims[area] if c["finding_id"].startswith("vote:")] if area != "career" else \
+                [c for c in Handler.claims["career"] if c["finding_id"].startswith("vote:")]
+            return json.dumps({"summary": "", "areas": [{"name": area, "claims": claims, "analysis": analysis}]})
+        return None
+    Handler.answer = answer
+    try:
+        events = []
+        r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"], depth="full",
+                    live=Live(events.append))
+    finally:
+        Handler.answer = None
+    client_calls = [b for b in Handler.requests if b["response_format"]["json_schema"]["name"] == "ClientDraft"]
+    assert len(client_calls) >= 3                                    # one per area, then the summary
+    order = [e.get("unit") or e["type"] for e in events if e["type"] in ("accepted", "area")]
+    assert order.index("summary") > max(i for i, x in enumerate(order) if x in ("paragraph:career", "paragraph:marriage"))
+    assert r.summary.source == "model" and all(a.paragraph == para for a in r.areas)
+    tradition = [e for e in events if e["type"] == "sentence" and e.get("mark") == "tradition"]
+    assert tradition
+    for e in tradition:
+        accepted = [x for x in events if x["type"] == "accepted" and x["unit"] == e["unit"]]
+        assert all(e["i"] not in x["verified"] for x in accepted)
+

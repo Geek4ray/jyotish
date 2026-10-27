@@ -195,17 +195,22 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
         from .live import Live
         live = Live(events, t0=started)
     drafter = checker = client_drafter = None
+    replay = None
     if model_fixture:
         replayed = json.loads(Path(model_fixture).read_text())
-        drafter, checker = FixtureDrafter(replayed), FixtureChecker(replayed)
-        client_drafter = FixtureDrafter(replayed, key="client_drafts")     # depth full's client's layer
+        checker = FixtureChecker(replayed)
+        if replayed.get("live"):                 # a live recording: each unit replays its drafts through the per-area loop
+            replay = replayed
+        else:
+            drafter = FixtureDrafter(replayed)
+            client_drafter = FixtureDrafter(replayed, key="client_drafts")     # depth full's client's layer
         if live_checker:
             from .narrate import CONFIG, ModelChecker, make_backend
             checker = ModelChecker(make_backend(checker_backend, "checker", CONFIG), CONFIG)
     reading = narrate(chart, question, drafter=drafter, checker=checker, as_of=day, areas=areas, progress=progress,
                       depth=depth, writer_model=writer_model, writer_effort=writer_effort, recording=recording,
                       client_drafter=client_drafter, writer_backend=writer_backend, checker_backend=checker_backend,
-                      client_backend=client_backend, live=live)
+                      client_backend=client_backend, live=live, replay=replay)
     update: dict = {"chart": reading_header(birth, question, chart, as_of, model_fixture, depth, writer_model,
                                             writer_effort)}
     if model_fixture:
