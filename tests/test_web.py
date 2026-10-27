@@ -1052,8 +1052,11 @@ def live_url(tmp_path_factory):
 def test_the_site_shows_sentences_being_verified_verified_and_removed(page, live_url):
     url, cases = live_url
     page.add_init_script(LIVE_LOG)
+    gets = []
+    page.on("request", lambda r: gets.append(r.url) if "/readings/" in r.url and r.method == "GET" else None)
     submit_reference(page, url, question="How will my career go?")
     page.wait_for_selector("#reading[data-state=pending] .live-sentence.verifying", timeout=60_000)
+    following_from = len(gets)
     # Every sentence on the page that the checker has not passed carries the mark.
     marks = page.evaluate("[...document.querySelectorAll('.live-sentence.verifying')].every(s => s.querySelector('.live-state').textContent === 'being verified')")
     assert marks and page.locator("#reading").get_attribute("data-live-mode") == "sse"
@@ -1074,6 +1077,9 @@ def test_the_site_shows_sentences_being_verified_verified_and_removed(page, live
     text = page.inner_text("#reading")
     assert bare(cases.REPLACEMENT) in text and bare(cases.REFUSED) not in text
     assert page.locator(".live-state").count() == 0 and page.locator("#pending").count() == 0
+    # The whole reading is fetched to draw the instant page and the final one, not polled while followed (R7).
+    whole = [u for u in gets[following_from:] if u.rstrip("/").split("/")[-2] == "readings" and "?" not in u]
+    assert len(whole) <= 2, whole                       # the final reading (and at most one poll in flight)
 
 
 def test_the_site_follows_by_polling_when_asked(page, live_url):

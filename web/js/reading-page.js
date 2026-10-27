@@ -41,6 +41,7 @@ function wirePrint() {
 }
 
 let following = false;
+const polling = new AbortController();      // the progress poll, stopped once the live view is followed (review R7)
 
 function show(status) {
   // The instant page (2026-10-26): a running job with a reading shows it at once, narration pending, and
@@ -50,7 +51,10 @@ function show(status) {
     following = true;
     root.dataset.state = "pending";
     root.innerHTML = chartLink(status) + (screen === "timing" ? renderTiming(status.reading) : renderReading(status.reading));
-    if (screen !== "timing") follow(status.id, root, async () => show(await getReading(status.id)));
+    if (screen !== "timing") {
+      polling.abort();
+      follow(status.id, root, async () => show(await getReading(status.id)));
+    }
     return;
   }
   if (following && status.status !== "done" && status.status !== "failed") return;
@@ -68,7 +72,7 @@ function show(status) {
 
 const { id, src } = source();
 try {
-  if (id) await pollReading(id, show);
+  if (id) await pollReading(id, show, { signal: polling.signal }).catch((e) => { if (e.name !== "AbortError") throw e; });
   else if (src) show(await getStatic(src));
   else show({ status: "failed", progress: { log: [] }, error: { message: "No reading named: start from the home page." } });
 } catch (e) {

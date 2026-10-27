@@ -31,8 +31,10 @@ export async function getStatic(src) {
 export async function pollReading(id, onStatus, { interval = 1500, signal } = {}) {
   for (;;) {
     const status = await getReading(id);
+    if (signal?.aborted) throw new DOMException("aborted", "AbortError");   // aborted while the fetch was in flight
     onStatus(status);
     if (status.status === "done" || status.status === "failed") return status;
+    if (signal?.aborted) throw new DOMException("aborted", "AbortError");   // aborted by onStatus (the live view)
     await new Promise((res, rej) => {
       const t = setTimeout(res, interval);
       signal?.addEventListener("abort", () => { clearTimeout(t); rej(new DOMException("aborted", "AbortError")); });

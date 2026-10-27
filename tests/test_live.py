@@ -180,7 +180,7 @@ def test_every_shown_sentence_is_verified_or_removed_by_the_end(streamed):
     assert state and all(v in ("removed", "accepted") for v in state.values())
 
 
-def test_the_log_numbers_events_and_the_api_serves_them(tmp_path, backends):
+def test_the_log_numbers_events_and_the_api_serves_them(tmp_path, backends, chart):
     log = LiveLog()
     assert log.append("r1", {"type": "sentence"}) == 1 and log.append("r1", {"type": "done"}) == 2
     events, version, done = log.since("r1", 1)
@@ -388,3 +388,21 @@ def test_jyotish_live_0_writes_the_reading_in_one_call(chart, backends, monkeypa
     drafts = [b for b in Handler.requests if b["response_format"]["json_schema"]["name"] in ("ReadingDraft", "SummaryDraft")]
     assert "parallel_areas" not in r.usage and drafts and all(
         b["response_format"]["json_schema"]["name"] == "ReadingDraft" for b in drafts)
+
+
+def test_a_reading_takes_a_bounded_number_of_live_streams(tmp_path, backends, chart, monkeypatch):
+    # Review R7: each stream is a coroutine (no worker thread held), and one reading takes at most
+    # STREAMS_PER_READING at once.
+    import jyotish.api as api
+    from fastapi.testclient import TestClient
+    monkeypatch.setattr(api, "STREAMS_PER_READING", 0)
+    app = api.create_app(f"sqlite:///{tmp_path / 'cap.db'}")
+    body = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
+            "node": "mean", "place": "Rewari, Haryana", "question": "How will my career go?", "as_of": "2026-10-21",
+            "depth": "astrologer"}
+    with TestClient(app) as c:
+        rid = c.post("/readings", json=body).json()["id"]
+        r = c.get(f"/readings/{rid}/events")
+        assert r.status_code == 429 and r.headers["retry-after"] == "5"
+    import inspect
+    assert inspect.iscoroutinefunction(next(rt.endpoint for rt in app.routes if getattr(rt, "path", "") == "/readings/{reading_id}/events"))

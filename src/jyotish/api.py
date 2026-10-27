@@ -890,32 +890,60 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         return {"version": version, "events": events, "done": done or status in ("done", "failed"),
                 "status": status}
 
+    STREAMS: dict[str, int] = {}               # open live streams per reading (STREAMS_PER_READING at most)
+
     @app.get("/readings/{reading_id}/events")
-    def get_events(reading_id: str, request: Request, since: int = 0):
+    async def get_events(reading_id: str, request: Request, since: int = 0):
         """The live view as server-sent events: each event's `id` is its version (a reconnect sends
-        Last-Event-ID), its `event` its type; the stream ends after `done`. Comments keep it open."""
+        Last-Event-ID), its `event` its type; the stream ends after `done`. Comments keep it open. The
+        stream waits on the event loop, not on a worker thread (review R7), and a reading takes at most
+        STREAMS_PER_READING streams at once (429 beyond)."""
+        import asyncio
         import json as _json
+        from fastapi.concurrency import run_in_threadpool
         from fastapi.responses import StreamingResponse
-        live_row(reading_id, request)
+        await run_in_threadpool(live_row, reading_id, request)
+        if STREAMS.get(reading_id, 0) >= STREAMS_PER_READING:
+            raise HTTPException(status_code=429, detail="too many live views of this reading", headers={"Retry-After": "5"})
         start = int(request.headers.get("last-event-id") or since or 0)
 
-        def stream():
-            n = start
-            yield "retry: 2000\n\n"
-            while True:
-                events, n_now, done = LIVE.wait(reading_id, n, timeout=15)
-                for e in events:
-                    yield f"id: {e['seq']}\nevent: {e['type']}\ndata: {_json.dumps(e)}\n\n"
-                n = n_now
-                if done:
-                    return
-                if not events:
-                    with Session() as s:
-                        row = s.get(ReadingRow, reading_id)
-                        if row is None or (row.status in ("done", "failed") and not LIVE.known(reading_id)):
-                            yield f"event: done\ndata: {_json.dumps({'type': 'done', 'status': row.status if row else 'gone'})}\n\n"
-                            return
-                    yield ": waiting\n\n"
+        def finished_without_log() -> str | None:
+            with Session() as s:
+                row = s.get(ReadingRow, reading_id)
+                if row is None:
+                    return "gone"
+                return row.status if row.status in ("done", "failed") and not LIVE.known(reading_id) else None
+
+        async def stream():
+            STREAMS[reading_id] = STREAMS.get(reading_id, 0) + 1
+            try:
+                n, idle = start, 0.0
+                yield "retry: 2000\n\n"
+                while True:
+                    events, n_now, done = LIVE.since(reading_id, n)
+                    for e in events:
+                        yield f"id: {e['seq']}\nevent: {e['type']}\ndata: {_json.dumps(e)}\n\n"
+                    n = n_now
+                    if done:
+                        return
+                    if events:
+                        idle = 0.0
+                    else:
+                        await asyncio.sleep(0.25)
+                        idle += 0.25
+                        if idle >= 15:
+                            idle = 0.0
+                            status = await run_in_threadpool(finished_without_log)
+                            if status is not None:
+                                yield f"event: done\ndata: {_json.dumps({'type': 'done', 'status': status})}\n\n"
+                                return
+                            yield ": waiting\n\n"
+                    if await request.is_disconnected():
+                        return
+            finally:
+                STREAMS[reading_id] = STREAMS.get(reading_id, 1) - 1
+                if STREAMS[reading_id] <= 0:
+                    STREAMS.pop(reading_id, None)
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
@@ -925,6 +953,11 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     if web_dir is not None and Path(web_dir).is_dir():
         app.mount("/", StaticFiles(directory=web_dir, html=True), name="web")
     return app
+
+
+# Live views of one reading at once (review R7): each is a coroutine, not a worker thread, but a cap keeps one
+# client from opening hundreds.
+STREAMS_PER_READING = 8
 
 
 def _live_checker():
