@@ -2464,6 +2464,14 @@ def is_synthesis(sentence: str, finding_data: dict[str, dict], facts: dict | Non
     return facts is not None and not is_judgement(sentence) and len(ids) + len(_cited_facts(sentence, facts)) > 1
 
 
+def live_enabled(config: NarrationConfig = CONFIG) -> bool:
+    """The live narration on a model backend: CONFIG.live, unless JYOTISH_LIVE is 0 or false (the single
+    call per reading, for a comparison of the two; scripts/compare_readings.py --single-a/-b)."""
+    import os
+    env = os.environ.get("JYOTISH_LIVE", "").strip().lower()
+    return config.live if not env else env not in ("0", "false", "no", "off")
+
+
 # The live narration's writer call for one area (2026-10-26): the summary is written last.
 AREA_ONLY_NOTE = ("This call writes this one area only. Leave `summary` empty: the reading's summary is written "
                   "last, from the text of every area that passed the checks.")
@@ -2530,7 +2538,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     areas = list(areas) if areas is not None else routed
     live = live or NoLive()
     if live_mode is None:
-        live_mode = replay is not None or (config.live and drafter is None)
+        live_mode = replay is not None or (live_enabled(config) and drafter is None)
     if live_mode and len(areas) > 1:
         return _narrate_parallel(chart, question, as_of=as_of, config=config, recording=recording, areas=areas,
                                  progress=progress, depth=depth, writer_model=writer_model, writer_effort=writer_effort,
@@ -3101,8 +3109,10 @@ class SummaryDraft(BaseModel):
                                      "from the claims that passed the checks; every sentence ends with its tags.")
 
 
-SUMMARY_ONLY_NOTE = ("This call writes the reading's summary only, across the areas, from the claims above that "
-                     "passed the checks: two or three sentences, every one ending with the tags it rests on.")
+SUMMARY_ONLY_NOTE = ("This call writes the reading's summary only, across the areas above, from the claims that "
+                     "passed the checks (each area's tier is the engine's): two or three sentences answering the "
+                     "question, every one ending with the tags of the claims it rests on. Return the JSON object "
+                     "with `summary` only.")
 
 
 def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas: list[str], as_of: date,
@@ -3138,9 +3148,12 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
                    checker=layer["checker_metas"], attempts=layer["attempts"])
         return out
     curious = depth == "curious"
-    user, allowed = payload(chart, question, areas, depth, as_of, None)
-    claims = "\n".join(f"- {a.name}: {c.text}" for r in parts for a in r.areas for c in a.claims)
-    user += "\n\nThe claims that passed the checks, area by area:\n" + (claims or "(none)") + "\n\n" + SUMMARY_ONLY_NOTE
+    _, allowed = payload(chart, question, areas, depth, as_of, None)
+    # Only what the summary may draw on (review R6): the question, each area's tier and the claims that
+    # passed, each with its tags; not the whole payload again (about 50,000 tokens on the reference chart).
+    user = json.dumps({"question": question, "depth": depth,
+                       "areas": [{"name": a.name, "tier": a.tier, "claims": [c.text for c in a.claims]}
+                                 for r in parts for a in r.areas]}, indent=1) + "\n\n" + SUMMARY_ONLY_NOTE
     all_tags = set().union(*allowed.values()) if allowed else set()
     all_votes: dict[str, set[str]] = {}
     for name in areas:

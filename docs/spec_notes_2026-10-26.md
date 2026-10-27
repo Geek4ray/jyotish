@@ -88,7 +88,12 @@ A reading in a comparison has no live view (409), since its sentences would show
 
 **Timeline.** `usage.timeline` records `instant_s`, `first_sentence_s`, `first_verified_s`, `first_area_s` and `done_s`.
 
-**Cost of the split.** Parallel areas send each area its own payload, and the summary call sends the whole one. At astrologer depth on the reference chart, the three area messages are 14,700 to 19,200 tokens each and the summary's about 50,000, against 49,600 for the single call. So the input tokens roughly double, and the time falls to the slowest area's.
+**Cost of the split** (corrected after the review, R6). Each area is sent its own payload. Since the R6 commit, the summary's call is sent only the question, each area's tier and the claims that passed, not the whole payload. On the reference chart (2.87 characters a token) the area messages are:
+
+- astrologer depth: 14,700 to 19,200 tokens each, against 49,600 for the single call;
+- depth full: 168,000 to 171,000 each, against 195,300.
+
+So the writer's first-attempt input is about 1.1 times the single call's at astrologer depth and 2.6 times at depth full (three separate cache writes on Anthropic). The time is the slowest area's plus the summary's rounds, each its writer call and its checks, not the slowest area's alone.
 
 **Measured on DeepInfra** (`docs/models.md`, "Timing"; one live reading each, the reference chart at astrologer depth, gpt-oss-120b writing, GLM-4.7 at high checking):
 

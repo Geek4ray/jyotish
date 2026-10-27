@@ -146,7 +146,8 @@ def metrics(reading, recording: list, wall_seconds: float | None) -> dict:
             "wall_seconds": wall_seconds,
             # The live narration's timeline (2026-10-26): seconds from the start, as service.make_reading measured.
             "timeline": (getattr(reading, "usage", None) or {}).get("timeline") or {},
-            "retries": (getattr(reading, "usage", None) or {}).get("retries")}
+            "retries": (getattr(reading, "usage", None) or {}).get("retries"),
+            "parallel_areas": (getattr(reading, "usage", None) or {}).get("parallel_areas")}
 
 
 def _sections(page: str) -> dict[str, str]:
@@ -182,6 +183,8 @@ ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}{_where(m, 'writer')}, 
         ("Checker", lambda m: f"{m['checker'].get('model')}{_where(m, 'checker')}, effort {m['checker'].get('effort')}"
                               + (f", temperature {t:g}" if (t := ((m.get('backends') or {}).get('checker') or {}).get('temperature'))
                                  is not None else "")),
+        ("Narration", lambda m: f"live: {m['parallel_areas']} areas in parallel, the summary last"
+         if m.get("parallel_areas") else "one writer call per attempt"),
         ("Attempts", lambda m: m["attempts"]),
         ("Checked sentences shown", lambda m: m["sentences_checked_shown"]),
         ("Claims shown", lambda m: m["claims_shown"]),
@@ -390,6 +393,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--client-backend", help="the client's layer's backend on both sides (default: the environment's)")
     ap.add_argument("--checker-temperature-a", type=float, help="A's checker temperature (JYOTISH_CHECKER_TEMPERATURE)")
     ap.add_argument("--checker-temperature-b", type=float, help="B's checker temperature")
+    ap.add_argument("--single-a", action="store_true", help="A in one writer call per reading, not the live narration")
+    ap.add_argument("--single-b", action="store_true", help="the same for B")
     ap.add_argument("--resume", action="store_true",
                     help="a side whose reading and recording this script already wrote under --out is loaded, not run "
                          "again (an interrupted comparison picks up where it stopped)")
@@ -407,9 +412,15 @@ def main(argv: list[str] | None = None) -> int:
     side = out.with_suffix("")
     side.mkdir(parents=True, exist_ok=True)
     results = {}
+    env_temp = os.environ.get("JYOTISH_CHECKER_TEMPERATURE", "")
+    env_live = os.environ.get("JYOTISH_LIVE", "")
     for key, s, replay, chk in (("a", args.a, args.replay_a, args.checker_a), ("b", args.b, args.replay_b, args.checker_b)):
         temp = getattr(args, f"checker_temperature_{key}")
-        os.environ["JYOTISH_CHECKER_TEMPERATURE"] = "" if temp is None else str(temp)
+        if temp is not None:                    # an environment's temperature stands unless a side names one (R12)
+            os.environ["JYOTISH_CHECKER_TEMPERATURE"] = str(temp)
+        elif any(getattr(args, f"checker_temperature_{k}") is not None for k in "ab"):
+            os.environ["JYOTISH_CHECKER_TEMPERATURE"] = env_temp
+        os.environ["JYOTISH_LIVE"] = "0" if getattr(args, f"single_{key}") else env_live
         done = side / f"{key}.reading.json", side / f"{key}.recording.json"
         if args.resume and not replay and all(x.exists() for x in done):
             # Written as each side finished: the comparison resumes after the last finished side.

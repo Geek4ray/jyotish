@@ -368,3 +368,23 @@ def test_depth_full_runs_the_clients_layer_per_area_and_the_summary_last(chart, 
         accepted = [x for x in events if x["type"] == "accepted" and x["unit"] == e["unit"]]
         assert all(e["i"] not in x["verified"] for x in accepted)
 
+
+
+def test_the_summary_call_is_sent_the_accepted_claims_not_the_whole_payload(streamed):
+    # Review R6: the summary's call carried the reading's whole payload again (about 50,000 tokens).
+    r, _, _ = streamed
+    body = next(b for b in Handler.requests if b["response_format"]["json_schema"]["name"] == "SummaryDraft")
+    sent = json.loads(body["messages"][1]["content"].split("\n\nThis call")[0])
+    assert set(sent) == {"question", "depth", "areas"} and "findings" not in json.dumps(sent)
+    assert [a["claims"] for a in sent["areas"]] == [[c.text for c in a.claims] for a in r.areas]
+
+
+def test_jyotish_live_0_writes_the_reading_in_one_call(chart, backends, monkeypatch):
+    from jyotish.narrate import live_enabled
+    monkeypatch.setenv("JYOTISH_LIVE", "0")
+    assert not live_enabled()
+    Handler.requests.clear()
+    r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"])
+    drafts = [b for b in Handler.requests if b["response_format"]["json_schema"]["name"] in ("ReadingDraft", "SummaryDraft")]
+    assert "parallel_areas" not in r.usage and drafts and all(
+        b["response_format"]["json_schema"]["name"] == "ReadingDraft" for b in drafts)
