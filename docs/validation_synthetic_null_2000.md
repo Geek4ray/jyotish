@@ -1,13 +1,13 @@
 # Synthetic — Validation — null, N = 2,000, odds ratio 1.0 per SD
 
-Run 2026-10-24 by `scripts/validate.py` on a synthetic cohort: these numbers prove the pipeline, not the engine. 2000 subjects: 1520 development, 480 sequestered (scored in this run); 5 grouped folds, 0 groups straddling a fold. The split assigns by household: 0 households straddle it. The registry is not used for a synthetic cohort.
+Run 2026-10-27 by `scripts/validate.py` on a synthetic cohort: these numbers prove the pipeline, not the engine. 2000 subjects: 1520 development, 480 sequestered (scored in this run); 5 grouped folds, 0 groups straddling a fold. The split assigns by household: 0 households straddle it. The registry is not used for a synthetic cohort.
 
 ## Synthetic — Pre-registration hashes (test 10)
 
 - rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `4b551c99e2a9de896fcbcdf761dc91ea8a976d648b3f9e2226dbc3c0de3301b6`
 - (the analysis code is validate.py with jyotish.cohort, jyotish.outcomes and the outcome map; the lift interval resamples households)
-- split definition `24e309d53eadd300287848772c4c050ba6175691ce87663025d41b1448256421` ({"salt_sha256": "19287501b03b53760b7a0eac16e4af0438c9bde072eec135d455423dcaaa3cb9", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "df8c899b1caaf3dcc18dfd45a6db1e1f18f06998248a153e37d5232908b0ee87"})
+- split definition `96b561fd5dad88449bd72f8f43d84a7288e60eaf37de3526f3a5c5db1117d256` ({"salt_sha256": "19287501b03b53760b7a0eac16e4af0438c9bde072eec135d455423dcaaa3cb9", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "1efdb26c9445c5cc7a1cebc40c003c6948f523a72fb5bd4838fd768a7d73bc78"})
 - analysis code `4e9b3936a8ab40ebcf5679000b7f9a759cde1a881180d1058bdb21269fd7599d`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)
@@ -53,7 +53,7 @@ Positive prediction: tier strong or moderate. n is the predicted charts with the
 
 ## Synthetic — Timing as a discrete-time hazard (test 4)
 
-Activation: the year mostly inside one of the engine's own windows, the timing join's pieces over the life to 2026-10-24, the best third of the life by joint (so a third of the person-years are active for everyone). Rate ratio: Mantel-Haenszel over 5-year age bins; p against coverage-matched random windows.
+Activation: the year mostly inside one of the engine's own windows, the timing join's pieces over the life to 2026-10-27, the best third of the life by joint (so a third of the person-years are active for everyone). Rate ratio: Mantel-Haenszel over 5-year age bins; p against coverage-matched random windows.
 
 | area | n | coverage | person-years | events | active share | rate ratio | p (random windows) | log-odds (95% CI) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
