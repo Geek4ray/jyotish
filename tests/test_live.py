@@ -406,3 +406,49 @@ def test_a_reading_takes_a_bounded_number_of_live_streams(tmp_path, backends, ch
         assert r.status_code == 429 and r.headers["retry-after"] == "5"
     import inspect
     assert inspect.iscoroutinefunction(next(rt.endpoint for rt in app.routes if getattr(rt, "path", "") == "/readings/{reading_id}/events"))
+
+
+def test_the_live_view_bookkeeping_review_r8():
+    from jyotish.live import SharedChecker
+    from jyotish.narrate import CheckResult, Proposition
+    events = []
+    live = Live(events.append)
+    # A stream that starts again withdraws what it showed; the same text may then be shown again.
+    feed = live.draft_stream(lambda u: False)
+    text = json.dumps({"summary": "One [vote:a]. Two [vote:b]."})
+    feed(text[:30])
+    feed(None)
+    assert events[-1] == {"type": "removed", "unit": "summary", "why": "the stream started again"}
+    feed(text)
+    assert [e["type"] for e in events[-2:]] == ["sentence", "sentence"]
+    # A unit the loop never decided on is swept after the attempt.
+    live.stream("claim:career:unknown", "A claim for no finding [rule:x].", True)
+    live.sweep(("claim:career:",))
+    assert events[-1]["type"] == "removed" and events[-1]["unit"] == "claim:career:unknown"
+    # A verdict matches its sentence exactly, not as a substring.
+    live.stream("paragraph:career", "Ketu decides [vote:career.kp].", True)
+    from concurrent.futures import Future
+    late = Future()
+    late.set_result((CheckResult(propositions=[Proposition(text="x", supported=False, evidence="no")]), None))
+    live._verdict("paragraph:career", "As the KP vote shows, Ketu decides [vote:career.kp].", late)
+    assert events[-1]["type"] == "sentence"
+    # Checks are keyed per area; every run is kept, and one no loop consumed is reported as unused.
+    calls = []
+    shared = SharedChecker(lambda s, d: calls.append(s) or CheckResult(propositions=[]), 2)
+    a, _ = shared.submit("Same sentence.", "{}", owner="career")
+    b, _ = shared.submit("Same sentence.", "{}", owner="marriage")
+    assert a is not b
+    shared.check_many([("Same sentence.", "{}")], owners=["career"])
+    b.result()
+    assert len(shared.runs) == 2 and [r[3] for r in shared.unused()] == ["marriage"]
+    shared.close()
+
+
+def test_a_running_readings_log_is_never_evicted():
+    log = LiveLog(keep=1)
+    log.append("running", {"type": "sentence"})
+    log.append("finished", {"type": "done"})
+    log.append("another", {"type": "sentence"})
+    assert log.known("running") and not log.known("finished")
+    events, version, _ = log.since("running", 0)
+    assert version == 1 and log.append("running", {"type": "verified"}) == 2

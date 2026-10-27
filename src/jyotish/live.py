@@ -251,6 +251,23 @@ class Live:
             self.removed_as[unit] = list(self.shown.get(unit, []))
             self.emit({"type": "removed", "unit": unit, "why": why})
 
+    def withdraw(self, unit: str, why: str) -> None:
+        """A unit's text taken back without a verdict (its stream restarted, or the loop never decided on
+        it): removed from the page and forgotten, so the same text may be shown again (review R8)."""
+        with self.lock:
+            if self.state.get(unit) != "verifying":
+                return
+            self.emit({"type": "removed", "unit": unit, "why": why})
+            for d in (self.shown, self.state, self.verified, self.removed_as):
+                d.pop(unit, None)
+
+    def sweep(self, prefixes: tuple[str, ...], why: str = "not in the writer's draft") -> None:
+        """After an attempt's decisions: every unit of these prefixes still being verified was never decided
+        on (an unknown finding id, a unit missing from the parsed draft); it is withdrawn (review R8)."""
+        with self.lock:
+            for unit in [u for u, st in self.state.items() if st == "verifying" and u.startswith(prefixes)]:
+                self.withdraw(unit, why)
+
     def accepted(self, unit: str) -> None:
         with self.lock:
             if self.state.get(unit) == "accepted":
@@ -304,18 +321,26 @@ class Live:
             if listed:                              # a list section: its items so far, one text
                 got = items.setdefault((path[1], path[3]), {})
                 got[path[4]] = value
-                self.stream(unit, " ".join(got[k].strip() for k in sorted(got) if got[k].strip()), False)
+                feed.stream(unit, " ".join(got[k].strip() for k in sorted(got) if got[k].strip()), False)
                 return
-            self.stream(unit, value, done)
+            feed.stream(unit, value, done)
             if done and on_done is not None:
                 on_done(unit, value)
 
         reader = JsonStrings(on_string)
+        seen: set[str] = set()                      # the units this stream showed
+
+        def stream_seen(unit: str, text: str, done: bool) -> None:
+            seen.add(unit)
+            self.stream(unit, text, done)
 
         def feed(piece: str | None) -> None:
-            if piece is None:
-                names.clear(), fids.clear(), items.clear()
+            if piece is None:                       # the stream starts again: what it showed is withdrawn (R8)
+                for unit in list(seen):
+                    self.withdraw(unit, "the stream started again")
+                seen.clear(), names.clear(), fids.clear(), items.clear()
             reader.feed(piece)
+        feed.stream = stream_seen
         return feed
 
     def area_done(self, area: str, gaps: list[str]) -> None:
@@ -326,7 +351,7 @@ class Live:
         """Start (or find) the check of one sentence of a unit; its verdict is shown when it comes."""
         if self.checker is None:
             return None
-        fut, new = self.checker.submit(sentence, data)
+        fut, new = self.checker.submit(sentence, data, owner=unit_area(unit))
         if new or (unit, sentence) not in getattr(fut, "_watched", set()):
             watched = getattr(fut, "_watched", set())
             watched.add((unit, sentence))
@@ -346,8 +371,8 @@ class Live:
             # The verdict is for the text it was asked about: a late one for a text since replaced is dropped.
             if unit_kind(unit) == "claim":            # a claim is checked whole
                 idx = list(range(len(shown))) if shown and all(x in sentence for x in shown) else []
-            else:
-                idx = [i for i, x in enumerate(shown) if x == sentence or sentence.startswith(x) or x in sentence]
+            else:                                    # the sentence checked, exactly (review R8)
+                idx = [i for i, x in enumerate(shown) if x == sentence]
             if not idx:
                 return
             if all(p.supported for p in result.propositions):
@@ -381,35 +406,50 @@ class SharedChecker:
         self.inner = inner
         self.concurrency = max(1, concurrency)
         self.pool = ThreadPoolExecutor(max_workers=self.concurrency, thread_name_prefix="check")
-        self.futures: dict[tuple[str, str], Future] = {}
+        self.futures: dict[tuple, Future] = {}
         self.lock = threading.Lock()
+        self.runs: list[tuple[str, Any, Any, str | None]] = []    # every check asked: (sentence, result, meta, owner)
+        self.used: set[int] = set()                               # ids of the runs a loop consumed
         self.last_meta = None
         for attr in ("model", "effort", "backend", "config"):
             if hasattr(inner, attr):
                 setattr(self, attr, getattr(inner, attr))
 
-    def _one(self, sentence: str, data: str):
+    def _one(self, sentence: str, data: str, owner: str | None):
         ask = getattr(self.inner, "ask_one", None)
-        if ask is not None:
-            return ask(sentence, data)
-        return self.inner(sentence, data), getattr(self.inner, "last_meta", None)
-
-    def submit(self, sentence: str, data: str) -> tuple[Future, bool]:
+        result, meta = ask(sentence, data) if ask is not None else (self.inner(sentence, data),
+                                                                  getattr(self.inner, "last_meta", None))
         with self.lock:
-            key = (sentence, data)
+            self.runs.append((sentence, result, meta, owner))
+        return result, meta
+
+    def submit(self, sentence: str, data: str, owner: str | None = None) -> tuple[Future, bool]:
+        """The check of (sentence, data) for `owner` (an area; checks are not shared across areas, so what
+        the stream shows is the verdict that area's loop decides on)."""
+        with self.lock:
+            key = (owner, sentence, data)
             fut = self.futures.get(key)
             if fut is not None:
                 return fut, False
-            fut = self.futures[key] = self.pool.submit(self._one, sentence, data)
+            fut = self.futures[key] = self.pool.submit(self._one, sentence, data, owner)
             return fut, True
 
-    def check_many(self, items: list[tuple[str, str]]):
-        futs = [self.submit(s, d)[0] for s, d in items]
+    def check_many(self, items: list[tuple[str, str]], owners: list[str | None] | None = None):
+        """The loop's checks, each for its unit's area (`owners`, as Live.watch keys them)."""
+        owners = owners or [None] * len(items)
+        futs = [self.submit(s, d, o)[0] for (s, d), o in zip(items, owners)]
         out = [f.result() for f in futs]
         with self.lock:                     # a verdict is used once: a sentence sent again is checked again
-            for s, d in items:
-                self.futures.pop((s, d), None)
+            for (s, d), o in zip(items, owners):
+                self.futures.pop((o, s, d), None)
+            self.used.update(id(result) for result, _ in out)
         return out
+
+    def unused(self) -> list[tuple[str, Any, Any, str | None]]:
+        """Checks that ran and that no loop consumed (an early check of a unit the loop then dropped): real
+        calls, counted in the reading's usage and kept in the recording (review R8)."""
+        with self.lock:
+            return [r for r in self.runs if id(r[1]) not in self.used]
 
     def __call__(self, sentence: str, data: str):
         result, self.last_meta = self.check_many([(sentence, data)])[0]
@@ -436,8 +476,10 @@ class LiveLog:
         with self.cond:
             log = self.logs.setdefault(reading_id, [])
             log.append(dict(event, seq=len(log) + 1))
-            while len(self.logs) > self.keep:
-                self.logs.pop(next(iter(self.logs)))
+            # Only a finished reading's log is evicted; a running one keeps its numbering (review R8).
+            finished = [k for k, v in self.logs.items() if v and v[-1]["type"] == "done" and k != reading_id]
+            while len(self.logs) > self.keep and finished:
+                self.logs.pop(finished.pop(0))
             self.cond.notify_all()
             return len(log)
 

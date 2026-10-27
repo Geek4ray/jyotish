@@ -2605,6 +2605,10 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     if isinstance(getattr(drafter, "config", None), NarrationConfig):
         wcfg = drafter.config
     effort_now, efforts, stepped = wcfg.effort, [], []
+    # This call's units in the live view: its areas' claims, paragraphs and sections, and the summary when it
+    # writes one (a per-area call never sweeps another area's units).
+    live_prefixes = tuple(f"{k}:{n}:" for n in areas for k in ("claim", "analysis")) + \
+        tuple(f"paragraph:{n}" for n in areas) + (("summary",) if write_summary and not full else ())
 
     def v_claim(name: str, fid: str, text: str) -> list[str]:
         return validate(text, allowed[fid], offered_votes=votes_offered[name], family_rule=not curious,
@@ -2688,6 +2692,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 recording.append(dict(getattr(drafter, "last_meta", None) or {"kind": "writer"}, attempt=attempts,
                                       draft=None, validator_errors=[], writer_error=errors))
             summary_error = (errors[0], attempts)
+            live.sweep(live_prefixes, "the writer's call failed")
             for name in areas:
                 para_error[name] = (errors[0], attempts)
                 for sec in ANALYSIS_SECTIONS:
@@ -2812,7 +2817,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             live.watch(_live_unit(label, name), sentence, data)
         # The checks of one attempt are independent: a checker with `check_many` runs them
         # concurrently (AnthropicChecker); any other checker is called one by one.
-        if hasattr(checker, "check_many"):
+        if isinstance(checker, SharedChecker):          # each check for its unit's area, as the stream keyed it
+            from .live import unit_area
+            outcomes = checker.check_many([(sentence, data) for sentence, _, data, _, _ in checks],
+                                          owners=[unit_area(_live_unit(label, name)) for _, _, _, label, name in checks])
+        elif hasattr(checker, "check_many"):
             outcomes = checker.check_many([(sentence, data) for sentence, _, data, _, _ in checks])
         else:
             outcomes = [(checker(sentence, data), getattr(checker, "last_meta", None))
@@ -2872,6 +2881,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             else:
                 kept_summary = draft.summary
                 live.accepted("summary")
+        live.sweep(live_prefixes)                     # a unit shown but never decided on is withdrawn (review R8)
         if not errors:
             clean = True
             break
@@ -3040,6 +3050,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     cited_texts = shown + [t for a in reading_areas for t in (a.paragraph, a.when) if t]
     synthesis = sum(1 for t in shown for x in sentences(t) if is_synthesis(x, finding_data, facts))
     if own_pool:
+        # Every check the pool ran is a call: one the loop never consumed is counted and recorded too (R8).
+        checker_metas = [m for _, _, m, _ in checker.runs]
+        _record_unused(checker, recording)
         checker.close()
     if _collect is not None:
         _collect.update(writer=writer_metas, checker=checker_metas, client=client_metas,
@@ -3086,6 +3099,16 @@ class _Scoped:
         for e in entries:
             self.append(e)
         return self
+
+
+def _record_unused(shared, recording: list | None) -> None:
+    """The checks a SharedChecker ran that no loop consumed, in the recording as `checker_unused` (a replay's
+    FixtureChecker reads only the checks a loop decided on)."""
+    if recording is None:
+        return
+    for sentence, result, meta, owner in shared.unused():
+        recording.append(dict(meta or {}, kind="checker_unused", sentence=sentence, scope=owner or "summary",
+                              result=result.model_dump() if hasattr(result, "model_dump") else result))
 
 
 def recording_fixture(calls: list[dict]) -> dict[str, Any]:
@@ -3258,7 +3281,9 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
         "timing_line": when_line, "source": source, "text": text, "cites": [f"{k}:{v}" for k, v in TAG.findall(text)],
         "timing_note": timing_note([a.name for a in reading_areas if a.windows]) if when_line else None})
     metas = lambda role: [m for name in areas for m in collect[name].get(role, [])]
-    writer_metas, checker_metas = metas("writer") + summ["writer"], metas("checker") + summ["checker"]
+    # Every check the pool ran, the ones no loop consumed included (review R8).
+    writer_metas, checker_metas = metas("writer") + summ["writer"], [m for _, _, m, _ in shared.runs]
+    _record_unused(shared, recording)
     client_metas = metas("client") + summ["client"]
     full = depth == "full"
     usage = {"writer": _usage(writer_metas), "checker": _usage(checker_metas),

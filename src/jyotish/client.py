@@ -332,7 +332,11 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             for s, _, data, label in checks:
                 live.watch(label[7:], s, data)
         progress("client check", {"attempt": attempts, "calls": len(checks)})
-        if hasattr(checker, "check_many"):
+        from .live import SharedChecker, unit_area
+        if isinstance(checker, SharedChecker):          # each check for its unit's area, as the stream keyed it
+            outcomes = checker.check_many([(s, data) for s, _, data, _ in checks],
+                                          owners=[unit_area(label[7:]) for _, _, _, label in checks])
+        elif hasattr(checker, "check_many"):
             outcomes = checker.check_many([(s, data) for s, _, data, _ in checks])
         else:
             outcomes = [(checker(s, data), getattr(checker, "last_meta", None)) for s, _, data, _ in checks]
@@ -367,6 +371,9 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             else:
                 store[name] = text
                 errs_of.pop(name, None)
+        if live is not None:                           # a unit shown but never decided on is withdrawn (review R8)
+            live.sweep(tuple(f"paragraph:{n}" for n in unit_names) + tuple(f"when:{n}" for n in timed)
+                       + (("summary",) if need_summary else ()))
         if not failed:
             break
         held = (["the summary"] if summary is not None or not need_summary else []) + \
