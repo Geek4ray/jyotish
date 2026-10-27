@@ -482,3 +482,12 @@ def test_the_anthropic_stream_hands_each_text_delta_to_on_text():
         system="s", messages=[{"role": "user", "content": "x"}], schema=CheckResult, kind="checker", effort="high",
         thinking=None, max_tokens=4000, on_text=seen.append)
     assert seen == ['{"propo', 'sitions": []}'] and done.parsed == CheckResult(propositions=[])
+
+
+def test_the_fast_providers_are_priced_from_their_own_pages():
+    from jyotish.costs import PRICE_SOURCES, cost, price
+    assert price("gpt-oss-120b", "api.cerebras.ai") == (0.35, 0.75, 0.35, 0.0)
+    assert price("openai/gpt-oss-120b", "api.groq.com") == (0.15, 0.60, 0.075, 0.0)
+    assert PRICE_SOURCES["api.cerebras.ai"]["read_on"] == PRICE_SOURCES["api.groq.com"]["read_on"] == "2026-10-26"
+    t = {"input_tokens": 1_000_000, "output_tokens": 1_000_000, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0}
+    assert cost("gpt-oss-120b", t, "api.cerebras.ai") == pytest.approx(1.10)

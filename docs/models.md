@@ -316,6 +316,14 @@ the rule (its scorecard's last section); it is cheaper and faster, and stays a c
 shows recall not worse than Opus's on every category, client readings keep the Opus checker (the rule
 above).
 
+**GLM-5.3-Flash at temperature 0** (2026-10-26, `docs/checker_scorecard_zai-org-glm-5.3-flash_temp-0.md`).
+
+- **Why temperature 0.** The run above missed two rows that the probe minutes earlier had caught: the backend sent no temperature, so the checker sampled. With `JYOTISH_CHECKER_TEMPERATURE=0` it is asked for its most likely verdict.
+- **Recall: 1.000 (86 of 86).** It is not worse than GLM-4.7 on any category, so **it passes the rule** and may gate client readings.
+- **False rejects: 3, against GLM-4.7's 10.** Two vote sentences and the untagged framing row.
+- **Cost: USD 0.10, against 1.15.** It wrote 123,126 output tokens against 603,884.
+- **Time: 4,176 s for this run, 995 s for the run above.** The token count is the same in both, and three retries are logged, so the difference is DeepInfra's load that day, not the model.
+
 ## Timing: the instant page and the live narration
 
 Each row below is one live reading of the reference chart: astrologer depth, the career question, as of
@@ -339,6 +347,28 @@ What the rows say:
 - **The hosted default is now 8** (`OpenAIBackend.concurrency`). Set `JYOTISH_CHECKER_CONCURRENCY=16` where a run shows the provider takes it.
 - **Gaps.** The gaps are placement claims that joined two placements in one sentence (refused by the validator three times) and two longevity votes the checker refused. The single-call reading on 2026-10-25 had none: one run each, so this is not yet a measured difference.
 - **Cost.** The per-area split roughly doubles the writer's input tokens (each area's message, plus the whole one for the summary), which is about USD 0.01 at gpt-oss-120b's price on DeepInfra.
+
+**The fastest writer under the two checkers** (2026-10-27, `docs/comparison_2026-10-27_checkers.md`).
+
+**Which writer.** Cerebras and Groq were not timed:
+
+- Cerebras asks for payment before its key serves, and that money was not spent.
+- Groq's base limit of 8k tokens a minute is below one area's message.
+
+So the fastest writer available is gpt-oss-120b on DeepInfra, run in the live narration at effort medium, checker concurrency 8.
+
+| | GLM-5.3-Flash, temperature 0 | GLM-4.7 (the gate in use) |
+| --- | --- | --- |
+| Instant page / first sentence / first verified / first area / done | 2.9 / 31.7 / 35.2 / 74.3 / 308.7 s | 0.9 / 29.7 / 81.3 / 733.1 / 1,255.7 s |
+| Claims of 37, gaps | 35, 2 | 32, 5 |
+| Summary | the engine's | the engine's |
+| Checker calls, output tokens | 43, 31,644 | 41, 168,162 |
+| Cost, USD (writer + checker) | 0.04 (0.01 + 0.03) | 0.33 (0.01 + 0.32) |
+
+- **Speed and cost.** Under GLM-5.3-Flash at temperature 0, the reading is done in about five minutes against twenty, for a ninth of the cost.
+- **The rule.** It passes the rule against the gate on the full benchmark.
+- **The gaps.** Four of the gaps in these runs were the validator's, not the writer's: a lordship stated as "rules the 2nd". The validator takes that wording since 0937ff8.
+- **The other instant page.** The instant page's 0.9 s on the GLM-4.7 side is the second reading of the same chart: its technical sheets were cached.
 
 ## On the Fly deployment
 

@@ -22,6 +22,11 @@ OPEN_PRICES = {
     ("api.deepinfra.com", "zai-org/GLM-4.7"): (0.40, 1.75, 0.08, 0.0),
     ("api.deepinfra.com", "Qwen/Qwen3.6-35B-A3B"): (0.10, 0.95, 0.10, 0.0),
     ("api.deepinfra.com", "zai-org/GLM-5.3-Flash"): (0.15, 0.50, 0.03, 0.0),     # read 2026-10-26, its model page
+    # The fast providers (2026-10-26, docs/models.md): Cerebras lists no cached price and charges no fee for
+    # its prompt cache, so cached tokens are priced at input; Groq's cached input is half its input.
+    ("api.cerebras.ai", "gpt-oss-120b"): (0.35, 0.75, 0.35, 0.0),
+    ("api.groq.com", "openai/gpt-oss-120b"): (0.15, 0.60, 0.075, 0.0),
+    ("api.groq.com", "openai/gpt-oss-20b"): (0.075, 0.30, 0.0375, 0.0),
     # OpenRouter's list price per model (its default endpoint); a request may be routed to a cheaper or
     # dearer endpoint, and OpenRouter returns what it charged (usage.cost, kept as provider_cost_usd).
     ("openrouter.ai", "openai/gpt-oss-120b"): (0.15, 0.60, 0.075, 0.0),
@@ -35,6 +40,10 @@ PRICE_SOURCES = {
     "anthropic": {"source": "https://platform.claude.com/docs/en/about-claude/pricing", "read_on": "2026-10-06"},
     "api.deepinfra.com": {"source": "https://deepinfra.com/<model id> (each model's page, Standard tier)",
                           "read_on": "2026-10-25"},
+    "api.cerebras.ai": {"source": "https://inference-docs.cerebras.ai/models/openai-oss (the model page; the pricing "
+                                  "page loads its table by script)", "read_on": "2026-10-26"},
+    "api.groq.com": {"source": "https://console.groq.com/docs/model/openai/gpt-oss-120b and /docs/models",
+                     "read_on": "2026-10-26"},
     "openrouter.ai": {"source": "https://openrouter.ai/api/v1/models (each model's list price)", "read_on": "2026-10-25"},
     "local": {"source": "a server on this machine charges nothing per token; the machine's own cost is not counted",
               "read_on": "2026-10-25"},
