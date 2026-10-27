@@ -34,22 +34,26 @@ function unitEl(root, unit) {
   return el;
 }
 
-function sentenceHtml(i, text) {
-  return `<span class="live-sentence verifying" data-i="${i}">${esc(plain(text))} <span class="live-state">${esc(t("live.verifying"))}</span></span> `;
+// A [tradition:] sentence is never checked: it keeps its own mark and is never turned "verified"; a
+// judgement, once its premises pass, says the weighing is the reading's (review R3).
+function sentenceHtml(i, text, mark) {
+  const state = mark === "tradition" ? t("live.tradition") : t("live.verifying");
+  return `<span class="live-sentence ${mark === "tradition" ? "unchecked" : "verifying"}" data-i="${i}"${mark ? ` data-mark="${esc(mark)}"` : ""}>${esc(plain(text))} <span class="live-state">${esc(state)}</span></span> `;
 }
 
 function verify(span) {
+  if (!span.classList.contains("verifying")) return;
   span.classList.replace("verifying", "verified");
-  span.querySelector(".live-state").textContent = t("live.verified");
+  span.querySelector(".live-state").textContent = span.dataset.mark === "judgement" ? t("live.judgement") : t("live.verified");
 }
 
 export function applyEvent(root, e) {
   if (e.type === "sentence") {
     const el = unitEl(root, e.unit);
-    if (el) el.querySelector(".live-text").insertAdjacentHTML("beforeend", sentenceHtml(e.i, e.text));
+    if (el) el.querySelector(".live-text").insertAdjacentHTML("beforeend", sentenceHtml(e.i, e.text, e.mark));
   } else if (e.type === "unit") {
     const el = unitEl(root, e.unit);
-    if (el) el.querySelector(".live-text").innerHTML = e.sentences.map((s, i) => sentenceHtml(i, s)).join("");
+    if (el) el.querySelector(".live-text").innerHTML = e.sentences.map((s, i) => sentenceHtml(i, s, (e.marks || [])[i])).join("");
   } else if (e.type === "verified") {
     const span = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"] .live-sentence[data-i="${e.i}"]`);
     if (span) verify(span);
@@ -57,7 +61,10 @@ export function applyEvent(root, e) {
     const el = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"]`);
     if (el) {
       el.classList.add("accepted");
-      el.querySelectorAll(".live-sentence.verifying").forEach(verify);
+      for (const i of e.verified || []) {
+        const span = el.querySelector(`.live-sentence[data-i="${i}"]`);
+        if (span) verify(span);
+      }
     }
   } else if (e.type === "removed") {
     const el = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"]`);

@@ -158,6 +158,15 @@ class JsonStrings:
 
 # --- the sentences of a unit and their states ---------------------------------------------------
 
+def mark_of(sentence: str) -> str | None:
+    """What the checker cannot pass in a sentence (review R3): a [tradition:] sentence is never checked,
+    and a judgement's weighing is the reading's own (its premises are checked)."""
+    from .narrate import TRADITION, is_judgement
+    if TRADITION.search(sentence):
+        return "tradition"
+    return "judgement" if is_judgement(sentence) else None
+
+
 def unit_kind(unit: str) -> str:
     return unit.split(":")[0]
 
@@ -222,13 +231,13 @@ class Live:
                 self.shown[unit] = list(parts)
                 self.state[unit] = "verifying"
                 self.emit({"type": "unit", "unit": unit, "area": unit_area(unit), "kind": unit_kind(unit),
-                           "sentences": list(parts)})
+                           "sentences": list(parts), "marks": [mark_of(x) for x in parts]})
                 return
             for i in range(len(have), len(parts)):
                 have.append(parts[i])
                 self.state[unit] = "verifying"
                 self.emit({"type": "sentence", "unit": unit, "area": unit_area(unit), "kind": unit_kind(unit),
-                           "i": i, "text": parts[i]})
+                           "i": i, "text": parts[i], "mark": mark_of(parts[i])})
 
     def text(self, unit: str, text: str) -> None:
         """The unit's whole text, as the loop validates it: shown if the stream did not show it."""
@@ -247,10 +256,15 @@ class Live:
             if self.state.get(unit) == "accepted":
                 return
             if self.state.get(unit) == "removed":    # passed on a later check of the same text: shown again
+                again = self.removed_as.get(unit, [])
+                self.shown[unit] = list(again)
                 self.emit({"type": "unit", "unit": unit, "area": unit_area(unit), "kind": unit_kind(unit),
-                           "sentences": self.removed_as.get(unit, [])})
+                           "sentences": again, "marks": [mark_of(x) for x in again]})
             self.state[unit] = "accepted"
-            self.emit({"type": "accepted", "unit": unit})
+            # The sentences the checker passed: every one but a [tradition:] sentence, which is never checked.
+            shown = self.shown.get(unit, [])
+            self.emit({"type": "accepted", "unit": unit,
+                       "verified": [i for i, x in enumerate(shown) if mark_of(x) != "tradition"]})
 
     def draft_stream(self, skip: Callable[[str], bool], on_done: Callable[[str, str], None] | None = None):
         """A reader for one streamed draft (a ReadingDraft or a ClientDraft): each unit's text is

@@ -363,5 +363,6 @@ blockquote.paragraph-quote { border-left: 3px solid var(--accent); padding: 4px 
 .live-sentence.verifying { color: var(--muted); }
 .live-state { font-size: 11px; border: 1px solid var(--rule); border-radius: 8px; padding: 0 5px; margin-left: 2px; white-space: nowrap; }
 .live-sentence.verifying .live-state { border-style: dashed; }
+.live-sentence.unchecked { font-style: italic; }
 .live-sentence.verified .live-state { color: var(--muted); }
 @media print { .live-units, .live-state { display: none; } }

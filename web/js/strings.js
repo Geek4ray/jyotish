@@ -104,6 +104,8 @@ export const STRINGS = {
     "pending.engine_lines": "The engine's own lines (no model)",
     "live.verifying": "being verified",
     "live.verified": "verified",
+    "live.tradition": "from the texts, not checked",
+    "live.judgement": "premises verified; the weighing is the reading's",
     "live.area_done": "The written analysis for this area is checked; the page is drawn again when the reading is done.",
     "live.summary_engine": "Until the written summary passes its checks, this is the engine's own:",
     "live.kind.claim": "A finding",

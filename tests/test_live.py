@@ -218,7 +218,7 @@ def test_a_removed_text_seen_again_is_not_shown_and_a_replacement_is():
     assert [e["type"] for e in events] == ["sentence", "removed"]
     live.stream("claim:career:x", "The replacement [rule:x].", True)
     assert events[-1] == {"type": "sentence", "unit": "claim:career:x", "area": "career", "kind": "claim", "i": 0,
-                          "text": "The replacement [rule:x]."}
+                          "text": "The replacement [rule:x].", "mark": None}
     # A text removed and then accepted on a later check (the same text sent again) is shown again, accepted.
     live.stream("summary", "Same text [vote:a].", True)
     live.removed("summary", "the checker")
@@ -253,3 +253,17 @@ def test_a_verdict_before_the_loop_validates_does_not_bring_the_sentence_back(ch
     shown_after = [e.get("text") or " ".join(e.get("sentences", [])) for e in mine[removed:] if e["type"] in ("sentence", "unit")]
     assert shown_after and all(t == REPLACEMENT for t in shown_after)
     assert mine[-1]["type"] == "accepted"
+
+
+def test_a_tradition_sentence_is_never_marked_verified_and_a_judgement_is_marked_as_the_readings():
+    # Review R3: at depth full a section may carry a [tradition:] sentence (never checked); the section's
+    # acceptance must not turn it "verified", and a judgement's weighing is the reading's own.
+    events = []
+    live = Live(events.append)
+    text = ("Saturn rules the 10th [fact:houses.lagna.10.lord]. The texts call it slow [tradition:BPHS 24]. "
+            "I weigh the lord above the karaka [fact:houses.lagna.10.lord].")
+    live.stream("analysis:career:assessment", text, True)
+    marks = [e.get("mark") for e in events if e["type"] == "sentence"]
+    assert marks == [None, "tradition", "judgement"]
+    live.accepted("analysis:career:assessment")
+    assert events[-1] == {"type": "accepted", "unit": "analysis:career:assessment", "verified": [0, 2]}
