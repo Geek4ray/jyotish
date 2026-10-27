@@ -133,8 +133,8 @@ Not verified: whether Cerebras streams a json_schema completion (its pages do no
 it), whether Cerebras trains on API inputs (not stated), which Cerebras free-tier limit is current, and
 Groq's free-plan limits. Groq's 8k tokens a minute is below one writer call: at astrologer depth one area's
 message is 14,700 to 19,200 tokens on the reference chart (career, marriage, longevity, at 2.87 characters a
-token), and the summary's call about 50,000. So on Groq's base limits a reading waits on its rate limit; a
-paid tier lifts it.
+token), and the summary's call about 50,000. So on Groq's base limits a writer call is likely refused rather than delayed (not verified: no Groq key was
+used); a paid tier lifts the limit.
 
 **A checker's temperature.** `JYOTISH_<ROLE>_TEMPERATURE` sends `temperature` to an OpenAI-compatible
 server (none is sent by default, so the server samples) and the reading records it with the backend;

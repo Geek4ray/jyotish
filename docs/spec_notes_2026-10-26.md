@@ -47,15 +47,15 @@ The stored reading has `narration_status: "pending"`, `attempts: 0` and no claim
 - **API:** the job stores the reading with status `running`, progress stage `narration` and `instant` in its log. GET /readings/{id} returns it.
 - **Markdown page:** carries the notice "The written analysis is being prepared; …" and marks each area "The written analysis is being prepared.", followed by the engine's lines. It shows no "Narration incomplete" notice and no "No claims were drafted" line.
 - **Site:** renders a running job's reading at once (`data-state="pending"`), with the same marks.
-- **Review step:** opens a running reading (`_reading_for_review` accepts `running` when a document exists). It shows only what passed, which is nothing yet, and gives each area the same mark.
+- **Review step:** the review view opens a running reading, read only (`api.done_reading(..., pending_ok=True)`, used by GET /readings/{id}/review alone). It shows only what passed, which is nothing yet, and gives each area the same mark. Every review write and the comparison answer 409 until the reading is done (review R2).
 
 The finished reading replaces the pending one and records `usage.timeline.instant_s`.
 
-Measured on the reference chart: 0.9 s at astrologer depth and 2.9 s at depth full for the instant reading. The chart and score stages come before it and are cached by birth data.
+Measured on the reference chart: the instant reading takes 0.9 s at astrologer depth (2.9 s at depth full), plus about 2.2 s for the technical sheets. So the stored instant page is about 3 s after the chart, as the timing table's 2.9 to 3.0 s shows. The chart and score stages come before it and are cached by birth data.
 
 ## Layer 7 — the narration as it is written and checked (2026-10-26)
 
-`jyotish.live` and `CONFIG.live` (on by default) apply on a model backend. A recording's replay (a drafter passed in) keeps the single call per reading it was recorded with.
+`jyotish.live` and `CONFIG.live` (on by default; `JYOTISH_LIVE=0` turns it off) apply on a model backend. A recording made in live mode keeps each unit's drafts (`narrate.recording_fixture`) and replays through the same per-area loop (review R5). A recording made before it replays the single call it was recorded with.
 
 **The areas in parallel.** Each area is written by a writer call of its own, the areas in parallel (`narrate._narrate_parallel`, which runs `narrate` on one area with `write_summary=False`). The call is told to leave the summary empty (`AREA_ONLY_NOTE`).
 
@@ -75,7 +75,7 @@ Measured on the reference chart: 0.9 s at astrologer depth and 2.9 s at depth fu
 - `analysis:<area>:<section>`
 - `summary`
 
-Each complete sentence is shown "being verified". A unit whose text closes is validated at once and, when it passes, its checks are started. The attempt's check step finds them in flight, with the same validator and the same check data; nothing decides differently. A verdict marks its sentence "verified", or removes the unit. The loop's own decision then emits `accepted` or `removed`, and the writer's replacement streams the same way.
+Each complete sentence is shown "being verified". A unit whose text closes is validated at once and, when it passes, its checks are started. The attempt's check step finds them in flight, with the same validator and the same check data, keyed per area (review R8). A check the loop never consumes is still counted in the usage and kept in the recording. A verdict marks its sentence "verified", or removes the unit. The loop's own decision then emits `accepted` or `removed`, and the writer's replacement streams the same way.
 
 **Events.** The events are `sentence`, `unit`, `verified`, `removed`, `accepted`, `area` and `done`. The service's `events` callback receives them. The API keeps them per reading in memory (`LiveLog`, numbered from 1) and serves them two ways:
 
@@ -84,7 +84,7 @@ Each complete sentence is shown "being verified". A unit whose text closes is va
 
 A reading in a comparison has no live view (409), since its sentences would show what the blind view withholds.
 
-**The site.** `web/js/live.js` follows the events and falls back to polling (`?live=poll` forces it). A sentence the checker has not passed always carries the mark "being verified". When the reading is done, the page is drawn again from the stored reading, which holds only what passed. The Markdown page and the review page are rendered from the stored document, so they never show an unverified sentence.
+**The site.** `web/js/live.js` follows the events and falls back to polling (`?live=poll` forces it). A sentence the checker has not passed carries the mark "being verified". A [tradition:] sentence, never checked, carries "from the texts, not checked" and is never turned verified, and a judgement reads "premises verified; the weighing is the reading's" (review R3). The client's view streams only the client's units; claims, the analysis and the engine's lines stream under the astrologer's toggle (R4). When the reading is done, the page is drawn again from the stored reading, which holds only what passed. The Markdown page and the review page are rendered from the stored document, so they never show an unverified sentence.
 
 **Timeline.** `usage.timeline` records `instant_s`, `first_sentence_s`, `first_verified_s`, `first_area_s` and `done_s`.
 

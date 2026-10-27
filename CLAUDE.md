@@ -200,7 +200,7 @@ rule's verdict; `scripts/compare_readings.py` takes `openai:` settings, `--check
 changes for client readings only when its recall is not worse on any category (docs/models.md). Tests:
 tests/test_backends.py, tests/test_openai_backend.py (a stub OpenAI-compatible server). The OpenAI backend retries
 dropped connections, timeouts and 429/5xx (five attempts, backoff, Retry-After, `backend.retry` logged without the key),
-opens one async client per batch and closes it (`Backend.aclose`), defaults to 4 calls at once hosted and 1 local
+opens one async client per batch and closes it (`Backend.aclose`), defaults to 8 calls at once hosted (4 before 2026-10-26) and 1 local
 (JYOTISH_CHECKER_CONCURRENCY overrides; Anthropic 16); a checker call that fails after the retries fails its sentence
 as unchecked (`Reading.unchecked_sentences`). The benchmark writes data/bench_partial/ as it goes and both scripts take
 --resume and read keys from the gitignored .env (`jyotish.envfile`). Scorecards: docs/checker_scorecard_zai-org-glm-4.7.md,
@@ -282,4 +282,19 @@ finished reading gets a `ledger` row (GET /costs/daily, owner token); GET /healt
 database revision; /source is the AGPL offer (JYOTISH_SOURCE_URL). JYOTISH_MODEL_FIXTURE replays a recording, for
 the CI smoke test only (`scripts/smoke.py`: a reading, its review page in Playwright, one answer; the image job
 runs it in the container, tests/test_web.py against the checkout).
+The instant page and the live narration (2026-10-26; docs/spec_notes_2026-10-26.md). POST /readings stores
+the reading before any model call (`narrate.instant_reading`: every engine field, each area's `engine_lines`,
+`narration_status: "pending"`); the page, the site and the review step render it at once, each area marked
+"the written analysis is being prepared". On a model backend (`CONFIG.live`; a replay keeps one call) each area
+is written by its own writer call, in parallel (`narrate._narrate_parallel`), its draft streamed
+(`Backend.structured(on_text=)`) and read as partial JSON (`live.JsonStrings`); every unit is held once it
+passes at every depth, checked as soon as its text closes on one pool for the reading (`live.SharedChecker`),
+the client's layer per area, the summary last (`SummaryDraft`, or the client's layer at depth full). The
+events (`sentence`, `unit`, `verified`, `removed`, `accepted`, `area`, `done`) go to GET
+/readings/{id}/events (SSE) and GET /readings/{id}/live?since=N (polling); `web/js/live.js` marks every
+unverified sentence "being verified" and redraws from the stored reading when done. `usage.timeline` has
+the seconds to the instant page, the first sentence, the first verified sentence, the first area and done
+(`scripts/live_timing.py` times a live reading into docs/live_timings.jsonl). Cerebras and Groq are
+documented writers (docs/models.md; their own keys `JYOTISH_CEREBRAS_KEY`, `JYOTISH_GROQ_KEY`, never another
+provider's); `JYOTISH_<ROLE>_TEMPERATURE` sends a temperature; Groq gets no stream with json_schema.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.
