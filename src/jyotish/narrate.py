@@ -3180,7 +3180,9 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
                               votes=votes, chains=chains, max_attempts=config.max_attempts, recording=recording,
                               progress=progress, live=live, want="summary")
         out.update(text=layer["summary"], error=layer["summary_error"], client=layer["writer_metas"],
-                   checker=layer["checker_metas"], attempts=layer["attempts"])
+                   checker=layer["checker_metas"], attempts=layer["attempts"],
+                   client_record={"model": _model_of(client, wcfg.model), "effort": config.client_effort,
+                                  "thinking": config.full_thinking, **_backend_of(client)})
         return out
     curious = depth == "curious"
     _, allowed = payload(chart, question, areas, depth, as_of, None)
@@ -3327,7 +3329,19 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
              "parallel_areas": len(areas), "summary_attempts": summ["attempts"]}
     facts_cited = {k: v for r in parts for k, v in r.facts_cited.items()} | _cited_facts(text, facts)
     summary_synth = sum(1 for x in sentences(text) if is_synthesis(x, finding_data, facts)) if source == "model" else 0
+    # Each role's record from every call, not the first area's alone (review R13): a step down in any area,
+    # and the client's layer's record from whichever area (or the summary) used it.
+    writer = dict(base.writer)
+    stepped = [dict(x, area=r.areas[0].name) for r in parts for x in (r.writer or {}).get("stepped_down", [])]
+    writer.pop("efforts_by_attempt", None)
+    writer.pop("stepped_down", None)
+    if stepped:
+        writer["stepped_down"] = stepped
+        writer["efforts_by_area"] = {r.areas[0].name: (r.writer or {}).get("efforts_by_attempt") for r in parts
+                                     if (r.writer or {}).get("efforts_by_attempt")}
+    client = next((r.client for r in parts if r.client), None) or summ.get("client_record") or {}
     return base.model_copy(update={
+        "writer": writer, "client": client if full else base.client,
         "areas": reading_areas, "summary": summary, "usage": usage, "facts_cited": facts_cited,
         "attempts": max(r.attempts for r in parts),
         "synthesis_sentences": sum(r.synthesis_sentences for r in parts) + summary_synth,

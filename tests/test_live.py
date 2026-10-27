@@ -496,3 +496,25 @@ def test_areas_run_one_at_a_time_on_a_local_server_and_a_failure_stops_the_rest(
                             writer_model=None, writer_effort=None, writer_backend=None, checker_backend=None,
                             client_backend=None, checker=None, live=Live(lambda e: None), started=time.perf_counter())
     assert calls[0] == "career" and "longevity" not in calls                # the rest never started
+
+
+def test_the_merge_keeps_every_areas_records(chart, backends, monkeypatch):
+    # Review R13: the client's record came from the first area alone ({} if it accepted nothing), so the
+    # client's calls were priced as the writer's; a step down in another area was lost.
+    import jyotish.narrate as n
+    from jyotish.narrate import Reading
+    base = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"])
+    parts = [base.model_copy(update={"areas": [a], "client": {} if a.name == "career" else {"model": "stub-client"},
+                                     "writer": dict(base.writer, stepped_down=[{"attempt": 1, "from": "high", "to": "medium"}]
+                                                    if a.name == "marriage" else [])})
+             for a in base.areas]
+    calls = iter(parts)
+    monkeypatch.setattr(n, "narrate", lambda *a, **k: next(calls))
+    monkeypatch.setattr(n, "_write_summary", lambda *a, **k: {"text": None, "error": None, "writer": [], "checker": [],
+                                                                "client": [], "attempts": 0})
+    r = n._narrate_parallel(chart, "How will my career go?", as_of=AS_OF, config=n.CONFIG, recording=None,
+                            areas=["career", "marriage"], progress=lambda *a: None, depth="full", writer_model=None,
+                            writer_effort=None, writer_backend=None, checker_backend=None, client_backend=None,
+                            checker=None, live=Live(lambda e: None), started=time.perf_counter())
+    assert isinstance(r, Reading) and r.client == {"model": "stub-client"}
+    assert r.writer["stepped_down"] == [{"attempt": 1, "from": "high", "to": "medium", "area": "marriage"}]
