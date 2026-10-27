@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-24",
-  "commit": "29f76ff",
+  "date": "2026-10-27",
+  "commit": "8a59561",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -255,7 +255,7 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 147,
+      "value": 148,
       "better": null,
       "unit": "",
       "gate": false
@@ -289,6 +289,252 @@
       "better": "lower",
       "unit": "",
       "gate": true
+    },
+    "live.deepinfra-gptoss-glm47-c8.instant_s": {
+      "value": 2.986,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8.first_sentence_s": {
+      "value": 36.075,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8.first_verified_s": {
+      "value": 67.151,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8.first_area_s": {
+      "value": 1062.886,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8.done_s": {
+      "value": 2548.879,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8.cost_usd": {
+      "value": 0.401902,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8.gaps": {
+      "value": 6,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.instant_s": {
+      "value": 2.886,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.first_sentence_s": {
+      "value": 39.448,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.first_verified_s": {
+      "value": 70.518,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.first_area_s": {
+      "value": 606.599,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.done_s": {
+      "value": 1214.856,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.cost_usd": {
+      "value": 0.365069,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c16.gaps": {
+      "value": 4,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.instant_s": {
+      "value": 2.939,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.first_sentence_s": {
+      "value": 31.675,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.first_verified_s": {
+      "value": 35.242,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.first_area_s": {
+      "value": 74.306,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.done_s": {
+      "value": 308.705,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.cost_usd": {
+      "value": 0.035917,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0.gaps": {
+      "value": 2,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.instant_s": {
+      "value": 0.864,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.first_sentence_s": {
+      "value": 29.696,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.first_verified_s": {
+      "value": 81.342,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.first_area_s": {
+      "value": 733.111,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.done_s": {
+      "value": 1255.654,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.cost_usd": {
+      "value": 0.328551,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm47-c8-r2.gaps": {
+      "value": 5,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-single.instant_s": {
+      "value": 2.944,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-single.first_sentence_s": {
+      "value": 85.303,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-single.first_area_s": {
+      "value": 510.216,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-single.done_s": {
+      "value": 510.315,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-single.cost_usd": {
+      "value": 0.029742,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-single.gaps": {
+      "value": 4,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.instant_s": {
+      "value": 0.857,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.first_sentence_s": {
+      "value": 18.537,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.first_verified_s": {
+      "value": 22.873,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.first_area_s": {
+      "value": 70.493,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.done_s": {
+      "value": 310.531,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.cost_usd": {
+      "value": 0.03379,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.deepinfra-gptoss-glm53flash-t0-live.gaps": {
+      "value": 2,
+      "better": "lower",
+      "unit": "",
+      "gate": false
     },
     "synthetic.planted.2000.predicted_power": {
       "value": 0.4101,
