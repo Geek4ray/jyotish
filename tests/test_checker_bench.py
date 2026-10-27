@@ -52,7 +52,7 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
     expected = sentences(reading["summary"]["text"])
     for a in reading["areas"]:
         expected += [c["text"] for c in a["claims"]] + sentences(a["paragraph"] or "")
-    rows = [r for r in rows if not r["id"].startswith(("b-", "r2-", "kind-"))]   # the comparisons' and the kinds' rows: own tests
+    rows = [r for r in rows if not r["id"].startswith(("b-", "r2-", "kind-", "live-"))]   # comparisons', kinds', live: own tests
     accepted = [r for r in rows if r["label"] == "accept"]
     assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 45
     assert all(r["audit"] and "CONTRADICTED" not in r["audit"] for r in accepted)
@@ -203,3 +203,10 @@ def test_the_three_label_disagreements_are_settled(rows):
     assert "rests on UL, UL2 and A7" in b["b-judgement-marriage"]["origin"]
     facts = json.loads(b["b-stability-career"]["facts"])["facts"]
     assert facts["stability.lagna_sign_by_varga.D10"]["samples"] == "holds in 159 of 200 birth-time samples"
+
+
+def test_the_live_readings_false_reject_is_a_row_the_validator_passes(cb, rows):
+    # 2026-10-27: a placement claim stating its lordship as "rules the 2nd" was refused on every attempt.
+    row = next(r for r in rows if r["id"] == "live-rules-the-2nd")
+    assert row["label"] == "accept" and "rules the 2nd" in row["sentence"]
+    assert cb.run_validator([row])[row["id"]][0] is False

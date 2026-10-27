@@ -424,6 +424,14 @@ def comparison_rows() -> list[dict]:
          "piece crediting Jupiter in Scorpio), 1 and 2 (Jupiter-Mercury); Venus the main karaka, exalted: read. "
          "A judgement: which window it gives more weight is the reading's."),
     ]
+    # The live readings of 2026-10-27 (docs/comparison_2026-10-27_*): a placement claim refused on every
+    # attempt for stating the lordship as "rules the 2nd"; verbatim. The validator now takes that wording.
+    rows += [
+        ("live-rules-the-2nd", "claim", "career", "place.l2_h10@lagna",
+         "Mercury is placed in the 10th house and rules the 2nd house. [rule:place.l2_h10]", "accept", "accepted",
+         "the validator's false reject in the live readings of 2026-10-27: 'rules the 2nd' names the 2nd lord as "
+         "'lord of the 2nd' does. Mercury in the 10th, lord of the 2nd (the placement's fact): read."),
+    ]
     rows += KIND_ROWS
     by_id = {r[0]: r for r in rows}
     fixes = {"b-ranking-career-fixed": lambda: by_id["b-ranking-career"][4][:-1] + " [fact:areas.career.contributions].",
@@ -436,8 +444,9 @@ def comparison_rows() -> list[dict]:
         kind = rid.startswith("kind-")
         row = {"id": rid, "where": where, "area": area, "finding_id": unit if where == "claim" else None,
                "section": unit if where == "analysis" else None, "sentence": sentence, "label": label, "category": cat,
-               "origin": note if kind else f"comparison 2026-10-23{' r2' if rid.startswith('r2-') else ''}, reading B: "
-                                           f"{note}", "tags": _tags(sentence),
+               "origin": note if kind or rid.startswith("live-") else
+                         f"comparison 2026-10-23{' r2' if rid.startswith('r2-') else ''}, reading B: {note}",
+               "tags": _tags(sentence),
                "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else
                              area_tags[area or "career"], "offered_votes": votes[area or "career"],
                              "chains": chains[area or "career"], "family_rule": True, **({} if where == "summary" else {"full": FULL})}}
@@ -560,8 +569,12 @@ def partial_path(spec: str | None, effort: str | None = None) -> Path:
 
 
 def _effort_suffix(effort: str | None) -> str:
+    """The run's settings in its file names: the effort when it is not the default, and the checker's
+    temperature when one is sent (JYOTISH_CHECKER_TEMPERATURE, --checker-temperature; 2026-10-26)."""
     from jyotish.narrate import CONFIG
-    return f"_effort-{effort}" if effort and effort != CONFIG.checker_effort else ""
+    temp = os.environ.get("JYOTISH_CHECKER_TEMPERATURE", "").strip()
+    return ((f"_effort-{effort}" if effort and effort != CONFIG.checker_effort else "")
+            + (f"_temp-{float(temp):g}" if temp else ""))
 
 
 def run_live(rows, config=None, backend: str | None = None, resume: bool = False,
@@ -791,7 +804,11 @@ def main(argv=None) -> int:
     ap.add_argument("--checker-effort", choices=("none", "low", "medium", "high", "xhigh", "max"), default=None,
                     help="the checker's effort for this run (default CONFIG.checker_effort, high); an OpenAI-compatible "
                          "backend sends it as reasoning_effort, and 'none' switches reasoning off there")
+    ap.add_argument("--checker-temperature", type=float, default=None,
+                    help="the checker's temperature for this run (sent as `temperature`; none is sent by default)")
     a = ap.parse_args(argv)
+    if a.checker_temperature is not None:
+        os.environ["JYOTISH_CHECKER_TEMPERATURE"] = str(a.checker_temperature)
     from jyotish.envfile import load as load_env
     for name in load_env(ROOT / ".env"):                  # keys from the gitignored .env; never a value printed
         print(f"{name} read from .env", file=sys.stderr)
@@ -831,7 +848,8 @@ def main(argv=None) -> int:
         text = report(rows, vpred, (lp, usage, time.time() - t)) + \
             "\n".join(rule_section(rows, lp, gate_recall(gate_text), gate_name_of(gate_text) if gate_text else "the gate",
                                     usage.get("unchecked", ()), str(rel))) + "\n"
-        title = usage["backend"]["model"] + (f" at checker effort {config.checker_effort}" if _effort_suffix(config.checker_effort) else "")
+        title = usage["backend"]["model"] + (f" at checker effort {config.checker_effort}" if config.checker_effort != CONFIG.checker_effort else "") \
+            + (f", temperature {a.checker_temperature:g}" if a.checker_temperature is not None else "")
         path.write_text(text.replace("# Checker benchmark", f"# Checker benchmark: {title}", 1))
         s = scores(rows, lp, usage.get("unchecked", ()))["overall"]
         print(f"{usage['backend']['model']} on {usage['backend']['host']}: precision {s['precision']:.3f} recall "

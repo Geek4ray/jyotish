@@ -479,6 +479,23 @@ def families_named(sentence: str) -> set[str]:
     return {f for f, rx in FAMILY_WORDS.items() if rx.search(bare)}
 
 
+_LORD_NAME = re.compile(r"^(?:(\d+(?:st|nd|rd|th)) lord|(?:lord|ruler) of the (\d+(?:st|nd|rd|th)))$")
+
+
+def _name_forms(names: list[str]) -> list[str]:
+    """A rule's names, lowercased, with each lordship's other ways of saying it ("2nd lord": "rules the 2nd",
+    "ruling the 2nd", "2nd house lord", "lord of the 2nd house")."""
+    out = []
+    for n in names:
+        n = n.lower()
+        out.append(n)
+        if m := _LORD_NAME.match(n):
+            o = m.group(1) or m.group(2)
+            out += [f"rules the {o}", f"ruling the {o}", f"{o} house lord", f"lord of the {o} house",
+                    f"lord of the {o}", f"ruler of the {o}"]
+    return out
+
+
 def rule_names(rule_id: str) -> list[str]:
     lib = {r.id: r for r in default_rules()}
     rule = lib.get(rule_id)
@@ -674,8 +691,11 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
                 if family_rule and family not in named:
                     errors.append(f"[vote:{value}] on a sentence that does not name the {family} family: {s!r}")
             elif kind == "rule":
-                # "lord-of-the-7th-in-the-7th" names "lord of the 7th" as well as the spaced form does
-                if not any(n.lower() in bare.lower().replace("-", " ") for n in rule_names(value)):
+                # "lord-of-the-7th-in-the-7th" names "lord of the 7th" as well as the spaced form does; a
+                # lordship is also named as "rules the 2nd", "ruling the 2nd", "2nd house lord" or "lord of the
+                # 2nd house" (the live readings of 2026-10-27 were refused for "rules the 2nd house")
+                text = bare.lower().replace("-", " ")
+                if not any(n in text for n in _name_forms(rule_names(value))):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
             elif kind == "chain":
                 planets = (chains or {}).get(value, [])

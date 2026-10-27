@@ -1060,3 +1060,17 @@ def test_prompts_tie_an_area_house_to_area_houses():
     assert "A house called by its area (\"the house of career\", \"a career house\") is supported when the data's " \
            "area_houses lists that house in those words" in " ".join(CHECKER_PROMPT.split())
     assert "only where the finding's area_houses words it so" in " ".join(SYSTEM_PROMPT.split())
+
+
+def test_a_lordship_is_named_by_rules_the_nth_as_by_lord_of_the_nth():
+    # The live readings of 2026-10-27 were refused on every attempt for "rules the 2nd house" beside
+    # [rule:place.l2_h10]; the validator now takes the lordship's other wordings, and still refuses a
+    # sentence that names no lordship of that house.
+    from jyotish.narrate import validate
+    allowed = {"rule:place.l2_h10"}
+    for ok in ("Mercury is placed in the 10th house and rules the 2nd house [rule:place.l2_h10].",
+               "Mercury, ruling the 2nd, sits in the 10th [rule:place.l2_h10].",
+               "Mercury, the 2nd house lord, sits in the 10th [rule:place.l2_h10]."):
+        assert not [e for e in validate(ok, allowed) if "names none of" in e], ok
+    bad = "Mercury is placed in the 10th house and rules the 3rd house [rule:place.l2_h10]."
+    assert any("names none of" in e for e in validate(bad, allowed))
