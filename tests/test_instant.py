@@ -45,6 +45,14 @@ def test_the_instant_reading_has_every_engine_field_and_no_model_text(first):
     assert career.tier and career.windows and career.score_classical is not None
     assert not career.claims and not career.narration_gaps and not career.paragraph
     assert first.writer == {} and first.checker == {} and first.usage == {}
+    assert first.narration_source == "pending"                     # the header says so (review R11)
+
+
+def test_the_instant_header_names_the_configured_writer(chart, monkeypatch):
+    monkeypatch.setenv("JYOTISH_WRITER_BACKEND", "openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b")
+    first = instant_reading(chart, QUESTION, as_of=date(2026, 10, 21), areas=AREAS)
+    assert first.model == "openai/gpt-oss-120b"
+    assert "model openai/gpt-oss-120b · 0 attempt(s) · narration pending" in render(first, chart)
 
 
 def test_engine_lines_are_the_engine_s_own_wording(first):

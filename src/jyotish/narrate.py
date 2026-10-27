@@ -2320,7 +2320,10 @@ def instant_reading(chart: Chart, question: str, *, as_of: date, areas: list[str
             logs.event("instant.engine_line_failed", finding=f.get("finding_id"), error=type(e).__name__)
             return ""
     lines = {name: [x for f in findings(chart, name, as_of)[0] if (x := worded(f, name))] for name in areas}
+    # The header says what will write, not the config's default model, and that the narration is pending (R11).
+    m = BACKEND_SPEC.match(backend_spec("writer"))
     return r.model_copy(update={
+        "model": m.group(2) if m else config.model, "narration_source": "pending",
         "narration_status": "pending", "attempts": 0, "narration_complete": False, "writer": {}, "checker": {},
         "client": {}, "usage": {},
         "areas": [a.model_copy(update={"narration_gaps": [], "engine_lines": lines.get(a.name, [])}) for a in r.areas]})
