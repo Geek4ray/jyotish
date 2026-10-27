@@ -458,14 +458,19 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     def reviewer(request: Request) -> str:
         return credential(request, "reviewer", tokens)
 
-    def done_reading(s, reading_id: str):
+    def done_reading(s, reading_id: str, pending_ok: bool = False):
+        """A finished reading, for the review step and the comparison. `pending_ok`: the review view may
+        open a running reading's instant page (2026-10-26), read only; every write (answer, edit, note,
+        verdict, approval) and the comparison need the finished reading, since the job's last write
+        replaces the document and would discard them (review R2)."""
         from .narrate import Reading
         row = s.get(ReadingRow, reading_id)
         if row is None:
             raise HTTPException(status_code=404, detail="no such reading")
-        # A running reading with its instant page (narration pending) can be opened too (2026-10-26).
-        if row.document is None or row.status not in ("done", "running"):
-            raise HTTPException(status_code=409, detail=f"the reading is {row.status}, not done")
+        pending = row.status == "running" or (row.document or {}).get("narration_status") == "pending"
+        if row.document is None or row.status not in ("done", "running") or (pending and not pending_ok):
+            what = "still being written" if pending and row.document is not None else row.status
+            raise HTTPException(status_code=409, detail=f"the reading is {what}, not done")
         return row, Reading(**row.document)
 
     def log(s, row, who: str, action: str, seen: bool = True, **fields) -> None:
@@ -553,7 +558,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         the reviewer and (outside blind mode) excludes the chart from the blind learning set."""
         who = reviewer(request)
         with Session.begin() as s:
-            row, reading = done_reading(s, reading_id)
+            row, reading = done_reading(s, reading_id, pending_ok=True)
             log(s, row, who, "open", seen=mode == "review", mode=mode)
             s.flush()
             return review_view(s, row, reading, who, mode)

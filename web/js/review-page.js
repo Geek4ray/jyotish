@@ -566,8 +566,10 @@ function render() {
     <span class="small muted">${esc(t("progress", { n, total: counted.length }))}</span>`;
   panel.dataset.step = s.k;
   panel.dataset.area = s.area || "";
-  panel.innerHTML = VIEWS[s.k](s);
-  main.dataset.state = state.view.review_status;
+  // A reading still being written (2026-10-26) opens read only: the answers open when it is done (review R2).
+  const pending = state.view.reading.narration_status === "pending";
+  panel.innerHTML = (pending ? `<p class="notice" id="review-pending">${esc(t("review.pending"))}</p>` : "") + VIEWS[s.k](s);
+  main.dataset.state = pending ? "pending" : state.view.review_status;
   main.dataset.step = s.key;
   bind(s);
 }

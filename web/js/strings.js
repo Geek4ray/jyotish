@@ -100,6 +100,7 @@ export const STRINGS = {
     "client.not_tell": "What this chart does not tell",
     "pending.notice": "The written analysis is being prepared; every engine field on this page is complete, and the checked text is added as it passes.",
     "pending.area": "The written analysis is being prepared.",
+    "review.pending": "This reading is still being written. You can read what is here; your answers open when it is done.",
     "pending.engine_lines": "The engine's own lines (no model)",
     "live.verifying": "being verified",
     "live.verified": "verified",

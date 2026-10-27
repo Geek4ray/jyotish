@@ -102,6 +102,17 @@ def test_post_stores_the_instant_page_while_the_narration_runs(held):
     assert 0 < r.usage["timeline"]["instant_s"] < 30
 
 
+def test_every_review_write_and_the_comparison_wait_for_the_finished_reading(held):
+    # Review R2: the job's last write replaces the document, so a write on the instant page would be lost.
+    c, rid, _ = held
+    for path, body in (("answer", {"step": "intro", "answer": "ok"}), ("note", {"area": "career", "text": "A note."}),
+                       ("edit", {"target": "summary", "text": "x"}),
+                       ("verdict", {"area": "career", "verdict": "agree"}), ("approve", {})):
+        r = c.post(f"/readings/{rid}/review/{path}", json=body, headers=AUTH)
+        assert r.status_code == 409 and "still being written" in r.json()["detail"], (path, r.status_code, r.text)
+    assert c.get(f"/compare/{rid}/{rid}x/view", headers=AUTH).status_code in (404, 409, 422)
+
+
 def test_the_review_step_opens_a_pending_reading(held):
     c, rid, _ = held
     r = c.get(f"/readings/{rid}/review", headers=AUTH)
