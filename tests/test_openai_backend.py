@@ -422,6 +422,12 @@ def test_each_fast_provider_is_sent_its_own_key_and_never_another(monkeypatch):
     assert make_backend("openai:https://api.cerebras.ai/v1:gpt-oss-120b", "writer").api_key == "cerebras-key"
     assert make_backend("openai:https://api.groq.com/openai/v1:openai/gpt-oss-120b", "writer").api_key is None
     assert make_backend("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "checker").api_key == "deepinfra-key"
+    # Review R9: a role key is never sent to a provider with a key of its own, and a port does not hide the host.
+    monkeypatch.setenv("JYOTISH_WRITER_KEY", "deepinfra-key")
+    assert make_backend("openai:https://api.cerebras.ai/v1:gpt-oss-120b", "writer").api_key == "cerebras-key"
+    assert make_backend("openai:https://api.groq.com:443/openai/v1:openai/gpt-oss-120b", "writer").api_key is None
+    assert make_backend("openai:https://api.cerebras.ai:443/v1:gpt-oss-120b", "writer").api_key == "cerebras-key"
+    assert make_backend("openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b", "writer").api_key == "deepinfra-key"
 
 
 def test_a_role_s_temperature_is_sent_and_recorded(server, monkeypatch):

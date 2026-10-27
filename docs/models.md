@@ -100,8 +100,8 @@ again without it and records that it did (`effort_sent`).
 Both serve gpt-oss-120b on their own hardware, several times faster than a GPU host, and both speak the
 OpenAI API, so each is one more `openai:` spec. Each provider is sent **its own key only**:
 `JYOTISH_CEREBRAS_KEY` for `api.cerebras.ai` and `JYOTISH_GROQ_KEY` for `api.groq.com` (`narrate.PROVIDER_KEYS`).
-The DeepInfra key (`JYOTISH_OPENAI_KEY`) is never sent to them, and `JYOTISH_<ROLE>_KEY` overrides either for one
-role. Both are writers here, not checkers: the checker stays on DeepInfra, behind the rule.
+Neither the DeepInfra key (`JYOTISH_OPENAI_KEY`) nor a role key (`JYOTISH_<ROLE>_KEY`) is ever sent to them; the
+host is matched by its name, a port or not. A role key applies to any other host. Both are writers here, not checkers: the checker stays on DeepInfra, behind the rule.
 
 ```bash
 # Cerebras

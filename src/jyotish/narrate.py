@@ -1832,11 +1832,12 @@ def make_backend(spec: str | None, role: str, config: NarrationConfig = CONFIG, 
         raise ValueError(f"the {role} backend must be 'anthropic' or 'openai:<base url with its path>:<model>' "
                          f"(e.g. openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b), not {spec!r}")
     from urllib.parse import urlparse
-    host = urlparse(m.group(1)).netloc
-    # A provider with a key of its own is sent that key only, never another provider's (2026-10-26).
+    host = (urlparse(m.group(1)).hostname or "").lower()       # the name, without a port (review R9)
+    # A provider with a key of its own is sent that key and no other: not a role key, not JYOTISH_OPENAI_KEY
+    # (2026-10-26, review R9). Any other host takes JYOTISH_<ROLE>_KEY, else JYOTISH_OPENAI_KEY.
     own = next((name for suffix, name in PROVIDER_KEYS.items() if host == suffix or host.endswith("." + suffix)), None)
-    key = os.environ.get(f"JYOTISH_{role.upper()}_KEY") or (os.environ.get(own) if own else
-                                                             os.environ.get("JYOTISH_OPENAI_KEY")) or None
+    key = (os.environ.get(own) if own else
+           os.environ.get(f"JYOTISH_{role.upper()}_KEY") or os.environ.get("JYOTISH_OPENAI_KEY")) or None
     backend = OpenAIBackend(m.group(1), m.group(2), key)
     temp = os.environ.get(f"JYOTISH_{role.upper()}_TEMPERATURE", "").strip()
     if temp:
@@ -1844,8 +1845,8 @@ def make_backend(spec: str | None, role: str, config: NarrationConfig = CONFIG, 
     return backend
 
 
-# The key each fast provider is sent (docs/models.md); any other OpenAI-compatible host is sent
-# JYOTISH_OPENAI_KEY (DeepInfra's, by default), and JYOTISH_<ROLE>_KEY overrides both for a role.
+# The key each fast provider is sent, and the only one (docs/models.md); any other OpenAI-compatible host is
+# sent JYOTISH_<ROLE>_KEY, else JYOTISH_OPENAI_KEY (DeepInfra's, by default).
 PROVIDER_KEYS = {"api.cerebras.ai": "JYOTISH_CEREBRAS_KEY", "api.groq.com": "JYOTISH_GROQ_KEY"}
 
 
