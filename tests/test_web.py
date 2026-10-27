@@ -994,7 +994,9 @@ def test_a_pending_reading_renders_at_once_with_each_area_marked(page, base_url)
     assert page.locator(".pending-mark").count() == len(reading["areas"])
     assert page.locator("#incomplete").count() == 0
     assert "No claims were drafted" not in page.inner_text("#reading")
-    assert page.locator("ul.engine-lines li").first.inner_text() == "The house vote is for career."
+    # The engine's lines are the astrologer's: under the toggle, never in the client's view (review R4).
+    assert page.locator("details.astrologer ul.engine-lines li").first.inner_text() == "The house vote is for career."
+    assert page.locator("ul.engine-lines").count() == page.locator("details.astrologer ul.engine-lines").count()
     assert page.locator("section.area .tier").count() == len(reading["areas"])
 
 
@@ -1055,6 +1057,9 @@ def test_the_site_shows_sentences_being_verified_verified_and_removed(page, live
     # Every sentence on the page that the checker has not passed carries the mark.
     marks = page.evaluate("[...document.querySelectorAll('.live-sentence.verifying')].every(s => s.querySelector('.live-state').textContent === 'being verified')")
     assert marks and page.locator("#reading").get_attribute("data-live-mode") == "sse"
+    # A claim streams under "For the astrologer", never into the client's view (review R4).
+    outside = page.evaluate("[...document.querySelectorAll('.live-unit[data-unit^=\"claim:\"]')].filter(u => !u.closest('details.astrologer')).length")
+    assert outside == 0 and page.locator('details.astrologer .live-unit[data-unit^="claim:"]').count() > 0
     page.wait_for_selector("#reading[data-state=done]", timeout=120_000)
     log = page.evaluate("window.__live")
     unit = [x for x in log if x[1] == cases.UNIT]

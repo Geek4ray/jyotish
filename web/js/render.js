@@ -227,11 +227,17 @@ function areaCard(a, notes, depth, pending) {
 
 // The instant page (2026-10-26): the area's mark while the model's text is written, and the engine's
 // own lines (votes, chains, rules in the engine's wording), which need no checking.
+// The client's view streams only the client's units (the paragraph, the when, what this chart does not
+// tell); the claims, the analysis and the engine's lines go under "For the astrologer" (review R4).
 function pendingBlock(a) {
-  const lines = (a.engine_lines || []).filter(Boolean);
   return `<div class="pending" data-area="${esc(a.name)}"><p class="pending-mark muted">${esc(t("pending.area"))}</p>
-    <div class="live-units" data-area="${esc(a.name)}" aria-live="polite"></div>${lines.length
-    ? `<h3 class="small">${esc(t("pending.engine_lines"))}</h3><ul class="engine-lines">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</div>`;
+    <div class="live-units" data-area="${esc(a.name)}" data-audience="client" aria-live="polite"></div></div>`;
+}
+
+function pendingAstrologer(a) {
+  const lines = (a.engine_lines || []).filter(Boolean);
+  return `<div class="live-units" data-area="${esc(a.name)}" data-audience="astrologer" aria-live="polite"></div>${lines.length
+    ? `<h3 class="small">${esc(t("pending.engine_lines"))}</h3><ul class="engine-lines">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}`;
 }
 
 // The astrologer's view, at every depth (2026-10-25): the engine's technical sheet, then at depth full
@@ -244,7 +250,7 @@ function astrologerView(a, notes, depth, paraGap) {
     ? `<h3 class="small findings-head">${esc(t("astro.findings"))}</h3><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>`
     : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`;
   return `<details class="astrologer for-astrologer"${paraGap || !clientView ? " open" : ""}><summary>${esc(t("astro.toggle"))}</summary>
-    ${a.sheet ? sheetBlock(a.sheet, notes) : ""}${depth === "full" ? analysisBlock(a, notes) : ""}${claims}${otherPlacements(a)}</details>`;
+    ${a.pending ? pendingAstrologer(a) : ""}${a.sheet ? sheetBlock(a.sheet, notes) : ""}${depth === "full" && !a.pending ? analysisBlock(a, notes) : ""}${a.pending ? "" : claims}${otherPlacements(a)}</details>`;
 }
 
 // The technical sheet (jyotish.sheet): numbered points, each item with the chart paths it reads.

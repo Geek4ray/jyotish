@@ -330,8 +330,6 @@ def render(reading: Reading, chart: Chart) -> str:
         L.append("")
         if pending:
             L += [f"*{PENDING}*", ""]
-            if a.engine_lines:
-                L += [f"**{ENGINE_LINES}**", ""] + [f"- {x}" for x in a.engine_lines if x] + [""]
         curious = reading.depth == "curious"
         # A curious paragraph that ended as a gap: its gap note first, then the astrologer's view open.
         para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
@@ -346,6 +344,8 @@ def render(reading: Reading, chart: Chart) -> str:
         # (astrologer depth) or the client's paragraph is a gap.
         client_view = bool(curious and a.paragraph) or bool(full and (a.paragraph or a.when))
         L += [f"<details{' open' if para_gap or not client_view else ''}><summary>{FOR_ASTROLOGER}</summary>", ""]
+        if pending and a.engine_lines:          # the engine's lines are the astrologer's (review R4)
+            L += [f"**{ENGINE_LINES}**", ""] + [f"- {x}" for x in a.engine_lines if x] + [""]
         if sheets_by_area.get(a.name):
             L += sheet_lines(notes, sheets_by_area[a.name])
         if full:

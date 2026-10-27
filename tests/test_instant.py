@@ -59,6 +59,8 @@ def test_the_page_marks_every_area_pending_and_reports_no_gaps(first, chart):
     assert PENDING_NOTICE in page and page.count(f"*{PENDING}*") == len(AREAS)
     assert "Narration incomplete" not in page and "No claims were drafted" not in page
     assert "- The house vote is for career." in page
+    first_area = page.index("## Career")
+    assert page.index("<details", first_area) < page.index("- The house vote is for career.")   # the astrologer's (R4)
 
 
 @pytest.fixture

@@ -15,9 +15,15 @@ function kindLabel(unit) {
   return t(kind === "analysis" ? `live.kind.${sec}` : `live.kind.${kind}`);
 }
 
+// Whose view a unit streams into: the client's (the paragraph, the when, what this chart does not tell),
+// the astrologer's (the claims and the analysis), or the summary's card.
+const CLIENT_UNITS = /^(paragraph|when):|^analysis:[^:]+:not_said_client$/;
+
 function container(root, unit) {
-  const area = unit === "summary" ? "summary" : unit.split(":")[1];
-  return root.querySelector(`.live-units[data-area="${CSS.escape(area)}"]`);
+  if (unit === "summary") return root.querySelector('.live-units[data-area="summary"]');
+  const area = unit.split(":")[1];
+  const audience = CLIENT_UNITS.test(unit) ? "client" : "astrologer";
+  return root.querySelector(`.live-units[data-area="${CSS.escape(area)}"][data-audience="${audience}"]`);
 }
 
 function unitEl(root, unit) {
