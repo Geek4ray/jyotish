@@ -158,9 +158,12 @@ def test_the_logs_carry_no_birth_data(tmp_path, logged):
         done = wait(c, rid)
         c.get("/places?q=Rewari")
         c.get(f"/charts/{done['chart_id']}/tables.json")
-    # The log lines without their own timestamp, which can read 10:10 by the clock (review R14: the check failed
-    # CI at 10:10 UTC); the birth time is looked for in everything the service chose to log.
-    text = json.dumps([{k: v for k, v in x.items() if k != "ts"} for x in logged])
+    # The log lines' text without their own timestamp (it can read 10:10 by the clock: review R14) and without
+    # numbers (a request's 28.19 ms matched the latitude 28.1989 as text, CI 2026-10-27); numbers are compared as
+    # numbers below, so a coordinate logged as one is still caught.
+    text = json.dumps([{k: v for k, v in x.items() if k != "ts" and not isinstance(v, (int, float))} for x in logged])
+    numbers = [v for x in logged for v in x.values() if isinstance(v, float)]
+    assert not [v for v in numbers for c in (REFERENCE_LAT, REFERENCE_LON) if abs(v - c) < 0.01], numbers
     events = {x["event"] for x in logged}
     assert {"http.request", "reading.queued", "reading.done"} <= events
     for secret in ("Rewari", "Haryana", "28.19", "76.61", "2001-03-12", "10:10", "Asia/Kolkata", "job change",
