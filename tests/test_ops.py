@@ -160,10 +160,11 @@ def test_the_logs_carry_no_birth_data(tmp_path, logged):
         c.get(f"/charts/{done['chart_id']}/tables.json")
     # The log lines' text without their own timestamp (it can read 10:10 by the clock: review R14) and without
     # numbers (a request's 28.19 ms matched the latitude 28.1989 as text, CI 2026-10-27); numbers are compared as
-    # numbers below, so a coordinate logged as one is still caught.
+    # numbers below, so a coordinate logged as one is still caught: it would be logged as itself (28.1989), so
+    # the tolerance is 0.0001, which no duration rounded to 0.1 ms can meet (28.2 ms did at 0.01, CI dfb818a).
     text = json.dumps([{k: v for k, v in x.items() if k != "ts" and not isinstance(v, (int, float))} for x in logged])
     numbers = [v for x in logged for v in x.values() if isinstance(v, float)]
-    assert not [v for v in numbers for c in (REFERENCE_LAT, REFERENCE_LON) if abs(v - c) < 0.01], numbers
+    assert not [v for v in numbers for c in (REFERENCE_LAT, REFERENCE_LON) if abs(v - c) < 1e-4], numbers
     events = {x["event"] for x in logged}
     assert {"http.request", "reading.queued", "reading.done"} <= events
     for secret in ("Rewari", "Haryana", "28.19", "76.61", "2001-03-12", "10:10", "Asia/Kolkata", "job change",
