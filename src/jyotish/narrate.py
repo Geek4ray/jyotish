@@ -2271,10 +2271,17 @@ def engine_line(f: dict, area: str) -> str:
         facts = [x.rstrip(". ") for x in (f.get("facts") or [])][:3]
         return "; ".join(facts) + "." if facts else ""
     pl = f.get("placement")
-    if pl:                                          # a placement: its planet, lordship, house or sign
+    if pl:                                          # a placement, in each family's shape (placement_fact)
+        status = ("a draft placement, weighing nothing yet" if f.get("status") == "draft"
+                  else f"a placement, {f.get('status') or 'its status unknown'}")
+        if "lagna_sign" in pl:
+            return f"The rising sign is {pl['lagna_sign']}, ruled by {pl['lagna_lord']} ({status})."
+        if "nakshatra" in pl:
+            return f"{pl['planet']} is in {pl['nakshatra']} nakshatra ({status})."
+        if "sign" in pl:
+            return f"{pl['planet']} is in {pl['sign']} ({status})."
         lord = f", lord of the {' and the '.join(_ORD[h] for h in pl['lord_of'])}," if pl.get("lord_of") else ""
-        at = f"in the {_ORD[pl['house']]}" if pl.get("house") else f"in {pl['sign']}" if pl.get("sign") else ""
-        return f"{pl['planet']}{lord} is {at} (a draft placement, weighing nothing yet)."
+        return f"{pl['planet']}{lord} is in the {_ORD[pl['house']]} ({status})."
     name = rule_names(f["rule_id"])[0]
     planets = [p for p in (f.get("planets") or []) if p]
     return f"{name[:1].upper()}{name[1:]} forms" + (f" with {', '.join(planets)}" if planets else "") + f" for {where}."
@@ -2297,7 +2304,15 @@ def instant_reading(chart: Chart, question: str, *, as_of: date, areas: list[str
     r = narrate(chart, question, drafter=_NoNarration(), checker=lambda s, d: CheckResult(propositions=[]),
                 client_drafter=_NoNarration(), as_of=as_of, areas=areas, depth=depth,
                 config=replace(config, max_attempts=1))
-    lines = {name: [engine_line(f, name) for f in findings(chart, name, as_of)[0]] for name in areas}
+    def worded(f: dict, name: str) -> str:
+        # A line the engine cannot word is left out; it never fails the reading (review R1, 2026-10-26).
+        try:
+            return engine_line(f, name)
+        except Exception as e:                              # noqa: BLE001 - logged by its class, never fatal
+            from . import logs
+            logs.event("instant.engine_line_failed", finding=f.get("finding_id"), error=type(e).__name__)
+            return ""
+    lines = {name: [x for f in findings(chart, name, as_of)[0] if (x := worded(f, name))] for name in areas}
     return r.model_copy(update={
         "narration_status": "pending", "attempts": 0, "narration_complete": False, "writer": {}, "checker": {},
         "client": {}, "usage": {},

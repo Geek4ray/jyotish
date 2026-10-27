@@ -109,3 +109,41 @@ def test_the_review_step_opens_a_pending_reading(held):
     view = r.json()
     assert view["reading"]["narration_status"] == "pending"
     assert all(not a["claims"] for a in view["reading"]["areas"])        # only what passed: nothing yet
+
+
+def test_every_engine_line_of_every_area_is_worded_on_every_fixture_birth():
+    # Review R1: the rising-sign row had no planet and failed every reading with health or personality;
+    # the Moon's nakshatra row printed "Moon is  (…)". Every area, every finding, four births.
+    import json
+    import re
+    from datetime import datetime
+    from jyotish.narrate import engine_line, findings
+    births = json.loads((FIXTURES / "births.json").read_text())["births"]
+    for b in births:
+        c = assess(datetime.fromisoformat(b["utc"]), b["lat"], b["lon"], true_node=False)
+        for name in c.scored.areas:
+            for f in findings(c, name, date(2026, 10, 21))[0]:
+                line = engine_line(f, name)
+                if f["kind"] == "chain" and not f.get("facts"):
+                    continue
+                assert line.endswith(".") and "  " not in line and not re.search(r"\bis \(|\bis in the None", line), \
+                    (b["name"], f["finding_id"], line)
+                pl = f.get("placement") or {}
+                for v in (pl.get("planet"), pl.get("sign"), pl.get("nakshatra"), pl.get("lagna_sign")):
+                    assert v is None or v in line, (f["finding_id"], line)
+        first = instant_reading(c, "How is my health?", as_of=date(2026, 10, 21), areas=list(c.scored.areas))
+        offered = {n for n in c.scored.areas if findings(c, n, date(2026, 10, 21))[0]}     # synastry offers none
+        assert all(a.engine_lines for a in first.areas if a.name in offered), b["name"]
+
+
+def test_the_api_stores_an_instant_page_for_a_health_question(tmp_path):
+    app = create_app(f"sqlite:///{tmp_path / 'h.db'}", model_fixture=EDITED)
+    with TestClient(app) as c:
+        rid = c.post("/readings", json=dict(BODY, question="How is my health?")).json()["id"]
+        for _ in range(600):
+            s = c.get(f"/readings/{rid}").json()
+            if s["status"] in ("done", "failed"):
+                break
+            time.sleep(0.05)
+    assert s["status"] == "done", s.get("error")
+    assert "instant" in s["progress"]["log"]
