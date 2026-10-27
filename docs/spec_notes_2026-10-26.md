@@ -107,3 +107,5 @@ The hosted default concurrency is now 8 (it was 4). On 2026-10-25, 16 at once dr
 The live split met gaps the single call (2026-10-25) did not: placement claims joining two placements in one sentence, and two longevity votes. With one run each, the difference is not yet measured.
 
 CI on ff2b997 found a race: a verdict removed a claim before the loop validated the same draft, and the loop showed it again. It is fixed in bc1c03a, whose test forces that order.
+
+**Not yet done (definition of done, item 8).** No person has tried the instant page or the live page: no client, no astrologer, not Ray. Until one has, the page is not iterated further.

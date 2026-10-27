@@ -196,6 +196,30 @@ def live_checker(card: Card) -> str:
             "The harness does not re-run it (API calls), so it is reported, not gated.")
 
 
+def live_timings(card: Card):
+    """The live narration's timeline (2026-10-26; review R14): the last row per stack in
+    docs/live_timings.jsonl (scripts/live_timing.py, live readings of the reference chart), reported and
+    never gated, since each is one live run on a shared provider."""
+    path = DOCS / "live_timings.jsonl"
+    rows = [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
+    if not rows:
+        card.skip("live timings", "no row in docs/live_timings.jsonl; run scripts/live_timing.py")
+        return
+    last = {r["label"]: r for r in rows}
+    lines = []
+    for label, r in last.items():
+        for k in ("instant_s", "first_sentence_s", "first_verified_s", "first_area_s", "done_s", "cost_usd", "gaps"):
+            if r.get(k) is not None:
+                card.num(f"live.{label}.{k}", r[k], "lower", gate=False)
+        lines.append(f"- {label} ({r['date']}; {r['writer']}, {r['checker']}, concurrency {r['checker_concurrency']}): "
+                     f"instant page {r['instant_s']} s, first sentence {r['first_sentence_s']} s, first verified "
+                     f"{r['first_verified_s']} s, first area {r['first_area_s']} s, done {r['done_s']} s; USD "
+                     f"{r['cost_usd']}; {r['claims']} claims, {r['gaps']} gaps.")
+    card.sections.append(("Live narration timings (reported, not gated)", [
+        "One live reading per stack on the reference chart (docs/live_timings.jsonl; docs/models.md, \"Timing\"). "
+        "Each is a single run on a shared provider, so it is reported and never gated.", ""] + lines))
+
+
 def placements_check(card: Card):
     out = subprocess.run([PY, str(ROOT / "scripts" / "make_placements.py"), "--check"], cwd=ROOT, capture_output=True,
                          text=True)
@@ -311,7 +335,7 @@ def main(argv=None) -> int:
     ap.add_argument("--quick", action="store_true", help="synthetic runs at N = 2,000 only")
     a = ap.parse_args(argv)
     card = Card()
-    for step in (reference, crosscheck, metamorphic, checker, placements_check):
+    for step in (reference, crosscheck, metamorphic, checker, placements_check, live_timings):
         t = time.time()
         step(card)
         print(f"{step.__name__}: {time.time() - t:.0f} s", flush=True)                 # progress, for a CI log

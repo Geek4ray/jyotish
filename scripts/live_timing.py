@@ -45,6 +45,25 @@ class Retries(logging.Handler):
             self.by[k] = self.by.get(k, 0) + 1
 
 
+def timing_row(label: str, doc: dict, cost: dict, retries: dict | None, concurrency: int | None,
+               events: int | None) -> dict:
+    """One row of docs/live_timings.jsonl from a finished reading's document."""
+    t = (doc.get("usage") or {}).get("timeline") or {}
+    w, c = doc.get("writer") or {}, doc.get("checker") or {}
+    return {"label": label, "date": date.today().isoformat(), "depth": doc.get("depth"),
+            "writer": f"{w.get('model')} on {(w.get('backend') or {}).get('host')}",
+            "checker": f"{c.get('model')} on {(c.get('backend') or {}).get('host')}",
+            "checker_effort": c.get("effort"), "checker_temperature": (c.get("backend") or {}).get("temperature"),
+            "checker_concurrency": concurrency,
+            "narration": "live" if (doc.get("usage") or {}).get("parallel_areas") else "one call",
+            **{k: t.get(k) for k in ("instant_s", "first_sentence_s", "first_verified_s", "first_area_s", "done_s")},
+            "cost_usd": cost["cost_usd"], "writer_calls": cost["writer_calls"], "checker_calls": cost["checker_calls"],
+            "claims": sum(len(a["claims"]) for a in doc["areas"]),
+            "gaps": sum(len(a["narration_gaps"]) for a in doc["areas"]),
+            "summary": (doc.get("summary") or {}).get("source"), "unchecked": doc.get("unchecked_sentences"),
+            "retries": retries, "events": events}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--label", required=True, help="the run's name (the reading's file, the row's label)")
@@ -58,7 +77,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--depth", default="astrologer", choices=("astrologer", "curious", "full"))
     ap.add_argument("--as-of", default="2026-10-26")
     ap.add_argument("--no-write", action="store_true", help="print the row only")
+    ap.add_argument("--from-reading", type=Path, help="append the row of a reading already written (a comparison's "
+                    "docs/comparison_<date>/<side>.reading.json), with no model call")
     args = ap.parse_args(argv)
+    if args.from_reading:
+        from jyotish.costs import reading_cost
+        doc = json.loads(args.from_reading.read_text())
+        row = timing_row(args.label, doc, reading_cost(doc), (doc.get("usage") or {}).get("retries"), None, None)
+        print(json.dumps(row, indent=2))
+        if not args.no_write:
+            with ROWS.open("a") as f:
+                f.write(json.dumps(row) + "\n")
+        return 0
 
     from jyotish.envfile import load as load_env
     print("read from .env:", load_env(ROOT / ".env"))            # names only
@@ -87,21 +117,8 @@ def main(argv: list[str] | None = None) -> int:
                                  recording=recording)
     wall = round(time.perf_counter() - started, 1)
     doc = reading.model_dump(mode="json")
-    cost = reading_cost(doc)
-    t = (reading.usage or {}).get("timeline") or {}
-    gaps = sum(len(a.narration_gaps) for a in reading.areas)
-    row = {"label": args.label, "date": date.today().isoformat(), "depth": args.depth,
-           "writer": f"{reading.writer.get('model')} on {(reading.writer.get('backend') or {}).get('host')}",
-           "checker": f"{reading.checker.get('model')} on {(reading.checker.get('backend') or {}).get('host')}",
-           "checker_effort": reading.checker.get("effort"), "checker_temperature": args.checker_temperature,
-           "checker_concurrency": concurrency,
-           "instant_s": t.get("instant_s"), "first_sentence_s": t.get("first_sentence_s"),
-           "first_verified_s": t.get("first_verified_s"), "first_area_s": t.get("first_area_s"),
-           "done_s": t.get("done_s"), "wall_s": wall,
-           "cost_usd": cost["cost_usd"], "writer_calls": cost["writer_calls"], "checker_calls": cost["checker_calls"],
-           "claims": sum(len(a.claims) for a in reading.areas), "gaps": gaps,
-           "summary": reading.summary.source, "unchecked": reading.unchecked_sentences,
-           "retries": retries.by, "events": len(events)}
+    row = timing_row(args.label, doc, reading_cost(doc), retries.by, concurrency, len(events))
+    row["wall_s"] = wall
     print(json.dumps(row, indent=2))
     if not args.no_write:
         out = ROOT / "docs" / f"live_{date.today().isoformat()}"

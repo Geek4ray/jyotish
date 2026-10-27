@@ -158,7 +158,9 @@ def test_the_logs_carry_no_birth_data(tmp_path, logged):
         done = wait(c, rid)
         c.get("/places?q=Rewari")
         c.get(f"/charts/{done['chart_id']}/tables.json")
-    text = json.dumps(logged)
+    # The log lines without their own timestamp, which can read 10:10 by the clock (review R14: the check failed
+    # CI at 10:10 UTC); the birth time is looked for in everything the service chose to log.
+    text = json.dumps([{k: v for k, v in x.items() if k != "ts"} for x in logged])
     events = {x["event"] for x in logged}
     assert {"http.request", "reading.queued", "reading.done"} <= events
     for secret in ("Rewari", "Haryana", "28.19", "76.61", "2001-03-12", "10:10", "Asia/Kolkata", "job change",
