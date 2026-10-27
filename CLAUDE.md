@@ -296,5 +296,15 @@ unverified sentence "being verified" and redraws from the stored reading when do
 the seconds to the instant page, the first sentence, the first verified sentence, the first area and done
 (`scripts/live_timing.py` times a live reading into docs/live_timings.jsonl). Cerebras and Groq are
 documented writers (docs/models.md; their own keys `JYOTISH_CEREBRAS_KEY`, `JYOTISH_GROQ_KEY`, never another
-provider's); `JYOTISH_<ROLE>_TEMPERATURE` sends a temperature; Groq gets no stream with json_schema.
+provider's, matched by hostname); `JYOTISH_<ROLE>_TEMPERATURE` sends a temperature; Groq gets no stream with json_schema.
+The review of that batch (docs/review_2026-10-26.md, R1-R14) is fixed: the review view opens a pending reading
+read only and every write waits for the finished one; the client's view streams only the client's units (the
+claims, analysis and engine lines go under "For the astrologer"); a [tradition:] sentence is never marked
+verified; a live recording keeps each unit's drafts (`narrate.recording_fixture`) and replays through the same
+per-area loop; the summary call is sent only the accepted claims; `JYOTISH_LIVE=0` (and compare_readings.py
+--single-a/-b) writes a reading in one call; the SSE stream is async, eight per reading; a local writer takes one
+area at a time (`JYOTISH_WRITER_CONCURRENCY`); every check the pool runs is counted. GLM-5.3-Flash at temperature 0
+passes the rule against GLM-4.7 (docs/checker_scorecard_zai-org-glm-5.3-flash_temp-0.md) and makes a reading about
+four times faster for a ninth of the cost (docs/comparison_2026-10-27_checkers.md); the gate in `.env` is still
+GLM-4.7 until Ray switches it.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

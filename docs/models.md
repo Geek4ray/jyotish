@@ -333,20 +333,30 @@ Each row below is one live reading of the reference chart: astrologer depth, the
 cache). There are 37 findings offered across career, marriage and longevity, written as three areas in
 parallel, then the summary.
 
-| Stack (writer / checker, concurrency) | Instant page | First sentence | First verified | First area done | Done | Cost, USD | Claims, gaps | Summary | Retries |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| gpt-oss-120b / GLM-4.7 high, DeepInfra, 8 | 3.0 s | 36 s | 67 s | 1,063 s | 2,549 s | 0.40 | 31, 6 | engine's (three refusals) | 5, all answered |
-| gpt-oss-120b / GLM-4.7 high, DeepInfra, 16 | 2.9 s | 39 s | 71 s | 607 s | 1,215 s | 0.37 | 33, 4 | the writer's | 0 |
+| Stack: writer / checker (DeepInfra, concurrency 8 unless named) | Narration | Instant page | First sentence | First verified | First area done | Done | Cost, USD | Claims of 37, gaps | Summary | Retries | Run |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| gpt-oss-120b / GLM-4.7 high | live | 3.0 s | 36 s | 67 s | 1,063 s | 2,549 s | 0.40 | 31, 6 | engine's | 5 | 2026-10-26 |
+| gpt-oss-120b / GLM-4.7 high, concurrency 16 | live | 2.9 s | 39 s | 71 s | 607 s | 1,215 s | 0.37 | 33, 4 | writer's | 0 | 2026-10-26 |
+| gpt-oss-120b / GLM-4.7 high | live | 0.9 s | 30 s | 81 s | 733 s | 1,256 s | 0.33 | 32, 5 | engine's | 1 (writer) | 2026-10-27, comparison |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | live | 2.9 s | 32 s | 35 s | 74 s | 309 s | 0.04 | 35, 2 | engine's | 0 | 2026-10-27, comparison |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | one call | 2.9 s | 85 s | – | 510 s | 510 s | 0.03 | 33, 4 | engine's | 0 | 2026-10-27, after 0937ff8 |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | live | 0.9 s | 19 s | 23 s | 70 s | 311 s | 0.03 | 35, 2 | engine's | 0 | 2026-10-27, after 0937ff8 |
 
-What the rows say:
+Not timed: Cerebras (it asks for payment before its key serves) and Groq (its base 8k tokens a minute is below one
+area's message). In the one-call row there is no "first verified": the single call checks after the whole draft,
+with no live view of the checks, and its "first sentence" is the first sentence the validator passed. An instant
+page of 0.9 s is a second reading of the same chart, whose technical sheets were cached.
+
+What the rows say (one live run each, so differences of a gap or two are within run-to-run noise):
 
 - **The instant page is about 3 seconds:** every engine field, the technical sheet and the engine's lines.
-- **The first written sentence is on the page in under 40 seconds,** and the first verified one in about 70.
-- **The rest waits on GLM-4.7.** It thinks for minutes over some sentences, and an area is finished only when its slowest check returns, so the first area takes 10 to 18 minutes.
-- **Concurrency.** DeepInfra took 16 checks at once with no retry in this run, but 30 retries the day before (the writer comparison above). 8 met 5 retries, all answered.
+- **The live narration shows a sentence in 20 to 40 seconds,** against 85 for the single call.
+- **The checker sets the rest.** Under GLM-4.7, which thinks for minutes over some sentences, the first area takes 10 to 18 minutes and the reading 20 to 40. Under GLM-5.3-Flash at temperature 0, which passes the rule, the first sentence is verified in about 25 to 35 seconds, the first area in about 70, and the reading in about five minutes for USD 0.03 to 0.04.
+- **Split or single call.** Under one checker, the live split was done in 311 s against 510 s for the single call, with 35 claims and 2 gaps against 33 and 4.
+- **The gaps.** Before 0937ff8 the split's gaps were mostly the validator's: a lordship stated as "rules the 2nd" was refused on every attempt. The rest are a vote naming a family it does not cite, or a sentence the checker refuses.
+- **Concurrency.** DeepInfra took 16 checks at once with no retry on 2026-10-26, but drew 30 retries at 16 the day before. 8 met 5 retries once, all answered, and none since.
 - **The hosted default is now 8** (`OpenAIBackend.concurrency`). Set `JYOTISH_CHECKER_CONCURRENCY=16` where a run shows the provider takes it.
-- **Gaps.** The gaps are placement claims that joined two placements in one sentence (refused by the validator three times) and two longevity votes the checker refused. The single-call reading on 2026-10-25 had none: one run each, so this is not yet a measured difference.
-- **Cost.** The per-area split roughly doubles the writer's input tokens (each area's message, plus the whole one for the summary), which is about USD 0.01 at gpt-oss-120b's price on DeepInfra.
+- **Cost.** Each area's message is 14,700 to 19,200 tokens at astrologer depth. The summary's call now carries only the accepted claims, so the split's writer input is about 1.1 times the single call's on the first attempt. At depth full it is about 2.6 times (spec note, 2026-10-26).
 
 **The fastest writer under the two checkers** (2026-10-27, `docs/comparison_2026-10-27_checkers.md`).
 
@@ -375,3 +385,17 @@ So the fastest writer available is gpt-oss-120b on DeepInfra, run in the live na
 The same variables are Fly secrets (docs/deploy.md): `fly secrets set JYOTISH_OPENAI_KEY=<key>
 JYOTISH_WRITER_BACKEND=openai:… JYOTISH_CHECKER_BACKEND=openai:… JYOTISH_CLIENT_BACKEND=openai:… -a "$APP"`.
 A local model is not reachable from Fly; use a hosted provider there.
+
+**The fastest stack that passed** (2026-10-27): gpt-oss-120b on DeepInfra writes and writes the client's layer; GLM-5.3-Flash at
+temperature 0 checks, and passes the rule against GLM-4.7. On the reference chart the reading was done in 309 s for USD 0.04,
+against 1,256 s and USD 0.33 under GLM-4.7. Its Fly secrets:
+
+```bash
+fly secrets set -a "$APP" JYOTISH_OPENAI_KEY=<your DeepInfra key> \
+  JYOTISH_WRITER_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b \
+  JYOTISH_CLIENT_BACKEND=openai:https://api.deepinfra.com/v1/openai:openai/gpt-oss-120b \
+  JYOTISH_CHECKER_BACKEND=openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-5.3-Flash \
+  JYOTISH_CHECKER_TEMPERATURE=0
+```
+
+Depth full needs a writer with a larger window than gpt-oss-120b's (Qwen3.6-35B-A3B, under (a)).

@@ -109,3 +109,16 @@ The live split met gaps the single call (2026-10-25) did not: placement claims j
 CI on ff2b997 found a race: a verdict removed a claim before the loop validated the same draft, and the loop showed it again. It is fixed in bc1c03a, whose test forces that order.
 
 **Not yet done (definition of done, item 8).** No person has tried the instant page or the live page: no client, no astrologer, not Ray. Until one has, the page is not iterated further.
+
+## Layer 7 — the timing of each stack, and the fastest stack that passed (2026-10-27)
+
+The timing table is in `docs/models.md` ("Timing"). Each row is one live reading of the reference chart at astrologer depth, recorded in `docs/live_timings.jsonl`; the scorecard reports the last row per stack and never gates on it.
+
+- **The fastest stack that passed:**
+  - writer: gpt-oss-120b on DeepInfra, in the live narration;
+  - checker: GLM-5.3-Flash at temperature 0, which passes the rule against GLM-4.7 on the full benchmark (recall 1.000, 3 false rejects).
+- **Its timings:** the instant page in about 3 s, the first sentence in 19 to 32 s, the first verified in 23 to 35 s, the first area in about 70 s, done in about 310 s, USD 0.03 to 0.04.
+- **Against GLM-4.7:** the same writer took 1,256 s and USD 0.33.
+- **Cerebras and Groq:** documented and priced, not timed. Cerebras asks for payment before its key serves; Groq's base limit is below one area's message.
+- **The split and the single call.** Under one checker, the live split was done in 311 s against 510 s for the single call, with 35 claims and 2 gaps against 33 and 4 (`docs/comparison_2026-10-27_split_r2.md`). That run came after the validator took "rules the 2nd" as naming a lordship (0937ff8), which was most of the split's earlier gaps.
+- **The gate.** The gate in use (the local `.env`) stays GLM-4.7 until Ray switches it. The Fly secrets for the faster stack are in `docs/models.md`.
