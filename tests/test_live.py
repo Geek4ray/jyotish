@@ -104,6 +104,7 @@ def chart():
 def backends(server, monkeypatch):
     monkeypatch.setenv("JYOTISH_OPENAI_KEY", "stub-key")
     monkeypatch.setenv("JYOTISH_CHECKER_CONCURRENCY", "4")
+    monkeypatch.setenv("JYOTISH_WRITER_CONCURRENCY", "4")      # the stub is on this machine (1 by default)
     monkeypatch.setenv("JYOTISH_WRITER_BACKEND", f"openai:{server}:stub-writer")
     monkeypatch.setenv("JYOTISH_CHECKER_BACKEND", f"openai:{server}:stub-checker")
     Handler.requests.clear()
@@ -452,3 +453,46 @@ def test_a_running_readings_log_is_never_evicted():
     assert log.known("running") and not log.known("finished")
     events, version, _ = log.since("running", 0)
     assert version == 1 and log.append("running", {"type": "verified"}) == 2
+
+
+def test_areas_run_one_at_a_time_on_a_local_server_and_a_failure_stops_the_rest(chart, backends, monkeypatch):
+    # Review R10: "in parallel where the backend allows": a server on this machine writes one area at a time;
+    # and an area that fails stops the others at their next attempt, its error raised.
+    from jyotish.narrate import BackendFatal, OpenAIBackend
+    assert OpenAIBackend("http://localhost:11434/v1", "gpt-oss:20b").writer_concurrency == 1
+    assert OpenAIBackend("https://api.deepinfra.com/v1/openai", "openai/gpt-oss-120b").writer_concurrency is None
+    monkeypatch.setenv("JYOTISH_WRITER_CONCURRENCY", "")
+    inflight, most = [0], [0]
+    lock = threading.Lock()
+
+    def answer(name, body, users):
+        if name == "ReadingDraft" and "for review R10" in users[0]:     # this test's calls only
+            with lock:
+                inflight[0] += 1
+                most[0] = max(most[0], inflight[0])
+            time.sleep(0.2)
+            with lock:
+                inflight[0] -= 1
+        return None
+    Handler.answer = answer
+    try:
+        narrate(chart, "How will my career go, for review R10?", as_of=AS_OF, areas=["career", "marriage"])
+    finally:
+        Handler.answer = None
+    assert most[0] == 1                                              # one area at a time on 127.0.0.1
+    import jyotish.narrate as n
+    real = n.narrate
+    calls = []
+
+    def failing(*a, areas=None, **k):
+        calls.append(areas[0])
+        if areas[0] == "career":
+            raise BackendFatal("no balance")
+        return real(*a, areas=areas, **k)
+    monkeypatch.setattr(n, "narrate", failing)
+    with pytest.raises(BackendFatal, match="no balance"):
+        n._narrate_parallel(chart, "How will my career go?", as_of=AS_OF, config=n.CONFIG, recording=None,
+                            areas=["career", "marriage", "longevity"], progress=lambda *a: None, depth="astrologer",
+                            writer_model=None, writer_effort=None, writer_backend=None, checker_backend=None,
+                            client_backend=None, checker=None, live=Live(lambda e: None), started=time.perf_counter())
+    assert calls[0] == "career" and "longevity" not in calls                # the rest never started

@@ -1495,6 +1495,12 @@ class OpenAIBackend(Backend):
         return is_local(self.host)
 
     @property
+    def writer_concurrency(self) -> int | None:
+        """Areas written at once by the live narration: one at a time on a server on this machine, every
+        area at once on a hosted provider (None); JYOTISH_WRITER_CONCURRENCY overrides (review R10)."""
+        return 1 if self.local else None
+
+    @property
     def concurrency(self) -> int:
         """Calls in flight at once by default: 8 to a hosted provider (DeepInfra measured at 8 and 16 on
         2026-10-26, docs/models.md "Timing"), 1 to a server on this machine."""
@@ -2502,7 +2508,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             client_drafter: Drafter | None = None, writer_backend: str | None = None,
             checker_backend: str | None = None, client_backend: str | None = None,
             live=None, write_summary: bool = True, _collect: dict | None = None,
-            live_mode: bool | None = None, replay: dict | None = None) -> Reading:
+            live_mode: bool | None = None, replay: dict | None = None, _stop=None) -> Reading:
     """`areas` overrides the routed areas (the question's "when" is still read from it).
     `progress(stage, info)` is told "draft" before each writer call and "check" before each
     attempt's checker calls, with the attempt number (the service's job status). `depth`
@@ -2671,6 +2677,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             live.watch(unit, s_, data)
 
     for attempts in range(1, config.max_attempts + 1):
+        if _stop is not None and _stop.is_set():          # another area failed: no further attempt (review R10)
+            raise NarrationError("stopped: another area of the reading failed", [])
         progress("draft", {"attempt": attempts, **({"area": areas[0]} if not write_summary else {})})
         efforts.append(effort_now)
         if live_mode and hasattr(drafter, "on_text"):
@@ -3249,15 +3257,36 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
     live.checker = shared
     collect: dict[str, dict] = {name: {} for name in areas}
     wcfg = writer_config(config, depth, writer_model, writer_effort)
+    import os
+    import threading
+    from concurrent.futures import FIRST_EXCEPTION, wait
+    # Areas at once (review R10): JYOTISH_WRITER_CONCURRENCY, else the writer backend's own (1 on a server on
+    # this machine), else every area.
+    env = os.environ.get("JYOTISH_WRITER_CONCURRENCY", "").strip()
+    own = None if replay is not None else getattr(make_backend(writer_backend, "writer", wcfg, model=wcfg.model),
+                                                   "writer_concurrency", None)
+    workers = max(1, min(len(areas), int(env) if env else own or len(areas)))
+    stop = threading.Event()
     try:
-        with ThreadPoolExecutor(max_workers=len(areas), thread_name_prefix="area") as pool:
+        with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="area") as pool:
             futs = {name: pool.submit(narrate, chart, question, as_of=as_of, config=config,
                                       recording=None if recording is None else _Scoped(recording, name),
                                       areas=[name], progress=progress, depth=depth, writer_model=writer_model,
                                       writer_effort=writer_effort, writer_backend=writer_backend,
                                       client_backend=client_backend, checker=shared, live=live,
-                                      write_summary=False, _collect=collect[name], live_mode=True, replay=replay)
+                                      write_summary=False, _collect=collect[name], live_mode=True, replay=replay,
+                                      _stop=stop)
                     for name in areas}
+            done, _ = wait(futs.values(), return_when=FIRST_EXCEPTION)
+            failed = next((f.exception() for f in done if f.exception() is not None), None)
+            if failed is not None:
+                # One area failed (a bug, an account with no balance): the others stop at their next attempt
+                # and the areas not yet started never start, so no more is spent; the first failure is raised.
+                stop.set()
+                for f in futs.values():
+                    f.cancel()
+                wait(futs.values())
+                raise failed
             parts = [futs[name].result() for name in areas]
         facts = None
         if depth == "full":
