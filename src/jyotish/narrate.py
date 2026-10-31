@@ -496,6 +496,26 @@ def _name_forms(names: list[str]) -> list[str]:
     return out
 
 
+# A lordship named in a list (2026-10-31: the first reading on Fly lost its career paragraph three times to
+# "it is the lord of the 2nd and 5th houses" beside [rule:place.l5_h10]): "lord(s) of the 2nd and 5th
+# (houses)", "lord of the 2nd, 5th and 9th", "rules/ruling the 7th and 12th", "2nd and 5th house lord(s)",
+# joined by "and", "or" or commas. The ordinal must be one of the list's; "rules the 10th and Mars the 5th"
+# lists the 10th alone.
+_ORDINAL = r"\d{1,2}(?:st|nd|rd|th)"
+_ORD_LIST = rf"{_ORDINAL}(?:\s*(?:,\s*(?:and|or)?|and|or)\s*(?:the\s+)?{_ORDINAL})*"
+_LORDSHIP_LIST = re.compile(rf"\b(?:(?:lords?|rulers?) of|rules|rule|ruling) the ({_ORD_LIST})(?: houses?)?"
+                            rf"|\b({_ORD_LIST})(?: houses?)? (?:lords?|rulers?)\b")
+
+
+def _names_lordship(text: str, names: list[str]) -> bool:
+    """Whether `text` (lowercased) names one of `names`, a lordship also when it is one of a list."""
+    if any(n in text for n in _name_forms(names)):
+        return True
+    wanted = {m.group(1) or m.group(2) for n in names if (m := _LORD_NAME.match(n.lower()))}
+    return bool(wanted) and any(set(re.findall(_ORDINAL, m.group(1) or m.group(2))) & wanted
+                                for m in _LORDSHIP_LIST.finditer(text))
+
+
 def rule_names(rule_id: str) -> list[str]:
     lib = {r.id: r for r in default_rules()}
     rule = lib.get(rule_id)
@@ -693,9 +713,10 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
             elif kind == "rule":
                 # "lord-of-the-7th-in-the-7th" names "lord of the 7th" as well as the spaced form does; a
                 # lordship is also named as "rules the 2nd", "ruling the 2nd", "2nd house lord" or "lord of the
-                # 2nd house" (the live readings of 2026-10-27 were refused for "rules the 2nd house")
+                # 2nd house" (the live readings of 2026-10-27 were refused for "rules the 2nd house"), and in a
+                # list ("the lord of the 2nd and 5th houses", `_names_lordship`)
                 text = bare.lower().replace("-", " ")
-                if not any(n in text for n in _name_forms(rule_names(value))):
+                if not _names_lordship(text, rule_names(value)):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
             elif kind == "chain":
                 planets = (chains or {}).get(value, [])

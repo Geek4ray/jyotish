@@ -210,3 +210,10 @@ def test_the_live_readings_false_reject_is_a_row_the_validator_passes(cb, rows):
     row = next(r for r in rows if r["id"] == "live-rules-the-2nd")
     assert row["label"] == "accept" and "rules the 2nd" in row["sentence"]
     assert cb.run_validator([row])[row["id"]][0] is False
+
+
+def test_a_lordship_in_a_list_is_a_row_the_validator_passes(cb, rows):
+    # 2026-10-31: the first reading on Fly lost its career paragraph to "the lord of the 2nd and 5th houses".
+    row = next(r for r in rows if r["id"] == "live-lord-of-the-2nd-and-5th")
+    assert (row["where"], row["label"]) == ("paragraph", "accept") and "2nd and 5th houses" in row["sentence"]
+    assert cb.run_validator([row])[row["id"]][0] is False

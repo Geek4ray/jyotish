@@ -433,6 +433,13 @@ def comparison_rows() -> list[dict]:
          "Mercury is placed in the 10th house and rules the 2nd house. [rule:place.l2_h10]", "accept", "accepted",
          "the validator's false reject in the live readings of 2026-10-27: 'rules the 2nd' names the 2nd lord as "
          "'lord of the 2nd' does. Mercury in the 10th, lord of the 2nd (the placement's fact): read."),
+        # 2026-10-31, the first reading on Fly (curious depth): the career paragraph was refused three times for
+        # naming the 5th lord in a list. The quoted clause is the reading's; the sentence around it is rebuilt.
+        ("live-lord-of-the-2nd-and-5th", "paragraph", "career", None,
+         "Mercury sits in the 10th house, and it is the lord of the 2nd and 5th houses [rule:place.l5_h10].",
+         "accept", "accepted",
+         "the validator's false reject in the first reading on Fly, 2026-10-31: 'the lord of the 2nd and 5th houses' "
+         "names the 5th lord in a list. Mercury in the 10th, lord of the 2nd and the 5th (the placements' facts): read."),
     ]
     rows += KIND_ROWS
     by_id = {r[0]: r for r in rows}
@@ -451,7 +458,8 @@ def comparison_rows() -> list[dict]:
                "tags": _tags(sentence),
                "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else
                              area_tags[area or "career"], "offered_votes": votes[area or "career"],
-                             "chains": chains[area or "career"], "family_rule": True, **({} if where == "summary" else {"full": FULL})}}
+                             "chains": chains[area or "career"], "family_rule": where != "paragraph",
+                             **({} if where in ("summary", "paragraph") else {"full": FULL})}}
         if label == "accept":
             row["audit"] = note
         if TRADITION.search(sentence):

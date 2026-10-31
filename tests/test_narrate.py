@@ -1074,3 +1074,22 @@ def test_a_lordship_is_named_by_rules_the_nth_as_by_lord_of_the_nth():
         assert not [e for e in validate(ok, allowed) if "names none of" in e], ok
     bad = "Mercury is placed in the 10th house and rules the 3rd house [rule:place.l2_h10]."
     assert any("names none of" in e for e in validate(bad, allowed))
+
+
+def test_a_lordship_is_named_in_a_list():
+    # The first reading on Fly (2026-10-31) lost its career paragraph three times to "it is the lord of the
+    # 2nd and 5th houses" beside [rule:place.l5_h10]; a lordship named in a list joined by "and", "or" or
+    # commas names each of its houses, and a list that leaves the house out still names none.
+    from jyotish.narrate import validate
+    allowed = {"rule:place.l5_h10", "rule:place.l12_h7"}
+    for ok in ("Mercury sits in the 10th house, and it is the lord of the 2nd and 5th houses [rule:place.l5_h10].",
+               "Mercury, lord of the 2nd, 5th and 9th, sits in the 10th [rule:place.l5_h10].",
+               "Mercury, one of the lords of the 2nd or the 5th, sits in the 10th [rule:place.l5_h10].",
+               "Mercury, the 2nd and 5th house lord, sits in the 10th [rule:place.l5_h10].",
+               "Mars, ruling the 7th and 12th, sits in the 7th [rule:place.l12_h7].",
+               "Mars rules the 7th, 12th houses and sits in the 7th [rule:place.l12_h7]."):
+        assert not [e for e in validate(ok, allowed) if "names none of" in e], ok
+    for bad in ("Mercury, lord of the 2nd and 9th, sits in the 10th [rule:place.l5_h10].",
+                "Saturn rules the 10th and Mercury the 5th [rule:place.l5_h10].",
+                "Mars, lord of the 2nd and 15th, sits in the 7th [rule:place.l12_h7]."):
+        assert any("names none of" in e for e in validate(bad, allowed)), bad
