@@ -40,22 +40,47 @@ def test_the_engine_summary_has_its_client_words_with_no_engine_vocabulary(readi
     assert "tier" in s.text and "Vimshottari" in s.text and re.search(r"score \d", s.text)
 
 
-def test_the_windows_are_months_and_the_timing_note_stands(reading):
+def test_the_windows_are_months_and_each_is_said_as_the_engine_scores_it(reading):
+    # Review Q1: the client's text named the period to avoid and then said "These are periods the engine
+    # scores as favourable". Each period is now said as the engine scores it, and the closing line speaks of
+    # both as scores, neither as a prediction.
     s, career = reading.summary, next(a for a in reading.areas if a.name == "career")
-    best = max(career.windows, key=lambda w: w.score)
-    start, end = (date.fromisoformat(x).strftime("%B %Y") for x in (best.start, best.end))
-    assert f"The strongest period for career runs from {start} to {end}" in s.client_text
-    avoid = career.avoid_window
-    assert f"the period to avoid runs from {date.fromisoformat(avoid.start).strftime('%B %Y')}" in s.client_text
+    month = lambda x: date.fromisoformat(x).strftime("%B %Y")
+    best, avoid = max(career.windows, key=lambda w: w.score), career.avoid_window
+    assert (f"The period the engine scores most favourable for career runs from {month(best.start)} to {month(best.end)}; "
+            f"the period it scores least favourable runs from {month(avoid.start)} to {month(avoid.end)}.") in s.client_text
+    assert s.client_text.endswith("These are the engine's scores, and neither period is a prediction of when you will act.")
     assert re.search(rf"runs from {MONTH} to {MONTH}", s.client_text)
-    assert s.client_text.endswith(s.timing_note)
+
+
+def test_no_sentence_calls_the_low_scored_period_favourable_or_advises_avoiding_it(reading):
+    # What the sentences say, not only their words (review Q1, Q11, DoD 5): a sentence that names the
+    # low-scored period's months says "least favourable"; nothing after it calls the periods favourable; and
+    # nothing tells the client to avoid anything.
+    from jyotish.narrate import sentences
+    career = next(a for a in reading.areas if a.name == "career")
+    low = date.fromisoformat(career.avoid_window.start).strftime("%B %Y")
+    said = sentences(reading.summary.client_text)
+    at = next(i for i, x in enumerate(said) if low in x)
+    assert "least favourable" in said[at].split(low)[0]
+    assert not any(re.search(r"(?<!least )favourable", x) for x in said[at + 1:])
+    assert not re.search(r"\bavoid", reading.summary.client_text, re.I)
+
+
+def test_the_timing_note_says_the_window_to_avoid_apart():
+    from jyotish.narrate import timing_note
+    assert timing_note(["career"], avoid=True) == (
+        "A best window is a period the engine scores as favourable for career, and a window to avoid is the period "
+        "it scores lowest; neither predicts when you will act.")
+    assert timing_note(["career"]) == ("These are periods the engine scores as favourable for career; "
+                                       "it does not predict when you will act.")
 
 
 def test_a_tier_that_is_not_a_degree_and_an_unstable_area_are_said_plainly(reading):
     areas = [a.model_copy(update={"tier": "cannot be assessed", "windows": [], "avoid_window": None,
                                   "stability": a.stability.model_copy(update={"label": "unstable"})})
              for a in reading.areas[:1]]
-    text = client_summary(areas, ["career"], ["career"], None)
+    text = client_summary(areas, ["career"], ["career"])
     assert text.startswith("For career, the chart says that it cannot be judged from this chart. "
                            "This depends on the exact birth time.") and not client_errors(text)
 

@@ -288,8 +288,7 @@ def render(reading: Reading, chart: Chart) -> str:
     if s.source == "engine":
         # The client's face: the engine's summary in the client's words, the timing note in it; the
         # figures under "For the astrologer" (2026-10-31).
-        client_text = s.client_text or client_summary(reading.areas, route(reading.question, chart)[0],
-                                                      s.top_areas, s.timing_note)
+        client_text = s.client_text or client_summary(reading.areas, route(reading.question, chart)[0], s.top_areas)
         L += ["*Written by the engine from its fields: no drafted summary passed the checks.*", "",
               client_text, ""]
     else:

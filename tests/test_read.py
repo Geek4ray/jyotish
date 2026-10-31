@@ -284,7 +284,7 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
     assert career.index("In your chart the Sun and Mercury sit together in the 10th house") < \
         career.index("<details><summary>For the astrologer")
     assert career.index("<details>") < career.index("1. ") < career.index("</details>")
-    assert "*These are periods the engine scores as favourable for career; it does not predict when you will act.*" in md
+    assert "*A best window is a period the engine scores as favourable for career, and a window to avoid is the period it scores lowest; neither predicts when you will act.*" in md
 
 
 def test_curious_paragraph_gap_opens_the_claims_under_the_gap_note(tmp_path):

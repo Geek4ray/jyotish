@@ -991,8 +991,9 @@ def test_rejected_paragraph_sentence_keeps_the_claims(chart):
 def test_timing_note_under_the_timing_line(chart):
     from jyotish.narrate import timing_note
     r = _curious(chart)
-    assert r.summary.timing_note == ("These are periods the engine scores as favourable for career; "
-                                     "it does not predict when you will act.")
+    # The reading has a window to avoid, so the note says it apart (review Q1).
+    assert r.summary.timing_note == ("A best window is a period the engine scores as favourable for career, and a "
+                                     "window to avoid is the period it scores lowest; neither predicts when you will act.")
     assert timing_note(["career", "mother_home"]) == ("These are periods the engine scores as favourable for career "
                                                       "and mother home; it does not predict when you will act.")
     plain = narrate(chart, "How will my career go?", drafter=Replay([ACCEPTED]), checker=StubChecker(),

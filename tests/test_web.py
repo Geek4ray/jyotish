@@ -330,8 +330,9 @@ def test_curious_reading_on_the_site(page, curious_url):
     assert not career.locator("li.claim").first.is_visible()
     toggle.locator(":scope > summary").click()
     assert career.locator("li.claim").first.is_visible() and toggle.locator("details.learner").count() >= 1
-    assert page.inner_text(".summary .timing-note") == ("These are periods the engine scores as favourable for career; "
-                                                         "it does not predict when you will act.")
+    assert page.inner_text(".summary .timing-note") == ("A best window is a period the engine scores as favourable for "
+                                                         "career, and a window to avoid is the period it scores lowest; "
+                                                         "neither predicts when you will act.")
     # Every tag, the paragraphs' included, is a footnote.
     footnotes = set(page.eval_on_selector_all("#footnotes li", "els => els.map(e => e.dataset.tag)"))
     reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams(location.search).get('id')).then(r => r.json())")

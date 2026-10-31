@@ -327,3 +327,24 @@ Longevity, untagged in three of the four earlier runs, was complete in A. The ga
 
 No shown paragraph breaks the client's words, and no "exalted" sentence was refused. One run a side on a
 shared provider: a paragraph more or fewer is within run-to-run noise.
+
+## The review of 2026-10-31, fixed (docs/review_2026-10-31.md, Q1-Q11)
+
+One commit per finding.
+
+- **Q1, the period to avoid.** The client's summary named the period to avoid, and the timing note that
+  followed began "These are periods the engine scores as favourable". It now says:
+
+  > The period the engine scores most favourable for career runs from October 2029 to June 2032; the period it
+  > scores least favourable runs from November 2028 to August 2029. These are the engine's scores, and neither
+  > period is a prediction of when you will act.
+
+  It never says "avoid", and it no longer reuses the timing note. The timing note (under "When (engine)" on a
+  model summary's face) now says a window to avoid apart when the line has one:
+
+  > A best window is a period the engine scores as favourable for career, and a window to avoid is the period
+  > it scores lowest; neither predicts when you will act.
+
+  `tests/test_client_summary.py` reads what the sentences say: a sentence naming the low-scored period's
+  months calls it "least favourable", nothing after it calls the periods favourable, and nothing advises
+  avoiding.
