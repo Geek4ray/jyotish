@@ -65,8 +65,9 @@ class ClientArea(BaseModel):
     paragraph: str | None = Field(default=None, description=(
         "What the chart says for you, in plain words: the answer in two or three sentences, then what "
         "supports it, then what works against it; no dates (they go in `when`). Every sentence ends with "
-        "the tags of the accepted sentences it draws on. Null on a retry when it is held; on a retry where some of "
-        "its sentences are held, only the sentences to rewrite, in the order asked."))
+        "the tags of the accepted sentences it draws on. Null on a retry when the whole paragraph is held; on a "
+        "retry where some of its sentences are held, only the sentences to rewrite, in the order asked, and never "
+        "null while a sentence of it is listed to rewrite."))
     when: str | None = Field(default=None, description=(
         "When, in plain words: the windows in dates and months as the accepted timing gives them, and the "
         "reading's weighing of them marked 'in the reading's view'. Every sentence tagged. Null when the "

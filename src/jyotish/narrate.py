@@ -157,8 +157,9 @@ class DraftArea(BaseModel):
     claims: list[DraftClaim]
     paragraph: str | None = Field(default=None, description=(
         "Curious depth only: one short plain-language paragraph about the area, every sentence ending "
-        "with the tags of the findings it draws on. Null at the other depths, and on a retry when it is "
-        "held; on a retry where some of its sentences are held, only the sentences to rewrite, in the order asked."))
+        "with the tags of the findings it draws on. Null at the other depths, and on a retry when the whole "
+        "paragraph is held; on a retry where some of its sentences are held, only the sentences to rewrite, in the "
+        "order asked, and never null while a sentence of it is listed to rewrite."))
     analysis: DraftAnalysis | None = Field(default=None, description="Full depth only; null at the other depths.")
 
 
@@ -2520,7 +2521,8 @@ RETRY_HEAD = "Some parts of the draft passed every check and are held."
 
 PARAGRAPH_RETRY_NOTE = ("A paragraph is held sentence by sentence: where some of its sentences are held, its "
                         "`paragraph` holds only the rewritten sentences, one for each sentence listed below, in "
-                        "the order listed; the held sentences stand around them and are not repeated.")
+                        "the order listed; the held sentences stand around them and are not repeated. Such a "
+                        "`paragraph` is never null while one of its sentences is listed below.")
 
 
 def retry_instruction(held: list[str], failed: dict[str, list[str]], notes: list[str] | None = None) -> str:
@@ -2982,6 +2984,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                         para_errs[name] = hp_errs
                     else:
                         para_errs[name] = [e for _, _, es in placed[name] for e in es]
+                        # Review Q2: a sentence still open from an earlier attempt that this draft did not
+                        # rewrite (a null paragraph, or the held sentences sent again) is still an error, so the
+                        # loop does not end as clean with attempts unused; its reasons are the ones the retry
+                        # lists for it.
+                        filled = {k for k, _, _ in placed[name]}
+                        para_errs[name] += [w for _, k, _, why in hp.failed() if k not in filled for w in why]
                     errors += para_errs[name]
                     continue
                 para_errs[name] = (v_para(name, text)

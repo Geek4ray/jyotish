@@ -348,3 +348,14 @@ One commit per finding.
   `tests/test_client_summary.py` reads what the sentences say: a sentence naming the low-scored period's
   months calls it "least favourable", nothing after it calls the periods favourable, and nothing advises
   avoiding.
+- **Q2, a retry that leaves out the failed sentence.** At curious depth, a sentence still open from an earlier
+  attempt added no error unless the draft rewrote it. So a retry with `paragraph: null`, or with only the held
+  sentences again, ended the loop as clean with an attempt unused. An open sentence the draft did not rewrite
+  now adds its reasons to the attempt's errors, as the client's layer already did.
+
+  The field descriptions (`DraftArea.paragraph`, `ClientArea.paragraph`) and `PARAGRAPH_RETRY_NOTE` now say a
+  partly held paragraph is never null while one of its sentences is listed to rewrite.
+
+  Test: `tests/test_live.py::test_a_retry_that_leaves_out_the_failed_sentence_is_retried_again` (a null retry
+  and a held-only retry; both failed before the change). The writer's prompt changed in these descriptions;
+  the comparison after this round measures it.

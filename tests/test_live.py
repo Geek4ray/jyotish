@@ -375,6 +375,42 @@ def test_curious_paragraph_is_held_sentence_by_sentence_and_the_retry_names_the_
     assert [e["text"] for e in events if e.get("unit") == "paragraph:marriage:2" and e["type"] == "sentence"] == [bad, fixed]
 
 
+@pytest.mark.parametrize("retry", ["null", "held only"])
+def test_a_retry_that_leaves_out_the_failed_sentence_is_retried_again(chart, backends, retry):
+    # Review Q2: the marriage retry sent `paragraph: null`, or the held sentences again, and the loop ended as
+    # clean with an attempt unused. An open sentence the draft did not rewrite is still an error: the third
+    # attempt is asked for it, and its rewrite completes the paragraph.
+    from jyotish.narrate import findings
+    votes = [f for f in findings(chart, "marriage", AS_OF)[0] if f["kind"] == "vote"][:2]
+    first, last = (client_line(f, "marriage") for f in votes)
+    bad = "Mars sits in the 7th house [rule:place.l12_h7]."
+    fixed = "Mars, the 12th lord, sits in the 7th house [rule:place.l12_h7]."
+    calls = []
+
+    def answer(name, body, users):
+        if name != "ReadingDraft":
+            return None
+        area = next(n for n in Handler.claims if f"{n}.house" in users[0])
+        text = " ".join(client_line(f, area) for f in
+                        [f for f in findings(chart, area, AS_OF)[0] if f["kind"] == "vote"][:2])
+        if area == "marriage":
+            calls.append(users[-1])
+            text = {1: " ".join([first, bad, last]), 2: None if retry == "null" else " ".join([first, last]),
+                    3: fixed}[len(calls)]
+        return json.dumps({"summary": "", "areas": [{"name": area, "claims": Handler.claims[area][3:],
+                                                     "paragraph": text}]})
+    Handler.answer = answer
+    try:
+        r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"], depth="curious",
+                    live=Live(lambda e: None))
+    finally:
+        Handler.answer = None
+    marriage = next(a for a in r.areas if a.name == "marriage")
+    assert len(calls) == 3 and f"the marriage paragraph, sentence 2 of 3 ({bad!r})" in calls[2]
+    assert marriage.paragraph == " ".join([first, fixed, last])
+    assert not [g for g in marriage.narration_gaps if g["kind"] == "paragraph"]
+
+
 def test_depth_full_runs_the_clients_layer_per_area_and_the_summary_last(chart, backends, monkeypatch):
     # Review R5: depth full in live mode: each area's analysis, then its client's paragraph and when as
     # soon as it is accepted; the summary by the client's layer after every area; a tradition sentence
