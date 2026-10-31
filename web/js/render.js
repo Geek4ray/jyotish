@@ -204,7 +204,11 @@ function firedChips(s) {
 function areaCard(a, notes, depth, pending) {
   // A curious paragraph that ended as a gap: its gap note first, then the claims open.
   const gaps = a.narration_gaps || [];
-  const paraGap = depth === "curious" && gaps.some((g) => g.finding_id === "paragraph");
+  // Review Q7: only a paragraph that did not stand at all is a gap that opens the astrologer's reading; one held
+  // in part stands, with a line of its own.
+  const paraGap = depth === "curious" && !a.paragraph && gaps.some((g) => g.finding_id === "paragraph");
+  const partial = a.paragraph && gaps.some((g) => g.finding_id === "paragraph")
+    ? `<p class="partial muted small">${esc(t("client.partial"))}</p>` : "";
   const probability = a.probability === null || a.probability === undefined ? "not calibrated" : num(a.probability);
   const polarity = a.polarity.length
     ? a.polarity.map((p) => `${esc(p)} (${cell(a.polarity_touches[p] || [])})`).join("; ") : "none";
@@ -221,10 +225,10 @@ function areaCard(a, notes, depth, pending) {
     </dl>${conflicts}${windows}`;
   return `<section class="card area" data-area="${esc(a.name)}">
     <div class="area-head"><h2>${esc(title(a.name))}</h2><span class="tier" data-tier="${esc(a.tier)}">${esc(a.tier)}</span></div>
-    ${depth === "full" ? clientBlock(a, notes) : ""}
+    ${depth === "full" ? clientBlock(a, notes, partial) : ""}
     ${stabilityWords(a.stability) ? `<p class="stability-words">${esc(stabilityWords(a.stability))}</p>` : ""}
     ${pending ? pendingBlock(a) : ""}
-    ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
+    ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>${partial}` : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
     ${astrologerView(a, notes, depth, paraGap, figures)}
     ${paraGap ? "" : gapsList(gaps)}
@@ -272,9 +276,9 @@ export function sheetBlock(sheet, notes) {
 
 // Depth full, the client's view first (2026-10-25): what the chart says for you, when, and what this
 // chart does not tell, each sentence footnoted like any other; the tier line follows it.
-function clientBlock(a, notes) {
+function clientBlock(a, notes, partial = "") {
   const items = splitSentences((a.analysis || {}).not_said_client || "");
-  return `<div class="client-view">${a.paragraph ? `<div class="client-says"><h3 class="small">${esc(t("client.says"))}</h3><p class="paragraph">${notes.text(a.paragraph)}</p></div>` : ""}${a.when
+  return `<div class="client-view">${a.paragraph ? `<div class="client-says"><h3 class="small">${esc(t("client.says"))}</h3><p class="paragraph">${notes.text(a.paragraph)}</p>${partial}</div>` : ""}${a.when
     ? `<div class="client-when"><h3 class="small">${esc(t("client.when"))}</h3><p class="when">${notes.text(a.when)}</p></div>` : ""}${items.length
     ? `<div class="not-decided"><h3 class="small">${esc(t("client.not_tell"))}</h3><ul>${items.map((x) => `<li>${notes.text(x)}</li>`).join("")}</ul></div>` : ""}</div>`;
 }

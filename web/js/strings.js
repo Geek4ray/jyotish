@@ -106,6 +106,8 @@ export const STRINGS = {
     "client.says": "What the chart says for you",
     "client.when": "When",
     "client.not_tell": "What this chart does not tell",
+    // Under a paragraph held in part (review Q7; page.PARTIAL_PARAGRAPH, the same words).
+    "client.partial": "Part of this paragraph could not be written within the checks; what is shown passed them.",
     "pending.notice": "The written analysis is being prepared; every engine field on this page is complete, and the checked text is added as it passes.",
     "pending.area": "The written analysis is being prepared.",
     "review.pending": "This reading is still being written. You can read what is here; your answers open when it is done.",

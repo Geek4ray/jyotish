@@ -40,6 +40,8 @@ PENDING_NOTICE = ("The written analysis is being prepared; every engine field on
                   "and the checked text is added as it passes.")
 ENGINE_LINES = "The engine's own lines (no model)"
 SHEET_HEADING = "The technical sheet (the engine's figures, no model)"
+# Under a paragraph held in part (review Q7; web/js/strings.js "client.partial", the same words).
+PARTIAL_PARAGRAPH = "Part of this paragraph could not be written within the checks; what is shown passed them."
 # The engine's summary under "For the astrologer", with its figures (2026-10-31; web/js/strings.js
 # "summary.engine_figures"); the client's page shows it in the client's words.
 ENGINE_FIGURES = "The engine's summary, with its figures"
@@ -335,6 +337,8 @@ def render(reading: Reading, chart: Chart) -> str:
             # The client's view first: what the chart says, when, what it does not tell; the tier after.
             if a.paragraph:
                 L += [f"### {CLIENT_SAYS}", "", notes.render(a.paragraph), ""]
+                if any(g["finding_id"] == "paragraph" for g in a.narration_gaps):       # held in part (Q7)
+                    L += [f"*{PARTIAL_PARAGRAPH}*", ""]
             if a.when:
                 L += [f"### {CLIENT_WHEN}", "", notes.render(a.when), ""]
             client_list = sentences((a.analysis or {}).get("not_said_client") or "")
@@ -361,10 +365,12 @@ def render(reading: Reading, chart: Chart) -> str:
         if pending:
             L += [f"*{PENDING}*", ""]
         curious = reading.depth == "curious"
-        # A curious paragraph that ended as a gap: its gap note first, then the astrologer's view open.
-        para_gap = curious and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
+        # Review Q7: a paragraph held in part stands, with a line of its own; only a paragraph that did not stand
+        # at all says so and opens the astrologer's reading.
+        para_gap = curious and not a.paragraph and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
+        para_part = bool(a.paragraph) and any(g["finding_id"] == "paragraph" for g in a.narration_gaps)
         if curious and a.paragraph:
-            L += [notes.render(a.paragraph), ""]
+            L += [notes.render(a.paragraph), ""] + ([f"*{PARTIAL_PARAGRAPH}*", ""] if para_part else [])
         gaps = [f"*{gap_line(len(a.narration_gaps))}*"] if a.narration_gaps else []
         if para_gap:
             L += ["The plain paragraph for this area did not pass the checks; the astrologer's reading is shown "

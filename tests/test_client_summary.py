@@ -164,3 +164,21 @@ def test_a_reviewer_edits_an_engine_summary_in_the_clients_words(chart, reading)
     face = "\n".join(_face(render(edited, chart)))
     assert "Your work is backed by the Sun and Mercury" in face and "tier moderate" not in face
     assert "time-stability" not in face and "[rule:" not in face                   # its tag is a footnote
+
+
+def test_a_paragraph_held_in_part_stands_with_its_line_and_the_toggle_closed(chart):
+    # Review Q7: a paragraph kept with its held sentences and a gap was shown, then said "did not pass the
+    # checks", and the astrologer's reading opened. It now stands with a line of its own, the toggle closed.
+    import json as _json
+    from pathlib import Path
+    from jyotish.narrate import FixtureChecker, FixtureDrafter, narrate
+    from jyotish.page import PARTIAL_PARAGRAPH, render
+    fx = _json.loads((Path(__file__).parent / "fixtures" / "narration_curious.json").read_text())
+    r = narrate(chart, fx["question"], drafter=FixtureDrafter(fx), checker=FixtureChecker(fx), as_of=date(2026, 10, 21),
+                areas=AREAS, depth="curious")
+    gap = {"finding_id": "paragraph", "kind": "paragraph", "last_error": "refused", "attempt": 3}
+    r = r.model_copy(update={"areas": [a.model_copy(update={"narration_gaps": a.narration_gaps + [gap]})
+                                       if a.name == "marriage" else a for a in r.areas]})
+    marriage = render(r, chart).split("## Marriage", 1)[1].split("\n## ", 1)[0]
+    assert r.areas[1].paragraph and f"*{PARTIAL_PARAGRAPH}*" in marriage
+    assert "did not pass the checks" not in marriage and "<details open>" not in marriage

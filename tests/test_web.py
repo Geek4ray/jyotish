@@ -1161,6 +1161,38 @@ def test_the_site_replaces_one_paragraph_sentence_in_its_place(page, live_url):
     assert not client_errors(text)                              # the client's words (2026-10-31)
 
 
+def test_a_paragraph_held_in_part_stands_on_the_site(page, live_url):
+    # Review Q7: the middle sentence never passes; the held sentences stand with the partial line, and neither
+    # the "did not pass" lead nor an open astrologer's reading follows.
+    url, cases = live_url
+    from jyotish.narrate import findings
+    from jyotish.uncertainty import assess
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    votes = [f for f in findings(c, "career", cases.AS_OF)[0] if f["kind"] == "vote"][:2]
+    first, last = (f"{opening} [{f['allowed_tags'][0]}]." for opening, f in
+                   zip(("Your work is shown first by the house of career", "Most of the chart agrees on career"), votes))
+    bad = "Mercury sits in the 10th house [rule:place.l5_h10]."
+
+    def answer(name, body, users):
+        if name != "ReadingDraft":
+            return None
+        area = next(n for n in cases.Handler.claims if f"{n}.house" in users[0])
+        text = (bad if len(users) > 1 else " ".join([first, bad, last])) if area == "career" else None
+        return json.dumps({"summary": "", "areas": [{"name": area, "claims": cases.Handler.claims[area][3:],
+                                                     "paragraph": text}]})
+    cases.Handler.answer = answer
+    try:
+        submit_reference(page, url, question="How will my career go?", depth="curious")
+        page.wait_for_selector("#reading[data-state=done]", timeout=120_000)
+    finally:
+        cases.Handler.answer = None
+    career = page.locator('section.area[data-area="career"]')
+    assert "Your work is shown first" in career.locator("p.paragraph").inner_text()
+    assert career.locator("p.partial").inner_text().startswith("Part of this paragraph could not be written")
+    assert career.locator(".gap-lead").count() == 0 and career.locator("details.astrologer").get_attribute("open") is None
+
+
 def test_the_site_follows_by_polling_when_asked(page, live_url):
     url, _ = live_url
     submit_reference(page, url, question="How will my career go?")

@@ -421,3 +421,12 @@ One commit per finding.
   too, so the review offers an older engine summary's client words to edit.
 
   Test: `tests/test_api.py::test_a_reading_stored_before_the_client_words_gets_them_when_read`.
+- **Q7, a paragraph held in part.** A paragraph that stands with a gap was shown, then followed by "The plain
+  paragraph for this area did not pass the checks", with the astrologer's reading opened. Now only a paragraph
+  that did not stand at all says so and opens the toggle. One held in part is followed by "Part of this
+  paragraph could not be written within the checks; what is shown passed them." (`page.PARTIAL_PARAGRAPH`,
+  strings.js `client.partial`), at curious depth and under "What the chart says for you" at depth full, with the
+  toggle closed.
+
+  Tests: `tests/test_client_summary.py::test_a_paragraph_held_in_part_stands_with_its_line_and_the_toggle_closed`
+  and `tests/test_web.py::test_a_paragraph_held_in_part_stands_on_the_site`.
