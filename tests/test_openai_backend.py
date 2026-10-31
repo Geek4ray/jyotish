@@ -86,6 +86,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._drop()                         # the first try of each request: a dropped connection
         if mode == "dead" or (mode == "deadone" and "DEAD" in first):
             return self._drop()                         # every try
+        if mode == "toolarge":                          # Groq's free tier: a request above its tokens a minute
+            return self._send(413, {"error": {"message": "Request too large for model `openai/gpt-oss-120b` on tokens "
+                                              "per minute (TPM): Limit 8000, Requested 17459", "code": "rate_limit_exceeded"}})
         if mode == "nobalance":                         # DeepInfra's answer when the balance has run out
             return self._send(402, {"error": {"message": "You need positive balance to do inference."}})
         if mode == "ratelimit" and n == 1:
@@ -491,3 +494,13 @@ def test_the_fast_providers_are_priced_from_their_own_pages():
     assert PRICE_SOURCES["api.cerebras.ai"]["read_on"] == PRICE_SOURCES["api.groq.com"]["read_on"] == "2026-10-26"
     t = {"input_tokens": 1_000_000, "output_tokens": 1_000_000, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0}
     assert cost("gpt-oss-120b", t, "api.cerebras.ai") == pytest.approx(1.10)
+
+
+def test_a_request_above_the_accounts_limit_stops_at_once(server, retries):
+    # 2026-10-31: Groq's free tier answers 413 to every writer call (8,000 tokens a minute against 17,459 asked);
+    # it is fatal, not retried and not drafted three times.
+    from jyotish.narrate import BackendFatal
+    b = OpenAIBackend(f"{server}/toolarge/v1", "openai/gpt-oss-120b", api_key="k", retry_base=0.01)
+    with pytest.raises(BackendFatal, match=r"larger than the account's limit allows \(HTTP 413.*Limit 8000"):
+        ask(b)
+    assert retries == [] and len(STUB.requests) == 1

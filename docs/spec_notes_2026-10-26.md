@@ -122,3 +122,5 @@ The timing table is in `docs/models.md` ("Timing"). Each row is one live reading
 - **Cerebras and Groq:** documented and priced, not timed. Cerebras asks for payment before its key serves; Groq's base limit is below one area's message.
 - **The split and the single call.** Under one checker, the live split was done in 311 s against 510 s for the single call, with 35 claims and 2 gaps against 33 and 4 (`docs/comparison_2026-10-27_split_r2.md`). That run came after the validator took "rules the 2nd" as naming a lordship (0937ff8), which was most of the split's earlier gaps.
 - **The gate.** The gate in use (the local `.env`) stays GLM-4.7 until Ray switches it. The Fly secrets for the faster stack are in `docs/models.md`.
+
+**Groq, measured** (2026-10-31). With a free key, Groq answered a small structured call in 1.2 s. It refused the career area's writer call, 17,459 tokens, with HTTP 413: the account's limit is 8,000 tokens a minute. So no reading can be written on Groq's free tier. A 413 is now fatal (`narrate.FATAL_STATUS`), and such a reading stops in 0.5 s with the reason. Groq's paid Dev Tier would lift the limit. Cerebras is not used (paid).

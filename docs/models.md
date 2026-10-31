@@ -130,11 +130,16 @@ were read. The engine prices from `OPEN_PRICES` in `src/jyotish/costs.py`.
 | Training and retention, as stated | "We do not retain inputs and outputs associated with our training, inference and chatbot Services" (privacy policy, section 6, effective 2024-08-27, <https://www.cerebras.ai/privacy-policy>); training on API inputs is not addressed on either page read | "Groq is not permitted to use Inputs or Outputs for training or fine-tuning" unless the customer permits it (Services Agreement 4.2, last modified 2026-06-22, <https://console.groq.com/docs/legal/services-agreement>); "By default, Groq does not retain customer data for inference requests"; reliability and abuse logs up to 30 days, which zero data retention (Data Controls) turns off (<https://console.groq.com/docs/your-data>) |
 
 Not verified: whether Cerebras streams a json_schema completion (its pages do not say; a live run shows
-it), whether Cerebras trains on API inputs (not stated), which Cerebras free-tier limit is current, and
-Groq's free-plan limits. Groq's 8k tokens a minute is below one writer call: at astrologer depth one area's
-message is 14,700 to 19,200 tokens on the reference chart (career, marriage, longevity, at 2.87 characters a
-token), and the summary's call about 50,000. So on Groq's base limits a writer call is likely refused rather than delayed (not verified: no Groq key was
-used); a paid tier lifts the limit.
+it), whether Cerebras trains on API inputs (not stated), and which Cerebras free-tier limit is current. Cerebras is
+not used: it asks for payment before its key serves.
+
+**Groq's free tier refuses every writer call** (measured 2026-10-31 with a free key).
+
+- **The limit.** The account's limit for gpt-oss-120b is 8,000 tokens a minute (header `x-ratelimit-limit-tokens: 8000`).
+- **The refusal.** The career area's message, 17,459 tokens, was answered HTTP 413 "Request too large … Limit 8000, Requested 17459 … Upgrade to Dev Tier". At astrologer depth every area's message is 14,700 to 19,200 tokens on the reference chart.
+- **What does fit.** A small structured call (313 tokens in) was answered in 1.2 s.
+- **What the engine does.** It treats a 413 as fatal (`FATAL_STATUS`): the reading stops at once, in 0.5 s, with the reason, and no attempt is spent.
+- **What would change it.** Groq's paid Dev Tier would lift the limit.
 
 **A checker's temperature.** `JYOTISH_<ROLE>_TEMPERATURE` sends `temperature` to an OpenAI-compatible
 server (none is sent by default, so the server samples) and the reading records it with the backend;
@@ -342,8 +347,8 @@ parallel, then the summary.
 | gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | one call | 2.9 s | 85 s | – | 510 s | 510 s | 0.03 | 33, 4 | engine's | 0 | 2026-10-27, after 0937ff8 |
 | gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | live | 0.9 s | 19 s | 23 s | 70 s | 311 s | 0.03 | 35, 2 | engine's | 0 | 2026-10-27, after 0937ff8 |
 
-Not timed: Cerebras (it asks for payment before its key serves) and Groq (its base 8k tokens a minute is below one
-area's message). In the one-call row there is no "first verified": the single call checks after the whole draft,
+Not timed: Cerebras (it asks for payment before its key serves) and Groq (its free tier answered 413 to a writer
+call, 17,459 tokens against its 8,000 a minute, on 2026-10-31). In the one-call row there is no "first verified": the single call checks after the whole draft,
 with no live view of the checks, and its "first sentence" is the first sentence the validator passed. An instant
 page of 0.9 s is a second reading of the same chart, whose technical sheets were cached.
 
@@ -363,7 +368,7 @@ What the rows say (one live run each, so differences of a gap or two are within 
 **Which writer.** Cerebras and Groq were not timed:
 
 - Cerebras asks for payment before its key serves, and that money was not spent.
-- Groq's base limit of 8k tokens a minute is below one area's message.
+- Groq's free tier answers HTTP 413 to every writer call: 8,000 tokens a minute against an area's 14,700 to 19,200 (measured 2026-10-31).
 
 So the fastest writer available is gpt-oss-120b on DeepInfra, run in the live narration at effort medium, checker concurrency 8.
 

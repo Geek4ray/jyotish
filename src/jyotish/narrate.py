@@ -1455,7 +1455,10 @@ _FORMAT_WORDS = ("response_format", "json_schema", "json_object", "structured", 
 # never longer than RETRY_CAP seconds, or what Retry-After asks.
 RETRY_ATTEMPTS = 5
 RETRY_STATUS = {429, 500, 502, 503, 529}
-FATAL_STATUS = {401: "the key was refused", 402: "the account has no balance", 403: "the key has no access"}
+# 413: the request is larger than the account's limit (Groq's free tier: 8,000 tokens a minute, and one area's
+# message is 14,700 to 19,200 tokens; measured 2026-10-31), so every attempt would be refused the same way.
+FATAL_STATUS = {401: "the key was refused", 402: "the account has no balance", 403: "the key has no access",
+                413: "the request is larger than the account's limit allows"}
 RETRY_CAP = 60.0
 # A reasoning model spends its tokens on reasoning_content before the answer: the checker's max_tokens on
 # an OpenAI-compatible backend leaves room for both (a verdict is a few hundred tokens).
