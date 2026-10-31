@@ -305,3 +305,25 @@ the retry now says: "end it with the tags of the findings it states, copied exac
 Tests: `tests/test_narrate.py::test_a_sign_placement_carries_the_planets_dignity_there` and
 `::test_an_untagged_refusal_names_the_tags_the_sentence_states`;
 `tests/test_checker_bench.py::test_venus_exalted_is_a_row_whose_data_states_it`.
+
+**Measured** (`docs/comparison_2026-11-01_curious.md`, at 389eca1, the same stack and settings as the two
+curious comparisons above, both sides curious):
+
+| Side | Claims of 37 | Paragraph sentences shown (career / marriage / longevity) | Complete paragraphs of 3 | Gaps | Summary | USD | Done |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 35 | 2 / 4 / 4 | 2 | 3 | engine's | 0.05 | 451 s |
+| B | 37 | 0 / 2 / 3 | 0 | 3 | writer's | 0.04 | 464 s |
+
+Across the four runs before these fixes there was one complete paragraph in twelve; here there are two in six.
+Longevity, untagged in three of the four earlier runs, was complete in A. The gaps this time:
+
+| Side | What | Cause |
+| --- | --- | --- |
+| A | Career paragraph | A tier word ("strong intellect") |
+| A | Two career chain claims | Named no sign, nakshatra or navamsa |
+| B | Career paragraph | Left untagged on all three attempts. The writer took the same retries' gloss corrections, so the tags were asked for and not written. |
+| B | Marriage paragraph | An unglossed "navamsa" |
+| B | Longevity paragraph | "the arudha test" |
+
+No shown paragraph breaks the client's words, and no "exalted" sentence was refused. One run a side on a
+shared provider: a paragraph more or fewer is within run-to-run noise.
