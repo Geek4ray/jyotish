@@ -29,11 +29,14 @@ change, so read them again before you rely on them. The numbers the engine price
   than the gate in use, per the scorecards `docs/checker_scorecard_<model>.md` (each backend) and
   `docs/checker_scorecard.md` (Opus, the earlier gate). A cheaper checker that misses one kind of error
   more often is not a cheaper gate; it is a weaker one.
-- **The gate in use**, since 2026-10-25, is **GLM-4.7 on DeepInfra** (`docs/checker_scorecard_zai-org-glm-4.7.md`):
+- **The gate in use**, since 2026-10-31, is **GLM-5.3-Flash at temperature 0 on DeepInfra**
+  (`docs/checker_scorecard_zai-org-glm-5.3-flash_temp-0.md`), Ray's decision after it passed the rule against GLM-4.7
+  with recall 1.000 on every category (below, and "Timing"). `scripts/checker_bench.py` compares against it by default.
+- **The gate before it**, from 2026-10-25, was **GLM-4.7 on DeepInfra** (`docs/checker_scorecard_zai-org-glm-4.7.md`):
   Ray's decision to run the narration without Anthropic. On the benchmark it caught every bad row (86 of
   86) and is not worse than Opus's last run on any of the 14 categories that run measured; the 8 the
   benchmark has gained since have no Opus run to compare with, and GLM-4.7 caught every row of them.
-  `scripts/checker_bench.py` compares against it by default (`--gate` names another).
+  `--gate docs/checker_scorecard_zai-org-glm-4.7.md` compares against it.
 - **The writer** (and the client's layer) may change whenever its pass rate and gaps are acceptable on
   the comparison (`scripts/compare_readings.py`), because every sentence it writes is checked: a weaker
   writer costs attempts and gaps, never an unchecked sentence.
@@ -182,8 +185,10 @@ Depth full on a local model is refused unless `JYOTISH_ALLOW_LOCAL_FULL=1` is se
 
 ## In use: DeepInfra for all three roles
 
-Since 2026-10-25 the narration runs on DeepInfra, with no Anthropic call: GLM-4.7 checks, gpt-oss-120b
-writes and writes the client's layer (the lines under (a)); depth full needs the Qwen writer. The
+Since 2026-10-25 the narration runs on DeepInfra, with no Anthropic call: gpt-oss-120b writes and writes the
+client's layer (the lines under (a)); depth full needs the Qwen writer. GLM-4.7 checked until 2026-10-31;
+since then GLM-5.3-Flash at temperature 0 checks (`JYOTISH_CHECKER_BACKEND=openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-5.3-Flash`,
+`JYOTISH_CHECKER_TEMPERATURE=0`). The
 repository's `.env` (gitignored) holds these lines and the key; the scripts read it, docker-compose passes
 the variables to the service, and a shell running `jyotish read` or `uvicorn` loads them with
 `set -a; . ./.env; set +a`.
@@ -315,7 +320,7 @@ the semantic ones are the checkers'. Against Opus's last run, both are not worse
 measured (14); eight categories the benchmark has gained since (cites_too_narrowly, contradicts_its_fact,
 judgement_premise, nth_sign, ranking_not_cited, synthesis_does_not_follow, unstated_claim,
 untagged_unsupported) have no Opus run. GLM-4.7 caught every bad row, at the price of ten false rejects
-(each costs a regeneration, not a wrong sentence), and is the gate in use (above). Against it,
+(each costs a regeneration, not a wrong sentence), and was the gate in use until 2026-10-31 (above). Against it,
 Qwen3.6-35B-A3B is worse on contradicts_its_fact, judgement_premise and unstated_claim and does not pass
 the rule (its scorecard's last section); it is cheaper and faster, and stays a candidate for the writer. Until one
 shows recall not worse than Opus's on every category, client readings keep the Opus checker (the rule
@@ -372,7 +377,7 @@ What the rows say (one live run each, so differences of a gap or two are within 
 
 So the fastest writer available is gpt-oss-120b on DeepInfra, run in the live narration at effort medium, checker concurrency 8.
 
-| | GLM-5.3-Flash, temperature 0 | GLM-4.7 (the gate in use) |
+| | GLM-5.3-Flash, temperature 0 (the gate in use since 2026-10-31) | GLM-4.7 (the gate until then) |
 | --- | --- | --- |
 | Instant page / first sentence / first verified / first area / done | 2.9 / 31.7 / 35.2 / 74.3 / 308.7 s | 0.9 / 29.7 / 81.3 / 733.1 / 1,255.7 s |
 | Claims of 37, gaps | 35, 2 | 32, 5 |

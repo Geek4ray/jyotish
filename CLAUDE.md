@@ -204,10 +204,11 @@ opens one async client per batch and closes it (`Backend.aclose`), defaults to 8
 (JYOTISH_CHECKER_CONCURRENCY overrides; Anthropic 16); a checker call that fails after the retries fails its sentence
 as unchecked (`Reading.unchecked_sentences`). The benchmark writes data/bench_partial/ as it goes and both scripts take
 --resume and read keys from the gitignored .env (`jyotish.envfile`). Scorecards: docs/checker_scorecard_zai-org-glm-4.7.md,
-docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md (2026-10-25). The gate in use is GLM-4.7 on DeepInfra (Ray's decision, no
-Anthropic): `checker_bench.py` compares against it by default (`GATE`, `--gate`; `--apply-rule` re-applies the rule to a
-scorecard from its table); against it Qwen fails on three categories. The local `.env` sets all three roles on DeepInfra
-(gpt-oss-120b writer and client's layer, GLM-4.7 checker); docker-compose passes the variables. The checker's effort is
+docs/checker_scorecard_qwen-qwen3.6-35b-a3b.md (2026-10-25). The gate was GLM-4.7 on DeepInfra from 2026-10-25 (Ray's decision, no
+Anthropic; `checker_bench.PREVIOUS_GATE`); `checker_bench.py` compares against the gate in use by default (`GATE`, `--gate`;
+`--apply-rule` re-applies the rule to a scorecard from its table); Qwen fails on three categories against either. The local
+`.env` sets all three roles on DeepInfra (gpt-oss-120b writer and client's layer; the checker GLM-4.7 until 2026-10-31,
+GLM-5.3-Flash at temperature 0 since); docker-compose passes the variables. The checker's effort is
 JYOTISH_CHECKER_EFFORT or CONFIG.checker_effort (`narrate.checker_effort`; `none`, reasoning off, only on an OpenAI-compatible
 backend; `checker_bench.py --checker-effort`). GLM-4.7 at low passes the rule but saves 9% of tokens; with reasoning off it
 is 7.9 times faster and fails the rule on eight categories (docs/spec_notes_2026-10-26.md): the gate stays GLM-4.7 at high.
@@ -305,6 +306,7 @@ per-area loop; the summary call is sent only the accepted claims; `JYOTISH_LIVE=
 --single-a/-b) writes a reading in one call; the SSE stream is async, eight per reading; a local writer takes one
 area at a time (`JYOTISH_WRITER_CONCURRENCY`); every check the pool runs is counted. GLM-5.3-Flash at temperature 0
 passes the rule against GLM-4.7 (docs/checker_scorecard_zai-org-glm-5.3-flash_temp-0.md) and makes a reading about
-four times faster for a ninth of the cost (docs/comparison_2026-10-27_checkers.md); the gate in `.env` is still
-GLM-4.7 until Ray switches it.
+four times faster for a ninth of the cost (docs/comparison_2026-10-27_checkers.md); since 2026-10-31 it is the gate in use
+(Ray's decision): `.env` sets it with JYOTISH_CHECKER_TEMPERATURE=0, and `checker_bench.GATE` is its scorecard. Groq's free
+tier answers 413 to every writer call (8,000 tokens a minute), which now stops a reading at once; Cerebras is not used (paid).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

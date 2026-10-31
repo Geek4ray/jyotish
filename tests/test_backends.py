@@ -179,12 +179,24 @@ def test_the_scripts_env_file_sets_only_unset_keys_and_returns_names_only(tmp_pa
     assert os.environ["POSTGRES_PASSWORD"] == "" and load(tmp_path / "missing") == []
 
 
-# --- the gate in use: GLM-4.7 (2026-10-25) -----------------------------------------------------------
+# --- the gate in use: GLM-4.7 (2026-10-25), GLM-5.3-Flash at temperature 0 (2026-10-31) -------------
 
-def test_the_gate_in_use_is_glm_and_qwen_does_not_pass_against_it():
+def test_the_gate_in_use_is_glm_53_flash_at_temperature_0_and_it_passed_against_glm_47():
     cb = _bench()
-    assert cb.GATE.name == "checker_scorecard_zai-org-glm-4.7.md"
-    gate_text = cb.GATE.read_text()
+    assert cb.GATE.name == "checker_scorecard_zai-org-glm-5.3-flash_temp-0.md"
+    text = cb.GATE.read_text()
+    assert cb.gate_name_of(text) == "zai-org/GLM-5.3-Flash"                       # not "…Flash," from the title
+    assert "the gate in use, zai-org/GLM-4.7" in text and "Verdict: not worse on any category: it passes the rule" in text
+    flash, glm = cb.gate_recall(text), cb.gate_recall(cb.PREVIOUS_GATE.read_text())
+    assert sorted(flash) == sorted(glm) and all(v == 1.0 for v in flash.values())
+    qwen = cb.gate_recall(cb.scorecard_path("Qwen/Qwen3.6-35B-A3B").read_text())
+    assert "does not pass the rule" in "\n".join(cb.rule_from_recall(qwen, flash, "zai-org/GLM-5.3-Flash"))
+
+
+def test_the_previous_gate_is_glm_and_qwen_does_not_pass_against_it():
+    cb = _bench()
+    assert cb.PREVIOUS_GATE.name == "checker_scorecard_zai-org-glm-4.7.md"
+    gate_text = cb.PREVIOUS_GATE.read_text()
     assert cb.gate_name_of(gate_text) == "zai-org/GLM-4.7" and cb.gate_name_of(cb.SCORECARD.read_text()) == "claude-opus-5-5"
     glm = cb.gate_recall(gate_text)
     assert glm["overall"] == 1.0 and all(v == 1.0 for v in glm.values())
@@ -201,14 +213,14 @@ def test_compose_passes_each_roles_backend_to_the_service():
     from pathlib import Path
     env = yaml.safe_load((Path(__file__).resolve().parents[1] / "docker-compose.yml").read_text())["services"]["app"]["environment"]
     for name in ("JYOTISH_WRITER_BACKEND", "JYOTISH_CHECKER_BACKEND", "JYOTISH_CLIENT_BACKEND", "JYOTISH_OPENAI_KEY",
-                 "JYOTISH_CHECKER_CONCURRENCY"):
+                 "JYOTISH_CHECKER_CONCURRENCY", "JYOTISH_CHECKER_TEMPERATURE"):
         assert env[name] == "${%s:-}" % name, name
 
 
 def test_a_run_at_another_checker_effort_never_writes_over_the_gates_scorecard():
     cb = _bench()
     assert cb.scorecard_path("zai-org/GLM-4.7", "low").name == "checker_scorecard_zai-org-glm-4.7_effort-low.md"
-    assert cb.scorecard_path("zai-org/GLM-4.7", "high") == cb.scorecard_path("zai-org/GLM-4.7") == cb.GATE   # the default
+    assert cb.scorecard_path("zai-org/GLM-4.7", "high") == cb.scorecard_path("zai-org/GLM-4.7") == cb.PREVIOUS_GATE
     assert cb.partial_path("openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-4.7", "low").name == \
         "zai-org-glm-4.7_effort-low.jsonl"
     assert cb.gate_name_of("# Checker benchmark: zai-org/GLM-4.7 at checker effort low\n") == "zai-org/GLM-4.7"

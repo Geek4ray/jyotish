@@ -63,9 +63,11 @@ COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
 COMPARISON_R2 = ROOT / "docs" / "comparison_2026-10-23_r2" / "b.recording.json"   # the re-run after F1-F13
 FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
 LIVE_HEADING = "## Validator + semantic checker (live)"
-# The gate in use for client readings (docs/models.md): GLM-4.7 on DeepInfra since 2026-10-25, Ray's decision
-# to run the narration without Anthropic; Opus's scorecard (SCORECARD) is the earlier gate's.
-GATE = ROOT / "docs" / "checker_scorecard_zai-org-glm-4.7.md"
+# The gate in use for client readings (docs/models.md): GLM-5.3-Flash at temperature 0 on DeepInfra since
+# 2026-10-31 (Ray's decision; it passed the rule against GLM-4.7, the gate from 2026-10-25, with recall 1.000 on
+# every category); GLM-4.7's scorecard (PREVIOUS_GATE) and Opus's (SCORECARD) are the earlier gates'.
+GATE = ROOT / "docs" / "checker_scorecard_zai-org-glm-5.3-flash_temp-0.md"
+PREVIOUS_GATE = ROOT / "docs" / "checker_scorecard_zai-org-glm-4.7.md"
 
 
 # --- the chart behind the reading ---------------------------------------------------------------
@@ -754,7 +756,7 @@ def rule_section(rows, preds, gate: dict[str, float], gate_name: str, unchecked=
 
 def gate_name_of(text: str) -> str:
     """The checker a scorecard measured: its title's model, else the live section's ("Model …" / "Checker …")."""
-    m = re.search(r"^# Checker benchmark: (\S+)", text, re.M) or re.search(r"^(?:Model|Checker) (\S+?)[,\s]", text, re.M)
+    m = re.search(r"^# Checker benchmark: ([^\s,]+)", text, re.M) or re.search(r"^(?:Model|Checker) (\S+?)[,\s]", text, re.M)
     return m.group(1) if m else "the gate"
 
 
@@ -796,7 +798,7 @@ def main(argv=None) -> int:
                                               "write docs/checker_scorecard_<model>.md beside Opus's")
     ap.add_argument("--gate", type=Path, default=None,
                     help="the gate in use's scorecard, compared against per category (default docs/models.md's gate: "
-                         "docs/checker_scorecard_zai-org-glm-4.7.md)")
+                         "docs/checker_scorecard_zai-org-glm-5.3-flash_temp-0.md)")
     ap.add_argument("--apply-rule", type=Path, default=None, metavar="SCORECARD",
                     help="rewrite this scorecard's last section against --gate, from its own table (no model called)")
     ap.add_argument("--resume", action="store_true",
