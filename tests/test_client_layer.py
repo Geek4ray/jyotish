@@ -234,7 +234,8 @@ def test_a_refused_paragraph_is_retried_and_a_passed_summary_held(chart):
     r = run(chart, Replay(draft()), c)
     assert r.areas[0].paragraph == PARAGRAPH and r.summary.text == SUMMARY and r.usage["client"]["attempts"] == 2
     ask = c.calls[1]["errors"][0]
-    assert ask.startswith(RETRY_HEAD) and "Held: the summary; the career when." in ask and "- the career paragraph:" in ask
+    assert ask.startswith(RETRY_HEAD) and "Held: the summary; the career when." in ask
+    assert f"- the career paragraph, sentence 1 of 1 ({bad!r}):" in ask           # held sentence by sentence
     assert "engine vocabulary ('families')" in ask
 
 
@@ -298,3 +299,54 @@ def test_a_reviewers_edit_of_a_depth_full_paragraph_is_held_to_the_clients_words
     bad = check_edit(r, chart, "paragraph:career:0", "Five of the seven families vote for career "
                      "[fact:houses.lagna.10.lord].", Stub())
     assert not bad["accepted"] and any("engine vocabulary" in e for e in bad["errors"])
+
+
+# --- a paragraph held sentence by sentence (2026-10-31) -----------------------------------------
+
+S1 = "Your work house is led by Saturn [fact:houses.lagna.10.lord]."
+S3 = "Saturn sits in its own sign in the chart of career [fact:vargas.D10.Saturn]."
+REPLACED = "Saturn is the planet the reading looks to first for your work [fact:houses.lagna.10.lord]."
+
+
+def test_a_paragraph_keeps_its_passed_sentences_and_a_retry_rewrites_only_the_failed_one(chart):
+    # The marriage paragraph on Fly was lost three times for one sentence; each sentence is now held on its
+    # own: the retry is asked for the failed sentence alone, and its replacement takes that sentence's place.
+    bad = "Five of the seven families vote for career [fact:vimshottari.current]."
+    c = client((SUMMARY, " ".join([S1, bad, S3])), ("", REPLACED))
+    r = run(chart, Replay(draft()), c)
+    assert r.areas[0].paragraph == " ".join([S1, REPLACED, S3])
+    assert not [g for g in r.areas[0].narration_gaps if g["kind"] == "paragraph"]
+    from jyotish.narrate import PARAGRAPH_RETRY_NOTE
+    ask = c.calls[1]["errors"][0]
+    assert "the career paragraph's other sentences (2 of 3)" in ask and PARAGRAPH_RETRY_NOTE in ask
+    assert f"- the career paragraph, sentence 2 of 3 ({bad!r}):" in ask
+    assert S1 not in ask.split("Rewrite only these")[1] and S3 not in ask.split("Rewrite only these")[1]
+
+
+def test_a_sentence_that_never_passes_leaves_the_others_standing_and_one_paragraph_gap(chart):
+    bad = "Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn]."
+    c = client((SUMMARY, " ".join([S1, bad, S3])), ("", bad), ("", bad))
+    r = run(chart, Replay(draft()), c)
+    a = r.areas[0]
+    assert a.paragraph == " ".join([S1, S3])                      # in their order, the failed one left out
+    gaps = [g for g in a.narration_gaps if g["kind"] == "paragraph"]
+    assert len(gaps) == 1 and "in the reading's view" in gaps[0]["last_error"]
+
+
+def test_a_retry_that_sends_the_held_sentences_again_places_only_the_new_one(chart):
+    # A writer that ignores the instruction and sends the whole paragraph: the held sentences are not
+    # placed twice.
+    bad = "Five of the seven families vote for career [fact:vimshottari.current]."
+    c = client((SUMMARY, " ".join([S1, bad, S3])), ("", " ".join([S1, REPLACED, S3])))
+    r = run(chart, Replay(draft()), c)
+    assert r.areas[0].paragraph == " ".join([S1, REPLACED, S3])
+
+
+def test_a_retry_with_more_sentences_places_the_extra_after_the_failed_one(chart):
+    from jyotish.live import HeldParagraph
+    hp = HeldParagraph()
+    assert [k for k, _ in hp.place("A one. B two. C three.")] == ["1", "2", "3"]
+    hp.hold("1"), hp.fail("2", ["no"]), hp.hold("3")
+    assert hp.place("B again. B more.") == [("2", "B again."), ("2.1", "B more.")]
+    hp.hold("2"), hp.hold("2.1")
+    assert hp.text() == "A one. B again. B more. C three." and hp.complete() and hp.place("Anything.") == []

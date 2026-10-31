@@ -65,7 +65,8 @@ class ClientArea(BaseModel):
     paragraph: str | None = Field(default=None, description=(
         "What the chart says for you, in plain words: the answer in two or three sentences, then what "
         "supports it, then what works against it; no dates (they go in `when`). Every sentence ends with "
-        "the tags of the accepted sentences it draws on. Null on a retry when it is held."))
+        "the tags of the accepted sentences it draws on. Null on a retry when it is held; on a retry where some of "
+        "its sentences are held, only the sentences to rewrite, in the order asked."))
     when: str | None = Field(default=None, description=(
         "When, in plain words: the windows in dates and months as the accepted timing gives them, and the "
         "reading's weighing of them marked 'in the reading's view'. Every sentence tagged. Null when the "
@@ -225,8 +226,9 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
     `want` (the live narration, 2026-10-26): "all"; "areas", each area's paragraph and when, the
     summary left to a later call; "summary", the summary alone from every area's accepted text.
     `live` (jyotish.live.Live) is shown each unit as it streams, is validated and is checked."""
-    from .narrate import (RETRY_HEAD, NarrationError, _cited_facts, _summary_checks, retry_instruction,
-                          validate_summary)
+    from .live import HeldParagraph
+    from .narrate import (PARAGRAPH_RETRY_NOTE, RETRY_HEAD, NarrationError, _cited_facts, _summary_checks,
+                          name_hint, paragraph_units, retry_instruction, validate_summary)
     from .fullchart import resolve
     names = [n for n in accepted]
     area_tags = {n: tags_of(accepted[n]["claims"] + [v for k, v in accepted[n].items()
@@ -259,6 +261,8 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
     summary = summary_error = None
     paragraphs: dict[str, str] = {}
     para_errors: dict[str, tuple[str, int]] = {}
+    # Each paragraph held sentence by sentence (2026-10-31): a retry rewrites only its failed sentences.
+    held_paras: dict[str, HeldParagraph] = {n: HeldParagraph() for n in unit_names}
     whens: dict[str, str] = {}
     when_errors: dict[str, tuple[str, int]] = {}
     timed = [n for n in unit_names if accepted[n].get("timing")]  # an area with accepted timing has a When
@@ -269,10 +273,13 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
     for attempts in range(1, max_attempts + 1):
         progress("client", {"attempt": attempts})
         if live is not None and hasattr(drafter, "on_text"):
-            drafter.on_text = live.draft_stream(
-                lambda u: (u == "summary" and (not need_summary or summary is not None))
-                or (u.startswith("paragraph:") and (u[10:] in paragraphs or u[10:] not in unit_names))
-                or (u.startswith("when:") and (u[5:] in whens or u[5:] not in timed)))
+            def skip(u: str) -> bool:
+                if u.startswith("paragraph:"):
+                    name, _, key = u[10:].partition(":")
+                    return name not in unit_names or held_paras[name].complete() or key in held_paras[name].held
+                return ((u == "summary" and (not need_summary or summary is not None))
+                        or (u.startswith("when:") and (u[5:] in whens or u[5:] not in timed)))
+            drafter.on_text = live.draft_stream(skip, paragraphs=held_paras)
         try:
             draft = drafter(CLIENT_PROMPT, user, errors)
         except NarrationError as e:
@@ -283,7 +290,7 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
                                       client_draft=None, validator_errors=[], writer_error=errors))
             summary_error = summary_error or (errors[0], attempts)
             for n in unit_names:
-                if n not in paragraphs:
+                if not held_paras[n].complete():
                     para_errors[n] = (errors[0], attempts)
             for n in timed:
                 if n not in whens:
@@ -299,15 +306,21 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
                                      facts=facts, judgements=True) + client_errors(text, all_tags)
                     if text.strip() else ["no summary: it is not held, so the draft needs one"])
             units["client:summary"] = (text, errs)
+        placed: dict[str, list[str]] = {}               # area -> the keys of this draft's sentences
         for n in unit_names:
-            if n in paragraphs:
+            hp = held_paras[n]
+            if hp.complete():
                 continue
             text = next((a.paragraph for a in draft.areas if a.name == n), None) or ""
-            errs = (validate_summary(text, area_tags[n], offered_votes=votes[n], where=f"{n} paragraph",
-                                     family_rule=False, chains=chains[n], facts=facts, judgements=True)
-                    + client_errors(text, area_tags[n], dates=False)
-                    if text.strip() else [f"no paragraph for {n}: every area has one"])
-            units[f"client:paragraph:{n}"] = (text, errs)
+            placed[n] = []
+            for k, sentence in hp.place(text):
+                errs = (validate_summary(sentence, area_tags[n], offered_votes=votes[n], where=f"{n} paragraph",
+                                         family_rule=False, chains=chains[n], facts=facts, judgements=True)
+                        + client_errors(sentence, area_tags[n], dates=False))
+                units[f"client:paragraph:{n}:{k}"] = (sentence, errs)
+                placed[n].append(k)
+            if not hp.slots:
+                units[f"client:paragraph:{n}"] = ("", [f"no paragraph for {n}: every area has one"])
         for n in timed:
             if n in whens:
                 continue
@@ -354,6 +367,13 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
         failed: dict[str, list[str]] = {}
         for label, (text, errs) in units.items():
             why = errs or refused.get(label, [])
+            if label.count(":") == 3:                      # one sentence of a paragraph held sentence by sentence
+                name, key = label.split(":")[2:]
+                if live is not None:
+                    (live.removed(label[7:], "the checker" if not errs else "the validator") if why
+                     else live.accepted(label[7:]))
+                held_paras[name].fail(key, why) if why else held_paras[name].hold(key)
+                continue
             kind = label.split(":")[1]                     # summary | paragraph | when
             name = label.split(":")[2] if kind != "summary" else None
             unit = "the summary" if name is None else f"the {name} {kind}"
@@ -371,18 +391,33 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             else:
                 store[name] = text
                 errs_of.pop(name, None)
+        for n in placed:
+            hp = held_paras[n]
+            if hp.text() is not None:
+                paragraphs[n] = hp.text()
+            if hp.complete():
+                para_errors.pop(n, None)
+            else:
+                failed.update(paragraph_units(n, hp))
+                if hp.failed():
+                    para_errors[n] = (hp.failed()[0][3][0], attempts)
         if live is not None:                           # a unit shown but never decided on is withdrawn (review R8)
             live.sweep(tuple(f"paragraph:{n}" for n in unit_names) + tuple(f"when:{n}" for n in timed)
                        + (("summary",) if need_summary else ()))
         if not failed:
             break
         held = (["the summary"] if summary is not None or not need_summary else []) + \
-            [f"the {n} paragraph" for n in paragraphs] + \
+            [f"the {n} paragraph" if held_paras[n].complete() else
+             f"the {n} paragraph's other sentences ({len(held_paras[n].held)} of {len(held_paras[n].keys())})"
+             for n in unit_names if held_paras[n].held] + \
             [f"the {n} when" for n in whens]
-        errors = [retry_instruction(held, failed)]
+        partial = any(hp.held and not hp.complete() for hp in held_paras.values())
+        errors = [retry_instruction(held, {u: [name_hint(x, finding_data) for x in why] for u, why in failed.items()},
+                                    [PARAGRAPH_RETRY_NOTE] if partial else None)]
         assert errors[0].startswith(RETRY_HEAD)
     return {"summary": summary, "summary_error": summary_error, "paragraphs": paragraphs,
-            "para_errors": {n: e for n, e in para_errors.items() if n not in paragraphs},
+            "para_errors": {n: e for n, e in para_errors.items() if not held_paras.get(n, HeldParagraph()).complete()},
+            "para_open": sorted(n for n, hp in held_paras.items() if hp.held and not hp.complete()),
             "whens": whens, "when_errors": {n: e for n, e in when_errors.items() if n not in whens},
             "writer_metas": writer_metas, "checker_metas": checker_metas, "attempts": attempts,
             "facts": _cited_facts(" ".join([summary or ""] + list(paragraphs.values()) + list(whens.values())), facts)}

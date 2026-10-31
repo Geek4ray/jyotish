@@ -19,8 +19,8 @@ The events, each a dict with `type`:
   area      {area, gaps}                 the area's narration is finished (gaps: units that never passed)
   done      {}                           the reading is finished and stored
 
-A unit is "claim:<area>:<finding id>", "paragraph:<area>", "when:<area>", "analysis:<area>:<section>"
-or "summary". Nothing here decides what passes: the narration loop does, with the same validator and
+A unit is "claim:<area>:<finding id>", "paragraph:<area>:<key>" (one sentence of the paragraph, held on
+its own since 2026-10-31: `HeldParagraph`), "when:<area>", "analysis:<area>:<section>" or "summary". Nothing here decides what passes: the narration loop does, with the same validator and
 checker as before; this module only shows its decisions sooner."""
 
 from __future__ import annotations
@@ -167,6 +167,77 @@ def mark_of(sentence: str) -> str | None:
     return "judgement" if is_judgement(sentence) else None
 
 
+class HeldParagraph:
+    """A paragraph held sentence by sentence (2026-10-31; docs/spec_notes_2026-10-31.md): each sentence
+    is a unit with a key, held once it passes the validator and the checker, and a retry rewrites only
+    the failed ones. The first draft's sentences take the keys "1", "2", …; a retry's j-th sentence
+    takes the j-th open key (a failed sentence's, in their order), and any beyond those follow the last
+    open key as "<key>.1", "<key>.2", … (in the paragraph's order, `order`). A sentence the retry sends
+    again verbatim beside the held ones is not placed. After the last attempt the held sentences stand
+    as the paragraph, in their order; a key still open is the paragraph's gap."""
+
+    def __init__(self):
+        self.slots: dict[str, str] = {}             # key -> its latest sentence
+        self.held: set[str] = set()
+        self.errors: dict[str, list[str]] = {}      # key -> why its latest sentence failed
+
+    @staticmethod
+    def order(key: str) -> tuple[int, ...]:
+        return tuple(int(x) for x in key.split("."))
+
+    def keys(self) -> list[str]:
+        return sorted(self.slots, key=self.order)
+
+    def open(self) -> list[str] | None:
+        """The keys a draft's sentences fill, in order; None before any sentence was placed."""
+        return [k for k in self.keys() if k not in self.held] if self.slots else None
+
+    def key(self, j: int, open_: list[str] | None) -> str:
+        if open_ is None:
+            return str(j + 1)
+        if j < len(open_):
+            return open_[j]
+        base = open_[-1] if open_ else self.keys()[-1]
+        return f"{base}.{j - len(open_) + 1}"
+
+    def fresh(self, parts: list[str]) -> list[str]:
+        """A draft's sentences less those that repeat a held one."""
+        have = {self.slots[k] for k in self.held}
+        return [p for p in parts if p not in have]
+
+    def place(self, text: str | None) -> list[tuple[str, str]]:
+        """This draft's sentences placed: (key, sentence) for each, to validate and check."""
+        from .narrate import sentences
+        open_ = self.open()
+        if open_ == []:                              # every sentence is held: what the writer sent is ignored
+            return []
+        out = [(self.key(j, open_), s) for j, s in enumerate(self.fresh(sentences(text or "")))]
+        for k, s in out:
+            self.slots[k] = s
+            self.errors.pop(k, None)
+        return out
+
+    def hold(self, key: str) -> None:
+        self.held.add(key)
+        self.errors.pop(key, None)
+
+    def fail(self, key: str, why: list[str]) -> None:
+        self.errors[key] = list(why)
+
+    def text(self) -> str | None:
+        """The held sentences, in their order; None when none is held."""
+        held = [self.slots[k] for k in self.keys() if k in self.held]
+        return " ".join(held) if held else None
+
+    def failed(self) -> list[tuple[int, str, str, list[str]]]:
+        """(position from 1, key, sentence, why) for each sentence not held."""
+        return [(i, k, self.slots[k], self.errors.get(k, ["not checked"]))
+                for i, k in enumerate(self.keys(), 1) if k not in self.held]
+
+    def complete(self) -> bool:
+        return bool(self.slots) and not self.failed()
+
+
 def unit_kind(unit: str) -> str:
     return unit.split(":")[0]
 
@@ -283,11 +354,16 @@ class Live:
             self.emit({"type": "accepted", "unit": unit,
                        "verified": [i for i, x in enumerate(shown) if mark_of(x) != "tradition"]})
 
-    def draft_stream(self, skip: Callable[[str], bool], on_done: Callable[[str, str], None] | None = None):
+    def draft_stream(self, skip: Callable[[str], bool], on_done: Callable[[str, str], None] | None = None,
+                     paragraphs: dict[str, HeldParagraph] | None = None):
         """A reader for one streamed draft (a ReadingDraft or a ClientDraft): each unit's text is
         shown as it is written, unless `skip(unit)` (a held unit); `on_done(unit, text)` is told each
-        unit whose text closed (a list section's item by item is not: it is checked with the draft)."""
+        unit whose text closed (a list section's item by item is not: it is checked with the draft).
+        With `paragraphs` (area -> HeldParagraph), a paragraph streams sentence by sentence, each as
+        "paragraph:<area>:<key>" under the key its draft will be placed at."""
+        from .narrate import sentences
         names: dict[int, str] = {}
+        opened: dict[str, list[str] | None] = {}    # area -> the paragraph's open keys as this draft began
         fids: dict[tuple[int, int], str] = {}
         items: dict[tuple[int, str], dict[int, str]] = {}
 
@@ -316,6 +392,23 @@ class Live:
                     fids[(path[1], path[3])] = value
                 return
             unit, listed = unit_of(path)
+            if unit is not None and paragraphs is not None and unit.startswith("paragraph:"):
+                held = paragraphs.setdefault(unit[10:], HeldParagraph())
+                open_ = opened.setdefault(unit[10:], held.open())
+                if open_ == []:
+                    return
+                parts = held.fresh(sentences(value))
+                for j, part in enumerate(parts):
+                    closed = done or j < len(parts) - 1
+                    if not closed:
+                        break                       # the last one may still be being written
+                    piece = f"{unit}:{held.key(j, open_)}"
+                    if not skip(piece) and piece not in closed_pieces:
+                        closed_pieces.add(piece)
+                        feed.stream(piece, part, True)
+                        if on_done is not None:
+                            on_done(piece, part)
+                return
             if unit is None or skip(unit):
                 return
             if listed:                              # a list section: its items so far, one text
@@ -329,6 +422,7 @@ class Live:
 
         reader = JsonStrings(on_string)
         seen: set[str] = set()                      # the units this stream showed
+        closed_pieces: set[str] = set()             # the paragraph sentences this stream closed
 
         def stream_seen(unit: str, text: str, done: bool) -> None:
             seen.add(unit)
@@ -338,7 +432,7 @@ class Live:
             if piece is None:                       # the stream starts again: what it showed is withdrawn (R8)
                 for unit in list(seen):
                     self.withdraw(unit, "the stream started again")
-                seen.clear(), names.clear(), fids.clear(), items.clear()
+                seen.clear(), names.clear(), fids.clear(), items.clear(), closed_pieces.clear(), opened.clear()
             reader.feed(piece)
         feed.stream = stream_seen
         return feed

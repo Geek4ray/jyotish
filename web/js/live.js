@@ -26,7 +26,39 @@ function container(root, unit) {
   return root.querySelector(`.live-units[data-area="${CSS.escape(area)}"][data-audience="${audience}"]`);
 }
 
+// A paragraph's sentence (2026-10-31): "paragraph:<area>:<key>", held on its own; shown inside one
+// paragraph, in the order of its key ("2" < "2.1" < "3"), so a replacement lands where the refused one was.
+const PIECE = /^(paragraph:[^:]+):([\d.]+)$/;
+const keyOrder = (a, b) => {
+  const x = a.split(".").map(Number), y = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    if (x[i] === undefined) return -1;
+    if (y[i] === undefined) return 1;
+    if (x[i] !== y[i]) return x[i] - y[i];
+  }
+  return 0;
+};
+
+function pieceEl(root, unit, whole, key) {
+  const para = unitEl(root, whole);
+  if (!para) return null;
+  const text = para.querySelector(".live-text");
+  let el = text.querySelector(`.live-piece[data-unit="${CSS.escape(unit)}"]`);
+  if (!el) {
+    el = document.createElement("span");
+    el.className = "live-unit live-piece";
+    el.dataset.unit = unit;
+    el.dataset.key = key;
+    el.innerHTML = `<span class="live-text"></span>`;
+    const after = [...text.querySelectorAll(".live-piece")].find((x) => keyOrder(x.dataset.key, key) > 0);
+    text.insertBefore(el, after || null);
+  }
+  return el;
+}
+
 function unitEl(root, unit) {
+  const piece = PIECE.exec(unit);
+  if (piece) return pieceEl(root, unit, piece[1], piece[2]);
   const box = container(root, unit);
   if (!box) return null;
   let el = box.querySelector(`.live-unit[data-unit="${CSS.escape(unit)}"]`);
@@ -74,7 +106,11 @@ export function applyEvent(root, e) {
     }
   } else if (e.type === "removed") {
     const el = root.querySelector(`.live-unit[data-unit="${CSS.escape(e.unit)}"]`);
-    if (el) el.remove();
+    if (el) {
+      const para = el.classList.contains("live-piece") ? el.closest(".live-unit:not(.live-piece)") : null;
+      el.remove();
+      if (para && !para.querySelector(".live-piece")) para.remove();     // its last sentence gone
+    }
   } else if (e.type === "area") {
     const mark = root.querySelector(`.pending[data-area="${CSS.escape(e.area)}"] .pending-mark`);
     if (mark) mark.textContent = t("live.area_done");

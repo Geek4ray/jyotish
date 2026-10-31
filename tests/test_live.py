@@ -300,8 +300,9 @@ def test_a_live_recording_replays_offline_through_the_same_per_area_loop(chart, 
 
 
 def test_curious_depth_streams_each_paragraph_and_holds_it(chart, backends):
-    # Review R5: curious, the form's default depth, in live mode: each area's paragraph is a unit of its
-    # own, shown, checked and accepted; the summary is the writer's own call.
+    # Review R5: curious, the form's default depth, in live mode: each area's paragraph is shown, checked and
+    # accepted; the summary is the writer's own call. Since 2026-10-31 each sentence is a unit of its own
+    # ("paragraph:<area>:<key>").
     from jyotish.narrate import engine_line, findings
     votes = {n: [f for f in findings(chart, n, AS_OF)[0] if f["kind"] == "vote"][:2] for n in ("career", "marriage")}
     para = {n: " ".join(engine_line(f, n)[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes[n]) for n in votes}
@@ -320,9 +321,52 @@ def test_curious_depth_streams_each_paragraph_and_holds_it(chart, backends):
     finally:
         Handler.answer = None
     for n in ("career", "marriage"):
-        unit = [e["type"] for e in events if e.get("unit") == f"paragraph:{n}"]
-        assert unit[0] == "sentence" and unit[-1] == "accepted"
+        for k in ("1", "2"):
+            unit = [e["type"] for e in events if e.get("unit") == f"paragraph:{n}:{k}"]
+            assert unit[0] == "sentence" and unit[-1] == "accepted"
         assert next(a for a in r.areas if a.name == n).paragraph == para[n]
+
+
+def test_curious_paragraph_is_held_sentence_by_sentence_and_the_retry_names_the_lordship(chart, backends):
+    # 2026-10-31: the marriage paragraph on Fly was lost three times because one sentence tagged
+    # [rule:place.l12_h7] without naming Mars as the 12th lord. Each sentence is now a unit: the two that
+    # passed are held, the retry is asked for the failed one alone with the phrase to use, and the
+    # replacement takes its place.
+    from jyotish.narrate import PARAGRAPH_RETRY_NOTE, engine_line, findings
+    votes = {n: [f for f in findings(chart, n, AS_OF)[0] if f["kind"] == "vote"][:2] for n in ("career", "marriage")}
+    line = {n: [engine_line(f, n)[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes[n]] for n in votes}
+    bad = "Mars sits in the 7th house [rule:place.l12_h7]."
+    fixed = "Mars, the 12th lord, sits in the 7th house [rule:place.l12_h7]."
+    para = {"career": " ".join(line["career"]), "marriage": " ".join([line["marriage"][0], bad, line["marriage"][1]])}
+    asks = []
+
+    def answer(name, body, users):
+        if name in ("ReadingDraft",):
+            area = next(n for n in Handler.claims if f"{n}.house" in users[0])
+            text = para[area]
+            if area == "marriage" and len(users) > 1:
+                asks.append(users[-1])
+                text = fixed
+            return json.dumps({"summary": "", "areas": [{"name": area, "claims": Handler.claims[area][3:],
+                                                         "paragraph": text}]})
+        return None
+    Handler.answer = answer
+    try:
+        events = []
+        r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"], depth="curious",
+                    live=Live(events.append))
+    finally:
+        Handler.answer = None
+    marriage = next(a for a in r.areas if a.name == "marriage")
+    assert marriage.paragraph == " ".join([line["marriage"][0], fixed, line["marriage"][1]])
+    assert not [g for g in marriage.narration_gaps if g["kind"] == "paragraph"]
+    assert len(asks) == 1 and "name Mars as the 12th lord or the lord of the 12th" in asks[0]
+    assert f"the marriage paragraph, sentence 2 of 3 ({bad!r})" in asks[0] and PARAGRAPH_RETRY_NOTE in asks[0]
+    assert "the marriage paragraph's other sentences (2 of 3)" in asks[0]
+    by = lambda u: [e["type"] for e in events if e.get("unit") == u]
+    assert by("paragraph:marriage:1")[-1] == "accepted" and "removed" not in by("paragraph:marriage:1")
+    assert by("paragraph:marriage:2")[:2] == ["sentence", "removed"] and by("paragraph:marriage:2")[-1] == "accepted"
+    assert [e["text"] for e in events if e.get("unit") == "paragraph:marriage:2" and e["type"] == "sentence"] == [bad, fixed]
 
 
 def test_depth_full_runs_the_clients_layer_per_area_and_the_summary_last(chart, backends, monkeypatch):
@@ -361,7 +405,8 @@ def test_depth_full_runs_the_clients_layer_per_area_and_the_summary_last(chart, 
     client_calls = [b for b in Handler.requests if b["response_format"]["json_schema"]["name"] == "ClientDraft"]
     assert len(client_calls) >= 3                                    # one per area, then the summary
     order = [e.get("unit") or e["type"] for e in events if e["type"] in ("accepted", "area")]
-    assert order.index("summary") > max(i for i, x in enumerate(order) if x in ("paragraph:career", "paragraph:marriage"))
+    assert order.index("summary") > max(i for i, x in enumerate(order) if x.startswith(("paragraph:career:",
+                                                                                        "paragraph:marriage:")))
     assert r.summary.source == "model" and all(a.paragraph == para for a in r.areas)
     tradition = [e for e in events if e["type"] == "sentence" and e.get("mark") == "tradition"]
     assert tradition

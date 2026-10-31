@@ -157,7 +157,8 @@ class DraftArea(BaseModel):
     claims: list[DraftClaim]
     paragraph: str | None = Field(default=None, description=(
         "Curious depth only: one short plain-language paragraph about the area, every sentence ending "
-        "with the tags of the findings it draws on. Null at the other depths."))
+        "with the tags of the findings it draws on. Null at the other depths, and on a retry when it is "
+        "held; on a retry where some of its sentences are held, only the sentences to rewrite, in the order asked."))
     analysis: DraftAnalysis | None = Field(default=None, description="Full depth only; null at the other depths.")
 
 
@@ -2433,17 +2434,53 @@ def _check_payload(f: dict, text: str = "", facts: dict | None = None) -> str:
 RETRY_HEAD = "Some parts of the draft passed every check and are held."
 
 
-def retry_instruction(held: list[str], failed: dict[str, list[str]]) -> str:
+PARAGRAPH_RETRY_NOTE = ("A paragraph is held sentence by sentence: where some of its sentences are held, its "
+                        "`paragraph` holds only the rewritten sentences, one for each sentence listed below, in "
+                        "the order listed; the held sentences stand around them and are not repeated.")
+
+
+def retry_instruction(held: list[str], failed: dict[str, list[str]], notes: list[str] | None = None) -> str:
     """The writer's next message under section retries: what is held (never rewritten), and each
     unit to rewrite with the reasons it failed, the checker's quoted as it gave them."""
     lines = [RETRY_HEAD + " They stand as written and are not rewritten: leave each out of your answer "
              "(an empty summary, no claim for it, a null section).", ""]
-    lines += ["Held: " + ("; ".join(held) if held else "nothing yet") + ".", "",
-              "Rewrite only these, each for the reasons quoted, and return them in the same schema:"]
+    lines += ["Held: " + ("; ".join(held) if held else "nothing yet") + ".", ""]
+    lines += [*notes, ""] if notes else []
+    lines += ["Rewrite only these, each for the reasons quoted, and return them in the same schema:"]
     for unit, reasons in failed.items():
         lines.append(f"- {unit}:")
         lines += [f"    - {r}" for r in reasons]
     return "\n".join(lines)
+
+
+_RULE_UNNAMED = re.compile(r"^\[rule:([^\]]+)\] on a sentence that names none of ")
+
+
+def name_hint(error: str, finding_data: dict[str, dict]) -> str:
+    """A refusal for a rule tag on a sentence that does not name it, with the phrase to use (2026-10-31:
+    the marriage paragraph on Fly was refused three times for [rule:place.l12_h7] without Mars named as
+    the 12th lord): "name Mars as the 12th lord or the lord of the 12th"."""
+    m = _RULE_UNNAMED.match(error)
+    if not m:
+        return error
+    names = rule_names(m.group(1))
+    f = next((f for f in finding_data.values() if f.get("rule_id") == m.group(1)), None)
+    planet = ((f or {}).get("placement") or {}).get("planet") or next(iter((f or {}).get("planets") or []), None)
+    lords = [n for n in names if _LORD_NAME.match(n.lower())]
+    if lords:
+        o = next(g for g in _LORD_NAME.match(lords[0].lower()).groups() if g)
+        phrase = f"name {planet or 'the planet'} as the {o} lord or the lord of the {o}"
+    else:
+        phrase = "name it as " + " or ".join(f"{n!r}" for n in names)
+    return f"{error} ({phrase})"
+
+
+def paragraph_units(name: str, para) -> dict[str, list[str]]:
+    """The retry's lines for a paragraph held sentence by sentence: each failed sentence, quoted, with
+    its position and the reasons it failed."""
+    total = len(para.keys())
+    return {f"the {name} paragraph, sentence {i} of {total} ({sentence!r})": list(why)
+            for i, _, sentence, why in para.failed()}
 
 
 def _cited_facts(text: str, facts: dict | None) -> dict[str, Any]:
@@ -2647,6 +2684,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     kept_summary, summary_error = None, None
     kept_para: dict[str, str] = {}
     para_error: dict[str, tuple[str, int]] = {}
+    # The live narration at curious depth: each area's paragraph held sentence by sentence (2026-10-31).
+    from .live import HeldParagraph
+    held_para: dict[str, HeldParagraph] = {}
     kept_ana: dict[tuple[str, str], str] = {}           # (area, section) -> latest accepted text (depth full)
     ana_error: dict[tuple[str, str], tuple[str, int]] = {}
     draft, errors, attempts, clean = None, [], 0, False
@@ -2689,7 +2729,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             name, _, fid = rest.partition(":")
             return (name, fid) in kept and held
         if kind == "paragraph":
-            return not curious or (held and rest in kept_para)
+            name, _, key = rest.partition(":")
+            return not curious or (held and key in held_para.get(name, HeldParagraph()).held)
         if kind == "analysis":
             name, _, sec = rest.partition(":")
             return not full or (held and (name, sec) in kept_ana)
@@ -2711,8 +2752,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             return
         if kind == "summary":
             errs = v_summary(text)
-        elif kind == "paragraph" and rest in areas:
-            errs = v_para(rest, text)
+        elif kind == "paragraph" and rest.partition(":")[0] in areas:
+            errs = v_para(rest.partition(":")[0], text)
         elif kind == "analysis" and rest.partition(":")[0] in areas and rest.partition(":")[2] in ("assessment", "timing"):
             errs = v_section(*rest.split(":"), text)
         else:
@@ -2729,7 +2770,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         progress("draft", {"attempt": attempts, **({"area": areas[0]} if not write_summary else {})})
         efforts.append(effort_now)
         if live_mode and hasattr(drafter, "on_text"):
-            drafter.on_text = live.draft_stream(is_held, early)
+            drafter.on_text = live.draft_stream(is_held, early, held_para if curious and held else None)
         try:
             draft = drafter(system, user, errors)
         except NarrationError as e:                        # a refusal or no structured output
@@ -2750,7 +2791,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             summary_error = (errors[0], attempts)
             live.sweep(live_prefixes, "the writer's call failed")
             for name in areas:
-                para_error[name] = (errors[0], attempts)
+                if name not in kept_para:
+                    para_error[name] = (errors[0], attempts)
                 for sec in ANALYSIS_SECTIONS:
                     ana_error[(name, sec)] = (errors[0], attempts)
                 for f in findings(chart, name, as_of)[0]:
@@ -2792,17 +2834,31 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 unit_errors[f"the claim for {c.finding_id} ({da.name})"] = list(errs)
                 errors += errs
         para_errs: dict[str, list[str]] = {}
+        placed: dict[str, list[tuple[str, str, list[str]]]] = {}    # area -> (key, sentence, validator errors)
         if curious:
             # Each area's paragraph is read like the summary: tags offered for the area's findings,
-            # families named and cited, and no tier word (the engine states the tier).
+            # families named and cited, and no tier word (the engine states the tier). Where units are
+            # held, sentence by sentence (HeldParagraph): only the open sentences are placed and read.
             for name in areas:
-                if held and name in kept_para:
-                    continue                                 # held, at curious depth in the live narration
                 text = next((d.paragraph for d in draft.areas if d.name == name), None)
+                if held:
+                    hp = held_para.setdefault(name, HeldParagraph())
+                    if hp.complete():
+                        continue                             # every sentence held
+                    placed[name] = [(k, s_, v_para(name, s_)) for k, s_ in hp.place(text)]
+                    for k, s_, errs in placed[name]:
+                        if errs:
+                            hp.fail(k, errs)
+                    if not hp.slots:
+                        hp_errs = [f"no paragraph for {name}: at curious depth every area has one"]
+                        unit_errors[f"the {name} paragraph"] = hp_errs
+                        para_errs[name] = hp_errs
+                    else:
+                        para_errs[name] = [e for _, _, es in placed[name] for e in es]
+                    errors += para_errs[name]
+                    continue
                 para_errs[name] = (v_para(name, text)
                                    if text else [f"no paragraph for {name}: at curious depth every area has one"])
-                if held:
-                    unit_errors[f"the {name} paragraph"] = list(para_errs[name])
                 errors += para_errs[name]
         ana_errs: dict[tuple[str, str], list[str]] = {}
         sections: dict[tuple[str, str], str] = {}
@@ -2828,7 +2884,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         shown_units = ([("summary", draft.summary, summary_errs)] if not summary_held else []) + \
             [(f"claim:{n}:{c.finding_id}", c.text, claim_errs[(n, c.finding_id)]) for n, c in drafted] + \
             [(f"paragraph:{n}", next((d.paragraph for d in draft.areas if d.name == n), None) or "", e)
-             for n, e in para_errs.items()] + \
+             for n, e in para_errs.items() if n not in placed] + \
+            [(f"paragraph:{n}:{k}", s_, e) for n, ps in placed.items() for k, s_, e in ps] + \
             [(f"analysis:{n}:{sec}", sections.get((n, sec), ""), e) for (n, sec), e in ana_errs.items()]
         for unit, text, errs in shown_units:
             if errs:
@@ -2861,7 +2918,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                    for name, c in drafted if not claim_errs[(name, c.finding_id)]]
         paragraphs = {d.name: d.paragraph for d in draft.areas if d.paragraph}
         for name, errs in para_errs.items():
-            if not errs:
+            if name in placed:
+                checks += [(s_, ids, data, f"paragraph:{name}:{k}", name)
+                           for k, sentence, es in placed[name] if not es
+                           for s_, ids, data in _summary_checks(sentence, finding_data)]
+            elif not errs:
                 checks += [(s_, ids, data, f"paragraph:{name}", name)
                            for s_, ids, data in _summary_checks(paragraphs[name], finding_data)]
         for (name, sec), errs in ana_errs.items():
@@ -2884,6 +2945,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                         for sentence, _, data, _, _ in checks]
         checker_metas += [meta for _, meta in outcomes]
         rejected: dict[tuple[str, str] | str, str] = {}
+        sentence_refusals: dict[str, list[str]] = {}
         for (sentence, ids, data, label, name), (result, meta) in zip(checks, outcomes):
             if recording is not None:
                 recording.append(dict(meta or {"kind": "checker"},
@@ -2902,8 +2964,11 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     unit = ("the summary" if label == "summary" else f"the {name} {label.split(':')[2]}"
                             if label.startswith("analysis:") else f"the {name} paragraph"
                             if label.startswith("paragraph:") else f"the claim for {label} ({name})")
-                    unit_errors.setdefault(unit, []).append(
-                        f"the checker refused {prop.text!r}: {prop.evidence!r}, in {sentence!r}")
+                    refusal = f"the checker refused {prop.text!r}: {prop.evidence!r}, in {sentence!r}"
+                    if label.count(":") == 2 and label.startswith("paragraph:"):    # one held sentence's
+                        sentence_refusals.setdefault(label, []).append(refusal)
+                    else:
+                        unit_errors.setdefault(unit, []).append(refusal)
         for name, c in drafted:
             key = (name, c.finding_id)
             if claim_errs[key]:
@@ -2914,7 +2979,28 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             else:
                 kept[key] = c
                 live.accepted(f"claim:{name}:{c.finding_id}")
+        for name, ps in placed.items():
+            hp = held_para[name]
+            for k, _, es in ps:
+                if es:
+                    continue
+                label = f"paragraph:{name}:{k}"
+                if label in sentence_refusals:
+                    hp.fail(k, sentence_refusals[label])
+                    live.removed(label, "the checker")
+                else:
+                    hp.hold(k)
+                    live.accepted(label)
+            if hp.text() is not None:
+                kept_para[name] = hp.text()
+            if hp.complete():
+                para_error.pop(name, None)
+            elif hp.failed():
+                para_error[name] = (hp.failed()[0][3][0], attempts)
+            unit_errors.update(paragraph_units(name, hp))
         for name, errs in para_errs.items():
+            if name in placed:
+                continue
             if not errs:
                 if f"paragraph:{name}" in rejected:
                     para_error[name] = (rejected[f"paragraph:{name}"], attempts)
@@ -2949,9 +3035,15 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 unit_errors.setdefault("the draft", []).extend(stray)
             heldnow = (["the summary"] if kept_summary is not None or not write_summary else []) + \
                 [f"the {n} {sec}" for n in areas for sec in ANALYSIS_SECTIONS if (n, sec) in kept_ana] + \
-                [f"the {n} paragraph" for n in kept_para] + \
+                [f"the {n} paragraph" if hp.complete() else
+                 f"the {n} paragraph's other sentences ({len(hp.held)} of {len(hp.keys())})"
+                 for n, hp in held_para.items() if hp.held] + \
+                [f"the {n} paragraph" for n in kept_para if n not in held_para] + \
                 [f"the claim for {fid} ({n})" for n, fid in kept]
-            errors = [retry_instruction(heldnow, {u: e for u, e in unit_errors.items() if e})]
+            errors = [retry_instruction(heldnow, {u: [name_hint(x, finding_data) for x in e]
+                                                  for u, e in unit_errors.items() if e},
+                                        [PARAGRAPH_RETRY_NOTE] if any(hp.held and not hp.complete()
+                                                                      for hp in held_para.values()) else None)]
 
     if clean and not held:                                 # the last draft passed every check: it is the reading
         kept = {(name, c.finding_id): c for name, c in drafted}
@@ -2959,6 +3051,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         kept_para = {d.name: d.paragraph for d in draft.areas if d.paragraph} if curious else {}
         kept_ana = dict(sections)
 
+    para_open = {n for n, hp in held_para.items() if hp.held and not hp.complete()}
     client_metas: list[dict | None] = []
     client_layer: dict[str, Any] = {}
     kept_when: dict[str, str] = {}
@@ -2990,6 +3083,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 kept_summary, summary_error = client_layer["summary"], client_layer["summary_error"] or summary_error
             kept_para = dict(client_layer["paragraphs"])
             para_error.update(client_layer["para_errors"])
+            para_open = set(client_layer.get("para_open", ()))
             kept_when, when_error = dict(client_layer["whens"]), dict(client_layer["when_errors"])
         else:
             summary_error = ("nothing passed the checks to write the summary from", attempts)
@@ -3036,7 +3130,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
             avoid = _window(ans.avoid) if ans.avoid is not None else None
         top3 = name in sc.top
         paragraph = kept_para.get(name) if (curious or full) else None
-        if (curious or full) and paragraph is None:
+        # A paragraph held sentence by sentence stands with the sentences that passed; one that never
+        # did is the paragraph's gap, counted as a paragraph's always was (2026-10-31).
+        if (curious or full) and (paragraph is None or name in para_open):
             err, at = para_error.get(name, ("no paragraph was drafted for this area", attempts))
             gaps.append({"finding_id": "paragraph", "kind": "paragraph", "last_error": err, "attempt": at})
         when_text = kept_when.get(name)                 # the client's "When" (not `when`, the question's)

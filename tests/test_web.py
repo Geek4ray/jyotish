@@ -1082,6 +1082,48 @@ def test_the_site_shows_sentences_being_verified_verified_and_removed(page, live
     assert len(whole) <= 2, whole                       # the final reading (and at most one poll in flight)
 
 
+def test_the_site_replaces_one_paragraph_sentence_in_its_place(page, live_url):
+    # 2026-10-31: a curious paragraph is held sentence by sentence. The refused middle sentence is removed
+    # alone; the two that passed stay; the replacement is shown where the refused one was.
+    url, cases = live_url
+    from jyotish.narrate import engine_line, findings
+    from jyotish.uncertainty import assess
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    votes = [f for f in findings(c, "career", cases.AS_OF)[0] if f["kind"] == "vote"][:2]
+    first, last = (engine_line(f, "career")[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes)
+    bad = "Mercury sits in the 10th house [rule:place.l5_h10]."
+    fixed = "Mercury, lord of the 2nd and 5th houses, sits in the 10th house [rule:place.l5_h10]."
+
+    def answer(name, body, users):
+        if name != "ReadingDraft":
+            return None
+        area = next(n for n in cases.Handler.claims if f"{n}.house" in users[0])
+        text = (fixed if len(users) > 1 else " ".join([first, bad, last])) if area == "career" else None
+        return json.dumps({"summary": "", "areas": [{"name": area, "claims": cases.Handler.claims[area][3:],
+                                                     "paragraph": text}]})
+    cases.Handler.answer = answer
+    try:
+        page.add_init_script(LIVE_LOG)
+        submit_reference(page, url, question="How will my career go?", depth="curious")
+        page.wait_for_selector('.live-piece[data-unit="paragraph:career:2"] .live-sentence', timeout=60_000)
+        page.wait_for_function("window.__live.some(x => x[0] === 'removed' && x[1] === 'paragraph:career:2')",
+                               timeout=60_000)
+        page.wait_for_function("[...document.querySelectorAll('.live-piece[data-unit=\"paragraph:career:2\"]')]"
+                               ".some(p => p.textContent.includes('lord of the 2nd and 5th'))", timeout=60_000)
+        keys = page.evaluate("[...document.querySelectorAll('.live-unit[data-unit=\"paragraph:career\"] .live-piece')]"
+                             ".map(p => p.dataset.key)")
+        assert keys == ["1", "2", "3"]
+        page.wait_for_selector("#reading[data-state=done]", timeout=120_000)
+    finally:
+        cases.Handler.answer = None
+    log = page.evaluate("window.__live")
+    assert ["removed", "paragraph:career:1"] not in log and ["removed", "paragraph:career:3"] not in log
+    text = page.inner_text("section.area[data-area=career] p.paragraph")
+    bare = lambda t: t.split(" [")[0]
+    assert text.index(bare(first)) < text.index(bare(fixed)) < text.index(bare(last)) and bare(bad) not in text
+
+
 def test_the_site_follows_by_polling_when_asked(page, live_url):
     url, _ = live_url
     submit_reference(page, url, question="How will my career go?")
