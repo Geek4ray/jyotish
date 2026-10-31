@@ -318,7 +318,8 @@ def test_a_paragraph_keeps_its_passed_sentences_and_a_retry_rewrites_only_the_fa
     assert not [g for g in r.areas[0].narration_gaps if g["kind"] == "paragraph"]
     from jyotish.narrate import PARAGRAPH_RETRY_NOTE
     ask = c.calls[1]["errors"][0]
-    assert "the career paragraph's other sentences (2 of 3)" in ask and PARAGRAPH_RETRY_NOTE in ask
+    assert f"the career paragraph's other sentences, which stand as written: 1 ({S1!r}); 3 ({S3!r})" in ask
+    assert PARAGRAPH_RETRY_NOTE in ask
     assert f"- the career paragraph, sentence 2 of 3 ({bad!r}):" in ask
     assert S1 not in ask.split("Rewrite only these")[1] and S3 not in ask.split("Rewrite only these")[1]
 
@@ -342,11 +343,52 @@ def test_a_retry_that_sends_the_held_sentences_again_places_only_the_new_one(cha
     assert r.areas[0].paragraph == " ".join([S1, REPLACED, S3])
 
 
-def test_a_retry_with_more_sentences_places_the_extra_after_the_failed_one(chart):
+def test_a_retry_must_send_one_sentence_for_each_listed_one(chart):
+    # Review Q3: a retry's sentences took the open keys in turn, so a rewrite of sentence 1 written as two
+    # sentences, with sentence 3 also open, put its second half in sentence 3's place. While some sentences
+    # are held, a retry sends exactly one sentence for each listed one, or none is placed.
     from jyotish.live import HeldParagraph
     hp = HeldParagraph()
     assert [k for k, _ in hp.place("A one. B two. C three.")] == ["1", "2", "3"]
-    hp.hold("1"), hp.fail("2", ["no"]), hp.hold("3")
-    assert hp.place("B again. B more.") == [("2", "B again."), ("2.1", "B more.")]
-    hp.hold("2"), hp.hold("2.1")
-    assert hp.text() == "A one. B again. B more. C three." and hp.complete() and hp.place("Anything.") == []
+    hp.fail("1", ["no"]), hp.hold("2"), hp.fail("3", ["no"])
+    assert hp.place("A one, first half. A one, second half. C again.") == [] and hp.on_retry
+    assert hp.refusal.startswith("the rewrite has 3 sentence(s) for the 2 listed")
+    assert [w for _, _, _, w in hp.failed()] == [[hp.refusal], [hp.refusal]]
+    assert hp.place("A fixed. C fixed.") == [("1", "A fixed."), ("3", "C fixed.")]
+    hp.hold("1"), hp.hold("3")
+    assert hp.text() == "A fixed. B two. C fixed." and hp.complete() and hp.place("Anything.") == []
+
+
+def test_with_nothing_held_a_retry_is_the_whole_paragraph_again(chart):
+    from jyotish.live import HeldParagraph
+    hp = HeldParagraph()
+    hp.place("A one. B two. C three.")
+    for k in ("1", "2", "3"):
+        hp.fail(k, ["no"])
+    assert hp.open() is None and hp.place("D one. E two.") == [("1", "D one."), ("2", "E two.")]
+    assert hp.keys() == ["1", "2"] and not hp.on_retry
+
+
+def test_a_restatement_of_a_held_sentence_is_refused(chart):
+    # Review Q3: comparison_2026-10-31 A, career: the rewritten sentence 2 opened with what held sentence 1 said.
+    from jyotish.live import HeldParagraph
+    from jyotish.narrate import repeat_errors
+    hp = HeldParagraph()
+    hp.place("Sun and Mercury conjoin in the 10th house, forming Budhaditya yoga and Kendra Trikona Raja yoga. "
+             "B two is refused here.")
+    hp.hold("1"), hp.fail("2", ["no"])
+    hp.place("Mercury and the Sun conjoin in the 10th house, forming Budhaditya yoga and Kendra Trikona Raja yoga.")
+    assert hp.repeats(hp.slots["2"]) == 1
+    assert repeat_errors(hp, hp.slots["2"])[0].startswith("this restates sentence 1 of the paragraph")
+    assert repeat_errors(hp, "Saturn, the 10th lord, sits in its own sign in the divisional chart of career.") == []
+
+
+def test_a_paragraph_whose_first_sentence_never_passes_is_a_gap(chart):
+    # Review Q3: "What the chart says for you" opened on the for and against sentences when the answer never
+    # passed. The paragraph stands only once its first sentence is held.
+    bad = "Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn]."
+    c = client((SUMMARY, " ".join([bad, S1, S3])), ("", bad), ("", bad))
+    r = run(chart, Replay(draft()), c)
+    a = r.areas[0]
+    gaps = [g for g in a.narration_gaps if g["kind"] == "paragraph"]
+    assert a.paragraph is None and len(gaps) == 1 and "in the reading's view" in gaps[0]["last_error"]

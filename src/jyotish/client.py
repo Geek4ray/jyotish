@@ -229,7 +229,8 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
     `live` (jyotish.live.Live) is shown each unit as it streams, is validated and is checked."""
     from .live import HeldParagraph
     from .narrate import (PARAGRAPH_RETRY_NOTE, RETRY_HEAD, NarrationError, _cited_facts, _summary_checks,
-                          name_hint, paragraph_units, retry_instruction, validate_summary)
+                          held_paragraph_line, name_hint, paragraph_units, repeat_errors, retry_instruction,
+                          validate_summary)
     from .fullchart import resolve
     names = [n for n in accepted]
     area_tags = {n: tags_of(accepted[n]["claims"] + [v for k, v in accepted[n].items()
@@ -316,8 +317,9 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
             placed[n] = []
             for k, sentence in hp.place(text):
                 errs = (validate_summary(sentence, area_tags[n], offered_votes=votes[n], where=f"{n} paragraph",
-                                         family_rule=False, chains=chains[n], facts=facts, judgements=True)
-                        + client_errors(sentence, area_tags[n], dates=False))
+                                         family_rule=False, chains=chains[n], facts=facts, judgements=True,
+                                         standalone=hp.on_retry)
+                        + client_errors(sentence, area_tags[n], dates=False) + repeat_errors(hp, sentence))
                 units[f"client:paragraph:{n}:{k}"] = (sentence, errs)
                 placed[n].append(k)
             if not hp.slots:
@@ -408,9 +410,7 @@ def write(drafter: Callable, checker, *, question: str, as_of: str, accepted: di
         if not failed:
             break
         held = (["the summary"] if summary is not None or not need_summary else []) + \
-            [f"the {n} paragraph" if held_paras[n].complete() else
-             f"the {n} paragraph's other sentences ({len(held_paras[n].held)} of {len(held_paras[n].keys())})"
-             for n in unit_names if held_paras[n].held] + \
+            [held_paragraph_line(n, held_paras[n]) for n in unit_names if held_paras[n].held] + \
             [f"the {n} when" for n in whens]
         partial = any(hp.held and not hp.complete() for hp in held_paras.values())
         errors = [retry_instruction(held, {u: [name_hint(x, finding_data) for x in why] for u, why in failed.items()},

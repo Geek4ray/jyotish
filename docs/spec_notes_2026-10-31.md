@@ -359,3 +359,28 @@ One commit per finding.
   Test: `tests/test_live.py::test_a_retry_that_leaves_out_the_failed_sentence_is_retried_again` (a null retry
   and a held-only retry; both failed before the change). The writer's prompt changed in these descriptions;
   the comparison after this round measures it.
+- **Q3, a held paragraph read as a whole.** A paragraph held sentence by sentence is made of sentences from
+  different attempts, each validated and checked alone. Five changes, in `live.HeldParagraph` and both loops:
+  - **One rewrite per listed sentence.** While some sentences are held, a retry sends exactly one sentence for
+    each listed one, or none is placed. Otherwise each open sentence fails with "the rewrite has 3
+    sentence(s) for the 2 listed …". This stops a rewrite sliding into another sentence's place. With
+    nothing held, the retry is the whole paragraph again, placed from 1, and the live view keys it the same
+    way.
+  - **A restatement refused.** A rewrite that restates a held sentence in other words is refused (`repeats`:
+    70% of its content words are that sentence's).
+  - **A retry sentence stands alone.** A sentence written on a retry is read standalone: the cross-reference
+    words ("again", "as noted") and a pronoun opener ("It", "This", "They" …, `PRONOUN_OPENER`) are
+    refused.
+  - **The retry quotes the held sentences.** The retry's "Held:" line quotes them with their positions
+    (`held_paragraph_line`), so the writer sees what stands around the sentences it rewrites.
+  - **No paragraph without its opening.** A paragraph stands only once its first sentence is held
+    (`HeldParagraph.text`). If the answer never passes, the paragraph is a gap rather than its "for" and
+    "against" alone.
+
+  Tests:
+  - `tests/test_client_layer.py`: one sentence per listed sentence; with nothing held, the whole paragraph;
+    a restatement refused; a first sentence that never passes;
+  - `tests/test_live.py::test_a_sentence_written_on_a_retry_stands_alone` ("It …" and "as noted").
+
+  The composed paragraph gets no checker call of its own; these rules keep its parts from leaning on each
+  other instead.

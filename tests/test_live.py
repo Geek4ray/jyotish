@@ -368,7 +368,8 @@ def test_curious_paragraph_is_held_sentence_by_sentence_and_the_retry_names_the_
     assert not [g for g in marriage.narration_gaps if g["kind"] == "paragraph"]
     assert len(asks) == 1 and "name Mars as the 12th lord or the lord of the 12th" in asks[0]
     assert f"the marriage paragraph, sentence 2 of 3 ({bad!r})" in asks[0] and PARAGRAPH_RETRY_NOTE in asks[0]
-    assert "the marriage paragraph's other sentences (2 of 3)" in asks[0]
+    assert (f"the marriage paragraph's other sentences, which stand as written: 1 ({line['marriage'][0]!r}); "
+            f"3 ({line['marriage'][1]!r})") in asks[0]
     by = lambda u: [e["type"] for e in events if e.get("unit") == u]
     assert by("paragraph:marriage:1")[-1] == "accepted" and "removed" not in by("paragraph:marriage:1")
     assert by("paragraph:marriage:2")[:2] == ["sentence", "removed"] and by("paragraph:marriage:2")[-1] == "accepted"
@@ -409,6 +410,41 @@ def test_a_retry_that_leaves_out_the_failed_sentence_is_retried_again(chart, bac
     assert len(calls) == 3 and f"the marriage paragraph, sentence 2 of 3 ({bad!r})" in calls[2]
     assert marriage.paragraph == " ".join([first, fixed, last])
     assert not [g for g in marriage.narration_gaps if g["kind"] == "paragraph"]
+
+
+@pytest.mark.parametrize("rewrite,needle", [
+    ("It is the 12th lord and sits in the 7th house [rule:place.l12_h7].", "rather than opening on 'It'"),
+    ("Mars, as noted, is the 12th lord in the 7th house [rule:place.l12_h7].", "refers to another"),
+])
+def test_a_sentence_written_on_a_retry_stands_alone(chart, backends, rewrite, needle):
+    # Review Q3: a held paragraph is sentences from different attempts, each checked alone; one written on a
+    # retry may not lean on a sentence it was not written with ("It …", "as noted").
+    from jyotish.narrate import findings
+    votes = [f for f in findings(chart, "marriage", AS_OF)[0] if f["kind"] == "vote"][:2]
+    first, last = (client_line(f, "marriage") for f in votes)
+    bad = "Mars sits in the 7th house [rule:place.l12_h7]."
+    fixed = "Mars, the 12th lord, sits in the 7th house [rule:place.l12_h7]."
+    calls = []
+
+    def answer(name, body, users):
+        if name != "ReadingDraft":
+            return None
+        area = next(n for n in Handler.claims if f"{n}.house" in users[0])
+        text = " ".join(client_line(f, area) for f in
+                        [f for f in findings(chart, area, AS_OF)[0] if f["kind"] == "vote"][:2])
+        if area == "marriage":
+            calls.append(users[-1])
+            text = {1: " ".join([first, bad, last]), 2: rewrite, 3: fixed}[len(calls)]
+        return json.dumps({"summary": "", "areas": [{"name": area, "claims": Handler.claims[area][3:],
+                                                     "paragraph": text}]})
+    Handler.answer = answer
+    try:
+        r = narrate(chart, "How will my career go?", as_of=AS_OF, areas=["career", "marriage"], depth="curious",
+                    live=Live(lambda e: None))
+    finally:
+        Handler.answer = None
+    assert len(calls) == 3 and needle in calls[2]
+    assert next(a for a in r.areas if a.name == "marriage").paragraph == " ".join([first, fixed, last])
 
 
 def test_depth_full_runs_the_clients_layer_per_area_and_the_summary_last(chart, backends, monkeypatch):

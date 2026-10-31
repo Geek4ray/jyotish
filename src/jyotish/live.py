@@ -25,6 +25,7 @@ checker as before; this module only shows its decisions sooner."""
 
 from __future__ import annotations
 
+import re
 import threading
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -167,19 +168,33 @@ def mark_of(sentence: str) -> str | None:
     return "judgement" if is_judgement(sentence) else None
 
 
+# A rewrite restates a held sentence when this share of its content words are that sentence's; words of
+# three letters or fewer and these common ones are not content.
+REPEAT_SHARE = 0.7
+_COMMON = {"this", "that", "these", "those", "with", "from", "which", "while", "chart", "your", "also", "into",
+           "their", "there", "where", "when", "than", "them", "they", "both", "each", "only", "more", "most"}
+
+
 class HeldParagraph:
     """A paragraph held sentence by sentence (2026-10-31; docs/spec_notes_2026-10-31.md): each sentence
     is a unit with a key, held once it passes the validator and the checker, and a retry rewrites only
     the failed ones. The first draft's sentences take the keys "1", "2", …; a retry's j-th sentence
-    takes the j-th open key (a failed sentence's, in their order), and any beyond those follow the last
-    open key as "<key>.1", "<key>.2", … (in the paragraph's order, `order`). A sentence the retry sends
-    again verbatim beside the held ones is not placed. After the last attempt the held sentences stand
-    as the paragraph, in their order; a key still open is the paragraph's gap."""
+    takes the j-th open key (a failed sentence's, in their order). A sentence the retry sends again
+    verbatim beside the held ones is not placed.
+
+    Read as a whole (review Q3, 2026-11-01): a retry sends one sentence for each open one or none is placed
+    (`refusal`), so a rewrite cannot slide into another sentence's place; a rewrite that restates a held
+    sentence in other words is refused (`repeats`); a sentence placed on a retry is read standalone, since it
+    was written apart from its neighbours (`on_retry`); and the paragraph stands only once its first
+    sentence is held (`text`), so a paragraph never opens on its "for" or "against". After the last attempt
+    the held sentences stand as the paragraph, in their order; a key still open is the paragraph's gap."""
 
     def __init__(self):
         self.slots: dict[str, str] = {}             # key -> its latest sentence
         self.held: set[str] = set()
         self.errors: dict[str, list[str]] = {}      # key -> why its latest sentence failed
+        self.on_retry = False                       # the last draft placed was a retry (sentences were held)
+        self.refusal: str | None = None             # why the last draft's sentences were not placed
 
     @staticmethod
     def order(key: str) -> tuple[int, ...]:
@@ -189,8 +204,9 @@ class HeldParagraph:
         return sorted(self.slots, key=self.order)
 
     def open(self) -> list[str] | None:
-        """The keys a draft's sentences fill, in order; None before any sentence was placed."""
-        return [k for k in self.keys() if k not in self.held] if self.slots else None
+        """The keys a draft's sentences fill, in order; None while no sentence is held (the draft is the whole
+        paragraph again, placed from "1")."""
+        return [k for k in self.keys() if k not in self.held] if self.held else None
 
     def key(self, j: int, open_: list[str] | None) -> str:
         if open_ is None:
@@ -206,12 +222,24 @@ class HeldParagraph:
         return [p for p in parts if p not in have]
 
     def place(self, text: str | None) -> list[tuple[str, str]]:
-        """This draft's sentences placed: (key, sentence) for each, to validate and check."""
+        """This draft's sentences placed: (key, sentence) for each, to validate and check. On a retry whose
+        count of new sentences is not the count of open ones, nothing is placed and each open sentence fails
+        with `refusal` (review Q3)."""
         from .narrate import sentences
         open_ = self.open()
+        self.on_retry, self.refusal = open_ is not None, None
         if open_ == []:                              # every sentence is held: what the writer sent is ignored
             return []
-        out = [(self.key(j, open_), s) for j, s in enumerate(self.fresh(sentences(text or "")))]
+        if open_ is None:                            # nothing held: the draft replaces the whole paragraph
+            self.slots.clear(), self.errors.clear()
+        new = self.fresh(sentences(text or ""))
+        if open_ is not None and len(new) != len(open_):
+            self.refusal = (f"the rewrite has {len(new)} sentence(s) for the {len(open_)} listed: send exactly one "
+                            f"sentence for each sentence listed, in the order listed, and nothing else")
+            for k in open_:
+                self.errors[k] = [self.refusal]
+            return []
+        out = [(self.key(j, open_), s) for j, s in enumerate(new)]
         for k, s in out:
             self.slots[k] = s
             self.errors.pop(k, None)
@@ -224,10 +252,31 @@ class HeldParagraph:
     def fail(self, key: str, why: list[str]) -> None:
         self.errors[key] = list(why)
 
+    def repeats(self, sentence: str) -> int | None:
+        """The position (from 1) of a held sentence this one restates in other words: most of its content
+        words (four letters or more, tags left out) are that sentence's (review Q3)."""
+        from .narrate import HYPHENS, TAG
+        words = lambda x: set(re.findall(r"[a-z0-9]{4,}", TAG.sub("", x).translate(HYPHENS).lower())) - _COMMON
+        mine = words(sentence)
+        if len(mine) < 4:
+            return None
+        for i, k in enumerate(self.keys(), 1):
+            if k in self.held and len(mine & words(self.slots[k])) >= REPEAT_SHARE * len(mine):
+                return i
+        return None
+
     def text(self) -> str | None:
-        """The held sentences, in their order; None when none is held."""
-        held = [self.slots[k] for k in self.keys() if k in self.held]
-        return " ".join(held) if held else None
+        """The held sentences, in their order; None when none is held, or while the first sentence is not
+        (review Q3: a paragraph does not stand without its opening, the answer)."""
+        keys = self.keys()
+        if not keys or keys[0] not in self.held:
+            return None
+        return " ".join(self.slots[k] for k in keys if k in self.held)
+
+    def held_lines(self) -> str:
+        """The held sentences as a retry quotes them, with their positions (review Q3: the writer sees what
+        stands around the sentences it rewrites)."""
+        return "; ".join(f"{i} ({self.slots[k]!r})" for i, k in enumerate(self.keys(), 1) if k in self.held)
 
     def failed(self) -> list[tuple[int, str, str, list[str]]]:
         """(position from 1, key, sentence, why) for each sentence not held."""

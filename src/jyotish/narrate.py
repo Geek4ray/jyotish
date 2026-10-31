@@ -534,18 +534,26 @@ def rule_names(rule_id: str) -> list[str]:
     return names or [rule_id.split(".")[-1].replace("_", " ")]
 
 
+# A paragraph sentence written on a retry stands beside sentences written apart from it (review Q3): it
+# may not open on a word that points back.
+PRONOUN_OPENER = re.compile(r"^\s*(it|its|this|these|that|those|they|their|them|he|she|his|her)\b", re.I)
+
 # The engine states the tier (SPEC Layer 7 item 3): the model's summary may not use the tier words.
 TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
 
 def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where: str = "summary",
                      family_rule: bool = True, chains: dict[str, list[str]] | None = None,
-                     facts: dict | None = None, traditions: bool = False, judgements: bool = False) -> list[str]:
+                     facts: dict | None = None, traditions: bool = False, judgements: bool = False,
+                     standalone: bool = False) -> list[str]:
     """`validate`, plus: no tier word (strong, moderate, weak, mixed) in the summary, or in a
     curious-depth paragraph (`where` names which, in the error)."""
-    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=False,
+    errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=standalone,
                       facts=facts, traditions=traditions, judgements=judgements)
     for sentence in sentences(text):
+        if standalone and (m := PRONOUN_OPENER.match(TAG.sub("", sentence))):
+            errors.append(f"this sentence is written apart from the sentences around it: name what it is about "
+                          f"rather than opening on {m.group(1)!r}: {sentence!r}")
         m = TIER_WORDS.search(TRADITION.sub("", TAG.sub("", sentence)))
         if m:
             errors.append(f"tier language ({m.group(0)!r}) in the {where}; the engine states the tier: {sentence!r}")
@@ -2600,6 +2608,20 @@ def name_hint(error: str, finding_data: dict[str, dict]) -> str:
     return f"{error} ({phrase})"
 
 
+def repeat_errors(para, sentence: str) -> list[str]:
+    """A retry's sentence that restates a held one in other words (review Q3)."""
+    i = para.repeats(sentence) if para.on_retry else None
+    return [f"this restates sentence {i} of the paragraph, which is held, in other words: write what this sentence "
+            f"is to say instead: {sentence!r}"] if i else []
+
+
+def held_paragraph_line(name: str, para) -> str:
+    """The retry's "Held:" entry for a paragraph: the whole of it, or its held sentences quoted with their
+    positions (review Q3: the writer sees what stands around the sentences it rewrites)."""
+    return (f"the {name} paragraph" if para.complete() else
+            f"the {name} paragraph's other sentences, which stand as written: {para.held_lines()}")
+
+
 def paragraph_units(name: str, para) -> dict[str, list[str]]:
     """The retry's lines for a paragraph held sentence by sentence: each failed sentence, quoted, with
     its position and the reasons it failed."""
@@ -2837,12 +2859,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
         return validate_summary(text, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains,
                                 facts=facts)
 
-    def v_para(name: str, text: str) -> list[str]:
+    def v_para(name: str, text: str, alone: bool = False) -> list[str]:
         # The curious paragraph is the client's: held to the client's words as the client's layer is
         # (client.client_errors: no engine vocabulary, a Sanskrit term glossed or its plain phrase, no "I",
-        # a weighing marked; 2026-10-31).
+        # a weighing marked; 2026-10-31). `alone`: a sentence written on a retry, read standalone (review Q3).
         return (validate_summary(text, area_tags[name], offered_votes=votes_offered[name], where=f"{name} paragraph",
-                                 family_rule=False, chains=chains_offered[name])
+                                 family_rule=False, chains=chains_offered[name], standalone=alone)
                 + client_errors(text))
 
     def v_section(name: str, sec: str, text: str) -> list[str]:
@@ -2974,7 +2996,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                     hp = held_para.setdefault(name, HeldParagraph())
                     if hp.complete():
                         continue                             # every sentence held
-                    placed[name] = [(k, s_, v_para(name, s_)) for k, s_ in hp.place(text)]
+                    placed[name] = [(k, s_, v_para(name, s_, alone=hp.on_retry) + repeat_errors(hp, s_))
+                                    for k, s_ in hp.place(text)]
                     for k, s_, errs in placed[name]:
                         if errs:
                             hp.fail(k, errs)
@@ -3170,9 +3193,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                 unit_errors.setdefault("the draft", []).extend(stray)
             heldnow = (["the summary"] if kept_summary is not None or not write_summary else []) + \
                 [f"the {n} {sec}" for n in areas for sec in ANALYSIS_SECTIONS if (n, sec) in kept_ana] + \
-                [f"the {n} paragraph" if hp.complete() else
-                 f"the {n} paragraph's other sentences ({len(hp.held)} of {len(hp.keys())})"
-                 for n, hp in held_para.items() if hp.held] + \
+                [held_paragraph_line(n, hp) for n, hp in held_para.items() if hp.held] + \
                 [f"the {n} paragraph" for n in kept_para if n not in held_para] + \
                 [f"the claim for {fid} ({n})" for n, fid in kept]
             errors = [retry_instruction(heldnow, {u: [name_hint(x, finding_data) for x in e]
