@@ -110,6 +110,11 @@ export function headerLine(chart) {
     + `(KP ${esc(c.kp_house_system)}) · dasha year ${esc(c.dasha_year)} days · karaka scheme ${esc(c.karaka_scheme)}`;
 }
 
+// The stability in words, on the client's face (review Q4; narrate.STABILITY_WORDS); the figures are the astrologer's.
+function stabilityWords(st) {
+  return st && ["stable", "sensitive", "unstable"].includes(st.label) ? t(`stability.${st.label}`) : "";
+}
+
 function stabilityText(st) {
   return st ? `time ${fixed2(st.time)} · ayanamsa ${fixed2(st.ayanamsa)} · house ${fixed2(st.house)} (${esc(st.label)})` : "–";
 }
@@ -204,25 +209,25 @@ function areaCard(a, notes, depth, pending) {
   const polarity = a.polarity.length
     ? a.polarity.map((p) => `${esc(p)} (${cell(a.polarity_touches[p] || [])})`).join("; ") : "none";
   // The tier line stays on the client's face; the area's figures go under "For the astrologer" (2026-10-31).
+  const conflicts = a.school_conflicts.map(conflict).join("");
+  const windows = a.windows.length || a.avoid_window
+    ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : "";
   const figures = `<dl class="facts figures">
+      <div><dt>Stability</dt><dd class="stability num">${stabilityText(a.stability)}</dd></div>
       <div><dt>Probability</dt><dd class="probability">${probability}</dd></div>
       <div><dt>Classical score</dt><dd class="num">${num(a.score_classical)}</dd></div>
       <div><dt>Families agreeing (weighted)</dt><dd class="num">${num(a.families_agree_w)} of ${num(a.families_total_w)}</dd></div>
       <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
-    </dl>`;
+    </dl>${conflicts}${windows}`;
   return `<section class="card area" data-area="${esc(a.name)}">
     <div class="area-head"><h2>${esc(title(a.name))}</h2><span class="tier" data-tier="${esc(a.tier)}">${esc(a.tier)}</span></div>
     ${depth === "full" ? clientBlock(a, notes) : ""}
-    <dl class="facts">
-      <div><dt>Stability</dt><dd class="stability num">${stabilityText(a.stability)}</dd></div>
-    </dl>
+    ${stabilityWords(a.stability) ? `<p class="stability-words">${esc(stabilityWords(a.stability))}</p>` : ""}
     ${pending ? pendingBlock(a) : ""}
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
     ${astrologerView(a, notes, depth, paraGap, figures)}
     ${paraGap ? "" : gapsList(gaps)}
-    ${a.school_conflicts.map(conflict).join("")}
-    ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
     ${a.astrologer_note ? astrologerNote(a.astrologer_note) : ""}
     ${a.disclaimer ? `<p class="disclaimer">${esc(a.disclaimer)}</p>` : ""}
   </section>`;
@@ -332,8 +337,9 @@ function dependsSection(items) {
     const extra = d.basis ? ` from ${d.basis}` : d.direction ? `, ${d.direction}` : "";
     return `<li>${esc(d.area)}: ${esc(what)}${esc(extra)}: time-stability ${num(d.stability)} (holds in that share of the birth-time samples)</li>`;
   }).join("");
-  return `<section class="card depends" id="depends"><h2>Depends on exact birth time</h2>
-    ${items.length ? `<ul>${rows}</ul>` : `<p class="muted">Nothing: every finding offered for these areas holds in at least half the birth-time samples.</p>`}</section>`;
+  // The astrologer's (review Q4): under the toggle.
+  return `<section class="card depends" id="depends"><details class="for-astrologer"><summary>${esc(t("astro.toggle"))}</summary><h2>Depends on exact birth time</h2>
+    ${items.length ? `<ul>${rows}</ul>` : `<p class="muted">Nothing: every finding offered for these areas holds in at least half the birth-time samples.</p>`}</details></section>`;
 }
 
 const DISCLAIMER_TEXT = {
@@ -359,10 +365,12 @@ export function renderReading(r) {
   <section class="identity">
     <span class="kicker">Your question</span>
     <h1 class="question">${esc(r.question)}</h1>
-    <p class="header-line">${headerLine(r.chart)}</p>
     ${r.review && r.review.status === "reviewed" ? `<p class="reviewed-by">Reviewed by <strong>${esc(r.review.reviewed_by)}</strong> on ${esc(r.review.reviewed_at.slice(0, 10))}. Edited sentences passed the same checks as the writer's; the astrologer's notes are the reviewer's own words.</p>` : ""}
+    <details class="for-astrologer settings"><summary>${esc(t("astro.toggle"))}</summary>
+    <p class="header-line">${headerLine(r.chart)}</p>
     ${r.model ? `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)} · ${r.writer && r.writer.model ? `writer ${esc(r.writer.model)} at effort ${esc(r.writer.effort)}` : `model ${esc(r.model)}`} · ${num(r.attempts)} attempt(s) · narration ${esc(r.narration_source)}</p>`
       : `<p class="header-line">As of ${esc(r.as_of)} · engine ${esc(r.engine)} · weights ${esc(r.weights)}</p>`}
+    </details>
   </section>
   ${pending ? `<p class="notice pending-notice" id="pending">${esc(t("pending.notice"))}</p>` : ""}
   ${r.narration_complete === false && !pending ? `<p class="notice" id="incomplete">Narration incomplete: ${num(r.areas.reduce((n, a) => n + (a.narration_gaps || []).length, 0))} finding(s) were not narrated within the checks${s.source === "engine" ? ", and the summary is the engine's own" : ""}. Every engine field below is complete.</p>` : ""}
@@ -371,9 +379,10 @@ export function renderReading(r) {
     ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}
     ${pending ? `<div class="live-units" data-area="summary" aria-live="polite"></div><p class="muted small">${esc(t("live.summary_engine"))}</p>` : ""}
     <p class="summary-text">${summaryText}</p>
-    ${s.timing_line && !engine ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span>${s.timing_note ? `<span class="timing-note">${esc(s.timing_note)}</span>` : ""}</div>` : ""}
+    ${!engine && s.client_when ? `<p class="client-when">${esc(s.client_when)}</p>` : ""}
     ${s.timing_note && engine && !s.client_text ? `<p class="timing-note">${esc(s.timing_note)}</p>` : ""}
     <details class="for-astrologer summary-figures"><summary>${esc(t("astro.toggle"))}</summary>
+    ${s.timing_line && !engine ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span>${s.timing_note ? `<span class="timing-note">${esc(s.timing_note)}</span>` : ""}</div>` : ""}
     ${engine && s.client_text ? `<p class="engine-figures"><span class="label">${esc(t("summary.engine_figures"))}</span> ${notes.text(s.text)}</p>` : ""}
     <div class="chips">
       <span class="chip">Driver: <strong>${esc(s.driver_planet)}</strong>${s.driver_alternates.length ? ` (alternates ${esc(s.driver_alternates.join(", "))})` : ""}</span>
@@ -388,7 +397,7 @@ export function renderReading(r) {
   ${areas}
   ${dependsSection(r.depends_on_birth_time)}
   ${r.disclaimers.length ? `<section class="card"><h2>Disclaimers</h2>${r.disclaimers.map((k) => `<p class="disclaimer">${esc(DISCLAIMER_TEXT[k] || k)}</p>`).join("")}</section>` : ""}
-  <section class="card citations"><h2>Citations</h2><ol class="footnotes" id="footnotes">${notes.html()}</ol></section>`;
+  <section class="card citations"><details class="for-astrologer"><summary>${esc(t("astro.toggle"))}</summary><h2>Citations</h2><ol class="footnotes" id="footnotes">${notes.html()}</ol></details></section>`;
 }
 
 export function renderTiming(r) {

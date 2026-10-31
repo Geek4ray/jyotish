@@ -120,7 +120,7 @@ def test_every_tag_in_the_json_is_a_footnote(page, base_url):
 def test_engine_fields_verbatim(page, base_url):
     open_reading(page, base_url)
     s = EXAMPLE["summary"]
-    assert page.inner_text(".timing-text") == s["timing_line"]
+    assert page.text_content(".summary details.for-astrologer .timing-text") == s["timing_line"]   # the astrologer's (Q4)
     # The figures are the astrologer's, under the summary's toggle (2026-10-31).
     chips = page.text_content(".summary details.for-astrologer .chips")
     for value in (s["driver_planet"], s["current_period"], ", ".join(s["top_areas"]), ", ".join(s["abstained_areas"])):
@@ -129,7 +129,9 @@ def test_engine_fields_verbatim(page, base_url):
         card = page.locator(f'section.area[data-area="{a["name"]}"]')
         assert card.locator(".tier").inner_text() == a["tier"]                        # tier word verbatim
         st = a["stability"]
-        assert card.locator(".stability").inner_text() == \
+        # The stability in words on the face, its figures under the toggle (review Q4).
+        assert card.locator("p.stability-words").inner_text() == "This does not depend on the exact birth time."
+        assert card.locator("details.astrologer dl.figures .stability").text_content() == \
             f'time {st["time"]:.2f} · ayanamsa {st["ayanamsa"]:.2f} · house {st["house"]:.2f} ({st["label"]})'
         assert a["probability"] is None and card.locator(".probability").text_content() == "not calibrated"
         # The area's figures under "For the astrologer"; the tier and the stability on the face (2026-10-31).
@@ -141,7 +143,8 @@ def test_engine_fields_verbatim(page, base_url):
         for sc in a["school_conflicts"]:
             assert "School conflict" in card.inner_text()
     assert page.locator("#depends").is_visible()                                       # always shown
-    assert "Depends on exact birth time" in page.inner_text("#depends")
+    assert "Depends on exact birth time" in page.text_content("#depends")             # under its toggle (Q4)
+    assert page.locator("#depends details.for-astrologer").count() == 1
 
 
 def test_learner_panels_collapsed_and_from_the_json(page, base_url):
@@ -188,8 +191,10 @@ def test_home_form_runs_a_reading_through_the_api(page, base_url):
     submit_reference(page, base_url)
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     assert page.inner_text(".question") == "How will my career go, and when is the best time for a job change?"
-    assert "Rewari, Haryana (28.1989, 76.617)" in page.inner_text(".header-line")
-    assert page.locator("section.area").count() == 3 and page.locator(".timing-text").is_visible()
+    assert "Rewari, Haryana (28.1989, 76.617)" in page.text_content(".identity details.for-astrologer .header-line")
+    # The windows in the client's words on the face; the engine's timing line under the toggle (review Q4).
+    assert page.locator("section.area").count() == 3 and page.locator(".summary p.client-when").is_visible()
+    assert page.inner_text(".summary p.client-when").startswith("The period the engine scores most favourable for career")
 
 
 
@@ -307,6 +312,27 @@ def curious_url(tmp_path_factory):
     thread.join(5)
 
 
+FACE_TEXT = """() => {
+  const root = document.querySelector('#reading').cloneNode(true);
+  root.querySelectorAll('details, .tier, .kicker, h1.question').forEach((el) => el.remove());
+  return root.innerText;
+}"""
+
+
+@pytest.mark.parametrize("which", ["curious", "full"])
+def test_the_site_outside_the_toggles_is_in_the_clients_words(page, curious_url, full_url, which):
+    # Review Q4: the site's face (everything outside "For the astrologer", the tier badge and the question
+    # aside) passes client.client_errors at the client's depths.
+    from jyotish.client import client_errors
+    url = curious_url if which == "curious" else full_url
+    submit_reference(page, url, question="How will my career go?", depth=which)
+    page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
+    lines = [x.strip() for x in page.evaluate(FACE_TEXT).splitlines() if x.strip()]
+    assert lines and not [(x, client_errors(x)) for x in lines if client_errors(x)]
+    assert not [x for x in lines if __import__("re").search(r"\b(?:ayanamsa|Vimshottari|score|samples?|famil(?:y|ies))\b",
+                                                          x, __import__("re").I)]
+
+
 def test_curious_reading_on_the_site(page, curious_url):
     page.goto(f"{curious_url}/")
     assert page.input_value("#depth") == "curious"                        # the form's default
@@ -330,7 +356,7 @@ def test_curious_reading_on_the_site(page, curious_url):
     assert not career.locator("li.claim").first.is_visible()
     toggle.locator(":scope > summary").click()
     assert career.locator("li.claim").first.is_visible() and toggle.locator("details.learner").count() >= 1
-    assert page.inner_text(".summary .timing-note") == ("A best window is a period the engine scores as favourable for "
+    assert page.text_content(".summary .timing-note") == ("A best window is a period the engine scores as favourable for "
                                                          "career, and a window to avoid is the period it scores lowest; "
                                                          "neither predicts when you will act.")
     # Every tag, the paragraphs' included, is a footnote.
@@ -789,9 +815,9 @@ def test_full_depth_reading_on_the_site(page, full_url):
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
     # The client's view first, the tier line after it, then the astrologer's view, closed.
-    sel = ".client-says, .client-when, .not-decided, dl.facts:not(.figures), details.for-astrologer"
+    sel = ".client-says, .client-when, .not-decided, p.stability-words, details.for-astrologer"
     order = career.evaluate("""el => [...el.querySelectorAll('""" + sel + """')].map(c => c.matches('.client-says') ? 'says'
-        : c.matches('.client-when') ? 'when' : c.matches('.not-decided') ? 'not_tell' : c.matches('dl.facts') ? 'tier'
+        : c.matches('.client-when') ? 'when' : c.matches('.not-decided') ? 'not_tell' : c.matches('p.stability-words') ? 'tier'
         : 'astrologer')""")
     assert order == ["says", "when", "not_tell", "tier", "astrologer"], order
     assert career.locator(".client-says h3").inner_text() == "What the chart says for you"
@@ -821,7 +847,7 @@ def test_full_depth_reading_on_the_site(page, full_url):
     marriage = page.locator('section.area[data-area="marriage"] .analysis-section[data-section="timing"]')
     assert "Not written within the checks" in marriage.text_content()          # under its closed toggle
     note = page.locator('#footnotes li[data-tag="fact:planets.Mars.dignity"]')
-    assert note.inner_text().endswith('computed by the engine: "own".')
+    assert note.text_content().strip().endswith('computed by the engine: "own".')       # citations under a toggle (Q4)
     assert "not semantically checked" in page.inner_text("#reading")          # no verdicts were recorded
     # The [tradition:] sentence is out of the checked section and set apart, with the engine's line.
     assert "Phaladeepika holds" not in career.locator('.analysis-section[data-section="assessment"]').inner_text()

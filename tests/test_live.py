@@ -282,7 +282,10 @@ def test_a_live_recording_replays_offline_through_the_same_per_area_loop(chart, 
     birth = BirthInput(date="2001-03-12", time="10:10:25", tz="Asia/Kolkata", lat=REFERENCE_LAT, lon=REFERENCE_LON,
                        node="mean", place="Rewari, Haryana")
     recording = []
-    live, _ = make_reading(birth, "How will my career go?", chart=chart, as_of=AS_OF.isoformat(), recording=recording)
+    # Astrologer depth: the stub's summary is the astrologer's ("votes", "karaka"), which the curious summary,
+    # held to the client's words since review Q4, refuses; replay, not depth, is what this tests.
+    live, _ = make_reading(birth, "How will my career go?", chart=chart, as_of=AS_OF.isoformat(), recording=recording,
+                           depth="astrologer")
     fixture = recording_fixture(recording)
     areas = [a.name for a in live.areas]
     assert fixture["live"] and set(fixture["scoped_drafts"]) == set(areas) | {"summary"}
@@ -292,7 +295,7 @@ def test_a_live_recording_replays_offline_through_the_same_per_area_loop(chart, 
     path.write_text(json.dumps({"question": "How will my career go?", **fixture, "calls": recording}, default=str))
     Handler.requests.clear()
     replayed, _ = make_reading(birth, "How will my career go?", chart=chart, as_of=AS_OF.isoformat(),
-                               model_fixture=str(path))
+                               model_fixture=str(path), depth="astrologer")
     assert Handler.requests == []                                    # offline
     assert replayed.usage["parallel_areas"] == len(areas) and replayed.summary.text == live.summary.text
     texts = lambda r: {a.name: [c.text for c in a.claims] for a in r.areas}

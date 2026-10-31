@@ -119,7 +119,8 @@ def test_sensitive_claims_are_marked_inline(page):
 def test_claims_in_engine_order_with_tags_as_footnotes(page):
     reading, md = page
     body, notes = md.split("\n---\n")
-    assert not TAG.search(body)                                 # every tag became a footnote
+    notes, after = notes.split("\n</details>")                 # the citations are the astrologer's (review Q4)
+    assert not TAG.search(body + after)                         # every tag became a footnote
     career = reading.areas[0]
     assert [c.finding_id for c in career.claims][:3] == ["yoga.kendra_trikona_raja@lagna", "yoga.budhaditya@lagna",
                                                           "yoga.ruchaka@lagna+sun"]

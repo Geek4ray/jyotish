@@ -15,8 +15,9 @@ from datetime import date
 from typing import Any
 
 from .models import Chart
-from .narrate import (DISCLAIMERS, SUDARSHANA_NOTE, TAG, TRADITION, TRADITION_NOTE, Reading, ReadingWindow,
-                      client_summary, findings, learner_data, route, sentences, timing_line)
+from .narrate import (DISCLAIMERS, STABILITY_WORDS, SUDARSHANA_NOTE, TAG, TRADITION, TRADITION_NOTE, Reading,
+                      ReadingWindow, client_summary, client_windows, findings, learner_data, route, sentences,
+                      timing_line)
 from .rules import default_rules
 from .uncertainty import label
 
@@ -267,9 +268,11 @@ def render(reading: Reading, chart: Chart) -> str:
     w = reading.writer
     model = (f"writer {w['model']} at effort {w['effort']}" + (f", thinking {w['thinking']}" if w.get("thinking") else "")
              if w else f"model {reading.model}")
-    L = [f"# Reading: {reading.question}", "",
+    # The reading's settings and the chart's conventions are the astrologer's (review Q4).
+    L = [f"# Reading: {reading.question}", "", f"<details><summary>{FOR_ASTROLOGER}</summary>", "",
          f"As of {reading.as_of} · engine {reading.engine} · weights {reading.weights} · {model} "
-         f"· {reading.attempts} attempt(s) · narration {reading.narration_source}", ""] + _header(reading.chart)
+         f"· {reading.attempts} attempt(s) · narration {reading.narration_source}", ""] + _header(reading.chart) + \
+        ["</details>", ""]
     rv = reading.review or {}
     if rv.get("status") == "reviewed":                    # only a reviewed reading says so
         L += [f"**Reviewed by {rv['reviewed_by']}** on {rv['reviewed_at'][:10]}. Edited sentences passed the same "
@@ -292,7 +295,13 @@ def render(reading: Reading, chart: Chart) -> str:
         L += ["*Written by the engine from its fields: no drafted summary passed the checks.*", "",
               client_text, ""]
     else:
-        L += [notes.render(s.text), ""]
+        # Review Q4: the windows in the client's words on the face; the engine's timing line is the astrologer's.
+        client_when = s.client_when or client_windows(reading.areas)
+        L += [notes.render(s.text), ""] + ([client_when, ""] if client_when else [])
+    L += [f"<details><summary>{FOR_ASTROLOGER}</summary>", ""]
+    if s.source == "engine":
+        L += [f"**{ENGINE_FIGURES}:** {notes.render(s.text)}", ""]
+    else:
         # A reading written before summary.timing_line existed gets the same line from its windows.
         when = s.timing_line or " ".join(x for x in (timing_line(a.name, a.windows, a.avoid_window)
                                                      for a in reading.areas if a.windows) if x)
@@ -300,9 +309,6 @@ def render(reading: Reading, chart: Chart) -> str:
             L += [f"**When (engine):** {when}", ""]
         if s.timing_note:
             L += [f"*{s.timing_note}*", ""]
-    L += [f"<details><summary>{FOR_ASTROLOGER}</summary>", ""]
-    if s.source == "engine":
-        L += [f"**{ENGINE_FIGURES}:** {notes.render(s.text)}", ""]
     L += [
           f"- Driver: {s.driver_planet}" + (f" (alternates {', '.join(s.driver_alternates)})" if s.driver_alternates else ""),
           f"- Current period (Vimshottari): {s.current_period or '–'}",
@@ -333,12 +339,23 @@ def render(reading: Reading, chart: Chart) -> str:
             if client_list:
                 L += [f"### {CLIENT_LIST_HEADING}", ""] + [f"- {notes.render(x)}" for x in client_list] + [""]
         # The tier line stays on the client's face; the area's figures are the astrologer's (2026-10-31).
-        L += [f"- Tier: **{a.tier}**", f"- Stability: {_stab(a.stability)}", ""]
-        figures = [f"- Classical score: {_cell(a.score_classical)}", "- Probability: not calibrated",
+        # Review Q4: the stability in words on the face, its three figures with the rest.
+        L += [f"- Tier: **{a.tier}**"] + ([f"- {STABILITY_WORDS[a.stability.label]}"]
+                                         if a.stability and a.stability.label in STABILITY_WORDS else []) + [""]
+        figures = [f"- Stability: {_stab(a.stability)}", f"- Classical score: {_cell(a.score_classical)}",
+                   "- Probability: not calibrated",
                    f"- Families agreeing: {a.families_agree_w:.2f} of {a.families_total_w:.2f} (weighted)"]
         if a.polarity:
             figures.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})"
                                                       for p in a.polarity))
+        # The school conflict and the windows table are the astrologer's too (review Q4).
+        for sc in a.school_conflicts:
+            other = next(x for x in sc["schools"] if x != "parashari")
+            figures += ["", f"School conflict: the Parashari families ({sc['families'][0]}) are {sc['parashari']}, "
+                            f"the {other.upper() if other == 'kp' else other.capitalize()} family ({sc['families'][1]}) "
+                            f"is {sc[other]}. The two are not averaged."]
+        if a.windows or a.avoid_window:
+            figures += ["", "Windows (engine; score = 0.6 q + 0.4 t):", ""] + _window_rows(a.windows, a.avoid_window)
         if pending:
             L += [f"*{PENDING}*", ""]
         curious = reading.depth == "curious"
@@ -404,19 +421,11 @@ def render(reading: Reading, chart: Chart) -> str:
             L += ["", f"> **The astrologer's note** ({n['by']}, {n['at'][:10]}; not checked by the engine)", ">"]
             L += [f"> {line}" if line else ">" for line in n["text"].splitlines()]
         L.append("")
-        for sc in a.school_conflicts:
-            other = next(x for x in sc["schools"] if x != "parashari")
-            L.append(f"School conflict: the Parashari families ({sc['families'][0]}) are {sc['parashari']}, "
-                     f"the {other.upper() if other == 'kp' else other.capitalize()} family ({sc['families'][1]}) "
-                     f"is {sc[other]}. The two are not averaged.")
-        if a.school_conflicts:
-            L.append("")
-        if a.windows or a.avoid_window:
-            L += ["Windows (engine; score = 0.6 q + 0.4 t):", ""] + _window_rows(a.windows, a.avoid_window) + [""]
         if a.disclaimer:
             L += [f"> {a.disclaimer}", ""]
 
-    L += ["## Depends on exact birth time", ""]
+    # Review Q4: what depends on the birth time, the learner and the citations are the astrologer's.
+    L += [f"<details><summary>{FOR_ASTROLOGER}</summary>", "", "## Depends on exact birth time", ""]
     if reading.depends_on_birth_time:
         for d in reading.depends_on_birth_time:
             what = d.get("rule") or d.get("vote") or d.get("chain") or f"tier {d.get('tier')}"
@@ -432,7 +441,7 @@ def render(reading: Reading, chart: Chart) -> str:
         d = c.learner or learner_data(f)                 # the JSON's block, or the engine's for an older reading
         L += {"rule": _rule_learner, "chain": _chain_learner}.get(d["kind"], _vote_learner)(d) + [""]
 
+    L += ["---", ""] + notes.block() + ["", "</details>", ""]
     if reading.disclaimers:
         L += ["## Disclaimers", ""] + [f"- {DISCLAIMERS[k]}" for k in reading.disclaimers] + [""]
-    L += ["---", ""] + notes.block()
     return "\n".join(L) + "\n"

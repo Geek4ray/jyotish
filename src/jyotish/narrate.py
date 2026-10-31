@@ -270,6 +270,9 @@ class ReadingSummary(BaseModel):
     # The engine's summary in the client's words (client_summary), when the summary is the engine's: the
     # client's page shows it; `text`, with its figures, is the astrologer's (2026-10-31).
     client_text: str | None = None
+    # The windows in the client's words (client_windows), at every source: under a model summary the client's
+    # face shows these, and the engine's timing line is the astrologer's (review Q4, 2026-11-01).
+    client_when: str | None = None
     # Fires of scored rules and of draft placements (which fire and are recorded but carry no
     # weight), counted apart; None on readings made before they were.
     rules_fired: int | None = None
@@ -1157,7 +1160,8 @@ is checked against those findings' data only; the closing clause cites the votes
 not state the tier, the stability or any timing: the engine states them.
 
 The summary, at this depth, answers the question in two or three sentences about the asked area \
-only, tagged the same way, and does not repeat the paragraph's sentences. At this depth a \
+only, tagged the same way, in the client's words as the paragraph is, and does not repeat the \
+paragraph's sentences. At this depth a \
 sentence citing a vote need not name its family. The claims are still written as above: they \
 are the astrologer's reading, shown under the paragraph."""
 
@@ -2339,6 +2343,8 @@ def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     if summary.timing_line is None:
         lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading.areas if a.windows]
         summary = summary.model_copy(update={"timing_line": " ".join(x for x in lines if x) or None})
+    if summary.client_when is None and any(a.windows for a in areas):
+        summary = summary.model_copy(update={"client_when": client_windows(areas)})
     if summary.source == "engine" and summary.client_text is None:
         summary = summary.model_copy(update={"client_text": client_summary(
             areas, route(reading.question, chart)[0], summary.top_areas)})
@@ -2443,6 +2449,9 @@ TIER_PLAIN = {"not emphasised": "that it is not emphasised in this chart",
               "needs two charts": "that it needs a second person's chart to be read"}
 STABILITY_PLAIN = {"sensitive": "This depends in part on the exact birth time.",
                    "unstable": "This depends on the exact birth time."}
+# The stability line on the client's face (review Q4): the label in words, the three figures under "For the
+# astrologer" (web/js/strings.js "stability.*" are the same words).
+STABILITY_WORDS = {"stable": "This does not depend on the exact birth time.", **STABILITY_PLAIN}
 
 
 def _months(start: str, end: str) -> str:
@@ -2470,6 +2479,17 @@ def client_summary(areas: list["ReadingArea"], routed: list[str], top: list[str]
             parts.append(STABILITY_PLAIN[a.stability.label])
     if top:
         parts.append(f"The areas this chart emphasises most are {joined([plain(n) for n in top])}.")
+    if (when := client_windows(areas)):
+        parts.append(when)
+    return " ".join(parts)
+
+
+def client_windows(areas: list["ReadingArea"]) -> str | None:
+    """Each timed area's most and least favourably scored periods as months, and one line saying both are
+    the engine's scores and neither a prediction (review Q1: the timing note's "these are favourable" is not
+    reused); None when no area is timed. The client's face shows it under a model summary too (Q4)."""
+    plain = lambda n: n.replace("_", " ")
+    parts = []
     timed = [a for a in areas if a.windows]
     for a in timed:
         best = max(a.windows, key=lambda w: w.score)
@@ -2478,12 +2498,11 @@ def client_summary(areas: list["ReadingArea"], routed: list[str], top: list[str]
             line += (f"; the period it scores least favourable runs "
                      f"{_months(a.avoid_window.start, a.avoid_window.end)}")
         parts.append(line + ".")
-    # Review Q1 (2026-11-01): the closing line speaks of what precedes it only, both periods as the engine's
-    # scores, neither as advice; the timing note (which follows the engine's timing line) is not reused.
-    if timed:
-        both = any(a.avoid_window is not None for a in timed)
-        parts.append("These are the engine's scores, and neither period is a prediction of when you will act." if both
-                     else "This is the engine's score, not a prediction of when you will act.")
+    if not timed:
+        return None
+    both = any(a.avoid_window is not None for a in timed)
+    parts.append("These are the engine's scores, and neither period is a prediction of when you will act." if both
+                 else "This is the engine's score, not a prediction of when you will act.")
     return " ".join(parts)
 
 
@@ -2856,8 +2875,9 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                         chains=chains_offered[name], facts=facts)
 
     def v_summary(text: str) -> list[str]:
-        return validate_summary(text, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains,
-                                facts=facts)
+        # At curious depth the summary is the client's face, held to the client's words (review Q4).
+        return (validate_summary(text, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains,
+                                 facts=facts) + (client_errors(text) if curious else []))
 
     def v_para(name: str, text: str, alone: bool = False) -> list[str]:
         # The curious paragraph is the client's: held to the client's words as the client's layer is
@@ -3346,6 +3366,7 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     summary = ReadingSummary(
         timing_line=when_line, source=source, timing_note=note,
         client_text=client_summary(reading_areas, routed, list(sc.top)) if source == "engine" else None,
+        client_when=client_windows(reading_areas),
         text=text, cites=[f"{k}:{v}" for k, v in TAG.findall(text)],
         driver_planet=sc.driver.driver, driver_alternates=sc.driver.alternates, current_period=period,
         top_areas=list(sc.top), time_window_min=u.half_width_min if u else None,
@@ -3513,6 +3534,7 @@ def _write_summary(chart: Chart, question: str, parts: list["Reading"], *, areas
         out["writer"].append(drafter.last_meta)
         text = draft.summary or ""
         errs = (validate_summary(text, all_tags, offered_votes=all_votes, family_rule=not curious, chains=all_chains)
+                + (client_errors(text) if curious else [])                # the client's face (review Q4)
                 if text.strip() else ["no summary: this call writes only the summary"])
         if recording is not None:
             recording.append(dict(drafter.last_meta or {"kind": "writer"}, attempt=attempt, summary_draft=text,
@@ -3615,7 +3637,8 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
     summary = base.summary.model_copy(update={
         "timing_line": when_line, "source": source, "text": text, "cites": [f"{k}:{v}" for k, v in TAG.findall(text)],
         "timing_note": note,
-        "client_text": client_summary(reading_areas, routed, list(chart.scored.top)) if source == "engine" else None})
+        "client_text": client_summary(reading_areas, routed, list(chart.scored.top)) if source == "engine" else None,
+        "client_when": client_windows(reading_areas)})
     metas = lambda role: [m for name in areas for m in collect[name].get(role, [])]
     # Every check the pool ran, the ones no loop consumed included (review R8).
     writer_metas, checker_metas = metas("writer") + summ["writer"], [m for _, _, m, _ in shared.runs]

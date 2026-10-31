@@ -1,6 +1,6 @@
 import { getReading, getStatic, pollReading, source } from "./api.js";
 import { chrome } from "./chrome.js";
-import { renderFailure, renderProgress, renderReading, renderTiming } from "./render.js";
+import { esc, renderFailure, renderProgress, renderReading, renderTiming } from "./render.js";
 import { t } from "./strings.js";
 import { follow } from "./live.js";
 
@@ -12,7 +12,7 @@ const root = document.querySelector("#reading");
 function chartLink(status) {
   if (!status.chart_id) return "";
   const asOf = status.reading && status.reading.as_of ? `&as_of=${encodeURIComponent(status.reading.as_of)}` : "";
-  return `<p class="chart-link"><a href="/chart.html?chart=${encodeURIComponent(status.chart_id)}${asOf}">The chart: D1, D9, D10, dashas and strengths →</a></p>`;
+  return `<p class="chart-link"><a href="/chart.html?chart=${encodeURIComponent(status.chart_id)}${asOf}">${esc(t("reading.chart_link"))}</a></p>`;
 }
 
 // The print view (2026-10-25): the client's view alone, or both views, by a switch. "Both" opens every

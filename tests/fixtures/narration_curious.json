@@ -1,10 +1,10 @@
 {
-  "note": "Recorded from claude-opus-5-5 (writer effort medium, checker effort high, depth curious) by tests/test_narrate_live.py. Hand-edited 2026-10-31, when the curious paragraph was held to the client's words (docs/spec_notes_2026-10-31.md): seven paragraph phrases were rewritten in the client's words, each replaced verbatim wherever it appears in this file (the drafts, the accepted text and the recorded calls), the tags and the meaning unchanged: 'the lagna (the ascendant, the sign rising at birth)' as 'the rising sign'; 'the natural karaka (significator)' as 'the natural significator'; 'the Jaimini school, which ...' as 'Jaimini, the school that reads image points ...'; Budhaditya yoga and Kendra-Trikona Raja yoga glossed after their names. The checker's recorded verdicts on those sentences were given to the wording before the edit.",
+  "note": "Recorded from claude-opus-5-5 (writer effort medium, checker effort high, depth curious) by tests/test_narrate_live.py. Hand-edited 2026-10-31, when the curious paragraph was held to the client's words (docs/spec_notes_2026-10-31.md): seven paragraph phrases were rewritten in the client's words, each replaced verbatim wherever it appears in this file (the drafts, the accepted text and the recorded calls), the tags and the meaning unchanged: 'the lagna (the ascendant, the sign rising at birth)' as 'the rising sign'; 'the natural karaka (significator)' as 'the natural significator'; 'the Jaimini school, which ...' as 'Jaimini, the school that reads image points ...'; Budhaditya yoga and Kendra-Trikona Raja yoga glossed after their names. The checker's recorded verdicts on those sentences were given to the wording before the edit. Hand-edited again 2026-11-01, when the curious summary was held to the client's words (review Q4): the summary's two yoga names glossed after them, in both drafts, each replaced verbatim wherever it appears; the checker's recorded verdicts were given to the wording before the edit.",
   "question": "How will my career go, and when is the best time for a job change?",
   "depth": "curious",
   "drafts": [
     {
-      "summary": "Your career is backed by two combinations in the 10th house, where the Sun and Mercury sit together to form Budhaditya yoga and Kendra-Trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The planets that rule and signify work are mostly strong, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, stays below its required strength [vote:career.lord] [vote:career.karaka]. The career house from the ascendant is itself the weakest point, though the houses supporting it hold up well [vote:career.house].",
+      "summary": "Your career is backed by two combinations in the 10th house, where the Sun and Mercury sit together to form Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The planets that rule and signify work are mostly strong, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, stays below its required strength [vote:career.lord] [vote:career.karaka]. The career house from the ascendant is itself the weakest point, though the houses supporting it hold up well [vote:career.house].",
       "areas": [
         {
           "name": "career",
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "summary": "Your career is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga and Kendra-Trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Most of the planets that rule and signify work are above their required strength, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, falls below its required strength [vote:career.lord] [vote:career.karaka]. The career house counted from the ascendant is the lowest in house strength, though the houses supporting it hold up well [vote:career.house].",
+      "summary": "Your career is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Most of the planets that rule and signify work are above their required strength, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, falls below its required strength [vote:career.lord] [vote:career.karaka]. The career house counted from the ascendant is the lowest in house strength, though the houses supporting it hold up well [vote:career.house].",
       "areas": [
         {
           "name": "career",
@@ -262,7 +262,7 @@
       "seconds": 56.13,
       "attempt": 1,
       "draft": {
-        "summary": "Your career is backed by two combinations in the 10th house, where the Sun and Mercury sit together to form Budhaditya yoga and Kendra-Trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The planets that rule and signify work are mostly strong, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, stays below its required strength [vote:career.lord] [vote:career.karaka]. The career house from the ascendant is itself the weakest point, though the houses supporting it hold up well [vote:career.house].",
+        "summary": "Your career is backed by two combinations in the 10th house, where the Sun and Mercury sit together to form Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The planets that rule and signify work are mostly strong, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, stays below its required strength [vote:career.lord] [vote:career.karaka]. The career house from the ascendant is itself the weakest point, though the houses supporting it hold up well [vote:career.house].",
         "areas": [
           {
             "name": "career",
@@ -421,7 +421,7 @@
       "seconds": 30.696,
       "attempt": 2,
       "draft": {
-        "summary": "Your career is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga and Kendra-Trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Most of the planets that rule and signify work are above their required strength, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, falls below its required strength [vote:career.lord] [vote:career.karaka]. The career house counted from the ascendant is the lowest in house strength, though the houses supporting it hold up well [vote:career.house].",
+        "summary": "Your career is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. Most of the planets that rule and signify work are above their required strength, with Venus exalted and Mars in its own sign, while Saturn, the 10th lord, falls below its required strength [vote:career.lord] [vote:career.karaka]. The career house counted from the ascendant is the lowest in house strength, though the houses supporting it hold up well [vote:career.house].",
         "areas": [
           {
             "name": "career",
@@ -575,7 +575,7 @@
         "yoga.budhaditya@lagna",
         "yoga.kendra_trikona_raja@lagna"
       ],
-      "sentence": "Your career is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga and Kendra-Trikona Raja yoga [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja].",
+      "sentence": "Your career is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja].",
       "result": {
         "propositions": [
           {

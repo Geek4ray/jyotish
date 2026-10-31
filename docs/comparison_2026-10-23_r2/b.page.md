@@ -2,6 +2,8 @@
 
 # Reading: How will my career go, and when is the best time for a job change?
 
+<details><summary>For the astrologer</summary>
+
 As of 2026-10-21 · engine 0.1.0 · weights classical-1.0 · writer claude-opus-5-5 at effort xhigh, thinking adaptive · 3 attempt(s) · narration live
 
 **Chart:** born 2001-03-12 10:10:25 (Asia/Kolkata) = 2001-03-12T04:40:25+00:00 UTC, Rewari, Haryana (28.1989, 76.617); accuracy exact; ayanamsa lahiri (23.8738°); node mean; houses whole_sign (KP placidus); dasha year 365.25 days; karaka scheme 8.
@@ -12,17 +14,21 @@ Stability sampler: 200 birth times, uniform ±2 min, seed 0; ayanamsas lahiri, r
 
 Reproduce: `jyotish read --date 2001-03-12 --time 10:10:25 --tz Asia/Kolkata --lat 28.1989 --lon 76.617 --accuracy exact --node mean --seed 0 --depth full --question 'How will my career go, and when is the best time for a job change?' --place 'Rewari, Haryana' --as-of 2026-10-21 --writer-model claude-opus-5-5 --writer-effort xhigh`
 
+</details>
+
 > Narration incomplete: 2 finding(s) were not narrated within the checks.
 
 ## Summary
 
 Five of the seven families vote for career and none against, the house, lord, karaka, varga and panchanga votes all being for it[^1][^2][^3][^4][^5]. The Sun and Mercury join in the 10th, a career house, to form a Kendra-Trikona Raja yoga, and the varga vote finds Mars exalted and Saturn in its own sign in the dasamsa, while the lord vote shows Saturn, lord of the 10th, at a Shadbala ratio of 0.69[^6][^4][^2]. For a change of job the timing join gives career windows from 2026-10-21 to 2027-01-24 and from 2027-10-20 to 2028-02-23 in the Jupiter–Mercury period and its highest-scored window from 2029-10-23 to 2032-06-23 in the Jupiter–Venus period, and it marks 2028-11-17 to 2029-08-08 to avoid[^7][^8][^9][^10].
 
+The period the engine scores most favourable for career runs from October 2029 to June 2032; the period it scores least favourable runs from November 2028 to August 2029. These are the engine's scores, and neither period is a prediction of when you will act.
+
+<details><summary>For the astrologer</summary>
+
 **When (engine):** Best window for career by the engine's timing score: 2029-10-23 to 2032-06-23 (Vimshottari Jupiter–Venus, score 0.84), strongest from 2030-05-01 to 2030-09-22 (score 0.89). Window to avoid: 2028-11-17 to 2029-08-08 (Vimshottari Jupiter–Ketu, score 0.47).
 
 *These are periods the engine scores as favourable for career; it does not predict when you will act.*
-
-<details><summary>For the astrologer</summary>
 
 - Driver: Venus (alternates Jupiter, Mars)
 - Current period (Vimshottari): Jupiter-Mercury
@@ -37,14 +43,24 @@ Five of the seven families vote for career and none against, the house, lord, ka
 ## Career
 
 - Tier: **moderate**
-- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
+- This does not depend on the exact birth time.
 
 <details open><summary>For the astrologer</summary>
 
+- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
 - Classical score: 20.6
 - Probability: not calibrated
 - Families agreeing: 4.66 of 6.66 (weighted)
 - Polarity: intensity (house H10, lord Saturn, karaka Sun)
+
+Windows (engine; score = 0.6 q + 0.4 t):
+
+|  | start | end | score | q | t | systems | strongest piece | edge movement (days) | sandhi | truncated |
+|---|---|---|---|---|---|---|---|---|---|---|
+| window | 2029-10-23 | 2032-06-23 | 0.844 | 0.821 | 0.88 | vimshottari, yogini, chara | 2030-05-01 – 2030-09-22 (score 0.892, t 1) | 7.49 | no | no |
+| window | 2027-10-20 | 2028-02-23 | 0.841 | 0.734 | 1 | vimshottari, yogini, chara | 2027-10-20 – 2027-11-26 (score 0.841, t 1) | – | yes | no |
+| window | 2026-10-21 | 2027-01-24 | 0.834 | 0.734 | 0.982 | vimshottari, yogini, chara | 2026-10-31 – 2026-12-05 (score 0.841, t 1) | – | no | yes |
+| avoid | 2028-11-17 | 2029-08-08 | 0.467 | 0.333 | 0.667 | vimshottari, yogini, chara | 2028-11-17 – 2028-12-26 (score 0.467, t 0.667) | 7.49 | no | no |
 
 ### The technical sheet (the engine's figures, no model)
 
@@ -306,26 +322,20 @@ Other placements the engine weighed (not narrated; the three strongest are above
 
 *One part of this area could not be written within the checks.*
 
-Windows (engine; score = 0.6 q + 0.4 t):
-
-|  | start | end | score | q | t | systems | strongest piece | edge movement (days) | sandhi | truncated |
-|---|---|---|---|---|---|---|---|---|---|---|
-| window | 2029-10-23 | 2032-06-23 | 0.844 | 0.821 | 0.88 | vimshottari, yogini, chara | 2030-05-01 – 2030-09-22 (score 0.892, t 1) | 7.49 | no | no |
-| window | 2027-10-20 | 2028-02-23 | 0.841 | 0.734 | 1 | vimshottari, yogini, chara | 2027-10-20 – 2027-11-26 (score 0.841, t 1) | – | yes | no |
-| window | 2026-10-21 | 2027-01-24 | 0.834 | 0.734 | 0.982 | vimshottari, yogini, chara | 2026-10-31 – 2026-12-05 (score 0.841, t 1) | – | no | yes |
-| avoid | 2028-11-17 | 2029-08-08 | 0.467 | 0.333 | 0.667 | vimshottari, yogini, chara | 2028-11-17 – 2028-12-26 (score 0.467, t 0.667) | 7.49 | no | no |
-
 ## Marriage
 
 - Tier: **moderate**
-- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
+- This does not depend on the exact birth time.
 
 <details open><summary>For the astrologer</summary>
 
+- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
 - Classical score: 18.1
 - Probability: not calibrated
 - Families agreeing: 5.56 of 6.56 (weighted)
 - Polarity: delay (house H7, lord Mars)
+
+School conflict: the Parashari families (house/lord/karaka/varga) are for, the Jaimini family (arudha) is against. The two are not averaged.
 
 ### The technical sheet (the engine's figures, no model)
 
@@ -561,21 +571,22 @@ Other placements the engine weighed (not narrated; the three strongest are above
 
 *One part of this area could not be written within the checks.*
 
-School conflict: the Parashari families (house/lord/karaka/varga) are for, the Jaimini family (arudha) is against. The two are not averaged.
-
 > This describes the relationship as seen from this chart, not the other person's own life.
 
 ## Longevity
 
 - Tier: **moderate**
-- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
+- This does not depend on the exact birth time.
 
 <details open><summary>For the astrologer</summary>
 
+- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
 - Classical score: 15.4
 - Probability: not calibrated
 - Families agreeing: 4.72 of 5.71 (weighted)
 - Polarity: intensity (house H1, karaka Saturn)
+
+School conflict: the Parashari families (house/lord/karaka/varga) are for, the Jaimini family (arudha) is against. The two are not averaged.
 
 ### The technical sheet (the engine's figures, no model)
 
@@ -797,9 +808,9 @@ The KP family casts no vote on this area[^117]. The engine computes no learned s
 
 </details>
 
-School conflict: the Parashari families (house/lord/karaka/varga) are for, the Jaimini family (arudha) is against. The two are not averaged.
-
 > Classical longevity indications are shown as indications only; the engine does not time death.
+
+<details><summary>For the astrologer</summary>
 
 ## Depends on exact birth time
 
@@ -1551,11 +1562,6 @@ Dispositor chains of Saturn (the area's main significator (karaka)), stability 0
 - Saturn is its own final navamsa dispositor
 - Saturn is in neither current period's activation set
 
-## Disclaimers
-
-- Classical longevity indications are shown as indications only; the engine does not time death.
-- This describes the relationship as seen from this chart, not the other person's own life.
-
 ---
 
 [^1]: `vote:career.house`: The house family's vote on career, derived by the engine (learner table below).
@@ -1690,3 +1696,11 @@ Dispositor chains of Saturn (the area's main significator (karaka)), stability 0
 [^130]: `rule:place.ketu_h8`: Rule `place.ketu_h8` (Ketu), from the engine's rule library.
 [^131]: `rule:place.saturn_in_taurus`: Rule `place.saturn_in_taurus` (Taurus), from the engine's rule library.
 [^132]: `vote:longevity.karaka`: The karaka family's vote on longevity, derived by the engine (learner table below).
+
+</details>
+
+## Disclaimers
+
+- Classical longevity indications are shown as indications only; the engine does not time death.
+- This describes the relationship as seen from this chart, not the other person's own life.
+

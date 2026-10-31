@@ -88,6 +88,12 @@ export const STRINGS = {
     "match.disagree": "Disagree",
     "match.your_blind": "Your reading from the chart alone: {answer}",
     "astro.toggle": "For the astrologer",
+    // The link to the chart page, on the client's face (review Q4: it said "D1, D9, D10, dashas and strengths").
+    "reading.chart_link": "The birth chart and its tables →",
+    // The stability in words on the client's face (review Q4; narrate.STABILITY_WORDS, the same words).
+    "stability.stable": "This does not depend on the exact birth time.",
+    "stability.sensitive": "This depends in part on the exact birth time.",
+    "stability.unstable": "This depends on the exact birth time.",
     // The engine's summary with its figures, under the toggle (2026-10-31; page.ENGINE_FIGURES is the same words).
     "summary.engine_figures": "The engine's summary, with its figures",
     "astro.sheet": "The technical sheet (the engine's figures, no model)",

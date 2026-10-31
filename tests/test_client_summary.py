@@ -108,3 +108,35 @@ def test_the_page_shows_the_client_words_and_keeps_the_figures_for_the_astrologe
     assert "- Tier: **" in face and "Classical score" not in face and "Families agreeing" not in face
     assert "Polarity" not in face and "Probability" not in face
     assert "- Classical score:" in astrologer and "- Families agreeing:" in astrologer and "- Probability:" in astrologer
+
+
+# --- review Q4: everything outside "For the astrologer" is in the client's words ------------------------------
+
+def _face(md: str) -> list[str]:
+    """The page's lines outside every toggle, footnote markers left out; the question is the client's own."""
+    face = re.sub(r"<details[^>]*>.*?</details>", "", md, flags=re.S)
+    return [re.sub(r"\[\^\d+\]", "", x) for x in face.splitlines() if x.strip() and not x.startswith("# Reading:")]
+
+
+@pytest.mark.parametrize("depth,fixture,question", [
+    ("curious", "narration_curious.json", None),
+    ("full", "narration_full_handmade.json", "How will my career go?"),
+])
+def test_the_page_outside_the_toggles_is_in_the_clients_words(chart, depth, fixture, question, monkeypatch):
+    # Review Q4: the stability figures, the windows table, the school conflict, "depends on exact birth time",
+    # the learner, the citations and the settings were on the client's face at every depth.
+    from pathlib import Path
+    from jyotish.page import render
+    from jyotish.service import BirthInput, make_reading
+    monkeypatch.setenv("JYOTISH_ALLOW_LOCAL_FULL", "1")
+    path = Path(__file__).parent / "fixtures" / fixture
+    birth = BirthInput(date="2001-03-12", time="10:10:25", tz="Asia/Kolkata", lat=REFERENCE_LAT, lon=REFERENCE_LON,
+                       node="mean", place="Rewari, Haryana")
+    import json as _json
+    q = question or _json.loads(path.read_text())["question"]
+    reading, page = make_reading(birth, q, chart=chart, as_of="2026-10-21", model_fixture=str(path), depth=depth)
+    lines = _face(page)
+    assert lines and not [(x, client_errors(x)) for x in lines if client_errors(x)]
+    tier = [x for x in lines if x.startswith("- Tier: **")]                    # the tier line stays on the face
+    assert len(tier) == 3 and not [x for x in lines if x not in tier and ENGINE_WORDS.search(x.replace("**", ""))]
+    assert not [x for x in lines if re.search(r"\b(?:ayanamsa|Vimshottari|score|samples?|family|families)\b", x, re.I)]

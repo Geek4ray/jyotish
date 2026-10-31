@@ -384,3 +384,27 @@ One commit per finding.
 
   The composed paragraph gets no checker call of its own; these rules keep its parts from leaning on each
   other instead.
+- **Q4, the client's face at every client depth.** On the page and the site:
+  - **Under "For the astrologer" now:**
+    - the reading's settings line and the chart's conventions;
+    - each area's stability figures, school conflict and windows table;
+    - "Depends on exact birth time", the learner (page) and the citations;
+    - under a model summary, the engine's "When (engine)" line with its timing note.
+  - **On the face:**
+    - the stability in words (`narrate.STABILITY_WORDS`, strings.js `stability.*`: "This does not depend on
+      the exact birth time.");
+    - under a model summary, the windows in the client's words (`summary.client_when`, `narrate.client_windows`,
+      the same sentences as the fallback summary's), filled for older readings by `upgrade_reading`.
+  - **The curious summary** is held to `client_errors`, in both narration paths, and the curious prompt says so.
+  - **The link to the chart page** reads "The birth chart and its tables →" (strings.js `reading.chart_link`),
+    not "D1, D9, D10, dashas and strengths".
+  - **The print view** now hides only `dl.figures`, so the stability in words prints.
+
+  `tests/fixtures/narration_curious.json`'s summary had its two yoga names glossed, recorded in its note.
+
+  Tests: `tests/test_client_summary.py::test_the_page_outside_the_toggles_is_in_the_clients_words` and
+  `tests/test_web.py::test_the_site_outside_the_toggles_is_in_the_clients_words`, at curious and at full
+  depth. They run `client_errors` over every line outside the toggles and refuse "ayanamsa", "Vimshottari",
+  "score", "sample" and "family"; the tier line ("Tier: **moderate**") stays on the face, as the spec says.
+
+  Astrologer depth is not tested this way: its page is the astrologer's, with the toggle open.
