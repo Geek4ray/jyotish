@@ -121,7 +121,8 @@ def test_engine_fields_verbatim(page, base_url):
     open_reading(page, base_url)
     s = EXAMPLE["summary"]
     assert page.inner_text(".timing-text") == s["timing_line"]
-    chips = page.inner_text(".summary .chips")
+    # The figures are the astrologer's, under the summary's toggle (2026-10-31).
+    chips = page.text_content(".summary details.for-astrologer .chips")
     for value in (s["driver_planet"], s["current_period"], ", ".join(s["top_areas"]), ", ".join(s["abstained_areas"])):
         assert value in chips
     for a in EXAMPLE["areas"]:
@@ -130,10 +131,13 @@ def test_engine_fields_verbatim(page, base_url):
         st = a["stability"]
         assert card.locator(".stability").inner_text() == \
             f'time {st["time"]:.2f} · ayanamsa {st["ayanamsa"]:.2f} · house {st["house"]:.2f} ({st["label"]})'
-        assert a["probability"] is None and card.locator(".probability").inner_text() == "not calibrated"
+        assert a["probability"] is None and card.locator(".probability").text_content() == "not calibrated"
+        # The area's figures under "For the astrologer"; the tier and the stability on the face (2026-10-31).
+        assert card.locator("details.astrologer dl.figures .probability").count() == 1
+        assert card.locator("dl.figures").count() == card.locator("details.astrologer dl.figures").count() == 1
         assert card.locator("li.claim").count() == len(a["claims"])
         for p in a["polarity"]:
-            assert p in card.locator(".polarity").inner_text()
+            assert p in card.locator(".polarity").text_content()
         for sc in a["school_conflicts"]:
             assert "School conflict" in card.inner_text()
     assert page.locator("#depends").is_visible()                                       # always shown
@@ -206,7 +210,10 @@ def test_reading_with_gaps_shows_them_and_the_engine_summary(page, servers):
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     assert page.locator("#incomplete").is_visible()
     assert page.locator('.summary[data-source="engine"] .engine-summary').is_visible()
-    assert page.inner_text(".summary-text").startswith("Career: tier moderate")
+    # The client's words on the face, the engine's figures under "For the astrologer" (2026-10-31).
+    assert page.inner_text(".summary-text").startswith("For career, the chart's indication is moderate.")
+    assert "Vimshottari" not in page.inner_text(".summary-text")
+    assert page.text_content(".summary details.for-astrologer .engine-figures").count("Career: tier moderate") == 1
     # Counted on the client's page, never with the checker's or validator's error (the JSON has it).
     gaps = page.locator('section.area[data-area="career"] .gaps')
     reading = page.evaluate("fetch(location.pathname.replace('reading.html', 'readings/') + new URLSearchParams("
@@ -401,12 +408,12 @@ def test_curious_paragraph_gap_opens_the_claims_on_the_site(page, curious_url):
 def test_fired_chip_counts_rules_and_drafts_apart(page, base_url):
     submit_reference(page, base_url)
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
-    chips = page.inner_text(".summary .chips")
+    chips = page.text_content(".summary details.for-astrologer .chips")
     assert "Fired: 5 rules, 32 draft placements" in chips and "Rules stable / unstable: 5 / 0" in chips
     # The example reading predates the split and keeps its one chip.
     page.goto(f"{base_url}/reading.html?src=/examples/reference_reading.json")
     page.wait_for_selector("#reading[data-state=done]")
-    assert "Fired rules stable / unstable: 5 / 0" in page.inner_text(".summary .chips")
+    assert "Fired rules stable / unstable: 5 / 0" in page.text_content(".summary .chips")
 
 
 # --- the guided review (review mode) and the judge page (blind mode) --------------------------
@@ -781,7 +788,7 @@ def test_full_depth_reading_on_the_site(page, full_url):
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     career = page.locator('section.area[data-area="career"]')
     # The client's view first, the tier line after it, then the astrologer's view, closed.
-    sel = ".client-says, .client-when, .not-decided, dl.facts, details.for-astrologer"
+    sel = ".client-says, .client-when, .not-decided, dl.facts:not(.figures), details.for-astrologer"
     order = career.evaluate("""el => [...el.querySelectorAll('""" + sel + """')].map(c => c.matches('.client-says') ? 'says'
         : c.matches('.client-when') ? 'when' : c.matches('.not-decided') ? 'not_tell' : c.matches('dl.facts') ? 'tier'
         : 'astrologer')""")

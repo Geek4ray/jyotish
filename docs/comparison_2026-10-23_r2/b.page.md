@@ -22,6 +22,8 @@ Five of the seven families vote for career and none against, the house, lord, ka
 
 *These are periods the engine scores as favourable for career; it does not predict when you will act.*
 
+<details><summary>For the astrologer</summary>
+
 - Driver: Venus (alternates Jupiter, Mars)
 - Current period (Vimshottari): Jupiter-Mercury
 - Top areas: career, marriage, longevity
@@ -30,14 +32,19 @@ Five of the seven families vote for career and none against, the house, lord, ka
 - Rules stable / unstable under that window: 5 / 0; draft placements unstable: 0
 - Abstained areas: children, father, gains, synastry
 
+</details>
+
 ## Career
 
-- Tier: **moderate** (classical score 20.6; probability not calibrated)
+- Tier: **moderate**
 - Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
-- Families agreeing: 4.66 of 6.66 (weighted)
-- Polarity: intensity (house H10, lord Saturn, karaka Sun)
 
 <details open><summary>For the astrologer</summary>
+
+- Classical score: 20.6
+- Probability: not calibrated
+- Families agreeing: 4.66 of 6.66 (weighted)
+- Polarity: intensity (house H10, lord Saturn, karaka Sun)
 
 ### The technical sheet (the engine's figures, no model)
 
@@ -310,12 +317,15 @@ Windows (engine; score = 0.6 q + 0.4 t):
 
 ## Marriage
 
-- Tier: **moderate** (classical score 18.1; probability not calibrated)
+- Tier: **moderate**
 - Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
-- Families agreeing: 5.56 of 6.56 (weighted)
-- Polarity: delay (house H7, lord Mars)
 
 <details open><summary>For the astrologer</summary>
+
+- Classical score: 18.1
+- Probability: not calibrated
+- Families agreeing: 5.56 of 6.56 (weighted)
+- Polarity: delay (house H7, lord Mars)
 
 ### The technical sheet (the engine's figures, no model)
 
@@ -557,12 +567,15 @@ School conflict: the Parashari families (house/lord/karaka/varga) are for, the J
 
 ## Longevity
 
-- Tier: **moderate** (classical score 15.4; probability not calibrated)
+- Tier: **moderate**
 - Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)
-- Families agreeing: 4.72 of 5.71 (weighted)
-- Polarity: intensity (house H1, karaka Saturn)
 
 <details open><summary>For the astrologer</summary>
+
+- Classical score: 15.4
+- Probability: not calibrated
+- Families agreeing: 4.72 of 5.71 (weighted)
+- Polarity: intensity (house H1, karaka Saturn)
 
 ### The technical sheet (the engine's figures, no model)
 

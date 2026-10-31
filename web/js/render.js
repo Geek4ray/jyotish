@@ -203,20 +203,23 @@ function areaCard(a, notes, depth, pending) {
   const probability = a.probability === null || a.probability === undefined ? "not calibrated" : num(a.probability);
   const polarity = a.polarity.length
     ? a.polarity.map((p) => `${esc(p)} (${cell(a.polarity_touches[p] || [])})`).join("; ") : "none";
+  // The tier line stays on the client's face; the area's figures go under "For the astrologer" (2026-10-31).
+  const figures = `<dl class="facts figures">
+      <div><dt>Probability</dt><dd class="probability">${probability}</dd></div>
+      <div><dt>Classical score</dt><dd class="num">${num(a.score_classical)}</dd></div>
+      <div><dt>Families agreeing (weighted)</dt><dd class="num">${num(a.families_agree_w)} of ${num(a.families_total_w)}</dd></div>
+      <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
+    </dl>`;
   return `<section class="card area" data-area="${esc(a.name)}">
     <div class="area-head"><h2>${esc(title(a.name))}</h2><span class="tier" data-tier="${esc(a.tier)}">${esc(a.tier)}</span></div>
     ${depth === "full" ? clientBlock(a, notes) : ""}
     <dl class="facts">
       <div><dt>Stability</dt><dd class="stability num">${stabilityText(a.stability)}</dd></div>
-      <div><dt>Probability</dt><dd class="probability">${probability}</dd></div>
-      <div><dt>Classical score</dt><dd class="num">${num(a.score_classical)}</dd></div>
-      <div><dt>Families agreeing (weighted)</dt><dd class="num">${num(a.families_agree_w)} of ${num(a.families_total_w)}</dd></div>
-      <div><dt>Polarity</dt><dd class="polarity">${polarity}</dd></div>
     </dl>
     ${pending ? pendingBlock(a) : ""}
     ${depth === "curious" && a.paragraph ? `<p class="paragraph">${notes.text(a.paragraph)}</p>` : ""}
     ${paraGap ? `<p class="gap-lead muted">The plain paragraph for this area did not pass the checks; the astrologer's reading is shown instead.</p>${gapsList(gaps)}` : ""}
-    ${astrologerView(a, notes, depth, paraGap)}
+    ${astrologerView(a, notes, depth, paraGap, figures)}
     ${paraGap ? "" : gapsList(gaps)}
     ${a.school_conflicts.map(conflict).join("")}
     ${a.windows.length || a.avoid_window ? `<h3 class="small">Windows (engine; score = 0.6 q + 0.4 t)</h3>${windowRows(a.windows, a.avoid_window)}` : ""}
@@ -243,14 +246,14 @@ function pendingAstrologer(a) {
 // The astrologer's view, at every depth (2026-10-25): the engine's technical sheet, then at depth full
 // the model's analysis, then the findings, under one toggle; open where the area has no client's view
 // (astrologer depth) or the client's paragraph is a gap.
-function astrologerView(a, notes, depth, paraGap) {
+function astrologerView(a, notes, depth, paraGap, figures = "") {
   const clientView = (depth === "curious" && a.paragraph) || (depth === "full" && (a.paragraph || a.when));
   const gaps = a.narration_gaps || [];
   const claims = a.claims.length || a.pending
     ? `<h3 class="small findings-head">${esc(t("astro.findings"))}</h3><ol class="claims">${a.claims.map((c) => claimItem(c, notes)).join("")}</ol>`
     : gaps.length ? "" : `<p class="muted">No claims were drafted for this area.</p>`;
   return `<details class="astrologer for-astrologer"${paraGap || !clientView ? " open" : ""}><summary>${esc(t("astro.toggle"))}</summary>
-    ${a.pending ? pendingAstrologer(a) : ""}${a.sheet ? sheetBlock(a.sheet, notes) : ""}${depth === "full" && !a.pending ? analysisBlock(a, notes) : ""}${a.pending ? "" : claims}${otherPlacements(a)}</details>`;
+    ${figures}${a.pending ? pendingAstrologer(a) : ""}${a.sheet ? sheetBlock(a.sheet, notes) : ""}${depth === "full" && !a.pending ? analysisBlock(a, notes) : ""}${a.pending ? "" : claims}${otherPlacements(a)}</details>`;
 }
 
 // The technical sheet (jyotish.sheet): numbered points, each item with the chart paths it reads.
@@ -345,7 +348,9 @@ const DISCLAIMER_TEXT = {
 export function renderReading(r) {
   const notes = new Footnotes(r.facts_cited);
   const s = r.summary;
-  const summaryText = notes.text(s.text);
+  // An engine summary: the client's words on the face, the figures under "For the astrologer" (2026-10-31).
+  const engine = s.source === "engine";
+  const summaryText = engine ? esc(s.client_text || s.text) : notes.text(s.text);
   // A blind view (the comparison) carries no depth: the reading's own content says which it is.
   const depth = r.depth || (r.areas.some((a) => a.analysis) ? "full" : r.areas.some((a) => a.paragraph) ? "curious" : "astrologer");
   const pending = r.narration_status === "pending";
@@ -366,8 +371,10 @@ export function renderReading(r) {
     ${s.source === "engine" ? `<p class="muted small engine-summary">Written by the engine from its fields: no drafted summary passed the checks.</p>` : ""}
     ${pending ? `<div class="live-units" data-area="summary" aria-live="polite"></div><p class="muted small">${esc(t("live.summary_engine"))}</p>` : ""}
     <p class="summary-text">${summaryText}</p>
-    ${s.timing_line && s.source !== "engine" ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span>${s.timing_note ? `<span class="timing-note">${esc(s.timing_note)}</span>` : ""}</div>` : ""}
-    ${s.timing_note && s.source === "engine" ? `<p class="timing-note">${esc(s.timing_note)}</p>` : ""}
+    ${s.timing_line && !engine ? `<div class="timing-line"><span class="label">When (engine)</span><span class="timing-text">${esc(s.timing_line)}</span>${s.timing_note ? `<span class="timing-note">${esc(s.timing_note)}</span>` : ""}</div>` : ""}
+    ${s.timing_note && engine && !s.client_text ? `<p class="timing-note">${esc(s.timing_note)}</p>` : ""}
+    <details class="for-astrologer summary-figures"><summary>${esc(t("astro.toggle"))}</summary>
+    ${engine && s.client_text ? `<p class="engine-figures"><span class="label">${esc(t("summary.engine_figures"))}</span> ${notes.text(s.text)}</p>` : ""}
     <div class="chips">
       <span class="chip">Driver: <strong>${esc(s.driver_planet)}</strong>${s.driver_alternates.length ? ` (alternates ${esc(s.driver_alternates.join(", "))})` : ""}</span>
       <span class="chip">Current period (Vimshottari): <strong>${esc(s.current_period || "–")}</strong></span>
@@ -376,6 +383,7 @@ export function renderReading(r) {
       ${firedChips(s)}
       <span class="chip">Abstained areas: <strong>${esc(s.abstained_areas.join(", ") || "none")}</strong></span>
     </div>
+    </details>
   </section>
   ${areas}
   ${dependsSection(r.depends_on_birth_time)}

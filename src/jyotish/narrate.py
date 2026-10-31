@@ -266,6 +266,9 @@ class ReadingSummary(BaseModel):
     timing_line: str | None = None      # engine-written, for a "when" question (the model writes no timing)
     source: str = "model"               # "model", or "engine" when no drafted summary passed the checks
     timing_note: str | None = None      # engine-written, under the timing line: what a window is and is not
+    # The engine's summary in the client's words (client_summary), when the summary is the engine's: the
+    # client's page shows it; `text`, with its figures, is the astrologer's (2026-10-31).
+    client_text: str | None = None
     # Fires of scored rules and of draft placements (which fire and are recorded but carry no
     # weight), counted apart; None on readings made before they were.
     rules_fired: int | None = None
@@ -2282,7 +2285,7 @@ def _label(stability: float | None) -> str | None:
 def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     """A reading JSON brought up to the current schema from its own chart: the engine-derived
     fields a reading written before them lacks (each claim's learner block, the timing line, the
-    technical sheet).
+    technical sheet, an engine summary's client's words).
     The model's text is not touched."""
     as_of = date.fromisoformat(reading.as_of)
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
@@ -2300,6 +2303,9 @@ def upgrade_reading(reading: "Reading", chart: Chart) -> "Reading":
     if summary.timing_line is None:
         lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading.areas if a.windows]
         summary = summary.model_copy(update={"timing_line": " ".join(x for x in lines if x) or None})
+    if summary.source == "engine" and summary.client_text is None:
+        summary = summary.model_copy(update={"client_text": client_summary(
+            areas, route(reading.question, chart)[0], summary.top_areas, summary.timing_note)})
     if any(a.sheet is None for a in areas):
         areas = with_sheets(areas, chart, as_of)
     return reading.model_copy(update={"areas": areas, "summary": summary})
@@ -2391,6 +2397,52 @@ def engine_summary(areas: list["ReadingArea"], routed: list[str], sc, period: st
         parts.append(f"Current Vimshottari period: {period.replace('-', '–')}.")
     if when_line:
         parts.append(when_line)
+    return " ".join(parts)
+
+
+# The client's words for the engine's fields (2026-10-31): a tier that is not a degree, and a stability
+# label that is not "stable", said plainly; the tier words themselves are the engine's and stand.
+TIER_PLAIN = {"not emphasised": "that it is not emphasised in this chart",
+              "cannot be assessed": "that it cannot be judged from this chart",
+              "needs two charts": "that it needs a second person's chart to be read"}
+STABILITY_PLAIN = {"sensitive": "This depends in part on the exact birth time.",
+                   "unstable": "This depends on the exact birth time."}
+
+
+def _months(start: str, end: str) -> str:
+    a, b = (date.fromisoformat(x[:10]).strftime("%B %Y") for x in (start, end))
+    return f"in {a}" if a == b else f"from {a} to {b}"
+
+
+def client_summary(areas: list["ReadingArea"], routed: list[str], top: list[str], note: str | None) -> str:
+    """The engine's summary in the client's words (2026-10-31): the asked areas' tiers and how far each
+    depends on the birth time, the areas the chart emphasises, each timed area's strongest window and
+    the window to avoid as months, and the timing note as it is. No tier word as a label, no score, no
+    period lord, no stability figure (client.CLIENT_WORDS holds; tests/test_client_summary.py): those
+    are in `text`, the astrologer's."""
+    by = {a.name: a for a in areas}
+    plain = lambda n: n.replace("_", " ")
+    joined = lambda xs: xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+    parts = []
+    for name in [n for n in routed if n in by] or [a.name for a in areas[:1]]:
+        a = by[name]
+        tier = TIER_PLAIN.get(a.tier)
+        parts.append(f"For {plain(name)}, the chart says {tier}." if tier else
+                     f"For {plain(name)}, the chart's indication is {a.tier}.")
+        if a.stability and a.stability.label in STABILITY_PLAIN:
+            parts.append(STABILITY_PLAIN[a.stability.label])
+    if top:
+        parts.append(f"The areas this chart emphasises most are {joined([plain(n) for n in top])}.")
+    for a in areas:
+        if not a.windows:
+            continue
+        best = max(a.windows, key=lambda w: w.score)
+        line = f"The strongest period for {plain(a.name)} runs {_months(best.start, best.end)}"
+        if a.avoid_window is not None:
+            line += f"; the period to avoid runs {_months(a.avoid_window.start, a.avoid_window.end)}"
+        parts.append(line + ".")
+    if note:
+        parts.append(note)
     return " ".join(parts)
 
 
@@ -3182,12 +3234,13 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
     lines = [timing_line(a.name, a.windows, a.avoid_window) for a in reading_areas if a.windows]
     when_line = " ".join(x for x in lines if x) or None
     source, text = "model", kept_summary
+    note = timing_note([a.name for a in reading_areas if a.windows]) if when_line else None
     if kept_summary is None:
         source = "engine"
         text = engine_summary(reading_areas, routed, sc, period, when_line)
     summary = ReadingSummary(
-        timing_line=when_line, source=source,
-        timing_note=timing_note([a.name for a in reading_areas if a.windows]) if when_line else None,
+        timing_line=when_line, source=source, timing_note=note,
+        client_text=client_summary(reading_areas, routed, list(sc.top), note) if source == "engine" else None,
         text=text, cites=[f"{k}:{v}" for k, v in TAG.findall(text)],
         driver_planet=sc.driver.driver, driver_alternates=sc.driver.alternates, current_period=period,
         top_areas=list(sc.top), time_window_min=u.half_width_min if u else None,
@@ -3452,9 +3505,11 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
     source, text = "model", summ["text"]
     if text is None:
         source, text = "engine", engine_summary(reading_areas, routed, chart.scored, base.summary.current_period, when_line)
+    note = timing_note([a.name for a in reading_areas if a.windows]) if when_line else None
     summary = base.summary.model_copy(update={
         "timing_line": when_line, "source": source, "text": text, "cites": [f"{k}:{v}" for k, v in TAG.findall(text)],
-        "timing_note": timing_note([a.name for a in reading_areas if a.windows]) if when_line else None})
+        "timing_note": note,
+        "client_text": client_summary(reading_areas, routed, list(chart.scored.top), note) if source == "engine" else None})
     metas = lambda role: [m for name in areas for m in collect[name].get(role, [])]
     # Every check the pool ran, the ones no loop consumed included (review R8).
     writer_metas, checker_metas = metas("writer") + summ["writer"], [m for _, _, m, _ in shared.runs]

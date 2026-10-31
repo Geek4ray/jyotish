@@ -15,8 +15,8 @@ from datetime import date
 from typing import Any
 
 from .models import Chart
-from .narrate import (DISCLAIMERS, SUDARSHANA_NOTE, TAG, TRADITION, TRADITION_NOTE, Reading, ReadingWindow, findings,
-                      learner_data, sentences, timing_line)
+from .narrate import (DISCLAIMERS, SUDARSHANA_NOTE, TAG, TRADITION, TRADITION_NOTE, Reading, ReadingWindow,
+                      client_summary, findings, learner_data, route, sentences, timing_line)
 from .rules import default_rules
 from .uncertainty import label
 
@@ -39,6 +39,9 @@ PENDING_NOTICE = ("The written analysis is being prepared; every engine field on
                   "and the checked text is added as it passes.")
 ENGINE_LINES = "The engine's own lines (no model)"
 SHEET_HEADING = "The technical sheet (the engine's figures, no model)"
+# The engine's summary under "For the astrologer", with its figures (2026-10-31; web/js/strings.js
+# "summary.engine_figures"); the client's page shows it in the client's words.
+ENGINE_FIGURES = "The engine's summary, with its figures"
 
 
 def sheet_lines(notes: "_Notes", sh: dict) -> list[str]:
@@ -283,23 +286,31 @@ def render(reading: Reading, chart: Chart) -> str:
               + (", and the summary is the engine's own" if s.source == "engine" else "") + ".", ""]
     L += ["## Summary", ""]
     if s.source == "engine":
-        L += ["*Written by the engine from its fields: no drafted summary passed the checks.*", ""]
-    L += [notes.render(s.text), ""]
-    # A reading written before summary.timing_line existed gets the same line from its windows;
-    # an engine-written summary already carries it.
-    when = s.timing_line or " ".join(x for x in (timing_line(a.name, a.windows, a.avoid_window)
-                                                 for a in reading.areas if a.windows) if x)
-    if when and s.source != "engine":
-        L += [f"**When (engine):** {when}", ""]
-    if s.timing_note:
-        L += [f"*{s.timing_note}*", ""]
+        # The client's face: the engine's summary in the client's words, the timing note in it; the
+        # figures under "For the astrologer" (2026-10-31).
+        client_text = s.client_text or client_summary(reading.areas, route(reading.question, chart)[0],
+                                                      s.top_areas, s.timing_note)
+        L += ["*Written by the engine from its fields: no drafted summary passed the checks.*", "",
+              client_text, ""]
+    else:
+        L += [notes.render(s.text), ""]
+        # A reading written before summary.timing_line existed gets the same line from its windows.
+        when = s.timing_line or " ".join(x for x in (timing_line(a.name, a.windows, a.avoid_window)
+                                                     for a in reading.areas if a.windows) if x)
+        if when:
+            L += [f"**When (engine):** {when}", ""]
+        if s.timing_note:
+            L += [f"*{s.timing_note}*", ""]
+    L += [f"<details><summary>{FOR_ASTROLOGER}</summary>", ""]
+    if s.source == "engine":
+        L += [f"**{ENGINE_FIGURES}:** {notes.render(s.text)}", ""]
     L += [
           f"- Driver: {s.driver_planet}" + (f" (alternates {', '.join(s.driver_alternates)})" if s.driver_alternates else ""),
           f"- Current period (Vimshottari): {s.current_period or '–'}",
           f"- Top areas: {', '.join(s.top_areas)}",
           f"- Birth-time window: ±{s.time_window_min:g} min" if s.time_window_min is not None else "- Birth-time window: –",
           *fired_lines(s),
-          f"- Abstained areas: {', '.join(s.abstained_areas) or 'none'}", ""]
+          f"- Abstained areas: {', '.join(s.abstained_areas) or 'none'}", "", "</details>", ""]
 
     as_of = date.fromisoformat(reading.as_of)
     by_id = {f["finding_id"]: f for a in reading.areas for f in findings(chart, a.name, as_of)[0]}
@@ -322,12 +333,13 @@ def render(reading: Reading, chart: Chart) -> str:
             client_list = sentences((a.analysis or {}).get("not_said_client") or "")
             if client_list:
                 L += [f"### {CLIENT_LIST_HEADING}", ""] + [f"- {notes.render(x)}" for x in client_list] + [""]
-        L += [f"- Tier: **{a.tier}** (classical score {_cell(a.score_classical)}; probability not calibrated)",
-              f"- Stability: {_stab(a.stability)}",
-              f"- Families agreeing: {a.families_agree_w:.2f} of {a.families_total_w:.2f} (weighted)"]
+        # The tier line stays on the client's face; the area's figures are the astrologer's (2026-10-31).
+        L += [f"- Tier: **{a.tier}**", f"- Stability: {_stab(a.stability)}", ""]
+        figures = [f"- Classical score: {_cell(a.score_classical)}", "- Probability: not calibrated",
+                   f"- Families agreeing: {a.families_agree_w:.2f} of {a.families_total_w:.2f} (weighted)"]
         if a.polarity:
-            L.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})" for p in a.polarity))
-        L.append("")
+            figures.append("- Polarity: " + "; ".join(f"{p} ({', '.join(a.polarity_touches.get(p, []))})"
+                                                      for p in a.polarity))
         if pending:
             L += [f"*{PENDING}*", ""]
         curious = reading.depth == "curious"
@@ -344,6 +356,7 @@ def render(reading: Reading, chart: Chart) -> str:
         # (astrologer depth) or the client's paragraph is a gap.
         client_view = bool(curious and a.paragraph) or bool(full and (a.paragraph or a.when))
         L += [f"<details{' open' if para_gap or not client_view else ''}><summary>{FOR_ASTROLOGER}</summary>", ""]
+        L += figures + [""]
         if pending and a.engine_lines:          # the engine's lines are the astrologer's (review R4)
             L += [f"**{ENGINE_LINES}**", ""] + [f"- {x}" for x in a.engine_lines if x] + [""]
         if sheets_by_area.get(a.name):

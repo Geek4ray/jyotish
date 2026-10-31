@@ -81,3 +81,51 @@ replay at 1ec91cd, the commit before this change. The policy cannot show there:
 
 No recording in the repository holds a paragraph: those of 2026-10-23 to 2026-10-27 and docs/live_2026-10-26
 are at astrologer depth or full. The policy is measured live in the comparison at curious depth below.
+
+## Layer 7 — the client's fallback summary in the client's words (2026-10-31)
+
+When no drafted summary passes, the summary is the engine's. Its text spoke the engine's language:
+
+> Career: tier moderate (time-stability 1.00, stable). … Best window for career by the engine's timing
+> score: 2029-10-23 to 2032-06-23 (Vimshottari Jupiter–Venus, score 0.84) …
+
+The client's page now shows it in the client's words. `ReadingSummary.client_text` comes from
+`narrate.client_summary` whenever the summary's source is the engine, the instant page included; it is set
+in both narration paths, and `upgrade_reading` fills it for an older reading. On the reference chart:
+
+> For career, the chart's indication is moderate. The areas this chart emphasises most are career, marriage
+> and longevity. The strongest period for career runs from October 2029 to June 2032; the period to avoid runs
+> from November 2028 to August 2029. These are periods the engine scores as favourable for career; it does
+> not predict when you will act.
+
+It says:
+
+- **Each asked area's tier.** A tier that is not a degree is said plainly (`TIER_PLAIN`, for example "that it
+  cannot be judged from this chart").
+- **How far the tier depends on the birth time.** A sensitive or unstable area gets one sentence
+  (`STABILITY_PLAIN`); a stable one gets none.
+- **The top areas.**
+- **Each timed area's windows.** The best window and the window to avoid are given as months.
+- **The timing note**, unchanged.
+
+It has no tier label, score, period lord, stability figure or driver. `text`, with every figure, stays in the
+JSON. The page and the site show it under the summary's "For the astrologer" toggle as "The engine's summary,
+with its figures" (`page.ENGINE_FIGURES`, strings.js `summary.engine_figures`), together with the summary's
+chips (driver, current period, top areas, birth-time window, fired rules, abstained areas). A model-written
+summary keeps its face as before (its text, the When (engine) line, the timing note); only its chips moved
+under the toggle.
+
+**Each area's figures.** The classical score, the probability, the families agreeing and the polarity move
+under "For the astrologer" at every depth, on the page and on the site (`dl.figures`). The tier line (the tier
+and its stability) stays on the client's face.
+
+Tests: `tests/test_client_summary.py`:
+
+- `client.CLIENT_WORDS` and `client_errors` find nothing in the client's words, and neither "tier",
+  "time-stability", "score <n>" nor "Vimshottari" appears;
+- the windows read as months and the note is kept;
+- the plain tier and stability sentences;
+- the upgrade of an older reading;
+- the page's face and its toggle.
+
+`tests/test_web.py` covers the same on the site.

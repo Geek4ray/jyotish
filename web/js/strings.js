@@ -88,6 +88,8 @@ export const STRINGS = {
     "match.disagree": "Disagree",
     "match.your_blind": "Your reading from the chart alone: {answer}",
     "astro.toggle": "For the astrologer",
+    // The engine's summary with its figures, under the toggle (2026-10-31; page.ENGINE_FIGURES is the same words).
+    "summary.engine_figures": "The engine's summary, with its figures",
     "astro.sheet": "The technical sheet (the engine's figures, no model)",
     "astro.findings": "The findings, one by one",
     "astro.sheet_review": "The technical sheet for {area}: the engine's figures behind the paragraph",

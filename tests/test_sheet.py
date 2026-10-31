@@ -258,7 +258,7 @@ def test_the_rebuilt_r2_pages_are_the_current_renderers_and_show_both_views(tmp_
     for side, path in made.items():
         committed = (src / f"{side}.page.md").read_text()
         assert path.read_text() == committed, f"{side}.page.md is stale: run scripts/rebuild_pages.py"
-        assert committed.count("<summary>For the astrologer</summary>") == 3
+        assert committed.count("<summary>For the astrologer</summary>") == 4          # the summary's, and each area's
         assert committed.count("### The technical sheet") == 3 and "15. **Drafts, abstentions" in committed
     b = (src / "b.page.md").read_text()
     assert b.count("### Assessment") == 3 and b.count("### What the chart does not say") == 3
