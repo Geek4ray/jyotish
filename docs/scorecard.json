@@ -1,6 +1,6 @@
 {
   "date": "2026-10-31",
-  "commit": "8be2e65",
+  "commit": "26ecf65",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -532,6 +532,258 @@
     },
     "live.deepinfra-gptoss-glm53flash-t0-live.gaps": {
       "value": 2,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.instant_s": {
+      "value": 14.693,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.first_sentence_s": {
+      "value": 55.447,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.first_verified_s": {
+      "value": 57.677,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.first_area_s": {
+      "value": 98.54,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.done_s": {
+      "value": 409.109,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.cost_usd": {
+      "value": 0.029619,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-1.gaps": {
+      "value": 2,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.instant_s": {
+      "value": 3.242,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.first_sentence_s": {
+      "value": 35.827,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.first_verified_s": {
+      "value": 37.707,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.first_area_s": {
+      "value": 64.146,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.done_s": {
+      "value": 322.022,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.cost_usd": {
+      "value": 0.031136,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-2.gaps": {
+      "value": 0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.instant_s": {
+      "value": 3.296,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.first_sentence_s": {
+      "value": 45.03,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.first_verified_s": {
+      "value": 48.768,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.first_area_s": {
+      "value": 77.593,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.done_s": {
+      "value": 330.469,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.cost_usd": {
+      "value": 0.024055,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly-3.gaps": {
+      "value": 0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.instant_s": {
+      "value": 3.449,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.first_sentence_s": {
+      "value": 82.521,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.first_verified_s": {
+      "value": 84.35,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.first_area_s": {
+      "value": 172.858,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.done_s": {
+      "value": 439.49,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.cost_usd": {
+      "value": 0.047195,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-a-curious.gaps": {
+      "value": 0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.instant_s": {
+      "value": 0.865,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.first_sentence_s": {
+      "value": 50.603,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.first_verified_s": {
+      "value": 52.636,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.first_area_s": {
+      "value": 147.799,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.done_s": {
+      "value": 492.992,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.cost_usd": {
+      "value": 0.03687,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.compare-2026-10-31-b.gaps": {
+      "value": 1,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.instant_s": {
+      "value": 3.296,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.first_sentence_s": {
+      "value": 45.03,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.first_verified_s": {
+      "value": 48.768,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.first_area_s": {
+      "value": 77.593,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.done_s": {
+      "value": 330.469,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.cost_usd": {
+      "value": 0.029619,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "live.fly_median.gaps": {
+      "value": 0,
       "better": "lower",
       "unit": "",
       "gate": false

@@ -351,6 +351,30 @@ parallel, then the summary.
 | gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | live | 2.9 s | 32 s | 35 s | 74 s | 309 s | 0.04 | 35, 2 | engine's | 0 | 2026-10-27, comparison |
 | gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | one call | 2.9 s | 85 s | – | 510 s | 510 s | 0.03 | 33, 4 | engine's | 0 | 2026-10-27, after 0937ff8 |
 | gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | live | 0.9 s | 19 s | 23 s | 70 s | 311 s | 0.03 | 35, 2 | engine's | 0 | 2026-10-27, after 0937ff8 |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0 | live | 0.9 s | 51 s | 53 s | 148 s | 493 s | 0.04 | 36, 1 | engine's | 1 (writer) | 2026-10-31, comparison |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0, **on Fly** | live | 14.7 s | 55 s | 58 s | 99 s | 409 s | 0.03 | 35, 2 | writer's | – | 2026-10-31, fly-1 |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0, **on Fly** | live | 3.2 s | 36 s | 38 s | 64 s | 322 s | 0.03 | 37, 0 | writer's | – | 2026-10-31, fly-2 |
+| gpt-oss-120b / GLM-5.3-Flash high, temperature 0, **on Fly** | live | 3.3 s | 45 s | 49 s | 78 s | 330 s | 0.02 | 37, 0 | engine's | – | 2026-10-31, fly-3 |
+
+**The deployed service beside the local runs** (2026-10-31). `scripts/live_timing.py --url https://jyotish-ray.fly.dev`
+asked the service for three readings in a row (the rows marked `"where": "fly"` in `docs/live_timings.jsonl`). The
+service used its own keys and backends: gpt-oss-120b writing, GLM-5.3-Flash at temperature 0 checking, both on
+DeepInfra, at engine hash c00c519e. That is the code deployed before the three fixes of 2026-10-31
+(docs/spec_notes_2026-10-31.md), which reach Fly only when it is deployed again. The local medians are the three
+live runs of the same stack at astrologer depth above (2026-10-27 twice, 2026-10-31 once). The seconds are the
+service's own timeline (`usage.timeline`); the Fly row in brackets is what this script saw arrive, network included.
+
+| Median of three, same stack, astrologer depth | Instant page | First sentence | First verified | First area done | Done | Cost, USD | Gaps |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Local (this machine) | 0.9 s | 32 s | 35 s | 74 s | 311 s | 0.036 | 2 |
+| Fly, the service's timeline | 3.3 s | 45 s | 49 s | 78 s | 330 s | 0.030 | 0 |
+| Fly, as seen by the client | (3.9 s) | (46 s) | (49 s) | (78 s) | (332 s) | | |
+
+- **The instant page.** On Fly it was 14.7 s on the first reading (the machine cold, the chart and its sheets not yet
+  cached) and 3.2 to 3.3 s after. Two of the three local runs were second readings of a cached chart, hence 0.9 s.
+- **The rest.** Fly is within about 15 seconds of local at every step once the first sentence is out. The
+  writer's and the checker's calls go to DeepInfra from either place, so they set the time.
+- **One run each on a shared provider.** Gaps of 0 against 2 are within run-to-run noise.
 
 Not timed: Cerebras (it asks for payment before its key serves) and Groq (its free tier answered 413 to a writer
 call, 17,459 tokens against its 8,000 a minute, on 2026-10-31). In the one-call row there is no "first verified": the single call checks after the whole draft,

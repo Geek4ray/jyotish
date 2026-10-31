@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-10-31 at commit `8be2e65` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-10-31 at commit `26ecf65` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -32,13 +32,19 @@ One live reading per stack on the reference chart (docs/live_timings.jsonl; docs
 - deepinfra-gptoss-glm47-c8-r2 (2026-10-27; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-4.7 on api.deepinfra.com, concurrency 8): instant page 0.864 s, first sentence 29.696 s, first verified 81.342 s, first area 733.111 s, done 1255.654 s; USD 0.328551; 32 claims, 5 gaps.
 - deepinfra-gptoss-glm53flash-t0-single (2026-10-27; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, concurrency 8): instant page 2.944 s, first sentence 85.303 s, first verified None s, first area 510.216 s, done 510.315 s; USD 0.029742; 33 claims, 4 gaps.
 - deepinfra-gptoss-glm53flash-t0-live (2026-10-27; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, concurrency 8): instant page 0.857 s, first sentence 18.537 s, first verified 22.873 s, first area 70.493 s, done 310.531 s; USD 0.03379; 35 claims, 2 gaps.
+- fly-1 (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, on the deployed service (fly)): instant page 14.693 s, first sentence 55.447 s, first verified 57.677 s, first area 98.54 s, done 409.109 s; USD 0.029619; 35 claims, 2 gaps.
+- fly-2 (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, on the deployed service (fly)): instant page 3.242 s, first sentence 35.827 s, first verified 37.707 s, first area 64.146 s, done 322.022 s; USD 0.031136; 37 claims, 0 gaps.
+- fly-3 (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, on the deployed service (fly)): instant page 3.296 s, first sentence 45.03 s, first verified 48.768 s, first area 77.593 s, done 330.469 s; USD 0.024055; 37 claims, 0 gaps.
+- compare-2026-10-31-a-curious (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, concurrency None): instant page 3.449 s, first sentence 82.521 s, first verified 84.35 s, first area 172.858 s, done 439.49 s; USD 0.047195; 37 claims, 0 gaps.
+- compare-2026-10-31-b (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, concurrency None): instant page 0.865 s, first sentence 50.603 s, first verified 52.636 s, first area 147.799 s, done 492.992 s; USD 0.03687; 36 claims, 1 gaps.
+- Median of the 3 readings on fly: instant_s 3.296, first_sentence_s 45.03, first_verified_s 48.768, first_area_s 77.593, done_s 330.469, cost_usd 0.029619, gaps 0.
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 27 s.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 25 s.
 Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 9 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 236 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 108 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 229 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 96 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -135,6 +141,48 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `live.deepinfra-gptoss-glm53flash-t0-live.done_s` | 310.531 |  | lower | no |
 | `live.deepinfra-gptoss-glm53flash-t0-live.cost_usd` | 0.03379 |  | lower | no |
 | `live.deepinfra-gptoss-glm53flash-t0-live.gaps` | 2 |  | lower | no |
+| `live.fly-1.instant_s` | 14.693 |  | lower | no |
+| `live.fly-1.first_sentence_s` | 55.447 |  | lower | no |
+| `live.fly-1.first_verified_s` | 57.677 |  | lower | no |
+| `live.fly-1.first_area_s` | 98.54 |  | lower | no |
+| `live.fly-1.done_s` | 409.109 |  | lower | no |
+| `live.fly-1.cost_usd` | 0.029619 |  | lower | no |
+| `live.fly-1.gaps` | 2 |  | lower | no |
+| `live.fly-2.instant_s` | 3.242 |  | lower | no |
+| `live.fly-2.first_sentence_s` | 35.827 |  | lower | no |
+| `live.fly-2.first_verified_s` | 37.707 |  | lower | no |
+| `live.fly-2.first_area_s` | 64.146 |  | lower | no |
+| `live.fly-2.done_s` | 322.022 |  | lower | no |
+| `live.fly-2.cost_usd` | 0.031136 |  | lower | no |
+| `live.fly-2.gaps` | 0 |  | lower | no |
+| `live.fly-3.instant_s` | 3.296 |  | lower | no |
+| `live.fly-3.first_sentence_s` | 45.03 |  | lower | no |
+| `live.fly-3.first_verified_s` | 48.768 |  | lower | no |
+| `live.fly-3.first_area_s` | 77.593 |  | lower | no |
+| `live.fly-3.done_s` | 330.469 |  | lower | no |
+| `live.fly-3.cost_usd` | 0.024055 |  | lower | no |
+| `live.fly-3.gaps` | 0 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.instant_s` | 3.449 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.first_sentence_s` | 82.521 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.first_verified_s` | 84.35 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.first_area_s` | 172.858 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.done_s` | 439.49 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.cost_usd` | 0.047195 |  | lower | no |
+| `live.compare-2026-10-31-a-curious.gaps` | 0 |  | lower | no |
+| `live.compare-2026-10-31-b.instant_s` | 0.865 |  | lower | no |
+| `live.compare-2026-10-31-b.first_sentence_s` | 50.603 |  | lower | no |
+| `live.compare-2026-10-31-b.first_verified_s` | 52.636 |  | lower | no |
+| `live.compare-2026-10-31-b.first_area_s` | 147.799 |  | lower | no |
+| `live.compare-2026-10-31-b.done_s` | 492.992 |  | lower | no |
+| `live.compare-2026-10-31-b.cost_usd` | 0.03687 |  | lower | no |
+| `live.compare-2026-10-31-b.gaps` | 1 |  | lower | no |
+| `live.fly_median.instant_s` | 3.296 |  | lower | no |
+| `live.fly_median.first_sentence_s` | 45.03 |  | lower | no |
+| `live.fly_median.first_verified_s` | 48.768 |  | lower | no |
+| `live.fly_median.first_area_s` | 77.593 |  | lower | no |
+| `live.fly_median.done_s` | 330.469 |  | lower | no |
+| `live.fly_median.cost_usd` | 0.029619 |  | lower | no |
+| `live.fly_median.gaps` | 0 |  | lower | no |
 | `synthetic.planted.2000.predicted_power` | 0.4101 |  | informational | no |
 | `synthetic.planted.2000.recovered_share` | 0.375 |  | higher | no |
 | `synthetic.planted.2000.survived_bh_share` | 0.375 |  | higher | no |

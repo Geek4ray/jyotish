@@ -129,3 +129,66 @@ Tests: `tests/test_client_summary.py`:
 - the page's face and its toggle.
 
 `tests/test_web.py` covers the same on the site.
+
+## Layer 7 — measured: the deployed service, and the writer after these changes (2026-10-31)
+
+**The deployed service.** `scripts/live_timing.py --url <base>` times a reading asked of a deployed service.
+It sends POST /readings, polls GET /readings/{id}/live, and reads the finished reading from GET
+/readings/{id}. No key is read: the service uses its own.
+
+The row it writes has:
+
+- the service's timeline;
+- `client_timeline`, the seconds the script saw each first event arrive;
+- `where` ("fly" for a fly.dev host).
+
+Three readings ran against https://jyotish-ray.fly.dev at astrologer depth. They used the code deployed before
+these changes (engine hash c00c519e): gpt-oss-120b writing, GLM-5.3-Flash at temperature 0 checking. The rows
+are `fly-1` to `fly-3` in docs/live_timings.jsonl.
+
+| Median of three, astrologer depth | Instant page | First sentence | First verified | First area | Done | USD | Gaps |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Local | 0.9 s | 32 s | 35 s | 74 s | 311 s | 0.036 | 2 |
+| Fly | 3.3 s | 45 s | 49 s | 78 s | 330 s | 0.030 | 0 |
+
+The first Fly reading's instant page took 14.7 s (a cold machine); the next two took 3.2 and 3.3 s. The table is
+in docs/models.md ("Timing"), and the scorecard reports the medians (`live.fly_median.*`, not gated).
+
+**The writer re-measured** (definition of done, condition 7: the writer's prompt changed, with the paragraph's
+retry instruction and the field descriptions). `scripts/compare_readings.py` ran on the reference chart with
+the .env settings: gpt-oss-120b at medium writing and GLM-5.3-Flash at temperature 0 checking, both on
+DeepInfra, in the live narration, as of 2026-10-31. A was at curious depth (the Fly reading's setting) and B at
+astrologer depth. The report is `docs/comparison_2026-10-31.md`.
+
+| | A, curious | B, astrologer |
+| --- | --- | --- |
+| Claims shown, of 37 offered (pass rate) | 37 (100%) | 36 (97%) |
+| Paragraphs shown, of 3 | 3 | – |
+| Narration gaps | 0 | 1 |
+| Summary written by | the writer | the engine |
+| Checker rejections, validator errors (all attempts) | 9, 7 | 12, 9 |
+| Cost, USD | 0.05 | 0.04 |
+| Seconds: instant page / first sentence / first verified / first area / done | 3.4 / 83 / 84 / 173 / 440 | 0.9 / 51 / 53 / 148 / 493 |
+
+The paragraph policy ran in A:
+
+- **Marriage.** In the first draft the validator refused sentences 1 to 3 of four and held sentence 4. One
+  refusal was the Fly reading's fault, [rule:place.l12_h7] with Mars not named as the 12th lord; the other
+  two were tier words. The retry rewrote those three: 2 and 3 passed. Sentence 1, now "Mars, the lord of the
+  7th and also the lord of the 12th", passed the validator, but the checker refused it. The third attempt
+  wrote "Mars, the lord of the 12th and the 7th", a list the validator now takes, and it passed.
+- **Career.** The checker refused sentences 2 and 3 of four. Sentences 1 and 4 were held, and the retry
+  replaced only 2 and 3.
+- **Longevity.** All four sentences passed at once.
+
+The career paragraph keeps "the lord of the 2nd and 5th houses", the wording the validator refused on Fly.
+
+B's one gap is the marriage lord's chain claim, refused by the checker on its last attempt ("the 7th house is
+the area's first house"; the data's area_houses is empty for a chain). Under the same stack on 2026-10-27, B's
+setting gave 35 claims and 2 gaps in 311 s (docs/comparison_2026-10-27_split_r2.md). Each figure is one run
+on a shared provider; the 2026-10-31 run met 1 and 2 writer retries.
+
+**Not done here.** The curious paragraphs that passed still use engine words: "Bhava Bala", "tests",
+"arudha", "KP". At curious depth the writer's paragraph is held to the validator and the checker, not to
+`client.CLIENT_WORDS`, which binds only the client's layer at depth full. The client sees those words at
+curious depth.

@@ -12,6 +12,14 @@ docs/live_<date>/<label>.json. Keys come from the environment or the gitignored 
     .venv/bin/python scripts/live_timing.py --label cerebras-flash-t0 \\
         --writer openai:https://api.cerebras.ai/v1:gpt-oss-120b \\
         --checker openai:https://api.deepinfra.com/v1/openai:zai-org/GLM-5.3-Flash --checker-temperature 0
+
+With --url (2026-10-31) the reading is asked of a deployed service instead (POST /readings, then its live
+view polled at GET /readings/{id}/live and the finished reading read from GET /readings/{id}): the service
+uses its own backends and keys, none is read here. The row carries the service's own timeline (the same
+fields as a local run's), the seconds this script saw each first event arrive (`client_timeline`, network
+included), and `where` (the --where label, "fly" by default for a fly.dev host).
+
+    .venv/bin/python scripts/live_timing.py --label fly-1 --url https://jyotish-ray.fly.dev
 """
 
 from __future__ import annotations
@@ -77,6 +85,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--depth", default="astrologer", choices=("astrologer", "curious", "full"))
     ap.add_argument("--as-of", default="2026-10-26")
     ap.add_argument("--no-write", action="store_true", help="print the row only")
+    ap.add_argument("--url", help="a deployed service's base URL: time a reading asked of it (no key read here)")
+    ap.add_argument("--where", help="the row's `where` (default: fly for a fly.dev host, else the host)")
     ap.add_argument("--from-reading", type=Path, help="append the row of a reading already written (a comparison's "
                     "docs/comparison_<date>/<side>.reading.json), with no model call")
     args = ap.parse_args(argv)
@@ -89,6 +99,9 @@ def main(argv: list[str] | None = None) -> int:
             with ROWS.open("a") as f:
                 f.write(json.dumps(row) + "\n")
         return 0
+
+    if args.url:
+        return remote(args)
 
     from jyotish.envfile import load as load_env
     print("read from .env:", load_env(ROOT / ".env"))            # names only
@@ -132,6 +145,65 @@ def main(argv: list[str] | None = None) -> int:
         (out / f"{args.label}.recording.json").write_text(json.dumps(
             {"note": "Recorded by scripts/live_timing.py.", "question": QUESTION, **recording_fixture(calls), "calls": calls},
             indent=1, ensure_ascii=False, default=str) + "\n")
+        with ROWS.open("a") as f:
+            f.write(json.dumps(row) + "\n")
+    return 0
+
+
+BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "node": "mean", "place": "Rewari, Haryana"}
+
+
+def remote(args) -> int:
+    """One reading asked of a deployed service, timed as it fills in; the row appended as a local run's is."""
+    from urllib.parse import urlparse
+
+    import httpx
+    from jyotish.costs import reading_cost
+    from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
+    base = args.url.rstrip("/")
+    host = urlparse(base).hostname or base
+    where = args.where or ("fly" if host.endswith(".fly.dev") else host)
+    body = dict(BIRTH, lat=REFERENCE_LAT, lon=REFERENCE_LON, question=QUESTION, depth=args.depth, as_of=args.as_of)
+    if args.writer_effort:
+        body["writer_effort"] = args.writer_effort
+    seen: dict[str, float] = {}
+    firsts = {"sentence": "first_sentence_s", "verified": "first_verified_s", "area": "first_area_s"}
+    with httpx.Client(timeout=60) as http:
+        started = time.perf_counter()
+        r = http.post(f"{base}/readings", json=body)
+        r.raise_for_status()
+        rid = r.json()["id"]
+        since, events, status = 0, 0, "queued"
+        while True:
+            now = round(time.perf_counter() - started, 1)
+            if "instant_s" not in seen:
+                got = http.get(f"{base}/readings/{rid}").json()
+                if got.get("reading"):
+                    seen["instant_s"] = now
+            live = http.get(f"{base}/readings/{rid}/live", params={"since": since}).json()
+            since, status = live["version"], live["status"]
+            for e in live["events"]:
+                events += 1
+                if e.get("type") in firsts:
+                    seen.setdefault(firsts[e["type"]], now)
+            if live["done"]:
+                break
+            time.sleep(1)
+        seen["done_s"] = round(time.perf_counter() - started, 1)
+        final = http.get(f"{base}/readings/{rid}").json()
+    if final.get("status") != "done" or not final.get("reading"):
+        print(json.dumps({"id": rid, "status": final.get("status"), "error": final.get("error")}, indent=2))
+        return 1
+    doc = final["reading"]
+    row = timing_row(args.label, doc, reading_cost(doc), (doc.get("usage") or {}).get("retries"), None, events)
+    row.update({"where": where, "url": base, "reading_id": rid, "client_timeline": seen, "wall_s": seen["done_s"]})
+    print(json.dumps(row, indent=2))
+    if not args.no_write:
+        out = ROOT / "docs" / f"live_{date.today().isoformat()}"
+        out.mkdir(parents=True, exist_ok=True)
+        (out / f"{args.label}.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+        if final.get("page"):
+            (out / f"{args.label}.md").write_text(final["page"])
         with ROWS.open("a") as f:
             f.write(json.dumps(row) + "\n")
     return 0

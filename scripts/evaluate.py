@@ -211,10 +211,22 @@ def live_timings(card: Card):
         for k in ("instant_s", "first_sentence_s", "first_verified_s", "first_area_s", "done_s", "cost_usd", "gaps"):
             if r.get(k) is not None:
                 card.num(f"live.{label}.{k}", r[k], "lower", gate=False)
-        lines.append(f"- {label} ({r['date']}; {r['writer']}, {r['checker']}, concurrency {r['checker_concurrency']}): "
+        where = f"on the deployed service ({r['where']})" if r.get("where") else f"concurrency {r['checker_concurrency']}"
+        lines.append(f"- {label} ({r['date']}; {r['writer']}, {r['checker']}, {where}): "
                      f"instant page {r['instant_s']} s, first sentence {r['first_sentence_s']} s, first verified "
                      f"{r['first_verified_s']} s, first area {r['first_area_s']} s, done {r['done_s']} s; USD "
                      f"{r['cost_usd']}; {r['claims']} claims, {r['gaps']} gaps.")
+    # The deployed service's readings (scripts/live_timing.py --url, 2026-10-31): their medians, per `where`.
+    import statistics
+    for where in sorted({r["where"] for r in rows if r.get("where")}):
+        mine = [r for r in rows if r.get("where") == where]
+        meds = {k: statistics.median(r[k] for r in mine) for k in ("instant_s", "first_sentence_s", "first_verified_s",
+                                                                    "first_area_s", "done_s", "cost_usd", "gaps")
+                if all(r.get(k) is not None for r in mine)}
+        for k, v in meds.items():
+            card.num(f"live.{where}_median.{k}", v, "lower", gate=False)
+        lines.append(f"- Median of the {len(mine)} readings on {where}: " + ", ".join(f"{k} {v:g}" for k, v in meds.items())
+                     + ".")
     card.sections.append(("Live narration timings (reported, not gated)", [
         "One live reading per stack on the reference chart (docs/live_timings.jsonl; docs/models.md, \"Timing\"). "
         "Each is a single run on a shared provider, so it is reported and never gated.", ""] + lines))

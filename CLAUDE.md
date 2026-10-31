@@ -309,4 +309,12 @@ passes the rule against GLM-4.7 (docs/checker_scorecard_zai-org-glm-5.3-flash_te
 four times faster for a ninth of the cost (docs/comparison_2026-10-27_checkers.md); since 2026-10-31 it is the gate in use
 (Ray's decision): `.env` sets it with JYOTISH_CHECKER_TEMPERATURE=0, and `checker_bench.GATE` is its scorecard. Groq's free
 tier answers 413 to every writer call (8,000 tokens a minute), which now stops a reading at once; Cerebras is not used (paid).
+Fixes after the first reading on Fly (2026-10-31, docs/spec_notes_2026-10-31.md): the validator takes a lordship named in
+a list ("the lord of the 2nd and 5th houses", `narrate._names_lordship`; bench row live-lord-of-the-2nd-and-5th); a
+paragraph is held sentence by sentence wherever units are held (`live.HeldParagraph`, live units "paragraph:<area>:<key>",
+the retry asks for the failed sentences by position, `PARAGRAPH_RETRY_NOTE`, and a rule-name refusal states the phrase to
+use, `narrate.name_hint`); an engine summary carries `summary.client_text` (`narrate.client_summary`: no engine vocabulary,
+windows as months), shown on the client's face with the figures and each area's classical score, probability, families
+agreeing and polarity under "For the astrologer". `scripts/live_timing.py --url` times a deployed service (rows marked
+`where`; docs/models.md has the Fly medians); docs/comparison_2026-10-31.md re-measures the writer.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.
