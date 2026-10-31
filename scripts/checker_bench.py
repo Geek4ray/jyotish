@@ -37,6 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from jyotish.client import client_errors  # noqa: E402
 from jyotish.narrate import (TAG, TIER_WORDS, _check_payload, _summary_checks, findings, offered_chains,  # noqa: E402
                              offered_votes, sentences, validate, validate_summary)
 
@@ -52,8 +53,10 @@ CONSTRUCTED = ["planet_swapped", "house_changed", "sign_changed", "dignity_chang
 # Categories that are tag or wording errors: the validator alone must reject every one of them. A
 # reference to another claim ("again", an opening "The same") joined them on 2026-10-23 (review, F9):
 # the checker sees one claim and cannot resolve it, the validator can read the word.
+# A curious paragraph's sentence in engine words or with a Sanskrit term unglossed joined them on 2026-10-31
+# (`client_words`): the curious paragraph is held to client.client_errors as the client's layer is.
 WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited", "refers_to_another_claim",
-           "ranking_not_cited", "nth_sign"}
+           "ranking_not_cited", "nth_sign", "client_words"}
 # The depth-full comparison's rows (comparison_rows) add three semantic kinds: a sentence citing a field
 # narrower than its claim, a judgement whose premise is false, and a clause no field states.
 SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", "cites_too_narrowly",
@@ -254,6 +257,15 @@ def build() -> list[dict]:
                         "origin": f"constructed from {base['id']}: {planet} is activated by {true_lord}'s period, "
                                   f"not {w}'s"})
     out += known_bad(r)
+    # 2026-10-31: the curious paragraph is the client's and is held to the client's words. A paragraph
+    # sentence the reading accepted before that rule and that breaks it is now a wording reject.
+    for row in out:
+        why = client_errors(row["sentence"]) if row["where"] == "paragraph" and row["label"] == "accept" else []
+        if why:
+            row.update(label="reject", category="client_words",
+                       origin=f"{row['origin']}; accepted before the curious paragraph was held to the client's "
+                              f"words (2026-10-31), now refused: {why[0].split(':')[0]}")
+            row.pop("audit", None)
     for row in out:
         row["tags"] = _tags(row["sentence"])
         row["validator"] = inputs(row["where"], row["area"] or "career", row["finding_id"])
@@ -553,7 +565,7 @@ def validator_errors(row: dict) -> list[str]:
         return errs
     where = f"{row['area']} paragraph" if row["where"] == "paragraph" else "summary"
     return validate_summary(row["sentence"], allowed, offered_votes=ov, where=where, family_rule=v["family_rule"],
-                            chains=v["chains"])
+                            chains=v["chains"]) + (client_errors(row["sentence"]) if row["where"] == "paragraph" else [])
 
 
 def load() -> list[dict]:

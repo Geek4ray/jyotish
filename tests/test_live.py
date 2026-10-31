@@ -299,13 +299,19 @@ def test_a_live_recording_replays_offline_through_the_same_per_area_loop(chart, 
     assert texts(replayed) == texts(live)
 
 
+def client_line(f: dict, area: str) -> str:
+    """A curious paragraph's sentence in the client's words, citing one finding (the paragraph is held to
+    client.CLIENT_WORDS since 2026-10-31, so the engine's own line, "The house vote is for career", is not one)."""
+    return f"This part of the chart speaks to {area} [{f['allowed_tags'][0]}]."
+
+
 def test_curious_depth_streams_each_paragraph_and_holds_it(chart, backends):
     # Review R5: curious, the form's default depth, in live mode: each area's paragraph is shown, checked and
     # accepted; the summary is the writer's own call. Since 2026-10-31 each sentence is a unit of its own
     # ("paragraph:<area>:<key>").
     from jyotish.narrate import engine_line, findings
     votes = {n: [f for f in findings(chart, n, AS_OF)[0] if f["kind"] == "vote"][:2] for n in ("career", "marriage")}
-    para = {n: " ".join(engine_line(f, n)[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes[n]) for n in votes}
+    para = {n: " ".join(client_line(f, n) for f in votes[n]) for n in votes}
 
     def answer(name, body, users):
         if name in ("ReadingDraft",):
@@ -334,7 +340,7 @@ def test_curious_paragraph_is_held_sentence_by_sentence_and_the_retry_names_the_
     # replacement takes its place.
     from jyotish.narrate import PARAGRAPH_RETRY_NOTE, engine_line, findings
     votes = {n: [f for f in findings(chart, n, AS_OF)[0] if f["kind"] == "vote"][:2] for n in ("career", "marriage")}
-    line = {n: [engine_line(f, n)[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes[n]] for n in votes}
+    line = {n: [client_line(f, n) for f in votes[n]] for n in votes}
     bad = "Mars sits in the 7th house [rule:place.l12_h7]."
     fixed = "Mars, the 12th lord, sits in the 7th house [rule:place.l12_h7]."
     para = {"career": " ".join(line["career"]), "marriage": " ".join([line["marriage"][0], bad, line["marriage"][1]])}

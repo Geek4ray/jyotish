@@ -1093,12 +1093,14 @@ def test_the_site_replaces_one_paragraph_sentence_in_its_place(page, live_url):
     # 2026-10-31: a curious paragraph is held sentence by sentence. The refused middle sentence is removed
     # alone; the two that passed stay; the replacement is shown where the refused one was.
     url, cases = live_url
-    from jyotish.narrate import engine_line, findings
+    from jyotish.client import client_errors
+    from jyotish.narrate import findings
     from jyotish.uncertainty import assess
     from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
     c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
     votes = [f for f in findings(c, "career", cases.AS_OF)[0] if f["kind"] == "vote"][:2]
-    first, last = (engine_line(f, "career")[:-1] + f" [{f['allowed_tags'][0]}]." for f in votes)
+    first, last = (f"{opening} [{f['allowed_tags'][0]}]." for opening, f in
+                   zip(("Your work is shown first by the house of career", "Most of the chart agrees on career"), votes))
     bad = "Mercury sits in the 10th house [rule:place.l5_h10]."
     fixed = "Mercury, lord of the 2nd and 5th houses, sits in the 10th house [rule:place.l5_h10]."
 
@@ -1129,6 +1131,7 @@ def test_the_site_replaces_one_paragraph_sentence_in_its_place(page, live_url):
     text = page.inner_text("section.area[data-area=career] p.paragraph")
     bare = lambda t: t.split(" [")[0]
     assert text.index(bare(first)) < text.index(bare(fixed)) < text.index(bare(last)) and bare(bad) not in text
+    assert not client_errors(text)                              # the client's words (2026-10-31)
 
 
 def test_the_site_follows_by_polling_when_asked(page, live_url):

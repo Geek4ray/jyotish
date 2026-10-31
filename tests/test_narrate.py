@@ -862,7 +862,9 @@ def test_curious_prompt_and_payload(chart):
     order = ["First, what the chart shows", "Then what the tradition associates it with",
              "Then the weakest point or the disagreement", "Last, in one clause, how many of the engine's seven tests agree"]
     assert [p.index(x) for x in order] == sorted(p.index(x) for x in order)
-    for rule in ("never a list of the tests or votes", "No degrees, rupas, strength ratios", "glossed once",
+    for rule in ("never a list of the tests or votes", "No degrees, rupas, strength ratios",
+                 "The paragraph is the client's, in the client's words", "say \"the house's own strength\", not Bhava Bala",
+                 "comes with its gloss in every sentence that names it, right after it", "do not weigh or rank the evidence",
                  "answers the question in two or three sentences about the asked area", "does not repeat the paragraph"):
         assert rule in p, rule
     assert system_prompt("astrologer") == system_prompt("learner") == SYSTEM_PROMPT
@@ -899,8 +901,44 @@ def test_paragraph_is_validated_like_the_summary(chart):
     assert r.narration_complete is False and by["career"].claims          # the claims still stand
 
 
+@pytest.mark.parametrize("sentence,needle", [
+    ("The 10th house has the lowest Bhava Bala of the houses [vote:career.house].", "engine vocabulary ('Bhava Bala')"),
+    ("Five of the seven votes agree [vote:career.house].", "engine vocabulary ('votes')"),
+    ("Saturn rules the 10th from the lagna [vote:career.lord].", "'lagna' has a plain phrase: say 'the rising sign'"),
+    ("Sun is the karaka of career [vote:career.karaka].", "'karaka' has a plain phrase: say 'significator'"),
+    ("Mars forms Ruchaka yoga in your chart [rule:yoga.ruchaka].", "'Ruchaka yoga' is a Sanskrit term: gloss it"),
+    ("I read the 10th as the chart's soft spot [vote:career.house].", "never says 'I'"),
+])
+def test_the_curious_paragraph_is_held_to_the_clients_words(chart, sentence, needle):
+    # 2026-10-31: the first curious reading on the open stack showed the client "Bhava Bala", "tests" of
+    # "votes", "arudha" and "KP". The curious paragraph is the client's and is now held to
+    # client.client_errors as the client's layer's paragraph is; the claims, the astrologer's, are not.
+    bad = json.loads(json.dumps(ACCEPTED))
+    for a in bad["areas"]:
+        if a["name"] == "career":
+            a["paragraph"] = sentence
+    rec = []
+    r = _curious(chart, drafts=[bad], rec=rec)
+    assert any(needle in e for e in rec[0]["validator_errors"]), rec[0]["validator_errors"]
+    career = next(a for a in r.areas if a.name == "career")
+    assert career.paragraph is None and career.claims
+
+
+def test_a_glossed_term_and_plain_phrases_pass_the_curious_paragraph(chart):
+    ok = ("Mars forms Ruchaka yoga, the great-person combination of Mars, in the rising sign's angular house "
+          "[rule:yoga.ruchaka].")
+    good = json.loads(json.dumps(ACCEPTED))
+    for a in good["areas"]:
+        if a["name"] == "career":
+            a["paragraph"] = ok
+    rec = []
+    r = _curious(chart, drafts=[good], rec=rec)
+    assert not [e for e in rec[0]["validator_errors"] if ok[:20] in e]
+    assert next(a for a in r.areas if a.name == "career").paragraph == ok
+
+
 def test_rejected_paragraph_sentence_keeps_the_claims(chart):
-    checker = StubChecker(reject={"which reads image points": "outward appearance is not in the data"})
+    checker = StubChecker(reject={"reads image points": "outward appearance is not in the data"})
     r = _curious(chart, checker=checker)
     marriage = next(a for a in r.areas if a.name == "marriage")
     assert marriage.paragraph is None and len(marriage.claims) == 7

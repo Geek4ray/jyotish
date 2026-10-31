@@ -54,10 +54,15 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
         expected += [c["text"] for c in a["claims"]] + sentences(a["paragraph"] or "")
     rows = [r for r in rows if not r["id"].startswith(("b-", "r2-", "kind-", "live-"))]   # comparisons', kinds', live: own tests
     accepted = [r for r in rows if r["label"] == "accept"]
-    assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 45
+    # 2026-10-31: three paragraph sentences the reading accepted break the client's words, now held at
+    # curious depth; they are wording rejects (client_words), the rest of the reading as it was.
+    relabelled = [r for r in rows if r["category"] == "client_words"]
+    assert {r["id"] for r in relabelled} == {"accept-18", "accept-19", "accept-44"}
+    expected = [x for x in expected if x not in {r["sentence"] for r in relabelled}]
+    assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 42
     assert all(r["audit"] and "CONTRADICTED" not in r["audit"] for r in accepted)
     assert sum("ratio" in r["audit"] for r in accepted) >= 8                  # strength words computed
-    accepted_ids = {r["id"] for r in accepted}
+    accepted_ids = {r["id"] for r in accepted + relabelled}         # a constructed row's source, relabelled or not
     for r in rows:
         if r["category"] in cb.CONSTRUCTED:
             assert any(f"constructed from {i}" in r["origin"] for i in accepted_ids), r["id"]

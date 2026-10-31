@@ -1,5 +1,5 @@
 {
-  "note": "Recorded from claude-opus-5-5 (writer effort medium, checker effort high, depth curious) by tests/test_narrate_live.py.",
+  "note": "Recorded from claude-opus-5-5 (writer effort medium, checker effort high, depth curious) by tests/test_narrate_live.py. Hand-edited 2026-10-31, when the curious paragraph was held to the client's words (docs/spec_notes_2026-10-31.md): seven paragraph phrases were rewritten in the client's words, each replaced verbatim wherever it appears in this file (the drafts, the accepted text and the recorded calls), the tags and the meaning unchanged: 'the lagna (the ascendant, the sign rising at birth)' as 'the rising sign'; 'the natural karaka (significator)' as 'the natural significator'; 'the Jaimini school, which ...' as 'Jaimini, the school that reads image points ...'; Budhaditya yoga and Kendra-Trikona Raja yoga glossed after their names. The checker's recorded verdicts on those sentences were given to the wording before the edit.",
   "question": "How will my career go, and when is the best time for a job change?",
   "depth": "curious",
   "drafts": [
@@ -42,7 +42,7 @@
               "text": "The birth-day test is for career: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 10th from the Sun and is above its required strength, and the Moon, ruler of the birth weekday, rules the 10th from the Moon and is above its required strength [vote:career.panchanga]."
             }
           ],
-          "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the lagna (the ascendant, the sign rising at birth), forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links these with intellect, communication, authority, reputation and career [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The weak spot is the 10th house itself, the weakest house by strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are strong [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the engine's seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
+          "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the rising sign, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links these with intellect, communication, authority, reputation and career [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The weak spot is the 10th house itself, the weakest house by strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are strong [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the engine's seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
         },
         {
           "name": "marriage",
@@ -76,7 +76,7 @@
               "text": "The birth-day test is for partnership: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 2nd and 7th from the Moon and is above its required strength [vote:marriage.panchanga]."
             }
           ],
-          "paragraph": "Mars, the ruler of your 7th house of partnership, sits strong in its own sign in that house, and Venus, the natural karaka (significator) of partnership, is exalted, meaning placed in the sign where it is held strongest [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from the Jaimini school, which reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the engine's seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
+          "paragraph": "Mars, the ruler of your 7th house of partnership, sits strong in its own sign in that house, and Venus, the natural significator of partnership, is exalted, meaning placed in the sign where it is held strongest [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from Jaimini, the school that reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the engine's seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
         },
         {
           "name": "longevity",
@@ -106,7 +106,7 @@
               "text": "The birth-day test is for this area: Mars, ruler of the birth tithi and nakshatra, rules the 3rd from the Sun, and the Moon, ruler of the birth weekday, rules the 3rd from the lagna, both above their required strength [vote:longevity.panchanga]."
             }
           ],
-          "paragraph": "Venus, the ruler of your lagna (the ascendant, the sign rising at birth), is exalted, meaning placed in the sign where it is held strongest, and the 8th house from the ascendant is among the stronger houses [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from the Jaimini school, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six engine tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
+          "paragraph": "Venus, the ruler of your rising sign, is exalted, meaning placed in the sign where it is held strongest, and the 8th house from the ascendant is among the stronger houses [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from Jaimini, the school that reads image points and its own significators, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six engine tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
         }
       ]
     },
@@ -149,7 +149,7 @@
               "text": "The birth-day test is for career: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 10th from the Sun and is above its required strength, and the Moon, ruler of the birth weekday, rules the 10th from the Moon and is above its required strength [vote:career.panchanga]."
             }
           ],
-          "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the lagna (the ascendant, the sign rising at birth), forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links Budhaditya yoga with intellect, communication and reputation [rule:yoga.budhaditya]. It links Kendra-Trikona Raja yoga with authority, reputation and career [rule:yoga.kendra_trikona_raja]. The soft spot is the 10th house itself, the lowest of the houses in strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are above their required strength [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
+          "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the rising sign, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links Budhaditya yoga, the combination of Mercury and the Sun in the same sign, with intellect, communication and reputation [rule:yoga.budhaditya]. It links Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house, with authority, reputation and career [rule:yoga.kendra_trikona_raja]. The soft spot is the 10th house itself, the lowest of the houses in strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are above their required strength [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
         },
         {
           "name": "marriage",
@@ -183,7 +183,7 @@
               "text": "The birth-day test is for partnership: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 2nd and 7th from the Moon and is above its required strength [vote:marriage.panchanga]."
             }
           ],
-          "paragraph": "Mars, the ruler of your 7th house of partnership, sits in its own sign in that house above its required strength, and Venus, the natural karaka (significator) of partnership, is exalted, meaning placed in the sign where the texts hold a planet at its peak [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from the Jaimini school, which reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
+          "paragraph": "Mars, the ruler of your 7th house of partnership, sits in its own sign in that house above its required strength, and Venus, the natural significator of partnership, is exalted, meaning placed in the sign where the texts hold a planet at its peak [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from Jaimini, the school that reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
         },
         {
           "name": "longevity",
@@ -213,7 +213,7 @@
               "text": "The birth-day test is for this area: Mars, ruler of the birth tithi and nakshatra, rules the 3rd from the Sun, and the Moon, ruler of the birth weekday, rules the 3rd from the lagna, both above their required strength [vote:longevity.panchanga]."
             }
           ],
-          "paragraph": "Venus, the ruler of your lagna (the ascendant, the sign rising at birth), is exalted, meaning placed in the sign where the texts hold a planet at its peak, and the 8th house from the ascendant is among the houses higher in strength [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from the Jaimini school, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
+          "paragraph": "Venus, the ruler of your rising sign, is exalted, meaning placed in the sign where the texts hold a planet at its peak, and the 8th house from the ascendant is among the houses higher in strength [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from Jaimini, the school that reads image points and its own significators, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
         }
       ]
     }
@@ -300,7 +300,7 @@
                 "text": "The birth-day test is for career: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 10th from the Sun and is above its required strength, and the Moon, ruler of the birth weekday, rules the 10th from the Moon and is above its required strength [vote:career.panchanga]."
               }
             ],
-            "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the lagna (the ascendant, the sign rising at birth), forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links these with intellect, communication, authority, reputation and career [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The weak spot is the 10th house itself, the weakest house by strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are strong [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the engine's seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
+            "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the rising sign, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links these with intellect, communication, authority, reputation and career [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The weak spot is the 10th house itself, the weakest house by strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are strong [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the engine's seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
           },
           {
             "name": "marriage",
@@ -334,7 +334,7 @@
                 "text": "The birth-day test is for partnership: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 2nd and 7th from the Moon and is above its required strength [vote:marriage.panchanga]."
               }
             ],
-            "paragraph": "Mars, the ruler of your 7th house of partnership, sits strong in its own sign in that house, and Venus, the natural karaka (significator) of partnership, is exalted, meaning placed in the sign where it is held strongest [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from the Jaimini school, which reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the engine's seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
+            "paragraph": "Mars, the ruler of your 7th house of partnership, sits strong in its own sign in that house, and Venus, the natural significator of partnership, is exalted, meaning placed in the sign where it is held strongest [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from Jaimini, the school that reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the engine's seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
           },
           {
             "name": "longevity",
@@ -364,7 +364,7 @@
                 "text": "The birth-day test is for this area: Mars, ruler of the birth tithi and nakshatra, rules the 3rd from the Sun, and the Moon, ruler of the birth weekday, rules the 3rd from the lagna, both above their required strength [vote:longevity.panchanga]."
               }
             ],
-            "paragraph": "Venus, the ruler of your lagna (the ascendant, the sign rising at birth), is exalted, meaning placed in the sign where it is held strongest, and the 8th house from the ascendant is among the stronger houses [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from the Jaimini school, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six engine tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
+            "paragraph": "Venus, the ruler of your rising sign, is exalted, meaning placed in the sign where it is held strongest, and the 8th house from the ascendant is among the stronger houses [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from Jaimini, the school that reads image points and its own significators, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six engine tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
           }
         ]
       },
@@ -375,7 +375,7 @@
         "timing language ('engine') in \"Five of the engine's seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga].\"",
         "tier language ('weak') in the career paragraph; the engine states the tier: 'The weak spot is the 10th house itself, the weakest house by strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are strong [vote:career.house] [vote:career.lord] [vote:career.karaka].'",
         "timing language ('engine') in \"Six of the engine's seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga].\"",
-        "tier language ('strong') in the marriage paragraph; the engine states the tier: 'Mars, the ruler of your 7th house of partnership, sits strong in its own sign in that house, and Venus, the natural karaka (significator) of partnership, is exalted, meaning placed in the sign where it is held strongest [vote:marriage.lord] [vote:marriage.karaka].'",
+        "tier language ('strong') in the marriage paragraph; the engine states the tier: 'Mars, the ruler of your 7th house of partnership, sits strong in its own sign in that house, and Venus, the natural significator of partnership, is exalted, meaning placed in the sign where it is held strongest [vote:marriage.lord] [vote:marriage.karaka].'",
         "timing language ('engine') in 'Of the six engine tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga].'"
       ]
     },
@@ -459,7 +459,7 @@
                 "text": "The birth-day test is for career: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 10th from the Sun and is above its required strength, and the Moon, ruler of the birth weekday, rules the 10th from the Moon and is above its required strength [vote:career.panchanga]."
               }
             ],
-            "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the lagna (the ascendant, the sign rising at birth), forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links Budhaditya yoga with intellect, communication and reputation [rule:yoga.budhaditya]. It links Kendra-Trikona Raja yoga with authority, reputation and career [rule:yoga.kendra_trikona_raja]. The soft spot is the 10th house itself, the lowest of the houses in strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are above their required strength [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
+            "paragraph": "In your chart the Sun and Mercury sit together in the 10th house counted from the rising sign, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja]. The tradition links Budhaditya yoga, the combination of Mercury and the Sun in the same sign, with intellect, communication and reputation [rule:yoga.budhaditya]. It links Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house, with authority, reputation and career [rule:yoga.kendra_trikona_raja]. The soft spot is the 10th house itself, the lowest of the houses in strength, and its ruler Saturn falls short of the strength it requires, even though the planets sitting in that house are above their required strength [vote:career.house] [vote:career.lord] [vote:career.karaka]. Five of the seven tests agree in favour, while two abstain [vote:career.house] [vote:career.lord] [vote:career.karaka] [vote:career.varga] [vote:career.panchanga]."
           },
           {
             "name": "marriage",
@@ -493,7 +493,7 @@
                 "text": "The birth-day test is for partnership: Mars, ruler of the birth tithi and nakshatra, rules the 7th from the lagna and the 2nd and 7th from the Moon and is above its required strength [vote:marriage.panchanga]."
               }
             ],
-            "paragraph": "Mars, the ruler of your 7th house of partnership, sits in its own sign in that house above its required strength, and Venus, the natural karaka (significator) of partnership, is exalted, meaning placed in the sign where the texts hold a planet at its peak [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from the Jaimini school, which reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
+            "paragraph": "Mars, the ruler of your 7th house of partnership, sits in its own sign in that house above its required strength, and Venus, the natural significator of partnership, is exalted, meaning placed in the sign where the texts hold a planet at its peak [vote:marriage.lord] [vote:marriage.karaka]. The disagreement comes from Jaimini, the school that reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha]. Six of the seven tests agree in favour and one goes against [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha] [vote:marriage.kp] [vote:marriage.panchanga]."
           },
           {
             "name": "longevity",
@@ -523,7 +523,7 @@
                 "text": "The birth-day test is for this area: Mars, ruler of the birth tithi and nakshatra, rules the 3rd from the Sun, and the Moon, ruler of the birth weekday, rules the 3rd from the lagna, both above their required strength [vote:longevity.panchanga]."
               }
             ],
-            "paragraph": "Venus, the ruler of your lagna (the ascendant, the sign rising at birth), is exalted, meaning placed in the sign where the texts hold a planet at its peak, and the 8th house from the ascendant is among the houses higher in strength [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from the Jaimini school, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
+            "paragraph": "Venus, the ruler of your rising sign, is exalted, meaning placed in the sign where the texts hold a planet at its peak, and the 8th house from the ascendant is among the houses higher in strength [vote:longevity.lord] [vote:longevity.house]. The point of disagreement comes from Jaimini, the school that reads image points and its own significators, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha]. Of the six tests that apply here, five agree in favour and one goes against [vote:longevity.house] [vote:longevity.lord] [vote:longevity.karaka] [vote:longevity.varga] [vote:longevity.arudha] [vote:longevity.panchanga]."
           }
         ]
       },
@@ -2666,7 +2666,7 @@
         "yoga.budhaditya@lagna",
         "yoga.kendra_trikona_raja@lagna"
       ],
-      "sentence": "In your chart the Sun and Mercury sit together in the 10th house counted from the lagna (the ascendant, the sign rising at birth), forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja].",
+      "sentence": "In your chart the Sun and Mercury sit together in the 10th house counted from the rising sign, forming Budhaditya yoga, the combination of Mercury and the Sun in the same sign, and Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house [rule:yoga.budhaditya] [rule:yoga.kendra_trikona_raja].",
       "result": {
         "propositions": [
           {
@@ -2757,7 +2757,7 @@
       "findings": [
         "yoga.budhaditya@lagna"
       ],
-      "sentence": "The tradition links Budhaditya yoga with intellect, communication and reputation [rule:yoga.budhaditya].",
+      "sentence": "The tradition links Budhaditya yoga, the combination of Mercury and the Sun in the same sign, with intellect, communication and reputation [rule:yoga.budhaditya].",
       "result": {
         "propositions": [
           {
@@ -2823,7 +2823,7 @@
       "findings": [
         "yoga.kendra_trikona_raja@lagna"
       ],
-      "sentence": "It links Kendra-Trikona Raja yoga with authority, reputation and career [rule:yoga.kendra_trikona_raja].",
+      "sentence": "It links Kendra-Trikona Raja yoga, a combination joining the lord of an angular house with the lord of a trine house, with authority, reputation and career [rule:yoga.kendra_trikona_raja].",
       "result": {
         "propositions": [
           {
@@ -3038,7 +3038,7 @@
         "vote:marriage.lord",
         "vote:marriage.karaka"
       ],
-      "sentence": "Mars, the ruler of your 7th house of partnership, sits in its own sign in that house above its required strength, and Venus, the natural karaka (significator) of partnership, is exalted, meaning placed in the sign where the texts hold a planet at its peak [vote:marriage.lord] [vote:marriage.karaka].",
+      "sentence": "Mars, the ruler of your 7th house of partnership, sits in its own sign in that house above its required strength, and Venus, the natural significator of partnership, is exalted, meaning placed in the sign where the texts hold a planet at its peak [vote:marriage.lord] [vote:marriage.karaka].",
       "result": {
         "propositions": [
           {
@@ -3067,7 +3067,7 @@
             "evidence": "vote:marriage.lord derivation: shadbala_ratio 1.3 (above 1), per the Shadbala glossary entry, which compares strength with required strength"
           },
           {
-            "text": "Venus is the natural karaka (significator) of partnership",
+            "text": "Venus is the natural significator of partnership",
             "supported": true,
             "evidence": "Glossary 'karaka': 'the planet that naturally stands for a matter (Venus for partnership...)'; vote:marriage.karaka lists Venus"
           },
@@ -3129,7 +3129,7 @@
       "findings": [
         "vote:marriage.arudha"
       ],
-      "sentence": "The disagreement comes from the Jaimini school, which reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha].",
+      "sentence": "The disagreement comes from Jaimini, the school that reads image points: your Upapada, the image point read for marriage, holds Rahu, the Moon's north node, with no benefic beside it [vote:marriage.arudha].",
       "result": {
         "propositions": [
           {
@@ -3283,7 +3283,7 @@
         "vote:longevity.house",
         "vote:longevity.lord"
       ],
-      "sentence": "Venus, the ruler of your lagna (the ascendant, the sign rising at birth), is exalted, meaning placed in the sign where the texts hold a planet at its peak, and the 8th house from the ascendant is among the houses higher in strength [vote:longevity.lord] [vote:longevity.house].",
+      "sentence": "Venus, the ruler of your rising sign, is exalted, meaning placed in the sign where the texts hold a planet at its peak, and the 8th house from the ascendant is among the houses higher in strength [vote:longevity.lord] [vote:longevity.house].",
       "result": {
         "propositions": [
           {
@@ -3359,7 +3359,7 @@
       "findings": [
         "vote:longevity.arudha"
       ],
-      "sentence": "The point of disagreement comes from the Jaimini school, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha].",
+      "sentence": "The point of disagreement comes from Jaimini, the school that reads image points and its own significators, which finds Mars in the 7th and Saturn in the 1st in a marana karaka sthana, a placement in which the texts hold a planet unable to give its good results [vote:longevity.arudha].",
       "result": {
         "propositions": [
           {

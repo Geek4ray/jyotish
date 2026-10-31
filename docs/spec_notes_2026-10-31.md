@@ -192,3 +192,38 @@ on a shared provider; the 2026-10-31 run met 1 and 2 writer retries.
 "arudha", "KP". At curious depth the writer's paragraph is held to the validator and the checker, not to
 `client.CLIENT_WORDS`, which binds only the client's layer at depth full. The client sees those words at
 curious depth.
+
+## Layer 7 — the curious paragraph in the client's words (2026-10-31)
+
+At curious depth the paragraph is the client's: the claims behind it are under "For the astrologer". The
+paragraphs that passed in the comparison above still used engine words: "Bhava Bala", "tests" and "votes",
+"arudha", "KP". The validator now holds each curious paragraph sentence to `client.client_errors`, as the
+client's layer's paragraph at depth full is held:
+
+- none of the engine's words (`client.CLIENT_WORDS`);
+- a Sanskrit word with a plain phrase refused for it (`client.CLIENT_PLAIN`: the rising sign, not lagna;
+  significator, not karaka; and the rest);
+- a Sanskrit term without one (`client.SANSKRIT_TERMS`) glossed in the same sentence, right after it;
+- no "I", and a weighing marked "in the reading's view".
+
+The claims, the astrologer's, are not held to it. `CURIOUS_PROMPT` says the same: it replaces "glossed once,
+the first time" with a gloss in every sentence that names the term, and says not to weigh or rank the
+evidence.
+
+**The benchmark** (149 rows). Its paragraph rows are now validated with `client_errors` as the pipeline
+does. Three paragraph sentences the reading had accepted break the new rule: unglossed "Ruchaka yoga" and
+"Budhaditya yoga" (accept-18, accept-19) and "the Jaimini one, the school that …" (accept-44). They are now
+wording rejects in the new category `client_words`, part of `WORDING`, each with its reason in `origin`. With
+that, the validator has 0 false rejects and catches 23 of 23 wording rows (docs/scorecard.md).
+
+**The recording.** `tests/fixtures/narration_curious.json`, the one curious recording, had 12 of its 21
+paragraph sentences refused under the rule. Seven phrases in it were rewritten in the client's words, each
+replaced verbatim wherever it appears in the file, with the tags and the meaning unchanged. The fixture's
+`note` lists them, and says that the checker's recorded verdicts were given to the wording before the edit.
+
+Tests:
+
+- `tests/test_narrate.py::test_the_curious_paragraph_is_held_to_the_clients_words` (Bhava Bala, votes,
+  lagna, karaka, an unglossed yoga and "I" refused);
+- `test_a_glossed_term_and_plain_phrases_pass_the_curious_paragraph`;
+- the live and site tests' paragraphs, now written in the client's words.

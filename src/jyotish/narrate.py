@@ -1119,10 +1119,17 @@ from the area's `tests` (say how many apply when some do not) - never a list of 
 and a placement finding (a lord or a planet in a house, with its classical_effect when it has one) is one chart fact \
 among the others, folded into the sentence about where the planets are, never a sentence of its own, \
 and do not name the votes one by one anywhere in the paragraph. No degrees, rupas, strength ratios \
-or other figures beyond that count; every Sanskrit or technical term glossed once, the first time \
-it appears, from the finding's glossary entry for it: the same meaning, in plain words ("Ruchaka \
-yoga, the great-person combination of Mars"); a term \
-with no glossary entry is left out rather than glossed from elsewhere. Each sentence that states \
+or other figures beyond that count. The paragraph is the client's, in the client's words: use none \
+of the engine's words (vote, family, term, percentile, learned score, house system, sample, cusp, \
+sub-lord, arudha, dasha, Shadbala, Bhava Bala, rupa, ayanamsa, derivation; say "the house's own \
+strength", not Bhava Bala); where a plain phrase exists, use it: the rising sign (not lagna), house \
+(not bhava), angular house (not kendra), trine house (not trikona), significator (not karaka), \
+divisional chart (not varga), sign (not rashi), planet (not graha), exalted, debilitated, own sign. \
+A Sanskrit term with no plain phrase (a yoga's name, nakshatra, navamsa, Jaimini, marana karaka \
+sthana) comes with its gloss in every sentence that names it, right after it (", a …" or "(…)"), \
+from the finding's glossary entry for it: the same meaning, in plain words ("Ruchaka yoga, the \
+great-person combination of Mars"); a term with no glossary entry is left out rather than glossed \
+from elsewhere. Never write "I", and do not weigh or rank the evidence. Each sentence that states \
 something ends with the tags of the findings it draws on, written exactly as in the claims, and \
 is checked against those findings' data only; the closing clause cites the votes it counts. Do \
 not state the tier, the stability or any timing: the engine states them.
@@ -2765,8 +2772,12 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                                 facts=facts)
 
     def v_para(name: str, text: str) -> list[str]:
-        return validate_summary(text, area_tags[name], offered_votes=votes_offered[name], where=f"{name} paragraph",
-                                family_rule=False, chains=chains_offered[name])
+        # The curious paragraph is the client's: held to the client's words as the client's layer is
+        # (client.client_errors: no engine vocabulary, a Sanskrit term glossed or its plain phrase, no "I",
+        # a weighing marked; 2026-10-31).
+        return (validate_summary(text, area_tags[name], offered_votes=votes_offered[name], where=f"{name} paragraph",
+                                 family_rule=False, chains=chains_offered[name])
+                + client_errors(text))
 
     def v_section(name: str, sec: str, text: str) -> list[str]:
         return (validate_summary(text, area_tags[name], offered_votes=votes_offered[name], where=f"{name} {sec}",
