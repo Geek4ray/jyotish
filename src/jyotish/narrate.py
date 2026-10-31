@@ -939,6 +939,13 @@ def findings(chart: Chart, area: str, as_of: date | None = None) -> tuple[list[d
                 "confidence": min(f.scale for f in fires) * base, "family": fires[0].family}
         if fires[0].family in PLACEMENT_FAMILIES and rule:
             item["placement"] = placement_fact(fires[0].family, fires, rule.data["when"])
+            if fires[0].family in ("planet_sign", "moon_sign"):
+                # The planet's dignity in that sign, as the engine computes it (dignity.dignity, natural
+                # relations), so "Venus, exalted in Pisces" is stated by the fact it cites (2026-11-01: the
+                # curious comparison's checker refused it twice for want of a field that said so).
+                b = chart.bodies.get(item["placement"]["planet"])
+                if b is not None and b.dignity:
+                    item["placement"]["dignity"] = b.dignity
             item["contribution"] = round(sum(abs(v) for th, v in fires[0].themes.items()
                                              if area in THEME_AREAS.get(th, [])), 3)
             if fires[0].status == "draft":
@@ -2521,10 +2528,49 @@ def retry_instruction(held: list[str], failed: dict[str, list[str]], notes: list
 _RULE_UNNAMED = re.compile(r"^\[rule:([^\]]+)\] on a sentence that names none of ")
 
 
+_UNTAGGED = re.compile(r"^untagged claim: (.+)$", re.S)
+
+
+def tags_for(sentence: str, finding_data: dict[str, dict]) -> list[str]:
+    """The tags of the findings a sentence states, as far as its words show (2026-11-01): a placement whose
+    planet it names with that placement's sign, house or nakshatra; a rule it names by one of its names. In
+    the order the sentence names them; a vote or a chain cannot be told from its words and is left out."""
+    bare = TAG.sub("", sentence).translate(HYPHENS)
+    low = bare.lower()
+    out: list[tuple[int, str]] = []
+    for f in finding_data.values():
+        tag = next((t for t in f.get("allowed_tags", []) if t.startswith("rule:")), None)
+        if tag is None:
+            continue
+        pl = f.get("placement") or {}
+        if pl.get("planet"):
+            where = [w for w in (pl.get("sign"), pl.get("nakshatra"), pl.get("lagna_sign"),
+                                 _ORD.get(pl.get("house")) if pl.get("house") else None) if w]
+            at = re.search(rf"\b{pl['planet']}\b", bare)
+            if pl.get("lord_of") and not _names_lordship(low.replace("-", " "), rule_names(f["rule_id"])):
+                continue                                  # its tag would ask the sentence to name the lordship
+            if at and any(re.search(rf"\b{re.escape(w)}\b", bare) for w in where):
+                out.append((at.start(), tag))
+        elif (hit := min((low.find(n.lower()) for n in rule_names(f["rule_id"]) if n.lower() in low), default=-1)) >= 0:
+            out.append((hit, tag))
+    return list(dict.fromkeys(t for _, t in sorted(out)))
+
+
 def name_hint(error: str, finding_data: dict[str, dict]) -> str:
     """A refusal for a rule tag on a sentence that does not name it, with the phrase to use (2026-10-31:
     the marriage paragraph on Fly was refused three times for [rule:place.l12_h7] without Mars named as
-    the 12th lord): "name Mars as the 12th lord or the lord of the 12th"."""
+    the 12th lord): "name Mars as the 12th lord or the lord of the 12th". An untagged sentence's refusal
+    names the tags of the findings it states (`tags_for`; 2026-11-01: the longevity paragraph was left
+    untagged on every attempt in three of four curious runs, and the retry said only "untagged claim")."""
+    if (u := _UNTAGGED.match(error)) and not error.endswith(")"):
+        import ast
+        try:
+            sentence = ast.literal_eval(u.group(1))
+        except (ValueError, SyntaxError):
+            sentence = u.group(1)
+        found = tags_for(sentence, finding_data)
+        return (f"{error} (end it with the tags of the findings it states, copied exactly: {' '.join(f'[{t}]' for t in found)})"
+                if found else f"{error} (end it with the tags of the findings it states, copied exactly from the claims)")
     m = _RULE_UNNAMED.match(error)
     if not m:
         return error

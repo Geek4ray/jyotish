@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-01 at commit `6229af8` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-01 at commit `1cf16b4` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -16,7 +16,7 @@ Run 2026-11-01 at commit `6229af8` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-150 rows; the validator alone: precision 1.000, recall 0.348, F1 0.517; 23 of 23 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+151 rows; the validator alone: precision 1.000, recall 0.348, F1 0.517; 23 of 23 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -41,10 +41,10 @@ One live reading per stack on the reference chart (docs/live_timings.jsonl; docs
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 34 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 12 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 336 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 130 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 27 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 10 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 284 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 124 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -94,7 +94,7 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `checker.validator.f1` | 0.5167 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
-| `checker.bench_rows` | 150 |  | informational | no |
+| `checker.bench_rows` | 151 |  | informational | no |
 | `checker.tests_failed` | 0 |  | lower | yes |
 | `checker.live.precision` | 1.0 |  | informational | no |
 | `checker.live.recall` | 0.973 |  | informational | no |

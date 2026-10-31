@@ -229,3 +229,10 @@ def test_a_yoga_named_with_a_non_breaking_hyphen_is_a_row_the_validator_passes(c
     row = next(r for r in rows if r["id"] == "live-kendra-nonbreaking-hyphen")
     assert row["label"] == "accept" and "\u2011" in row["sentence"]
     assert cb.run_validator([row])[row["id"]][0] is False
+
+
+def test_venus_exalted_is_a_row_whose_data_states_it(cb, rows):
+    # 2026-11-01: the sign placement carries the planet's dignity, so the checker is given what states it.
+    row = next(r for r in rows if r["id"] == "live-venus-exalted-in-pisces")
+    assert row["label"] == "accept" and cb.run_validator([row])[row["id"]][0] is False
+    assert '"dignity": "exalted"' in row["facts"]

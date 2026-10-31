@@ -316,6 +316,6 @@ the retry asks for the failed sentences by position, `PARAGRAPH_RETRY_NOTE`, and
 use, `narrate.name_hint`); an engine summary carries `summary.client_text` (`narrate.client_summary`: no engine vocabulary,
 windows as months), shown on the client's face with the figures and each area's classical score, probability, families
 agreeing and polarity under "For the astrologer"; the curious paragraph is held to `client.client_errors` like the
-client's layer (benchmark category `client_words`; tests/fixtures/narration_curious.json hand-edited to it, see its note). `scripts/live_timing.py --url` times a deployed service (rows marked
+client's layer (benchmark category `client_words`; tests/fixtures/narration_curious.json hand-edited to it, see its note). A sign placement carries the planet's dignity (`placement.dignity`), and an untagged refusal names the tags the sentence states (`narrate.tags_for` in `name_hint`). `scripts/live_timing.py --url` times a deployed service (rows marked
 `where`; docs/models.md has the Fly medians); docs/comparison_2026-10-31.md re-measures the writer.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

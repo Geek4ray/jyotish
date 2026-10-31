@@ -272,3 +272,36 @@ analysis" (an engine word) and an unglossed "marana karaka sthana".
   name.
 - The rule's gloss test treats any comma after a term as its gloss ("the 10th's Bhavat Bhavam, and also …"
   passed). The same is true at depth full.
+
+## Layer 7 — two causes of the curious paragraph's gaps, fixed (2026-11-01)
+
+**A sign placement carries the planet's dignity.** A sign placement finding (`planet_sign`, `moon_sign`) now
+gives the planet's dignity there (`placement.dignity`), as the engine computes it: `Body.dignity`, the
+five-fold dignity with natural relations, the same word the dispositor chains give. The glossary's entry for
+the word comes with it. On the reference chart:
+
+- Venus in Pisces: exalted;
+- the Sun in Aquarius: enemy;
+- Saturn in Taurus: friend.
+
+So "Venus is exalted in Pisces [rule:place.venus_in_pisces]" now rests on a field the checker is given; the
+checker refused it twice in docs/comparison_2026-10-31_curious_r2.md. Benchmark row
+`live-venus-exalted-in-pisces` (151 rows). The writer's payload changes with it (definition of done,
+condition 7): measured below.
+
+**An untagged refusal names the tags to use.** "untagged claim: '…'" now goes to the writer with the tags of
+the findings the sentence states (`narrate.tags_for`), as `name_hint` already does for a rule name. A
+finding counts when the sentence names:
+
+- a placement's planet together with its sign, house or nakshatra;
+- a rule by one of its names.
+
+A lord-in-house placement is suggested only when the sentence names the lordship; otherwise its own tag would
+be refused. A vote or a chain cannot be read from the words, so a sentence with nothing else is told to copy
+the tags "exactly from the claims". For the longevity sentence that was left untagged in three of four runs,
+the retry now says: "end it with the tags of the findings it states, copied exactly: [rule:place.ketu_h8]
+[rule:place.saturn_in_taurus]".
+
+Tests: `tests/test_narrate.py::test_a_sign_placement_carries_the_planets_dignity_there` and
+`::test_an_untagged_refusal_names_the_tags_the_sentence_states`;
+`tests/test_checker_bench.py::test_venus_exalted_is_a_row_whose_data_states_it`.

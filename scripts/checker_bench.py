@@ -462,6 +462,14 @@ def comparison_rows() -> list[dict]:
          "the validator's false reject in the curious comparison of 2026-10-31: 'Kendra\u2011Trikona' with a non-breaking "
          "hyphen is the yoga's name, not 'kendra' for 'angular house'. The Sun and Mercury in the 10th form the yoga "
          "(its fire); the gloss is the glossary's: read."),
+        # 2026-11-01, the curious comparison (docs/comparison_2026-10-31_curious_r2.md): "Venus is exalted" was refused
+        # twice for want of a field: the sign placement stated the sign only. It now carries the dignity.
+        ("live-venus-exalted-in-pisces", "paragraph", "marriage", None,
+         "Venus is exalted in Pisces, the sign where the texts hold it at its strongest [rule:place.venus_in_pisces].",
+         "accept", "accepted",
+         "the engine's fault in the curious comparison of 2026-10-31 (r2): place.venus_in_pisces stated Venus's sign "
+         "and not its dignity, so 'exalted' rested on nothing; its placement now carries dignity exalted and the "
+         "glossary's 'exalted'. Venus in Pisces, exalted (planets.Venus.dignity): read."),
     ]
     rows += KIND_ROWS
     by_id = {r[0]: r for r in rows}

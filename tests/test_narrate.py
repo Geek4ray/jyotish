@@ -935,6 +935,37 @@ def test_a_yoga_named_with_a_non_breaking_hyphen_is_its_name_not_kendra():
     assert any("'Kendra' has a plain phrase" in e for e in client_errors("Saturn sits in a Kendra [vote:career.house]."))
 
 
+def test_a_sign_placement_carries_the_planets_dignity_there(chart):
+    # 2026-11-01: the curious comparison's checker refused "Venus is exalted" twice: the Venus-in-Pisces
+    # finding stated the sign only. Its placement now carries the engine's dignity, and the glossary's
+    # entry for the word comes with it.
+    from jyotish.narrate import _check_data, findings
+    by = {f["rule_id"]: f for a in ("career", "marriage", "longevity") for f in findings(chart, a, AS_OF)[0]
+          if f.get("family") in ("planet_sign", "moon_sign")}
+    assert by["place.venus_in_pisces"]["placement"] == {"planet": "Venus", "sign": "Pisces", "dignity": "exalted"}
+    assert by["place.sun_in_aquarius"]["placement"]["dignity"] == "enemy"          # Saturn's sign, natural enemy
+    assert by["place.saturn_in_taurus"]["placement"]["dignity"] == chart.bodies["Saturn"].dignity == "friend"
+    assert "exalted" in _check_data(by["place.venus_in_pisces"])["glossary"]
+
+
+def test_an_untagged_refusal_names_the_tags_the_sentence_states(chart):
+    # 2026-11-01: the longevity paragraph was left untagged on every attempt in three of four curious runs;
+    # the retry said "untagged claim" and nothing of how to tag it.
+    from jyotish.narrate import findings, name_hint
+    fd = {f["finding_id"]: f for a in ("career", "marriage", "longevity") for f in findings(chart, a, AS_OF)[0]}
+    s = "The chart places Ketu in the 8th, a longevity house, and Saturn in Taurus, the sign of the 1st."
+    assert name_hint(f"untagged claim: {s!r}", fd).endswith(
+        "(end it with the tags of the findings it states, copied exactly: [rule:place.ketu_h8] "
+        "[rule:place.saturn_in_taurus])")
+    # A lord-in-house placement is suggested only where the sentence names the lordship (its tag would
+    # otherwise be refused for naming none of its names).
+    hint = name_hint("untagged claim: 'Mercury sits in the 10th with the Sun.'", fd)
+    assert "place.l2_h10" not in hint and "place.l5_h10" not in hint and "[rule:place.sun_h10]" in hint
+    assert "[rule:place.l5_h10]" in name_hint("untagged claim: 'Mercury, the 5th lord, sits in the 10th.'", fd)
+    assert name_hint("untagged claim: 'Five of seven tests agree.'", fd).endswith(
+        "(end it with the tags of the findings it states, copied exactly from the claims)")
+
+
 def test_a_glossed_term_and_plain_phrases_pass_the_curious_paragraph(chart):
     ok = ("Mars forms Ruchaka yoga, the great-person combination of Mars, in the rising sign's angular house "
           "[rule:yoga.ruchaka].")
