@@ -227,3 +227,48 @@ Tests:
   lagna, karaka, an unglossed yoga and "I" refused);
 - `test_a_glossed_term_and_plain_phrases_pass_the_curious_paragraph`;
 - the live and site tests' paragraphs, now written in the client's words.
+
+**Measured at curious depth** (definition of done, condition 7: the curious prompt changed). Two comparisons
+ran on the reference chart, each with both sides set to the same .env stack (gpt-oss-120b at medium writing,
+GLM-5.3-Flash at temperature 0 checking, live narration, as of 2026-10-31), so each shows run-to-run spread:
+
+- `docs/comparison_2026-10-31_curious.md`, at e8ef76d;
+- `docs/comparison_2026-10-31_curious_r2.md`, after the hyphen fix below.
+
+| Run | Claims of 37 | Paragraph sentences shown (career / marriage / longevity) | Complete paragraphs of 3 | Gaps | Summary | USD | Done |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 A | 37 | 4 / 3 / 0 | 0 | 3 | writer's | 0.05 | 342 s |
+| 1 B | 36 | 2 / 4 / 3 | 1 | 3 | writer's | 0.05 | 456 s |
+| 2 A | 37 | 3 / 3 / 0 | 0 | 3 | engine's | 0.04 | 349 s |
+| 2 B | 37 | 0 / 3 / 0 | 0 | 3 | engine's | 0.04 | 367 s |
+
+The comparison before the rule (`docs/comparison_2026-10-31.md`, side A) had 3 complete paragraphs of 3, in
+engine words. No paragraph shown in these four readings breaks `client_errors`.
+
+**A false reject, fixed** (1ec5f57). Run 1's career paragraph lost a sentence on both sides to "'Kendra' has a
+plain phrase". The writer had written "Kendra‑Trikona Raja yoga" with a non-breaking hyphen (U+2011), so the
+exception for the yoga's own name did not match. `narrate.HYPHENS` now reads U+2010 and U+2011 as "-" in the
+client's words, the glossary terms and the rule-name check. Benchmark row `live-kendra-nonbreaking-hyphen`
+(150 rows) is rejected without the change and passed with it, and the scorecard has 0 false rejects.
+
+**Why the paragraphs are gaps after the fix** (run 2, the last error of each of the six paragraph gaps):
+
+| Cause | Gaps | What happened |
+| --- | --- | --- |
+| The checker | 3 | "Ruchaka yoga is linked to authority": the yoga's themes say courage and leadership. "Venus is exalted", twice: the cited placement, place.venus_in_pisces, states the sign but not the dignity. |
+| The writer left every sentence untagged | 2 | The longevity paragraph, on all three attempts in both runs, and in run 1 A as well. The retry names the error ("untagged claim") but does not say how to tag. |
+| The client's words | 1 | "Pancha Mahapurusha" was not glossed. |
+
+The held sentences of a paragraph with a gap still stand.
+
+Run 1's client's-words refusals that the hyphen fix did not cause are right under the rule: "the arudha
+analysis" (an engine word) and an unglossed "marana karaka sthana".
+
+**Open, not done here:**
+
+- The "Venus is exalted" refusals show a data gap: a sign placement's finding does not carry the planet's
+  dignity there, though the engine computes it.
+- An untagged-sentence refusal could tell the writer which tags to use, the way `name_hint` does for a rule
+  name.
+- The rule's gloss test treats any comma after a term as its gloss ("the 10th's Bhavat Bhavam, and also …"
+  passed). The same is true at depth full.
