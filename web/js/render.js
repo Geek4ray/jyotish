@@ -355,8 +355,9 @@ export function renderReading(r) {
   const notes = new Footnotes(r.facts_cited);
   const s = r.summary;
   // An engine summary: the client's words on the face, the figures under "For the astrologer" (2026-10-31).
-  const engine = s.source === "engine";
-  const summaryText = engine ? esc(s.client_text || s.text) : notes.text(s.text);
+  // An engine summary, or one a reviewer edited in the client's words (review Q5): client_text on the face.
+  const engine = s.source === "engine" || (s.source === "edited" && !!s.client_text);
+  const summaryText = notes.text(engine ? s.client_text || s.text : s.text);       // a reviewer's edit's tags as footnotes
   // A blind view (the comparison) carries no depth: the reading's own content says which it is.
   const depth = r.depth || (r.areas.some((a) => a.analysis) ? "full" : r.areas.some((a) => a.paragraph) ? "curious" : "astrologer");
   const pending = r.narration_status === "pending";

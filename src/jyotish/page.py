@@ -288,18 +288,20 @@ def render(reading: Reading, chart: Chart) -> str:
         L += [f"> Narration incomplete: {n} finding(s) were not narrated within the checks"
               + (", and the summary is the engine's own" if s.source == "engine" else "") + ".", ""]
     L += ["## Summary", ""]
-    if s.source == "engine":
+    # An engine summary, or one a reviewer edited in the client's words (review Q5), shows client_text.
+    client_face = s.source == "engine" or (s.source == "edited" and bool(s.client_text))
+    if client_face:
         # The client's face: the engine's summary in the client's words, the timing note in it; the
         # figures under "For the astrologer" (2026-10-31).
         client_text = s.client_text or client_summary(reading.areas, route(reading.question, chart)[0], s.top_areas)
-        L += ["*Written by the engine from its fields: no drafted summary passed the checks.*", "",
-              client_text, ""]
+        L += (["*Written by the engine from its fields: no drafted summary passed the checks.*", ""]
+              if s.source == "engine" else []) + [notes.render(client_text), ""]     # an edit's tags as footnotes
     else:
         # Review Q4: the windows in the client's words on the face; the engine's timing line is the astrologer's.
         client_when = s.client_when or client_windows(reading.areas)
         L += [notes.render(s.text), ""] + ([client_when, ""] if client_when else [])
     L += [f"<details><summary>{FOR_ASTROLOGER}</summary>", ""]
-    if s.source == "engine":
+    if client_face:
         L += [f"**{ENGINE_FIGURES}:** {notes.render(s.text)}", ""]
     else:
         # A reading written before summary.timing_line existed gets the same line from its windows.

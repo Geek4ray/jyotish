@@ -37,10 +37,18 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def client_summary(reading: Reading) -> bool:
+    """Whether the summary the client sees is the engine's in the client's words (`client_text`): an engine
+    summary, or one a reviewer edited there (review Q5, 2026-11-01). Its sentences are what a reviewer edits;
+    `text`, with the figures, is the astrologer's and is not offered."""
+    return reading.summary.source in ("engine", "edited") and bool(reading.summary.client_text)
+
+
 def units(reading: Reading) -> list[dict[str, Any]]:
     """Every sentence a reviewer can edit, with its target."""
+    summary = reading.summary.client_text if client_summary(reading) else reading.summary.text
     out = [{"target": f"summary:{i}", "area": None, "kind": "summary", "text": s}
-           for i, s in enumerate(sentences(reading.summary.text))]
+           for i, s in enumerate(sentences(summary))]
     for a in reading.areas:
         out += [{"target": f"claim:{a.name}:{c.finding_id}", "area": a.name, "kind": "claim", "text": c.text}
                 for c in a.claims]
@@ -99,7 +107,9 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
                                   family_rule=family_rule and kind == "summary" and not full,
                                   chains=chains[area] if area else {k: v for n in names for k, v in chains[n].items()},
                                   facts=facts, judgements=full)
-        if full:
+        if full or (kind == "summary" and client_summary(reading)):
+            # The client's words: depth full's paragraph and summary, and an engine summary's client_text,
+            # whatever the depth (review Q5).
             from .client import client_errors
             errors += client_errors(text, dates=kind != "paragraph")      # a paragraph's dates go under When
         scope_data = {fid: f for fid, f in data_by_id.items() if any(fid == x["finding_id"] for n in scope for x in offered[n])}
@@ -332,6 +342,12 @@ def apply_edit(reading: Reading, target: str, text: str, reviewer: str) -> Readi
     cites = lambda t: [f"{k}:{v}" for k, v in TAG.findall(t)]
     edits = list(reading.review.get("edits", [])) + [dict(stamp, target=target)]
     review = dict(reading.review, edits=edits)
+    if kind == "summary" and client_summary(reading):
+        # Review Q5: an engine summary is edited in the client's words; its figures stay as the engine wrote them.
+        parts = sentences(reading.summary.client_text)
+        parts[int(key)] = text
+        summary = reading.summary.model_copy(update={"client_text": " ".join(parts), "source": "edited"})
+        return reading.model_copy(update={"summary": summary, "review": review})
     if kind == "summary":
         parts = sentences(reading.summary.text)
         parts[int(key)] = text

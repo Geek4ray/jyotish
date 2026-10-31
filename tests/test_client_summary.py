@@ -140,3 +140,27 @@ def test_the_page_outside_the_toggles_is_in_the_clients_words(chart, depth, fixt
     tier = [x for x in lines if x.startswith("- Tier: **")]                    # the tier line stays on the face
     assert len(tier) == 3 and not [x for x in lines if x not in tier and ENGINE_WORDS.search(x.replace("**", ""))]
     assert not [x for x in lines if re.search(r"\b(?:ayanamsa|Vimshottari|score|samples?|family|families)\b", x, re.I)]
+
+
+def test_a_reviewer_edits_an_engine_summary_in_the_clients_words(chart, reading):
+    # Review Q5: the review offered the engine's figures to edit, and an edit made the summary "edited", so the
+    # client's face showed "Career: tier moderate (time-stability 1.00, stable) …". An engine summary's targets
+    # are now its client_text sentences, held to the client's words; the figures stay as the engine wrote them.
+    from jyotish.narrate import CheckResult, Proposition, sentences
+    from jyotish.page import render
+    from jyotish.review import apply_edit, check_edit, units
+    said = sentences(reading.summary.client_text)
+    assert [u["text"] for u in units(reading) if u["kind"] == "summary"] == said
+    ok = lambda s, d: CheckResult(propositions=[Proposition(text=s, supported=True, evidence="stub")])
+    refused = check_edit(reading, chart, "summary:0", "For career, the votes lean in favour.", ok)
+    assert not refused["accepted"] and any("engine vocabulary ('votes')" in e for e in refused["errors"])
+    # An edit is held as the writer's text is: tagged where it states something, glossed, no tier word.
+    new = ("Your work is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga, "
+           "the combination of Mercury and the Sun in the same sign [rule:yoga.budhaditya].")
+    assert check_edit(reading, chart, "summary:1", new, ok)["accepted"]
+    edited = apply_edit(reading, "summary:1", new, "ray")
+    s = edited.summary
+    assert s.source == "edited" and s.client_text == " ".join(said[:1] + [new] + said[2:]) and s.text == reading.summary.text
+    face = "\n".join(_face(render(edited, chart)))
+    assert "Your work is backed by the Sun and Mercury" in face and "tier moderate" not in face
+    assert "time-stability" not in face and "[rule:" not in face                   # its tag is a footnote

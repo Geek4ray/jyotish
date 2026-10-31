@@ -408,3 +408,10 @@ One commit per finding.
   "score", "sample" and "family"; the tier line ("Tier: **moderate**") stays on the face, as the spec says.
 
   Astrologer depth is not tested this way: its page is the astrologer's, with the toggle open.
+- **Q5, a reviewer's edit of an engine summary.** For an engine summary, the review now offers the sentences of
+  `client_text` to edit (`review.client_summary`, `units`), not the engine's figures. They are held to
+  `client_errors` as well as the validator and the checker. An accepted edit changes `client_text` and marks the
+  summary "edited"; `text`, the figures, stays as the engine wrote it. The page and the site show `client_text`
+  for an edited summary too, with an edit's tags as footnotes.
+
+  Test: `tests/test_client_summary.py::test_a_reviewer_edits_an_engine_summary_in_the_clients_words`.
