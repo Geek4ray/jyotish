@@ -224,3 +224,20 @@ def test_a_reading_stored_before_the_sheet_gets_it_when_read(app, client, done):
     assert [a["sheet"]["points"][0]["title"] for a in r["reading"]["areas"]] == ["Houses (bhava)"] * 3
     with app.state.Session() as s:
         assert all("sheet" not in a for a in s.get(ReadingRow, done["id"]).document["areas"])
+
+
+def test_a_reading_stored_before_the_client_words_gets_them_when_read(app, client, done):
+    # Review Q6: an engine summary stored before 26ecf65 had no client_text, so the site showed the engine's
+    # figures on the client's face. GET fills client_text (an engine summary) and client_when (a timed area) from
+    # the chart, as it fills the sheet, without writing them back.
+    from jyotish.narrate import Reading, client_windows
+    with app.state.Session.begin() as s:
+        row = s.get(ReadingRow, done["id"])
+        summary = {k: v for k, v in row.document["summary"].items() if k not in ("client_text", "client_when")}
+        row.document = dict(row.document, summary=dict(summary, source="engine"))
+    r = client.get(f"/readings/{done['id']}").json()["reading"]
+    stored = Reading(**r)
+    assert r["summary"]["client_text"].startswith("For career, the chart") and "tier" not in r["summary"]["client_text"]
+    assert r["summary"]["client_when"] == client_windows(stored.areas)
+    with app.state.Session() as s:
+        assert "client_text" not in s.get(ReadingRow, done["id"]).document["summary"]

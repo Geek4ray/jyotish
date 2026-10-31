@@ -415,3 +415,9 @@ One commit per finding.
   for an edited summary too, with an edit's tags as footnotes.
 
   Test: `tests/test_client_summary.py::test_a_reviewer_edits_an_engine_summary_in_the_clients_words`.
+- **Q6, older readings.** GET /readings/{id}, the review and the comparison views now fill `summary.client_text`
+  (for an engine summary) and `summary.client_when` (wherever an area is timed) from the reading's chart, as
+  they fill the technical sheet, without writing them back (`api.with_client_words`). `done_reading` fills them
+  too, so the review offers an older engine summary's client words to edit.
+
+  Test: `tests/test_api.py::test_a_reading_stored_before_the_client_words_gets_them_when_read`.

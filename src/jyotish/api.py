@@ -418,9 +418,28 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 raise HTTPException(status_code=404, detail="no such chart")
             return Chart.model_validate(row.document)
 
+    def with_client_words(document: dict | None, chart_id: str | None) -> dict | None:
+        """A reading stored before the summary's client words (2026-10-31/11-01) gets them as it is read, as it
+        gets the sheet (review Q6): `client_text` for an engine summary, `client_when` where an area is
+        timed (narrate.client_summary, client_windows). Not stored."""
+        summary = (document or {}).get("summary") or {}
+        areas = (document or {}).get("areas") or []
+        need_text = summary.get("source") == "engine" and not summary.get("client_text")
+        need_when = not summary.get("client_when") and any(a.get("windows") for a in areas)
+        if not (need_text or need_when) or not chart_id:
+            return document
+        from .narrate import Reading, client_summary, client_windows, route
+        r = Reading(**document)
+        fill = {"client_when": client_windows(r.areas)} if need_when else {}
+        if need_text:
+            fill["client_text"] = client_summary(r.areas, route(r.question, chart_of(chart_id))[0], r.summary.top_areas)
+        return dict(document, summary=dict(summary, **fill))
+
     def with_sheets(document: dict | None, chart_id: str | None) -> dict | None:
-        """A done reading's document with every area's technical sheet (jyotish.sheet): a reading stored
-        before the sheet existed gets it from its chart as it is read (not stored; the payload is cached)."""
+        """A done reading's document with every area's technical sheet (jyotish.sheet) and the summary's client
+        words (`with_client_words`): a reading stored before them gets them from its chart as it is read (not
+        stored; the payload is cached)."""
+        document = with_client_words(document, chart_id)
         areas = (document or {}).get("areas") or []
         if not areas or all(a.get("sheet") for a in areas) or not chart_id:
             return document
@@ -471,7 +490,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         if row.document is None or row.status not in ("done", "running") or (pending and not pending_ok):
             what = "still being written" if pending and row.document is not None else row.status
             raise HTTPException(status_code=409, detail=f"the reading is {what}, not done")
-        return row, Reading(**row.document)
+        # The client's words filled for an older reading, so the review offers them to edit (review Q5, Q6).
+        return row, Reading(**with_client_words(row.document, row.chart_id))
 
     def log(s, row, who: str, action: str, seen: bool = True, **fields) -> None:
         s.add(ReviewRow(reading_id=row.id, chart_id=row.chart_id, reviewer_id=who, action=action, **fields))
