@@ -452,6 +452,16 @@ def comparison_rows() -> list[dict]:
          "accept", "accepted",
          "the validator's false reject in the first reading on Fly, 2026-10-31: 'the lord of the 2nd and 5th houses' "
          "names the 5th lord in a list. Mercury in the 10th, lord of the 2nd and the 5th (the placements' facts): read."),
+        # 2026-10-31, the curious comparison (docs/comparison_2026-10-31_curious.md): the career paragraph was refused
+        # in both runs as "'Kendra' has a plain phrase" because the writer joined the yoga's name with a non-breaking
+        # hyphen (U+2011). The term and its hyphen are the reading's; the sentence around it is rebuilt.
+        ("live-kendra-nonbreaking-hyphen", "paragraph", "career", None,
+         "The Sun and Mercury together form Kendra\u2011Trikona Raja yoga, a combination joining the lord of an angular "
+         "house with the lord of a trine house [rule:yoga.kendra_trikona_raja].",
+         "accept", "accepted",
+         "the validator's false reject in the curious comparison of 2026-10-31: 'Kendra\u2011Trikona' with a non-breaking "
+         "hyphen is the yoga's name, not 'kendra' for 'angular house'. The Sun and Mercury in the 10th form the yoga "
+         "(its fire); the gloss is the glossary's: read."),
     ]
     rows += KIND_ROWS
     by_id = {r[0]: r for r in rows}

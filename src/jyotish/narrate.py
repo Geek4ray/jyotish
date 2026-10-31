@@ -447,6 +447,12 @@ FORBIDDEN = {
 }
 
 
+# The Unicode hyphens a model writes in a compound name ("Kendra\u2011Trikona", a non-breaking hyphen) read as
+# "-" wherever the validator matches a word (2026-10-31: the curious comparison's career paragraph was refused as
+# "'Kendra' has a plain phrase" on "Kendra\u2011Trikona Raja yoga" in both runs).
+HYPHENS = str.maketrans({"\u2010": "-", "\u2011": "-"})
+
+
 def sentences(text: str) -> list[str]:
     """Split prose into sentences, keeping trailing tags with the sentence they end."""
     parts = re.split(r"(?<=[.!?])\s+(?=[A-Z])|(?<=\])\s+(?=[A-Z])", text.strip())
@@ -719,7 +725,7 @@ def validate(text: str, allowed: set[str], *, offered_votes: dict[str, str | set
                 # lordship is also named as "rules the 2nd", "ruling the 2nd", "2nd house lord" or "lord of the
                 # 2nd house" (the live readings of 2026-10-27 were refused for "rules the 2nd house"), and in a
                 # list ("the lord of the 2nd and 5th houses", `_names_lordship`)
-                text = bare.lower().replace("-", " ")
+                text = bare.translate(HYPHENS).lower().replace("-", " ")
                 if not _names_lordship(text, rule_names(value)):
                     errors.append(f"[rule:{value}] on a sentence that names none of {rule_names(value)}: {s!r}")
             elif kind == "chain":

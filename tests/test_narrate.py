@@ -924,6 +924,17 @@ def test_the_curious_paragraph_is_held_to_the_clients_words(chart, sentence, nee
     assert career.paragraph is None and career.claims
 
 
+def test_a_yoga_named_with_a_non_breaking_hyphen_is_its_name_not_kendra():
+    # The curious comparison of 2026-10-31 refused "Kendra\u2011Trikona Raja yoga" (U+2011) as "'Kendra' has a
+    # plain phrase" in both runs; a Unicode hyphen reads as "-" for the client's words and the rule's name.
+    from jyotish.client import client_errors
+    from jyotish.narrate import validate
+    s = ("The Sun and Mercury together form Kendra\u2011Trikona Raja yoga, a combination joining the lord of an angular "
+         "house with the lord of a trine house [rule:yoga.kendra_trikona_raja].")
+    assert client_errors(s) == [] and not [e for e in validate(s, {"rule:yoga.kendra_trikona_raja"}) if "names none" in e]
+    assert any("'Kendra' has a plain phrase" in e for e in client_errors("Saturn sits in a Kendra [vote:career.house]."))
+
+
 def test_a_glossed_term_and_plain_phrases_pass_the_curious_paragraph(chart):
     ok = ("Mars forms Ruchaka yoga, the great-person combination of Mars, in the rising sign's angular house "
           "[rule:yoga.ruchaka].")

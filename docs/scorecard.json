@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "commit": "3673d41",
+  "commit": "6229af8",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -255,7 +255,7 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 149,
+      "value": 150,
       "better": null,
       "unit": "",
       "gate": false

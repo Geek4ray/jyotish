@@ -222,3 +222,10 @@ def test_a_lordship_in_a_list_is_a_row_the_validator_passes(cb, rows):
     row = next(r for r in rows if r["id"] == "live-lord-of-the-2nd-and-5th")
     assert (row["where"], row["label"]) == ("paragraph", "accept") and "2nd and 5th houses" in row["sentence"]
     assert cb.run_validator([row])[row["id"]][0] is False
+
+
+def test_a_yoga_named_with_a_non_breaking_hyphen_is_a_row_the_validator_passes(cb, rows):
+    # 2026-10-31: the curious comparison's career paragraph was refused for "Kendra\u2011Trikona" (U+2011).
+    row = next(r for r in rows if r["id"] == "live-kendra-nonbreaking-hyphen")
+    assert row["label"] == "accept" and "\u2011" in row["sentence"]
+    assert cb.run_validator([row])[row["id"]][0] is False

@@ -137,8 +137,8 @@ def sanskrit_terms() -> list[tuple[str, re.Pattern, str]]:
 
 def terms_in(sentence: str) -> dict[str, str]:
     """The Sanskrit terms a sentence names, each with its glossary definition (for the checker)."""
-    from .narrate import TAG
-    bare = TAG.sub("", sentence)
+    from .narrate import HYPHENS, TAG
+    bare = TAG.sub("", sentence).translate(HYPHENS)
     return {t: d for t, rx, d in sanskrit_terms() if rx.search(bare)}
 
 
@@ -166,10 +166,10 @@ def client_errors(text: str | None, accepted: set[str] | None = None, dates: boo
     phrase, no "I", a weighing marked as the reading's view, and (the paragraph, the when and the
     summary, `accepted` the tags of the accepted text they draw on) every sentence tagged with tags
     from that text only. `dates` False (the paragraph): no date, which belongs under When."""
-    from .narrate import TAG, TRADITION, sentences
+    from .narrate import HYPHENS, TAG, TRADITION, sentences
     errors = []
     for s in sentences(text or ""):
-        bare = TRADITION.sub("", TAG.sub("", s))
+        bare = TRADITION.sub("", TAG.sub("", s)).translate(HYPHENS)
         tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
         if (m := CLIENT_WORDS.search(bare)):
             errors.append(f"engine vocabulary ({m.group(0)!r}) in the client's text: say it in plain words: {s!r}")
