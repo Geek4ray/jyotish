@@ -37,26 +37,35 @@ def accepted(reading: dict) -> dict[str, object]:
             out[f"{a['name']}.{k}"] = v
         out[f"{a['name']}.judgements"] = sorted(j["sentence"] for j in a.get("judgements", []))
         out[f"{a['name']}.traditions"] = sorted(t["sentence"] for t in a.get("traditions", []))
+        # The client's paragraph and When (review Q9, 2026-11-01): a replay that cannot see them cannot say a
+        # paragraph policy changed nothing.
+        out[f"{a['name']}.paragraph"] = a.get("paragraph")
+        out[f"{a['name']}.when"] = a.get("when")
     return out
 
 
-def replay(directory: Path, side: str, as_of: str) -> dict:
+def replay(directory: Path, side: str, as_of: str | None) -> dict:
+    from jyotish.narrate import WRITER_MODELS
     from jyotish.service import BirthInput, assess_birth, make_reading
     birth = BirthInput(**BIRTH)
     chart, _, _ = assess_birth(birth)
     path = directory / f"{side}.recording.json"
     s = json.loads(path.read_text())["settings"]
-    reading, _ = make_reading(birth, QUESTION, chart=chart, as_of=as_of, model_fixture=str(path), depth=s["depth"],
-                              writer_model=s["model"], writer_effort=s["effort"])
-    new = json.loads(reading.model_dump_json())
     old = json.loads((directory / f"{side}.reading.json").read_text())
+    # The drafts are replayed whoever wrote them: an open model's name is not one of the Anthropic writer models
+    # make_reading checks (review Q9), and the reading's own date is the one it was made for.
+    reading, _ = make_reading(birth, QUESTION, chart=chart, as_of=as_of or old["as_of"], model_fixture=str(path),
+                              depth=s["depth"], writer_model=s["model"] if s["model"] in WRITER_MODELS else None,
+                              writer_effort=s["effort"] if s["model"] in WRITER_MODELS else None)
+    new = json.loads(reading.model_dump_json())
     o, n = accepted(old), accepted(new)
     gaps = lambda r: sorted(f"{a['name']} {g['finding_id']}" for a in r["areas"] for g in a["narration_gaps"])
     return {"settings": s, "differences": [k for k in sorted(set(o) | set(n)) if o.get(k) != n.get(k)],
             "compared": len(set(o) | set(n)), "claims": (sum(len(a["claims"]) for a in old["areas"]),
                                                          sum(len(a["claims"]) for a in new["areas"])),
             "gaps": (gaps(old), gaps(new)), "summary": (old["summary"]["source"], new["summary"]["source"]),
-            "paragraphs": sum(1 for a in new["areas"] if a.get("paragraph")),
+            "paragraphs": (sum(1 for a in old["areas"] if a.get("paragraph")),
+                           sum(1 for a in new["areas"] if a.get("paragraph"))),
             "unchecked": new.get("unchecked_sentences")}
 
 
@@ -69,21 +78,23 @@ def report(directory: Path, results: dict[str, dict]) -> str:
         new_gaps = [g for g in r["gaps"][1] if g not in r["gaps"][0]]
         L += [f"## {side.upper()}: {s['model']}, effort {s['effort']}, depth {s['depth']}", "",
               f"- Accepted text compared: {r['compared']} units (claims per area, each analysis section, judgements, "
-              f"traditions); differences: {len(r['differences'])}" + (f" ({', '.join(r['differences'])})"
+              f"traditions, the paragraph and When); differences: {len(r['differences'])}"
+              + (f" ({', '.join(r['differences'])})"
                                                                      if r["differences"] else ""),
               f"- Claims: {r['claims'][0]} then, {r['claims'][1]} now",
               f"- Gaps then: {', '.join(r['gaps'][0]) or 'none'}",
               f"- Gaps now: {', '.join(r['gaps'][1]) or 'none'}",
               f"- New gaps: {', '.join(new_gaps) or 'none'}",
               f"- Summary written by: {r['summary'][0]} then, {r['summary'][1]} now",
-              f"- Paragraphs now: {r['paragraphs']}; sentences with no recorded verdict: {r['unchecked']}", ""]
+              f"- Paragraphs: {r['paragraphs'][0]} then, {r['paragraphs'][1]} now; sentences with no recorded verdict: "
+              f"{r['unchecked']}", ""]
     return "\n".join(L)
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("directory", type=Path, help="a comparison directory with a/b .recording.json and .reading.json")
-    ap.add_argument("--as-of", default="2026-10-21")
+    ap.add_argument("--as-of", help="the reading date (default: each committed reading's own)")
     ap.add_argument("--out", type=Path)
     args = ap.parse_args(argv)
     d = args.directory.resolve()

@@ -175,12 +175,14 @@ def remote(args) -> int:
         rid = r.json()["id"]
         since, events, status = 0, 0, "queued"
         while True:
-            now = round(time.perf_counter() - started, 1)
+            # Each first event is stamped when its answer arrived (review Q10: the time was taken before the two
+            # GETs, so client_timeline ran early by a request's time).
             if "instant_s" not in seen:
                 got = http.get(f"{base}/readings/{rid}").json()
                 if got.get("reading"):
-                    seen["instant_s"] = now
+                    seen["instant_s"] = round(time.perf_counter() - started, 1)
             live = http.get(f"{base}/readings/{rid}/live", params={"since": since}).json()
+            now = round(time.perf_counter() - started, 1)
             since, status = live["version"], live["status"]
             for e in live["events"]:
                 events += 1

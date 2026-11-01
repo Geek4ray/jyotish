@@ -801,4 +801,21 @@ def test_the_report_shows_each_attempt_of_b():
     assert (first["stop"], first["draft"], first["writer_out"], round(first["writer_s"])) == ("max_tokens", False, 128000, 1025)
     assert rows[2]["checks"] == 132 and rows[1]["checks"] == 0
     table = "\n".join(cr._attempt_table(rows))
-    assert "| 1 | max | max_tokens | no | 246,973 / 128,000 | 1024.527 | 0 |" in table
+    assert "| 1 | – | max | max_tokens | no | 246,973 / 128,000 | 1024.527 | 0 |" in table    # one call: no area
+
+
+def test_the_per_attempt_table_counts_each_areas_own_checks():
+    # Review Q10: in the live narration each area's row repeated its attempt's checker totals; a row now counts
+    # the checks of its own scope, so the rows sum to the attempt's.
+    import importlib.util
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("compare_readings", root / "scripts" / "compare_readings.py")
+    cr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cr)
+    rec = json.loads((root / "docs" / "comparison_2026-10-31" / "a.recording.json").read_text())["calls"]
+    rows = cr.per_attempt(rec)
+    first = [r for r in rows if r["attempt"] == 1]
+    assert {r["scope"] for r in first} >= {"career", "marriage", "longevity"}
+    checks = [c for c in rec if c.get("kind") == "checker" and c.get("attempt") == 1]
+    assert sum(r["checks"] for r in first) == len(checks) and len({r["checks"] for r in first}) > 1

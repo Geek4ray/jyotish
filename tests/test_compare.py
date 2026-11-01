@@ -243,3 +243,15 @@ def test_the_replay_check_reads_a_legacy_not_said_as_the_astrologers_list():
     o, n = ra.accepted(then), ra.accepted(now)
     assert [k for k in sorted(set(o) | set(n)) if o.get(k) != n.get(k)] == ["career.not_said_client"]
     assert (ROOT / "docs" / "replay_2026-10-24.md").read_text().count("differences: 0") == 2
+
+
+def test_the_replay_compares_the_paragraph_and_when():
+    # Review Q9: accepted() left out the paragraph, so a replay could not show a paragraph policy's change.
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import replay_accepted as ra
+    area = {"name": "career", "claims": [], "analysis": {}, "judgements": [], "traditions": []}
+    then = {"areas": [dict(area, paragraph="A. B.", when="W.")]}
+    now = {"areas": [dict(area, paragraph="A.", when="W.")]}
+    o, n = ra.accepted(then), ra.accepted(now)
+    assert [k for k in sorted(set(o) | set(n)) if o.get(k) != n.get(k)] == ["career.paragraph"]
+    assert (ROOT / "docs" / "replay_2026-11-01.md").read_text().count("differences: 0") == 1

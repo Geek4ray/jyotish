@@ -370,10 +370,15 @@ service's own timeline (`usage.timeline`); the Fly row in brackets is what this 
 | Fly, the service's timeline | 3.3 s | 45 s | 49 s | 78 s | 330 s | 0.030 | 0 |
 | Fly, as seen by the client | (3.9 s) | (46 s) | (49 s) | (78 s) | (332 s) | | |
 
-- **The instant page.** On Fly it was 14.7 s on the first reading (the machine cold, the chart and its sheets not yet
-  cached) and 3.2 to 3.3 s after. Two of the three local runs were second readings of a cached chart, hence 0.9 s.
-- **The rest.** Fly is within about 15 seconds of local at every step once the first sentence is out. The
-  writer's and the checker's calls go to DeepInfra from either place, so they set the time.
+- **The instant page.** On Fly it was 14.7 s on the first reading and 3.2 to 3.3 s after; the first was probably
+  a cold start (the chart and its sheets not yet cached), which nothing measured. Two of the three local runs were
+  second readings of a cached chart, hence 0.9 s.
+- **The rest.** Fly is within about 20 seconds of local at every step once the first sentence is out (done: 330 s
+  against 310.5 s). The writer's and the checker's calls go to DeepInfra from either place, so they set the time.
+- **Not like for like.** The Fly readings ran as of 2026-10-26 (the script's default) and the local ones as of
+  2026-10-21, -27 and -31, so their transits and windows differ; Fly's checker concurrency is not known to the
+  script (the local runs used 8). The client's seconds before 2026-11-01 were stamped before the request that
+  saw each event, so they run early by about one request's time.
 - **One run each on a shared provider.** Gaps of 0 against 2 are within run-to-run noise.
 
 Not timed: Cerebras (it asks for payment before its key serves) and Groq (its free tier answered 413 to a writer

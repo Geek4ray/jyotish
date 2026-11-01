@@ -79,8 +79,9 @@ replay at 1ec91cd, the commit before this change. The policy cannot show there:
   Every paragraph and every When is a gap on replay, now as before. The three When gaps that docs/replay_2026-10-24.md
   did not list are there at 1ec91cd too, so they predate this change.
 
-No recording in the repository holds a paragraph: those of 2026-10-23 to 2026-10-27 and docs/live_2026-10-26
-are at astrologer depth or full. The policy is measured live in the comparison at curious depth below.
+No recording in the repository held a paragraph when this was written: those of 2026-10-23 to 2026-10-27 and
+docs/live_2026-10-26 are at astrologer depth or full. The policy is measured live in the comparison at curious
+depth below. (Since 3673d41, docs/comparison_2026-10-31 holds paragraphs; its replay is under Q9 below.)
 
 ## Layer 7 — the client's fallback summary in the client's words (2026-10-31)
 
@@ -151,7 +152,8 @@ are `fly-1` to `fly-3` in docs/live_timings.jsonl.
 | Local | 0.9 s | 32 s | 35 s | 74 s | 311 s | 0.036 | 2 |
 | Fly | 3.3 s | 45 s | 49 s | 78 s | 330 s | 0.030 | 0 |
 
-The first Fly reading's instant page took 14.7 s (a cold machine); the next two took 3.2 and 3.3 s. The table is
+The first Fly reading's instant page took 14.7 s (probably a cold start; not measured); the next two took 3.2 and
+3.3 s. The table is
 in docs/models.md ("Timing"), and the scorecard reports the medians (`live.fly_median.*`, not gated).
 
 **The writer re-measured** (definition of done, condition 7: the writer's prompt changed, with the paragraph's
@@ -446,3 +448,26 @@ One commit per finding.
   Benchmark: three reject rows for the false-accept forms, in a new wording category `rule_not_named`, and two
   accept rows for the forms now taken (156 rows; 0 false rejects, 26 of 26 wording rows caught). Tests:
   `tests/test_narrate.py::test_a_lordship_is_named_in_a_list`.
+- **Q9, the replay tool.** `scripts/replay_accepted.py` now compares each area's paragraph and When. It replays an
+  open model's recording (it passed every recorded model to the Anthropic-only writer-model check, which raised
+  on gpt-oss-120b), and it replays at each committed reading's own date unless `--as-of` is given.
+
+  docs/replay_2026-11-01.md replays docs/comparison_2026-10-31, the first recording with paragraphs:
+  - **B (astrologer depth):** reproduces its reading, with 0 differences.
+  - **A (curious depth):** loses its three paragraphs and its writer's summary under today's rules. The first
+    drafts were written in engine words before the curious paragraph and summary were held to the client's
+    words (e8ef76d, Q4). So their sentences are refused at other points now, and the recorded retries, which
+    answered other retry messages, no longer match one sentence for each listed sentence (Q3), for example
+    "the rewrite has 2 sentence(s) for the 3 listed".
+
+  A replay of drafts written under older rules measures that, not the writer; the live comparison after this
+  round measures the writer. The test in `tests/test_compare.py` that reads `accepted` still holds.
+- **Q10, the timing's wording.**
+  - docs/models.md now says Fly is within about 20 seconds of local (done 330 s against 310.5 s), not 15. It says
+    the medians are not like for like (as-of dates 2026-10-26 against -21, -27 and -31; Fly's checker
+    concurrency unknown), and that the first instant page's cold start is an inference.
+  - `scripts/compare_readings.py`'s per-attempt table has an area column, and each row counts its own area's
+    checks (by the recording's `scope`), so the rows sum.
+  - `scripts/live_timing.py --url` stamps each first event when its answer arrived.
+
+  The committed comparison reports keep the layout they were written with.

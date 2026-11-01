@@ -218,12 +218,16 @@ ROWS = [("Writer", lambda m: f"{m['writer'].get('model')}{_where(m, 'writer')}, 
 
 def per_attempt(recording: list) -> list[dict]:
     """Each attempt's writer call (effort, stop reason, tokens, seconds) and checker calls (count,
-    tokens, the sum of their seconds), from a recording."""
+    tokens, the sum of their seconds), from a recording. In the live narration each area's writer call and its
+    checks carry the area as `scope`, and a row counts its own area's checks only (review Q10: each area's row
+    repeated the attempt's totals, so the table could not be summed by row)."""
     out = []
     for w in (c for c in recording if c.get("kind") == "writer"):
         u = w.get("usage") or {}
-        checks = [c for c in recording if c.get("kind") == "checker" and c.get("attempt") == w.get("attempt")]
-        out.append({"attempt": w.get("attempt"), "effort": w.get("effort"), "stop": w.get("stop_reason"),
+        checks = [c for c in recording if c.get("kind") == "checker" and c.get("attempt") == w.get("attempt")
+                  and c.get("scope") == w.get("scope")]
+        out.append({"attempt": w.get("attempt"), "scope": w.get("scope"), "effort": w.get("effort"),
+                    "stop": w.get("stop_reason"),
                     "draft": bool(w.get("draft")), "writer_in": int(u.get("input_tokens") or 0)
                     + int(u.get("cache_read_input_tokens") or 0) + int(u.get("cache_creation_input_tokens") or 0),
                     "writer_out": int(u.get("output_tokens") or 0), "writer_s": w.get("seconds"),
@@ -234,10 +238,11 @@ def per_attempt(recording: list) -> list[dict]:
 
 
 def _attempt_table(rows: list[dict]) -> list[str]:
-    L = ["| attempt | effort | stop | draft | writer tokens in / out | writer s | checks | checker tokens out | "
-         "checker s (sum) |", "|---|---|---|---|---|---|---|---|---|"]
+    L = ["| attempt | area | effort | stop | draft | writer tokens in / out | writer s | checks | checker tokens out | "
+         "checker s (sum) |", "|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
-        L.append(f"| {r['attempt']} | {r['effort'] or '–'} | {r['stop'] or '–'} | {'yes' if r['draft'] else 'no'} | "
+        L.append(f"| {r['attempt']} | {r.get('scope') or '–'} | {r['effort'] or '–'} | {r['stop'] or '–'} | "
+                 f"{'yes' if r['draft'] else 'no'} | "
                  f"{r['writer_in']:,} / {r['writer_out']:,} | {r['writer_s'] if r['writer_s'] is not None else '–'} | "
                  f"{r['checks']} | {r['checker_out']:,} | {r['checker_s']} |")
     return L
