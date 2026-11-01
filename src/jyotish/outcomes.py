@@ -321,6 +321,46 @@ def erase_sessions(session, session_ids: list[str], erased_by: str) -> dict[str,
     return counts
 
 
+def erase_conversations(session, *, session_id: str | None = None, birth_key: str | None = None,
+                        erased_by: str) -> dict[str, int]:
+    """`jyotish session erase` (review M1): a conversation by its id, or every conversation of a birth by its birth
+    key (cache.birth_key; a birth entered again is the same key), erased as erase_sessions does and logged."""
+    from .db import SessionRow
+    if (session_id is None) == (birth_key is None):
+        raise ValueError("name a conversation by its id or a birth by its birth key, not both")
+    q = session.query(SessionRow)
+    ids = [r.id for r in (q.filter_by(id=session_id) if session_id else q.filter_by(birth_key=birth_key))]
+    if not ids:
+        raise ValueError(f"no conversation {session_id}" if session_id else "no conversation of that birth key")
+    return erase_sessions(session, ids, erased_by)
+
+
+SESSION_DAYS = 180          # a conversation ends this many days after its last turn (SPEC Layer 8, review H7)
+
+
+def ended_sessions(session, days: int = SESSION_DAYS, now=None) -> list[str]:
+    """The conversations whose last turn (or start, with none) is more than `days` days ago."""
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import func
+    from .db import SessionRow, TurnRow
+    now = now or datetime.now(timezone.utc)
+    last = dict(session.query(TurnRow.session_id, func.max(TurnRow.created_at)).group_by(TurnRow.session_id).all())
+    out = []
+    for sid, created in session.query(SessionRow.id, SessionRow.created_at):
+        t = last.get(sid) or created
+        t = t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+        if now - t > timedelta(days=days):
+            out.append(sid)
+    return out
+
+
+def expire_sessions(session, days: int = SESSION_DAYS, now=None) -> dict[str, int]:
+    """Erase every conversation that has ended (`ended_sessions`), as `jyotish session erase` does, logged with
+    `erased_by` "expiry" (review M1). The service runs it at start and at most hourly on POST /sessions."""
+    ids = ended_sessions(session, days, now)
+    return erase_sessions(session, ids, "expiry") if ids else {"sessions": 0}
+
+
 def sessionmaker_for(database_url: str):
     from sqlalchemy.orm import sessionmaker
     from .db import migrate

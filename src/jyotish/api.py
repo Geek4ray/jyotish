@@ -508,7 +508,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     # queues one message; its answer streams on GET /sessions/{id}/turns/{n}/events (as a reading's does), the
     # client's events only: `light`, `text` (a passed sentence, tags off), `done`.
     from .scoring import AREAS as _AREAS
-    SESSION_DAYS = 180                            # a conversation ends this many days after its last turn (H7)
+    from .outcomes import SESSION_DAYS            # a conversation ends this many days after its last turn (H7)
     # session id -> Future of its whole-chart payload, in this process: the most recently used `held` only (review H5)
     from collections import OrderedDict
     PAYLOADS: "OrderedDict[str, Any]" = OrderedDict()
@@ -547,6 +547,23 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     with Session.begin() as s:
         fail_turns(s, s.query(TurnRow).filter(TurnRow.status.in_(("queued", "running"))).all(),
                    "interrupted by a restart")
+
+    # A conversation past its end is erased as `jyotish session erase` erases one (review M1): at start, and at
+    # most hourly when a conversation is begun.
+    expiry = {"at": 0.0}
+
+    def expire_conversations() -> None:
+        import time
+        from .outcomes import expire_sessions
+        if time.monotonic() - expiry["at"] < 3600 and expiry["at"]:
+            return
+        expiry["at"] = time.monotonic()
+        with Session.begin() as s:
+            counts = expire_sessions(s)
+        if counts.get("sessions"):
+            logs.event("session.erased", by="expiry", **counts)
+
+    expire_conversations()
 
     def expire_turns(s, turns) -> None:
         from datetime import datetime, timezone
@@ -624,6 +641,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             logs.event("sessions.rate_limited", logging.WARNING, retry_after=wait)
             raise HTTPException(status_code=429, detail="too many conversations: try again later",
                                 headers={"Retry-After": str(wait)})
+        expire_conversations()
         birth = BirthInput(**req.model_dump(include=set(BirthInput.model_fields)))
         try:
             chart, _, chart_id = assess_birth(birth)

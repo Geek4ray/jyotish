@@ -469,6 +469,15 @@ def cmd_outcomes(args) -> int:
             counts = oc.erase(s, args.subject_id, args.by)
             print(f"erased subject {args.subject_id}: " + ", ".join(f"{v} {k}" for k, v in counts.items()) + " (logged)")
             return 0
+        if args.cmd == "session" and args.sescmd == "erase":
+            counts = oc.erase_conversations(s, session_id=args.session_id, birth_key=args.birth_key, erased_by=args.by)
+            what = f"conversation {args.session_id}" if args.session_id else "the conversations of that birth key"
+            print(f"erased {what}: " + ", ".join(f"{v} {k}" for k, v in counts.items()) + " (logged)")
+            return 0
+        if args.cmd == "session" and args.sescmd == "expire":
+            counts = oc.expire_sessions(s)
+            print(f"erased {counts.get('sessions', 0)} conversation(s) past {oc.SESSION_DAYS} days (logged)")
+            return 0
         if args.ocmd == "consent":
             oc.add_consent(s, args.consent_id, args.subject, args.form, args.track, args.by)
             print(f"consent {args.consent_id} recorded for {args.subject}")
@@ -544,6 +553,17 @@ def main(argv: list[str] | None = None) -> None:
     se.add_argument("subject_id")
     se.add_argument("--by", required=True, help="who carried out the request")
     se.add_argument("--database")
+    sn = sub.add_parser("session", help="a conversation's data (SPEC Layer 8)")
+    snsub = sn.add_subparsers(dest="sescmd", required=True)
+    sne = snsub.add_parser("erase", help="erase a conversation, or every conversation of a birth, with its turns "
+                                         "(a reviewed turn's judgement is kept, without the turn)")
+    sne.add_argument("session_id", nargs="?")
+    sne.add_argument("--birth-key", help="every conversation of this birth key instead of one conversation")
+    sne.add_argument("--by", required=True, help="who carried out the request")
+    snx = snsub.add_parser("expire", help="erase every conversation 180 days past its last turn (the service does "
+                                          "this itself at start and hourly)")
+    for x in (sne, snx):
+        x.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
     for kind, what in (("reviewer", "a reviewer's token: /review, /review?mode=blind (the judge page), /compare"),
                        ("clerk", "a clerk's token: POST /outcomes"), ("owner", "the owner's token: /costs/daily")):
         k = sub.add_parser(kind, help=what)
@@ -569,7 +589,7 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(cmd_read(args))
     if args.cmd in ("reviewer", "clerk", "owner"):
         raise SystemExit(cmd_credentials(args))
-    if args.cmd in ("outcomes", "subject"):
+    if args.cmd in ("outcomes", "subject", "session"):
         raise SystemExit(cmd_outcomes(args))
     if args.cmd == "export-reviews":
         import os

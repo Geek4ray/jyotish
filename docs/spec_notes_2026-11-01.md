@@ -311,3 +311,13 @@ tests/test_chat_review.py unless named otherwise.
   a word warning). The validator alone refuses the wording ones; the rest are the checker's. The scorecard reports
   the turn category (`checker.answer.*`, not gated). Tests: a failed sentence rewritten alone and standing in its
   place, a wrong-count retry not placed, five splitter boundaries, and the turn rows.
+- **M1. A conversation can be erased.** `jyotish session erase <id> --by <who>` erases one conversation, and
+  `jyotish session erase --birth-key <key> --by <who>` every conversation of a birth (`outcomes.erase_conversations`).
+  Each is erased as "forget this conversation" erases it (`outcomes.erase_sessions`, H7: the session, its turns, its
+  chart when nothing else refers to it, and a reviewed turn's judgement kept without the turn), and each is logged
+  in `erasures` as a subject's erasure is (who, when, counts; `subject_id` "conversation"; no birth data). A
+  conversation 180 days past its last turn is erased the same way (`outcomes.expire_sessions`, `erased_by` "expiry"):
+  the service runs it when it starts and at most hourly when a conversation is begun, and `jyotish session expire`
+  runs it by hand. How long turns are kept is the spec's 180 days (H7). Tests: erasure by id, then by birth key,
+  another birth's conversation kept, two erasures logged; and a conversation 181 days old erased when the service
+  starts, the other kept.

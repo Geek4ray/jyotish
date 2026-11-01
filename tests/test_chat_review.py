@@ -735,3 +735,62 @@ def test_m5_turn_sentences_are_a_benchmark_category():
     pred = cb.run_validator(rows)
     assert all(pred[r["id"]][0] for r in rows if r["category"] in cb.WORDING)
     assert not any(pred[r["id"]][0] for r in rows if r["label"] == "accept")
+
+
+# --- M1: a conversation can be erased, by its id or by its birth key, and at its end -----------------------------------
+
+def _two_conversations(tmp_path, name):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    db = f"sqlite:///{tmp_path / name}"
+    app = create_app(db, today=lambda: AS_OF, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
+    with TestClient(app) as c:
+        sids = [c.post("/sessions", json=BIRTH).json()["id"] for _ in range(2)]
+        other = c.post("/sessions", json=dict(BIRTH, date="1990-01-01")).json()["id"]
+        for sid in sids:
+            n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
+            wait_turn(c, f"/sessions/{sid}/turns/{n}")
+    return db, app, sids, other
+
+
+def test_m1_jyotish_session_erase_by_id_and_by_birth_key_is_logged(tmp_path, capsys):
+    from jyotish.api import ErasureRow
+    from jyotish.cli import main
+    from jyotish.db import SessionRow, TurnRow
+    db, app, sids, other = _two_conversations(tmp_path, "m1.db")
+    def run(*argv):
+        with pytest.raises(SystemExit) as done:
+            main(list(argv))
+        assert done.value.code == 0
+    run("session", "erase", sids[0], "--by", "ray", "--database", db)
+    assert "erased conversation" in capsys.readouterr().out
+    with app.state.Session() as s:
+        assert s.get(SessionRow, sids[0]) is None and s.query(TurnRow).filter_by(session_id=sids[0]).count() == 0
+        assert s.get(SessionRow, sids[1]) is not None
+        bkey = s.get(SessionRow, sids[1]).birth_key
+    run("session", "erase", "--birth-key", bkey, "--by", "ray", "--database", db)
+    with app.state.Session() as s:
+        assert s.get(SessionRow, sids[1]) is None and s.get(SessionRow, other) is not None   # another birth stays
+        logged = s.query(ErasureRow).order_by(ErasureRow.id).all()
+        assert [(e.subject_id, e.erased_by, e.counts["sessions"], e.counts["turns"]) for e in logged] == [
+            ("conversation", "ray", 1, 1), ("conversation", "ray", 1, 1)]
+        assert all("birth" not in json.dumps(e.counts) for e in logged)
+
+
+def test_m1_a_conversation_past_180_days_is_erased_at_start(tmp_path):
+    from datetime import datetime, timedelta, timezone
+    from fastapi.testclient import TestClient
+    from jyotish.api import ErasureRow, create_app
+    from jyotish.db import SessionRow, TurnRow
+    db, app, sids, other = _two_conversations(tmp_path, "m1b.db")
+    old = datetime.now(timezone.utc) - timedelta(days=181)
+    with app.state.Session.begin() as s:
+        s.get(SessionRow, sids[0]).created_at = old
+        for t in s.query(TurnRow).filter_by(session_id=sids[0]):
+            t.created_at = old
+    with TestClient(create_app(db, today=lambda: AS_OF)) as c:                  # the service starts
+        assert c.get("/health").status_code == 200
+    with app.state.Session() as s:
+        assert s.get(SessionRow, sids[0]) is None and s.get(SessionRow, sids[1]) is not None
+        e = s.query(ErasureRow).one()
+        assert (e.erased_by, e.counts["sessions"], e.counts["turns"]) == ("expiry", 1, 1)
