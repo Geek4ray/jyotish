@@ -55,8 +55,10 @@ CONSTRUCTED = ["planet_swapped", "house_changed", "sign_changed", "dignity_chang
 # the checker sees one claim and cannot resolve it, the validator can read the word.
 # A curious paragraph's sentence in engine words or with a Sanskrit term unglossed joined them on 2026-10-31
 # (`client_words`): the curious paragraph is held to client.client_errors as the client's layer is.
+# A rule tag on a sentence that does not name the rule (`rule_not_named`) joined them on 2026-11-01 (review Q8: the
+# list rule's false accepts).
 WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited", "refers_to_another_claim",
-           "ranking_not_cited", "nth_sign", "client_words"}
+           "ranking_not_cited", "nth_sign", "client_words", "rule_not_named"}
 # The depth-full comparison's rows (comparison_rows) add three semantic kinds: a sentence citing a field
 # narrower than its claim, a judgement whose premise is false, and a clause no field states.
 SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", "cites_too_narrowly",
@@ -462,6 +464,28 @@ def comparison_rows() -> list[dict]:
          "the validator's false reject in the curious comparison of 2026-10-31: 'Kendra\u2011Trikona' with a non-breaking "
          "hyphen is the yoga's name, not 'kendra' for 'angular house'. The Sun and Mercury in the 10th form the yoga "
          "(its fire); the gloss is the glossary's: read."),
+        # Review Q8 (2026-11-01): forms the list rule of 1ec91cd took as naming the 5th lord, constructed; and two
+        # forms it refused, now taken.
+        ("live-list-house-not-lordship", "paragraph", "career", None,
+         "The Sun sits in the 5th and the 2nd lord Mercury joins it [rule:place.l5_h10].", "reject", "rule_not_named",
+         "constructed for review Q8: 'in the 5th' is a house, not a lordship; the sentence names the 2nd lord only"),
+        ("live-list-runs-on", "paragraph", "career", None,
+         "Saturn rules the 10th and the 5th is ruled by Mercury [rule:place.l5_h10].", "reject", "rule_not_named",
+         "constructed for review Q8: 'and the 5th is ruled by Mercury' is another clause; Mercury is not named as "
+         "the 5th lord"),
+        ("live-list-sits-empty", "paragraph", "career", None,
+         "Jupiter rules the 9th, and the 5th sits empty [rule:place.l5_h10].", "reject", "rule_not_named",
+         "constructed for review Q8: the 5th is said to sit empty, not named as a lordship"),
+        ("live-list-of-both", "paragraph", "career", None,
+         "Mercury, the lord of both the 2nd and the 5th, sits in the 10th house [rule:place.l5_h10].",
+         "accept", "accepted",
+         "constructed for review Q8: 'of both the 2nd and the 5th' names the 5th lord. Mercury in the 10th, lord of "
+         "the 2nd and the 5th (the placement's fact): read."),
+        ("live-list-word-ordinals", "paragraph", "career", None,
+         "Mercury, lord of the second and fifth houses, sits in the 10th house [rule:place.l5_h10].",
+         "accept", "accepted",
+         "constructed for review Q8: 'the second and fifth houses' names the 5th lord in words. Mercury in the 10th, "
+         "lord of the 2nd and the 5th (the placement's fact): read."),
         # 2026-11-01, the curious comparison (docs/comparison_2026-10-31_curious_r2.md): "Venus is exalted" was refused
         # twice for want of a field: the sign placement stated the sign only. It now carries the dignity.
         ("live-venus-exalted-in-pisces", "paragraph", "marriage", None,

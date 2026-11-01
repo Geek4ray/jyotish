@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "commit": "1cf16b4",
+  "commit": "7ee9447",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.3483,
+      "value": 0.3696,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.5167,
+      "value": 0.5397,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,7 +255,7 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 151,
+      "value": 156,
       "better": null,
       "unit": "",
       "gate": false

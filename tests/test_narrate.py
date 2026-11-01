@@ -1172,5 +1172,20 @@ def test_a_lordship_is_named_in_a_list():
         assert not [e for e in validate(ok, allowed) if "names none of" in e], ok
     for bad in ("Mercury, lord of the 2nd and 9th, sits in the 10th [rule:place.l5_h10].",
                 "Saturn rules the 10th and Mercury the 5th [rule:place.l5_h10].",
-                "Mars, lord of the 2nd and 15th, sits in the 7th [rule:place.l12_h7]."):
+                "Mars, lord of the 2nd and 15th, sits in the 7th [rule:place.l12_h7].",
+                # Review Q8: a house the planet sits in is not a lordship, and a joined "the 5th" that runs into
+                # the next clause is not in the list.
+                "The Sun sits in the 5th and the 2nd lord Mercury joins it [rule:place.l5_h10].",
+                "Venus sits in the 12th and the 7th lord aspects it [rule:place.l12_h7].",
+                "Saturn rules the 10th and the 5th is ruled by Mercury [rule:place.l5_h10].",
+                "Jupiter rules the 9th, and the 5th sits empty [rule:place.l5_h10]."):
         assert any("names none of" in e for e in validate(bad, allowed)), bad
+    # Review Q8: the forms it refused before.
+    for ok in ("Mercury, the lord of the 2nd and of the 5th, sits in the 10th [rule:place.l5_h10].",
+               "Mercury, the lord of both the 2nd and the 5th, sits in the 10th [rule:place.l5_h10].",
+               "Mercury rules both the 2nd and the 5th and sits in the 10th [rule:place.l5_h10].",
+               "Mercury rules over the 2nd and 5th and sits in the 10th [rule:place.l5_h10].",
+               "Mercury, the 2nd and 5th houses' lord, sits in the 10th [rule:place.l5_h10].",
+               "Mercury, lord of the 2nd as well as the 5th, sits in the 10th [rule:place.l5_h10].",
+               "Mercury, lord of the second and fifth houses, sits in the 10th [rule:place.l5_h10]."):
+        assert not [e for e in validate(ok, allowed) if "names none of" in e], ok

@@ -430,3 +430,19 @@ One commit per finding.
 
   Tests: `tests/test_client_summary.py::test_a_paragraph_held_in_part_stands_with_its_line_and_the_toggle_closed`
   and `tests/test_web.py::test_a_paragraph_held_in_part_stands_on_the_site`.
+- **Q8, the list rule.** `narrate._names_lordship` no longer reads a list where the sentence states none, and
+  takes forms it missed:
+  - **No longer taken:**
+    - a list right after "in the", "from the" or "into the" (where a planet sits: "the Sun sits in the 5th
+      and the 2nd lord …");
+    - a joined ordinal with "the" that runs on into another clause ("rules the 10th and the 5th is ruled by
+      Mercury", "rules the 9th, and the 5th sits empty"). Such an ordinal is in the list only when a lordship
+      word, "house(s)", punctuation or the sentence's end follows it.
+  - **Now taken:** "and of the", "both", "over", "as well as", "houses' lord", and word ordinals ("the second
+    and fifth houses").
+  - **"or" is still taken** in a list ("lord of the 2nd or the 5th"). The request of 2026-10-31 named "or", and
+    the checker reads the proposition after the validator.
+
+  Benchmark: three reject rows for the false-accept forms, in a new wording category `rule_not_named`, and two
+  accept rows for the forms now taken (156 rows; 0 false rejects, 26 of 26 wording rows caught). Tests:
+  `tests/test_narrate.py::test_a_lordship_is_named_in_a_list`.

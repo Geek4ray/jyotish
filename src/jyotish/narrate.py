@@ -516,9 +516,22 @@ def _name_forms(names: list[str]) -> list[str]:
 # joined by "and", "or" or commas. The ordinal must be one of the list's; "rules the 10th and Mars the 5th"
 # lists the 10th alone.
 _ORDINAL = r"\d{1,2}(?:st|nd|rd|th)"
-_ORD_LIST = rf"{_ORDINAL}(?:\s*(?:,\s*(?:and|or)?|and|or)\s*(?:the\s+)?{_ORDINAL})*"
-_LORDSHIP_LIST = re.compile(rf"\b(?:(?:lords?|rulers?) of|rules|rule|ruling) the ({_ORD_LIST})(?: houses?)?"
-                            rf"|\b({_ORD_LIST})(?: houses?)? (?:lords?|rulers?)\b")
+# Review Q8 (2026-11-01). A joiner is "and", "or", "as well as" or a comma, and may carry "of" ("the lord of the
+# 2nd and of the 5th"). A joined ordinal written with "the" belongs to the list only where the list ends with it
+# (a lordship word, punctuation or the sentence's end follows): "Saturn rules the 10th and the 5th is ruled by
+# Mercury" lists the 10th alone, while "rules both the 2nd and the 5th and sits in the 10th" lists both (a list may end
+# before "and", "but", "while" or "which"). "both" and "over" may open the list ("rules both the 2nd and the 5th", "rules
+# over the 2nd and 5th"), and "houses'" closes it ("the 2nd and 5th houses' lord").
+_JOIN = r"(?:\s*,\s*(?:and\s+|or\s+)?|\s+(?:and|or|as\s+well\s+as)\s+)(?:of\s+)?"
+_LIST_END = r"(?=\s*(?:houses?'?\s+)?(?:lords?|rulers?)\b|\s*houses?\b|\s*[.,;:)]|\s*$|\s+(?:and|but|while|which)\b)"
+_ORD_LIST = rf"{_ORDINAL}(?:{_JOIN}(?:the\s+{_ORDINAL}{_LIST_END}|{_ORDINAL}))*"
+_LORDSHIP_LIST = re.compile(rf"\b(?:(?:lords?|rulers?) of|rules|rule|ruling)(?:\s+over)?(?:\s+both)? the ({_ORD_LIST})"
+                            rf"(?: houses?)?|\b({_ORD_LIST})(?: houses?'?)? (?:lords?|rulers?)\b")
+# A list right after "in the" (or "from the", "into the") is where a planet sits, not what it rules: "the Sun sits
+# in the 10th and the 5th lord Mercury joins it" names the 5th lord, not the 10th.
+_PLACED_BEFORE = re.compile(r"\b(?:in|from|into|to)\s+(?:both\s+)?the\s+$")
+_WORD_ORDINALS = dict(zip(("first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth",
+                           "eleventh", "twelfth"), ("1st", "2nd", "3rd", *(f"{n}th" for n in range(4, 13)))))
 
 
 def _names_lordship(text: str, names: list[str]) -> bool:
@@ -526,8 +539,15 @@ def _names_lordship(text: str, names: list[str]) -> bool:
     if any(n in text for n in _name_forms(names)):
         return True
     wanted = {m.group(1) or m.group(2) for n in names if (m := _LORD_NAME.match(n.lower()))}
-    return bool(wanted) and any(set(re.findall(_ORDINAL, m.group(1) or m.group(2))) & wanted
-                                for m in _LORDSHIP_LIST.finditer(text))
+    if not wanted:
+        return False
+    text = re.sub(r"\b(" + "|".join(_WORD_ORDINALS) + r")\b", lambda m: _WORD_ORDINALS[m.group(1)], text)
+    for m in _LORDSHIP_LIST.finditer(text):
+        if m.group(2) and _PLACED_BEFORE.search(text[:m.start(2)]):
+            continue
+        if set(re.findall(_ORDINAL, m.group(1) or m.group(2))) & wanted:
+            return True
+    return False
 
 
 def rule_names(rule_id: str) -> list[str]:
