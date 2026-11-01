@@ -6,6 +6,8 @@ Offline: the writer is conversation.OfflineTurnWriter, the checker a stub."""
 import json
 import time
 
+from datetime import date
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -15,7 +17,7 @@ from jyotish.narrate import CheckResult, Proposition
 from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
 
 BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
-         "node": "mean", "place": "Rewari, Haryana", "as_of": "2026-10-21"}
+         "node": "mean", "place": "Rewari, Haryana"}             # the date is the server's (`today`, review M2)
 AUTH = {"Authorization": "Bearer tok-1"}
 
 
@@ -31,7 +33,7 @@ def db(tmp_path_factory):
 @pytest.fixture(scope="module")
 def app(db):
     return create_app(f"sqlite:///{db}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
-                      reviewers={"tok-1": "judge-1"}, review_checker=passes)
+                      reviewers={"tok-1": "judge-1"}, review_checker=passes, today=lambda: date(2026, 10, 21))
 
 
 @pytest.fixture(scope="module")

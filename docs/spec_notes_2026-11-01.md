@@ -261,3 +261,14 @@ tests/test_chat_review.py unless named otherwise.
   reads "the signs that show how others see marriage" ("how brothers, sisters and courage appears" was wrong
   grammar). The frozen challenges text, the five turns' first route and the tests that named father, children and
   gains change with it.
+- **M2. A minor's chart and the session's date.** On a minor's chart a question with no area goes to the top or the
+  weakest of the general areas (`top_areas` and `weakest_areas` take `among=MINOR_AREAS`; the top areas are filled
+  from any general area when too few are emphasised), so "tell me about my chart", "what are his strengths", "what
+  are the challenges" and "when?" are answered. On a minor's chart the person asking is a parent and the chart is
+  the child's: "my son's", "my daughter's", "his" and "her" are read as the chart's, so "how is my son's chart" is
+  answered, while "my wife's future" is still another person's and "what about his marriage" still gets the minor
+  reply. A conversation is read for the server's date (`create_app(today=…)`, which a test sets); a request's
+  `as_of` needs a reviewer token (401 without), so a client can no longer make a minor's chart an adult's or move
+  the "when" stretches, and a birth after that date is refused (422), the case C1's test met in synthetic-3. The
+  smoke test sends its reviewer token with its date; `scripts/live_timing.py --url` asks for the server's date.
+  Tests: nine general questions on a minor's chart answered from the general areas, four refused, and the date.

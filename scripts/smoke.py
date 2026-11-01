@@ -79,7 +79,8 @@ def main(argv=None) -> int:
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1280, "height": 900})
-        s = page.request.post(f"{url}/sessions", data=birth, timeout=60000).json()
+        s = page.request.post(f"{url}/sessions", data=birth, timeout=60000,           # as_of is a reviewer's (M2)
+                              headers={"Authorization": f"Bearer {args.token}"}).json()
         check(s.get("check", {}).get("words") == "Taurus rising · Moon in Libra, Chitra",
               f"session check line: {s.get('check')}")
         page.goto(f"{url}/chat.html")

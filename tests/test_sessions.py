@@ -16,7 +16,12 @@ from jyotish.narrate import CheckResult, Proposition
 from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
 
 BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
-         "node": "mean", "place": "Rewari, Haryana", "as_of": "2026-10-21"}
+         "node": "mean", "place": "Rewari, Haryana"}             # the date is the server's (`today`, review M2)
+
+
+def TODAY():
+    from datetime import date
+    return date(2026, 10, 21)
 
 
 class Writer(OfflineTurnWriter):
@@ -45,7 +50,7 @@ def wait_turn(client, sid, n, timeout=90):
 @pytest.fixture(scope="module")
 def app(tmp_path_factory):
     db = tmp_path_factory.mktemp("sessions") / "jyotish.db"
-    return create_app(f"sqlite:///{db}", turn_writer=Writer, turn_checker=lambda: passes)
+    return create_app(f"sqlite:///{db}", turn_writer=Writer, turn_checker=lambda: passes, today=TODAY)
 
 
 @pytest.fixture(scope="module")
@@ -149,7 +154,8 @@ def test_a_minors_session_is_marked(client):
 def test_the_whole_answer_failing_falls_back_to_the_engines_own(tmp_path):
     def refuses(sentence, data):
         return CheckResult(propositions=[Proposition(text=sentence, supported=False, evidence="stub")])
-    app = create_app(f"sqlite:///{tmp_path / 'f.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: refuses)
+    app = create_app(f"sqlite:///{tmp_path / 'f.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: refuses,
+                     today=TODAY)
     with TestClient(app) as c:
         sid = c.post("/sessions", json=BIRTH).json()["id"]
         turn = ask(c, sid, "how is my career")

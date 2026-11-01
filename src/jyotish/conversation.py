@@ -120,20 +120,22 @@ def areas_of(message: str) -> list[str]:
     return out
 
 
-def top_areas(chart, n: int | None = None) -> list[str]:
+def top_areas(chart, n: int | None = None, among=None) -> list[str]:
     """The chart's strongest areas for a question with no area and no "against": the scored top areas (scoring's
     emphasis order) without longevity, health or synastry (NOT_DEFAULT), filled from the other emphasised areas by
-    tier, then score."""
+    tier, then score. `among`: the areas allowed (a minor's chart: MINOR_AREAS), filled from any of them by tier
+    and score when too few are emphasised."""
     sc = chart.scored
     n = n or DEFAULT_AREAS
-    out = [a for a in sc.top if a not in NOT_DEFAULT]
-    rest = sorted((a for a, x in sc.areas.items() if x.emphasised and a not in NOT_DEFAULT and a not in out
+    ok = lambda a: a not in NOT_DEFAULT and (among is None or a in among)
+    out = [a for a in sc.top if ok(a)]
+    rest = sorted((a for a, x in sc.areas.items() if (x.emphasised or among is not None) and ok(a) and a not in out
                    and x.tier in TIER_RANK),
-                  key=lambda a: (-TIER_RANK[sc.areas[a].tier], -(sc.areas[a].score_classical or 0), a))
+                  key=lambda a: (not sc.areas[a].emphasised, -TIER_RANK[sc.areas[a].tier], -(sc.areas[a].score_classical or 0), a))
     return (out + rest)[:n]
 
 
-def weakest_areas(chart, n: int | None = None) -> list[str]:
+def weakest_areas(chart, n: int | None = None, among=None) -> list[str]:
     """The areas a question asking what is against, with no area, goes to: "challenges" are where the chart leans
     against (SPEC Layer 8, decided after the review of chat v1, H2), so the areas whose overall direction is adverse
     first, then the most families against, then the most polarity flags (delay, intensity, volatility), then the
@@ -143,7 +145,7 @@ def weakest_areas(chart, n: int | None = None) -> list[str]:
     n = n or DEFAULT_AREAS
     rows = []
     for name, a in sc.areas.items():
-        if name in NOT_FOR_WEAKEST or a.tier not in TIER_RANK:
+        if name in NOT_FOR_WEAKEST or a.tier not in TIER_RANK or (among is not None and name not in among):
             continue
         against = sum(1 for v in a.votes.values() if (getattr(v, "vote", v) or 0) < 0)
         rows.append((a.direction != "adverse", -against, -len(a.polarity), TIER_RANK[a.tier], name))
@@ -216,6 +218,11 @@ OTHER_PERSON = re.compile(rf"\b(?:my|his|her|their) {PERSON}'?s? (?:chart|kundli
                           rf"luck|marriage|career|health|job)\b|\b(?:his|her|their) (?:chart|kundli|horoscope|"
                           rf"future|fate|destiny)\b|\bwill my {PERSON} (?:get|have|become|marry|pass|recover|succeed|"
                           rf"find|live|die|earn)\b(?! me\b)|\bread (?:the )?chart of\b|\bsomeone else'?s chart\b")
+# On a minor's chart the person asking is a parent and the chart is the child's: "my son's chart", "his future" and
+# "her studies" are about the chart entered, not another person (review M2).
+CHILD = re.compile(r"\bmy (?:son|daughter|child|kid|baby)'?s?\b|\b(?:his|her)\b")
+
+
 # The client's own question about what another will do ("will she marry me", "will they hire me"): answered from the
 # client's chart, with this line after it.
 THIRD_PARTY = re.compile(rf"\bwill (?:he|she|they|my {PERSON}|the (?:company|employer|interviewer|embassy|"
@@ -260,7 +267,7 @@ def off_limits(message: str, *, minor: bool = False, areas: list[str] | None = N
         return "illness"
     if TRADE.search(text):
         return "trade"
-    if OTHER_PERSON.search(text):
+    if OTHER_PERSON.search(CHILD.sub("the chart's", text) if minor else text):
         return "other_person"
     if minor and areas and any(a not in MINOR_AREAS for a in areas):
         return "minor"
@@ -305,10 +312,10 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     elif follow:
         areas, areas_from = list(last.areas), "carried"
         carried.append("areas")
-    elif direction == "against":
-        areas, areas_from = weakest_areas(chart), "weakest"
+    elif direction == "against":                    # a minor's defaults come from the general areas (review M2)
+        areas, areas_from = weakest_areas(chart, among=MINOR_AREAS if minor else None), "weakest"
     else:
-        areas, areas_from = top_areas(chart), "top"
+        areas, areas_from = top_areas(chart, among=MINOR_AREAS if minor else None), "top"
     if direction is None and follow:
         direction = last.direction
         carried.append("direction")

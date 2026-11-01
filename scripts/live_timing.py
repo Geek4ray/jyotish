@@ -225,7 +225,8 @@ def remote_turn(args) -> int:
     seen: dict[str, float] = {}
     with httpx.Client(timeout=120) as http:
         t = time.perf_counter()
-        r = http.post(f"{base}/sessions", json=dict(BIRTH, lat=REFERENCE_LAT, lon=REFERENCE_LON, as_of=args.as_of))
+        # A deployed conversation is read for the server's date: a client may not set it (review M2).
+        r = http.post(f"{base}/sessions", json=dict(BIRTH, lat=REFERENCE_LAT, lon=REFERENCE_LON))
         r.raise_for_status()
         sid = r.json()["id"]
         seen["session_s"] = round(time.perf_counter() - t, 1)

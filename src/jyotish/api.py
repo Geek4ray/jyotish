@@ -84,7 +84,8 @@ class ReadingRequest(BirthInput):
 
 
 class SessionRequest(BirthInput):
-    """A conversation's birth data, entered once (SPEC Layer 8), and optionally the date it is read for."""
+    """A conversation's birth data, entered once (SPEC Layer 8), and the date it is read for: the server's own
+    date, which only a reviewer may set (review M2: a client could make a minor's chart an adult's)."""
     model_config = ConfigDict(extra="forbid")
     as_of: str | None = None
 
@@ -252,7 +253,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                reviewers: dict[str, str] | None = None, review_checker=None,
                clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None,
                turn_writer=None, turn_checker=None, turn_limit: float | None = None,
-               payloads_held: int | None = None) -> FastAPI:
+               payloads_held: int | None = None, today=None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
     mounted when their directories exist (a source checkout). Reviewers, clerks and the owner
@@ -266,7 +267,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     seconds after which a turn still queued or running is marked failed (JYOTISH_TURN_LIMIT_SECONDS, else 600).
     `payloads_held`: how many conversations' whole-chart payloads this process keeps (JYOTISH_PAYLOADS_HELD, else 16;
     about 5 MB each); a conversation whose payload was let go has it made again, from fullchart's cache when it is
-    there. POST /sessions counts against the rate limit as a reading does."""
+    there. POST /sessions counts against the rate limit as a reading does. `today`: the server's date for a new
+    conversation (a function; default date.today), which a test may set; a request's `as_of` needs a reviewer
+    token."""
     from . import logs
     from .db import migrate
     logs.setup()
@@ -628,10 +631,14 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             raise HTTPException(status_code=422, detail=str(e))
         if chart.scored is None:
             raise HTTPException(status_code=422, detail="this chart cannot be scored (no birth moment)")
+        if req.as_of:                              # a reviewer's (or a test's) date, never a client's (review M2)
+            credential(request, "reviewer", tokens)
         try:
-            as_of = _date.fromisoformat(req.as_of) if req.as_of else _date.today()
+            as_of = _date.fromisoformat(req.as_of) if req.as_of else (today or _date.today)()
         except ValueError:
             raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD")
+        if _date.fromisoformat(birth.date) > as_of:
+            raise HTTPException(status_code=422, detail="the date of birth is after today")
         bkey = birth_key_of(birth)
         line = chart_line(chart, birth)
         check = {"lagna": line["lagna"], "moon_sign": line["moon_sign"], "moon_nakshatra": line["moon_nakshatra"],

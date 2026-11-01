@@ -124,9 +124,10 @@ def test_the_five_turns_through_the_service(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
     from jyotish.db import TurnRow
-    app = create_app(f"sqlite:///{tmp_path / 'c.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
+    app = create_app(f"sqlite:///{tmp_path / 'c.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+                     today=lambda: AS_OF)
     birth = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
-             "node": "mean", "place": "Rewari, Haryana", "as_of": AS_OF.isoformat()}
+             "node": "mean", "place": "Rewari, Haryana"}         # the date is the server's (`today`, review M2)
     with TestClient(app) as c:
         sid = c.post("/sessions", json=birth).json()["id"]
         for message, _, _ in TURNS:

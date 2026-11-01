@@ -231,7 +231,7 @@ def test_h3_markdown_never_reaches_the_client(chart):
 # --- H4: the service never waits on itself ---------------------------------------------------------------------------
 
 BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": 28.1989, "lon": 76.617,
-         "node": "mean", "place": "Rewari, Haryana", "as_of": AS_OF.isoformat()}
+         "node": "mean", "place": "Rewari, Haryana"}         # the date is the server's (review M2): `today` below
 
 
 def carry(old, new):
@@ -257,9 +257,11 @@ def test_h4_a_turn_in_a_fresh_app_with_one_worker_finishes(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
     db = f"sqlite:///{tmp_path / 'h4.db'}"
-    with TestClient(create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)) as before:
+    with TestClient(create_app(db, today=lambda: AS_OF, turn_writer=OfflineTurnWriter,
+                               turn_checker=lambda: passes)) as before:
         sids = [before.post("/sessions", json=BIRTH).json()["id"] for _ in range(2)]
-    fresh = create_app(db, workers=1, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
+    fresh = create_app(db, today=lambda: AS_OF, workers=1, turn_writer=OfflineTurnWriter,
+                       turn_checker=lambda: passes)
     with carry(before, TestClient(fresh)) as c:
         urls = []
         for sid in sids:
@@ -286,11 +288,12 @@ def test_h6_a_turn_cut_off_by_a_restart_is_failed_and_the_conversation_goes_on(t
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
     db = f"sqlite:///{tmp_path / 'h6.db'}"
-    app = create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
+    app = create_app(db, today=lambda: AS_OF, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
     with TestClient(app) as before:
         sid = before.post("/sessions", json=BIRTH).json()["id"]
     stuck = [_stuck(app, sid, "running")]
-    fresh = create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)    # the restart
+    fresh = create_app(db, today=lambda: AS_OF, turn_writer=OfflineTurnWriter,          # the restart
+                       turn_checker=lambda: passes)
     with carry(before, TestClient(fresh)) as c:
         assert c.get(f"/sessions/{sid}/turns/{stuck[0]}").json()["status"] == "failed"
         r = c.post(f"/sessions/{sid}/turns", json={"message": "and marriage?"})
@@ -301,7 +304,8 @@ def test_h6_a_turn_cut_off_by_a_restart_is_failed_and_the_conversation_goes_on(t
 def test_h6_a_turn_past_the_limit_is_failed_and_the_conversation_goes_on(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
-    app = create_app(f"sqlite:///{tmp_path / 'h6b.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+    app = create_app(f"sqlite:///{tmp_path / 'h6b.db'}", today=lambda: AS_OF,
+                     turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
                      turn_limit=600)
     with TestClient(app) as c:
         sid = c.post("/sessions", json=BIRTH).json()["id"]
@@ -324,7 +328,8 @@ def test_h6_a_turn_past_the_limit_is_failed_and_the_conversation_goes_on(tmp_pat
 def h7(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
-    app = create_app(f"sqlite:///{tmp_path / 'h7.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+    app = create_app(f"sqlite:///{tmp_path / 'h7.db'}", today=lambda: AS_OF,
+                     turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
                      reviewers={"rtok": "ray"})
     with TestClient(app) as c:
         r = c.post("/sessions", json=BIRTH)
@@ -437,7 +442,8 @@ def test_h7_forget_this_conversation_erases_it_and_keeps_a_reviewed_turns_judgem
 def test_h5_the_payloads_held_are_bounded(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
-    app = create_app(f"sqlite:///{tmp_path / 'h5.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+    app = create_app(f"sqlite:///{tmp_path / 'h5.db'}", today=lambda: AS_OF,
+                     turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
                      payloads_held=2)
     with TestClient(app) as c:
         sids = [c.post("/sessions", json=BIRTH).json()["id"] for _ in range(4)]
@@ -450,7 +456,7 @@ def test_h5_the_payloads_held_are_bounded(tmp_path):
 def test_h5_post_sessions_is_rate_limited(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
-    app = create_app(f"sqlite:///{tmp_path / 'h5b.db'}", rate=(2, 100))
+    app = create_app(f"sqlite:///{tmp_path / 'h5b.db'}", today=lambda: AS_OF, rate=(2, 100))
     with TestClient(app) as c:
         assert [c.post("/sessions", json=BIRTH).status_code for _ in range(2)] == [201, 201]
         r = c.post("/sessions", json=BIRTH)
@@ -502,3 +508,37 @@ def test_h2_the_writers_material_carries_no_tier_word(chart):
                                 weakest=route.areas_from == "weakest")
         user = _material(chart, message, route, engine, [], AS_OF)[0]
         assert not TIER_WORDS.search(user) and not re.search(r"strongest|weakest|strongly|moderately", user), message
+
+
+# --- M2: a minor's chart and the session's date ----------------------------------------------------------------------
+
+@pytest.mark.parametrize("message", ["tell me about my chart", "what are his strengths", "what are the challenges",
+                                     "when?", "how is my son's chart", "how is my son's future? this is his chart",
+                                     "how is his education", "how is my studies", "what are her strengths"])
+def test_m2_a_minors_general_questions_are_answered_from_the_general_areas(chart, message):
+    from jyotish.conversation import MINOR_AREAS
+    route = route_turn(message, chart, minor=True)
+    assert route.off_limits is None, (message, route.off_limits)
+    assert route.areas and set(route.areas) <= set(MINOR_AREAS)
+
+
+@pytest.mark.parametrize("message,kind", [("what about his marriage", "minor"), ("when will he get a job", "minor"),
+                                          ("what is my wife's future", "other_person"), ("will he die early", "death")])
+def test_m2_a_minors_chart_still_refuses_the_rest(chart, message, kind):
+    assert route_turn(message, chart, minor=True).off_limits == kind
+
+
+def test_m2_the_sessions_date_is_the_servers(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    app = create_app(f"sqlite:///{tmp_path / 'm2.db'}", reviewers={"rtok": "ray"}, today=lambda: AS_OF)
+    with TestClient(app) as c:
+        assert c.post("/sessions", json=BIRTH).json()["as_of"] == AS_OF.isoformat()
+        # A client cannot move the date (a minor's chart made an adult's); a reviewer can.
+        assert c.post("/sessions", json=dict(BIRTH, as_of="2040-01-01")).status_code == 401
+        r = c.post("/sessions", json=dict(BIRTH, as_of="2040-01-01"), headers={"Authorization": "Bearer rtok"})
+        assert r.status_code == 201 and r.json()["as_of"] == "2040-01-01"
+        assert c.post("/sessions", json=dict(BIRTH, date="2030-01-01")).status_code == 422     # born after today
+    from jyotish.db import SessionRow
+    with app.state.Session() as s:
+        assert not any(r.minor for r in s.query(SessionRow))
