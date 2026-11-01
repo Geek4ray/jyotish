@@ -18,9 +18,14 @@ EDITED = str(ROOT / "tests" / "fixtures" / "narration_career_edited.json")
 
 
 @pytest.fixture(scope="module")
-def url(tmp_path_factory):
+def db(tmp_path_factory):
+    return tmp_path_factory.mktemp("chat") / "chat.db"
+
+
+@pytest.fixture(scope="module")
+def url(db):
     from test_web import _serve
-    server, thread, base = _serve(tmp_path_factory.mktemp("chat") / "chat.db", EDITED)
+    server, thread, base = _serve(db, EDITED)
     yield base
     server.should_exit = True
     thread.join(5)
@@ -109,3 +114,31 @@ def test_forget_this_conversation_erases_it_and_the_page_starts_again(page):
     page.wait_for_selector("#birth-form", state="visible")
     assert page.locator(".turn").count() == 0 and page.locator("#check-line").is_hidden()
     assert page.evaluate("fetch('/sessions/current').then(r => r.status)") == 404
+
+
+def test_the_stored_answer_is_shown_when_the_live_events_are_gone(page, url, db):
+    """A turn answered where this process holds no live events (another process, or before a restart): the page
+    follows it, and when it is done renders the stored answer (review L1)."""
+    import uuid
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.db import TurnRow, migrate
+    page.goto(f"{url}/chat.html")
+    page.fill("#date", "2001-03-12")
+    page.fill("#time", "10:10:25")
+    page.fill("#place", "Rewari")
+    page.wait_for_selector("#place-list li")
+    page.click("#place-list li")
+    page.click("#draw")
+    page.wait_for_selector("#check-line:not([hidden])")
+    sid = page.evaluate("fetch('/sessions/current').then(r => r.json()).then(s => s.id)")
+    Session = sessionmaker(migrate(f"sqlite:///{db}"), expire_on_commit=False)
+    tid = uuid.uuid4().hex
+    with Session.begin() as s:
+        s.add(TurnRow(id=tid, session_id=sid, n=1, question="how is my career", status="running"))
+    page.reload()
+    page.wait_for_selector(".turn .writing")
+    with Session.begin() as s:
+        row = s.get(TurnRow, tid)
+        row.status, row.document = "done", {"shown": ["The first stored sentence.", "The second one."],
+                                            "paragraphs": [0, 1]}
+    assert answered(page, 1) == "The first stored sentence.\n\nThe second one."

@@ -817,3 +817,105 @@ def test_m6_live_timing_turn_runs_the_five_turn_conversation(monkeypatch, capsys
     assert [r["route"]["areas"] for r in rows[:4]] == [["father", "reputation", "siblings"], ["marriage"],
                                                        ["marriage"], ["marriage"]]
     assert rows[4]["source"] == "fixed" and rows[4]["route"]["off_limits"] == "death"
+
+
+# --- L1: smaller points ----------------------------------------------------------------------------------------------
+
+def test_l1_two_posts_at_once_give_409_never_500(tmp_path, monkeypatch):
+    import threading
+    import uuid as _uuid
+    from fastapi.testclient import TestClient
+    from jyotish import api
+    app = api.create_app(f"sqlite:///{tmp_path / 'l1.db'}", today=lambda: AS_OF, turn_writer=OfflineTurnWriter,
+                         turn_checker=lambda: passes)
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=BIRTH).json()["id"]
+        gate = threading.Barrier(2)
+        real = _uuid.uuid4
+
+        def together():                               # both requests past the 409 check before either inserts
+            gate.wait(5)
+            return real()
+        monkeypatch.setattr(api.uuid, "uuid4", together)
+        out = []
+        threads = [threading.Thread(target=lambda: out.append(
+            c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).status_code)) for _ in range(2)]
+        [t.start() for t in threads]
+        [t.join(30) for t in threads]
+        monkeypatch.setattr(api.uuid, "uuid4", real)
+        assert sorted(out) == [202, 409]
+        wait_turn(c, f"/sessions/{sid}/turns/1")
+
+
+def test_l1_the_writer_is_given_the_last_three_turns_only(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    seen = []
+
+    class Writer(OfflineTurnWriter):
+        def __call__(self, system, user, errors):
+            seen.append(json.loads(user))
+            return super().__call__(system, user, errors)
+    app = create_app(f"sqlite:///{tmp_path / 'l1b.db'}", today=lambda: AS_OF, turn_writer=Writer,
+                     turn_checker=lambda: passes)
+    messages = ["how is my career", "and marriage?", "what about money", "how is my mind", "and my home?"]
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=BIRTH).json()["id"]
+        for m in messages:
+            n = c.post(f"/sessions/{sid}/turns", json={"message": m}).json()["n"]
+            wait_turn(c, f"/sessions/{sid}/turns/{n}")
+    assert [len(x["earlier_turns"]) for x in seen] == [0, 1, 2, 3, 3]
+    assert [t["question"] for t in seen[-1]["earlier_turns"]] == messages[1:4]
+
+
+def test_l1_why_after_a_fixed_reply_explains_the_refusal(chart):
+    from jyotish.client import client_warnings
+    from jyotish.conversation import REPLIES, WHY_REPLIES
+    first = route_turn("how is my career", chart)
+    refused = route_turn("will I die early?", chart, first)
+    why = route_turn("why?", chart, first, refused=refused.off_limits)
+    assert (why.explains, why.off_limits, why.areas) == ("death", None, [])
+    doc = answer_turn(chart, "why?", why, as_of=AS_OF)
+    assert doc["source"] == "fixed" and doc["shown"] == [WHY_REPLIES["death"]]
+    # After an answered turn, "why?" still explains the last answer.
+    assert route_turn("why?", chart, first).areas == first.areas
+    assert set(WHY_REPLIES) == set(REPLIES)
+    assert not [w for r in WHY_REPLIES.values() for w in client_warnings(r, conversation=True)]
+    assert "14416" in WHY_REPLIES["distress"]
+
+
+def test_l1_why_after_a_fixed_reply_through_the_service(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    from jyotish.conversation import WHY_REPLIES
+    app = create_app(f"sqlite:///{tmp_path / 'l1c.db'}", today=lambda: AS_OF, turn_writer=OfflineTurnWriter,
+                     turn_checker=lambda: passes)
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=BIRTH).json()["id"]
+        for m in ("how is my career", "should I buy bitcoin", "why?"):
+            n = c.post(f"/sessions/{sid}/turns", json={"message": m}).json()["n"]
+            wait_turn(c, f"/sessions/{sid}/turns/{n}")
+        assert c.get(f"/sessions/{sid}/turns/3").json()["answer"] == [WHY_REPLIES["trade"]]
+
+
+def test_l1_off_limits_is_logged_by_the_service_not_by_routing(tmp_path, chart, caplog):
+    import logging
+    from fastapi.testclient import TestClient
+    from jyotish import logs
+    from jyotish.api import create_app
+    logs.setup()
+    logger = logging.getLogger(logs.LOGGER)
+    logger.propagate = True
+    try:
+        with caplog.at_level(logging.INFO, logger=logs.LOGGER):
+            route_turn("should I buy bitcoin", chart)
+            assert not [r for r in caplog.records if r.getMessage() == "turn.off_limits"]
+            app = create_app(f"sqlite:///{tmp_path / 'l1d.db'}", today=lambda: AS_OF)
+            with TestClient(app) as c:
+                sid = c.post("/sessions", json=BIRTH).json()["id"]
+                n = c.post(f"/sessions/{sid}/turns", json={"message": "should I buy bitcoin"}).json()["n"]
+                wait_turn(c, f"/sessions/{sid}/turns/{n}")
+    finally:
+        logger.propagate = False
+    rec = [r for r in caplog.records if r.getMessage() == "turn.off_limits"]
+    assert rec and all(r.fields == {"kind": "trade"} for r in rec)          # by kind only, never the message

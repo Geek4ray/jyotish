@@ -113,16 +113,16 @@ def test_a_minors_chart_answers_the_general_areas_only(chart):
     assert "intellect" in MINOR_AREAS and "marriage" not in MINOR_AREAS
 
 
-def test_an_off_limits_turn_is_logged_by_kind_without_the_message(chart, caplog):
+def test_routing_an_off_limits_message_writes_no_log(chart, caplog):
+    # The service logs an off-limits turn by kind when it answers one (review L1; tests/test_chat_review.py): a
+    # script or a test that only routes a message writes no event.
     from jyotish import logs
     logs.setup()
     logger = logging.getLogger(logs.LOGGER)
     logger.propagate = True
     try:
         with caplog.at_level(logging.INFO, logger=logs.LOGGER):
-            route_turn("should I buy bitcoin", chart)
+            assert route_turn("should I buy bitcoin", chart).off_limits == "trade"
     finally:
         logger.propagate = False
-    rec = [r for r in caplog.records if r.getMessage() == "turn.off_limits"]
-    assert rec and rec[0].fields == {"kind": "trade"}
-    assert "bitcoin" not in json.dumps(rec[0].fields)
+    assert not [r for r in caplog.records if r.getMessage() == "turn.off_limits"]

@@ -359,16 +359,22 @@ class Route(BaseModel):
     areas_from: str = "named"                              # named | carried | weakest | top
     off_limits: str | None = None
     third_party: bool = False                              # "will she marry me": THIRD_PARTY_LINE follows the answer
+    explains: str | None = None                            # "why?" after a fixed reply: the kind it explains (L1)
 
 
-def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: bool = False) -> Route:
-    """Read one message with the conversation (the module docstring). `last` is the previous turn's route."""
+def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: bool = False,
+               refused: str | None = None) -> Route:
+    """Read one message with the conversation (the module docstring). `last` is the route of the last turn that
+    was answered from the chart; `refused` the off-limits kind of the turn just before, when it got a fixed reply:
+    a "why?" after it asks why that question was not answered (review L1), and gets WHY_REPLIES. Nothing is logged
+    here: the service logs an off-limits turn when it answers one (review L1)."""
     last = Route(**last) if isinstance(last, dict) else last
     if off_limits(message) == "distress":         # before a follow-up can carry anything (review C2)
-        log_off_limits("distress")
         return Route(areas=[], direction="both", off_limits="distress")
     named, direction = areas_of(message), direction_of(message)
     when, why = bool(WHEN.search(message)), bool(WHY.search(message))
+    if refused and why and not named and len(tokens(message)) <= FOLLOW_MAX_WORDS:
+        return Route(areas=[], direction="both", why=True, follow_up=True, explains=refused)
     short = len(tokens(message)) <= FOLLOW_MAX_WORDS
     follow = bool(last and not last.off_limits and last.areas and
                   (FOLLOW_OPENER.search(message) or why or (short and not named and direction is None)))
@@ -388,14 +394,38 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     direction = direction or "both"
     assert direction in DIRECTIONS
     kind = off_limits(message, minor=minor, areas=areas)
-    if kind:
-        log_off_limits(kind)
     return Route(areas=areas, direction=direction, when=when, why=why, follow_up=follow, carried=carried,
                  areas_from=areas_from, off_limits=kind, third_party=bool(THIRD_PARTY.search(normalise(message))))
 
 
 def fixed_reply(kind: str) -> str:
     return REPLIES[kind]
+
+
+# "Why?" after a fixed reply: why that question is not answered (review L1), in the client's words.
+WHY_REPLIES = {
+    "distress": ("Because what you wrote sounded like you are carrying a lot of pain right now, and that matters more "
+                 "than any chart. Please talk to someone today: in India, Tele-MANAS on 14416, free and at any hour, or "
+                 "the emergency number 112; anywhere else, your local emergency number or a crisis line."),
+    "death": ("Tatva leaves out questions about death and how long anyone will live because no chart can time them "
+              "honestly, and a guess could frighten or mislead you. Anything else in your chart is open to ask about."),
+    "illness": ("Tatva leaves out illness and diagnosis because a chart cannot see what a doctor sees, and a wrong word "
+                "about health can do real harm. Anything else in your chart is open to ask about."),
+    "trade": ("Tatva leaves out trades, investments and bets because a chart cannot see what a market will do, and money "
+              "lost on a chart's word is real money. You can still ask how your chart reads for money in general."),
+    "other_person": ("Tatva reads only the chart whose birth details were entered here: another person's chart, fate or "
+                     "future is theirs, and reading it without them would be guessing. You can ask how your own chart "
+                     "reads for the relationship."),
+    "minor": ("This chart belongs to someone under eighteen, so questions about marriage, children, money, work or "
+              "health wait until they are an adult; temperament, learning, brothers and sisters, home and parents are "
+              "open to ask about now."),
+}
+
+
+def history_of(earlier: list[dict], keep: int = 3) -> list[dict]:
+    """The earlier turns the writer is given: the last `keep` turns' accepted text, as the client read it (review
+    L1: the whole conversation made every turn dearer than the last)."""
+    return list(earlier)[-keep:] if keep else []
 
 
 def log_off_limits(kind: str, **fields: Any) -> None:
@@ -674,8 +704,8 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     mark = lambda k: timeline.setdefault(k, round(time.perf_counter() - t0, 3))
     doc: dict[str, Any] = {"question": message, "route": route.model_dump(), "as_of": as_of.isoformat(),
                            "removed": [], "warnings": [], "checks": [], "writer": {}, "checker": {}, "usage": {}}
-    if route.off_limits:
-        reply = fixed_reply(route.off_limits)
+    if route.off_limits or route.explains:
+        reply = fixed_reply(route.off_limits) if route.off_limits else WHY_REPLIES[route.explains]
         emit({"type": "text", "i": 0, "text": reply, "para": True})
         mark("done")
         emit({"type": "done", "status": "done"})

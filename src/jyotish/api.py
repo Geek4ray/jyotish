@@ -727,7 +727,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     def run_turn(turn_id: str) -> None:
         from datetime import date as _date
-        from .conversation import answer_turn, route_turn
+        from .conversation import answer_turn, history_of, log_off_limits, route_turn
         with Session() as s:
             t = s.get(TurnRow, turn_id)
             srow = s.get(SessionRow, t.session_id)
@@ -735,9 +735,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                               TurnRow.status == "done").order_by(TurnRow.n).all()
             message, chart_id, as_of, minor = t.question, srow.chart_id, _date.fromisoformat(srow.as_of), srow.minor
             last = next((x.route for x in reversed(earlier) if x.route and not x.route.get("off_limits")), None)
-            # The writer is given the accepted text of earlier turns only: what the client read.
-            history = [{"question": x.question, "answer": " ".join((x.document or {}).get("shown") or [])}
-                       for x in earlier]
+            refused = (earlier[-1].route or {}).get("off_limits") if earlier else None
+            # The writer is given the accepted text of the last three earlier turns only: what the client read.
+            history = history_of([{"question": x.question, "answer": " ".join((x.document or {}).get("shown") or [])}
+                                  for x in earlier])
         try:
             with Session.begin() as s:
                 row = s.get(TurnRow, turn_id)
@@ -745,7 +746,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                     return
                 row.status = "running"
             chart = chart_of(chart_id)
-            route = route_turn(message, chart, last, minor=minor)
+            route = route_turn(message, chart, last, minor=minor, refused=refused)
+            if route.off_limits:                     # logged by kind here, for a turn the service answers (L1)
+                log_off_limits(route.off_limits)
             with Session.begin() as s:
                 s.get(TurnRow, turn_id).route = route.model_dump()
             data = None if route.off_limits else session_payload(t.session_id, chart, as_of).result()
@@ -780,15 +783,18 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             raise HTTPException(status_code=429, detail="too many questions: try again later",
                                 headers={"Retry-After": str(wait)})
         tid = uuid.uuid4().hex
-        with Session.begin() as s:
-            srow = client_session(s, sid, request)
-            turns = s.query(TurnRow).filter_by(session_id=sid).all()
-            expire_turns(s, turns)
-            if any(t.status in ("queued", "running") for t in turns):
-                raise HTTPException(status_code=409, detail="the last question is still being answered")
-            n = max((t.n for t in turns), default=0) + 1
-            s.add(TurnRow(id=tid, session_id=sid, n=n, birth_key=srow.birth_key, question=req.message,
-                          status="queued"))
+        try:
+            with Session.begin() as s:
+                srow = client_session(s, sid, request)
+                turns = s.query(TurnRow).filter_by(session_id=sid).all()
+                expire_turns(s, turns)
+                if any(t.status in ("queued", "running") for t in turns):
+                    raise HTTPException(status_code=409, detail="the last question is still being answered")
+                n = max((t.n for t in turns), default=0) + 1
+                s.add(TurnRow(id=tid, session_id=sid, n=n, birth_key=srow.birth_key, question=req.message,
+                              status="queued"))
+        except IntegrityError:                       # two posts at once: the other one took turn n (review L1)
+            raise HTTPException(status_code=409, detail="the last question is still being answered")
         pool.submit(run_turn, tid)
         keep_secret(response, request, sid, request.cookies.get(f"tatva_{sid}"))     # 180 days from this turn
         return {"n": n, "status": "queued", "url": f"/sessions/{sid}/turns/{n}",

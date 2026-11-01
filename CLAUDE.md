@@ -349,4 +349,25 @@ replay (`model_fixture`) answers turns with `conversation.OfflineTurnWriter`, un
 Tests: tests/test_conversation.py (the five turns), test_conversation_route.py, test_sessions.py,
 test_session_review.py, test_web_chat.py (Playwright); scripts/smoke.py asks a turn; `scripts/live_timing.py --turn`
 times one into docs/live_timings.jsonl, and the scorecard reports the turn numbers (never gated).
+The review of chat v1 (docs/review_2026-11-01_chat.md, C1-C2, H1-H7, M1-M6, L1), fixed as SPEC Layer 8 rev 130
+decided, one commit each, tests in tests/test_chat_review.py (the heading "The review of chat v1, fixed" of
+docs/spec_notes_2026-11-01.md). No default route goes to longevity, health or synastry (`conversation.top_areas`,
+`weakest_areas`, `NOT_DEFAULT`), and no stretch of long life or health reaches the client (`narrate.NO_STRETCHES`);
+the first chips name an area. Every message is `normalise`d before every pattern; distress is read first and widest,
+in English, Hinglish and Devanagari, before a follow-up can carry anything (the Hindi list awaits a clinician's or
+the helpline's reading). Off limits are phrases (`DEATH`, `ILLNESS`, `TRADE`, `OTHER_PERSON`); "will she marry me"
+is the client's own marriage with `THIRD_PARTY_LINE`. The weakest areas rank adverse direction first; a turn routed
+there opens with what leans against, or says nothing does. Engine sentences are in the client's words (no D-code,
+"score", method name or tier word; the tier sentence gives the overall lean), `client.CONVERSATION_WORDS` warns, and
+markdown never reaches the client. A turn's payload is made on its own executor, held for `payloads_held`
+conversations; POST /sessions is rate-limited; turns cut off by a restart or past `turn_limit` are failed. A
+conversation's secret is an HttpOnly cookie (`sessions.secret_hash`, Alembic 0006; `GET /sessions/current`; its
+chart under `/sessions/{id}/`), its id masked in the logs, its date the server's (`create_app(today=)`, `as_of` a
+reviewer's); it ends 180 days after its last turn and is erased then (`outcomes.expire_sessions`), by "forget this
+conversation" (DELETE /sessions/{id}) or by `jyotish session erase <id> | --birth-key` (`outcomes.erase_sessions`,
+logged in `erasures`, a reviewed turn's judgement kept). A minor's defaults are the general areas. The vocabulary is
+`conversation.AREA_VOCAB` (whole words and stems, Hinglish, Devanagari). A turn is held sentence by sentence
+(`live.HeldParagraph`) and retries its failed sentences alone; `narrate.sentences` splits "[tag]Capital"; turn
+sentences are benchmark rows (`where: "answer"`); `scripts/live_timing.py --turn` times the five-turn conversation;
+"why?" after a fixed reply explains it (`WHY_REPLIES`); the writer gets the last three turns (`history_of`).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

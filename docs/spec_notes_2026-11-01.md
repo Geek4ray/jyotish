@@ -358,3 +358,13 @@ tests/test_chat_review.py unless named otherwise.
     part of the chart leans against the client, though the engine's answer opened with it. These are the client's
     view's problems for the person who tries it (definition of done, item 8) and for the next build: the writer's
     material still carries the vote table (`area_votes`) in its own terms.
+- **L1. Smaller points.** The page renders the stored answer whenever a turn is done (`settle` in chat.js fetches
+  `GET /sessions/{id}/turns/{n}`), so a turn answered where this process holds no live events (another process, a
+  restart) ends on its answer, not on "Reading your chart"; a Playwright test marks a followed turn done in the
+  database and the page shows it. Two posts at once give 409, never 500: the unique turn number's IntegrityError at
+  insert or commit is a 409 (a test sends two posts past the 409 check together and gets 202 and 409). The writer is
+  given the last three earlier turns' accepted text only (`conversation.history_of`; a test reads the fifth turn's
+  material). "Why?" right after a fixed reply explains that refusal (`Route.explains`, `WHY_REPLIES`, one for each
+  off-limits kind, each held to the conversation's words; the distress one repeats the helpline) instead of the last
+  answered turn's findings. `route_turn` logs nothing; the service logs `turn.off_limits` by kind when it answers an
+  off-limits turn, so a script or a test that only routes a message writes no event.
