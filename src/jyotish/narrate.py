@@ -2526,6 +2526,223 @@ def client_windows(areas: list["ReadingArea"]) -> str | None:
     return " ".join(parts)
 
 
+# --- the engine's own answer to a turn (SPEC Layer 8, 2026-11-01) --------------------------------------------
+# Deterministic, no model, in plain words and no figures: per routed area the tier, how far it depends on the birth
+# time, the families leaning the way the question asks (each with the derivation row it rests on), and for a "when"
+# turn the most and least favourably scored stretches as months. Every sentence carries notes into the area's
+# technical sheet (jyotish.sheet): {area, point, item} for an item, {area, point: 10, row: family} for the votes
+# table. It is the astrologer's layer (the review page, the JSON), the material handed to the writer, and the
+# client's answer only when the writer's whole answer fails.
+
+DIRECTIONS = ("against", "for", "both")
+FAMILY_ORDER = ("house", "lord", "karaka", "varga", "arudha", "kp", "panchanga")
+CLIENT_AREA = {"personality": "yourself and your temperament", "wealth": "money", "siblings": "brothers, sisters and courage",
+               "mother_home": "home and your mother", "children": "children", "intellect": "learning and studies",
+               "health": "health", "debts_enemies": "debts, rivals and disputes", "marriage": "marriage",
+               "longevity": "long life", "father": "your father", "fortune": "fortune and faith", "career": "your career",
+               "gains": "gains and friendships", "foreign": "travel and life abroad", "spirituality": "spiritual life",
+               "mind": "your mind and feelings", "reputation": "your reputation", "synastry": "a match between two charts"}
+DIGNITY_PLAIN = {"exalted": "exalted, where it is at its strongest", "moolatrikona": "in its own sign",
+                 "own": "in its own sign", "great friend": "in a very friendly sign", "friend": "in a friendly sign",
+                 "neutral": "in a neutral sign", "enemy": "in an unfriendly sign", "great enemy": "in a hostile sign",
+                 "debilitated": "debilitated, where it is at its weakest"}
+TIER_SENTENCE = {"strong": "For {label}, the chart's indications are strongly supportive.",
+                 "moderate": "For {label}, the chart's indications are moderately supportive.",
+                 "weak / mixed": "For {label}, the chart's indications are mixed.",
+                 "not emphasised": "This chart does not emphasise {label}.",
+                 "cannot be assessed": "{Label} cannot be judged from this chart.",
+                 "needs two charts": "{Label} needs a second person's chart to be read."}
+
+
+class EngineSentence(BaseModel):
+    text: str
+    # Notes into the sheet: {area, point, item, text} for an item, {area, point: 10, row, text} for the votes table.
+    notes: list[dict[str, Any]]
+
+
+class EngineAnswer(BaseModel):
+    question: str
+    direction: str
+    areas: list[str]
+    when: bool = False
+    sentences: list[EngineSentence]
+
+    @property
+    def text(self) -> str:
+        return " ".join(s.text for s in self.sentences)
+
+    def footnoted(self) -> str:
+        """The answer as Markdown, each sentence's notes as footnotes quoting the sheet."""
+        body, notes = [], []
+        for s in self.sentences:
+            marks = []
+            for n in s.notes:
+                notes.append(f"[^{len(notes) + 1}]: {n['area'].replace('_', ' ')} sheet, point {n['point']}"
+                             f"{' (' + n['row'] + ')' if n.get('row') else ''}: {n['text']}")
+                marks.append(f"[^{len(notes)}]")
+            body.append(s.text + "".join(marks))
+        return " ".join(body) + ("\n\n" + "\n".join(notes) if notes else "")
+
+
+def _cap(s: str) -> str:
+    return s[:1].upper() + s[1:]
+
+
+def _the(planet: str) -> str:
+    return f"the {planet}" if planet in ("Sun", "Moon") else planet
+
+
+def _and(xs: list[str]) -> str:
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
+def _sheet_note(sheet: dict, point: int, fact: str | None = None, area: str = "") -> dict | None:
+    """The first item of a sheet point whose facts start with `fact` (any item when None)."""
+    pt = next((p for p in sheet["points"] if p["n"] == point), None)
+    for i, it in enumerate((pt or {}).get("items", [])):
+        if fact is None or any(f == fact or f.startswith(fact + ".") for f in it["facts"]):
+            return {"area": area, "point": point, "item": i, "text": it["text"]}
+    return None
+
+
+def _row_note(sheet: dict, family: str, area: str) -> dict | None:
+    pt = next(p for p in sheet["points"] if p["n"] == 10)
+    row = next((r for r in pt.get("table", {}).get("rows", []) if r["family"] == family), None)
+    return row and {"area": area, "point": 10, "row": family, "text": f"{row['vote']} — {row['rests on']}"}
+
+
+def _rel_phrase(r: float) -> str:
+    return ("one of the weakest" if r <= -0.5 else "weaker than most" if r < 0 else "about average" if r == 0
+            else "stronger than most" if r < 0.5 else "one of the strongest")
+
+
+def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet: dict) -> EngineSentence | None:
+    """One sentence for a family leaning for (+1) or against (-1) the area, with the row it rests on."""
+    vote, der = v["vote"], v.get("derivation")
+    lean = "favourably" if vote > 0 else "unfavourably"
+    rows = [r for r in der if isinstance(r, dict)] if isinstance(der, list) else []
+    notes = [_row_note(sheet, fam, area)]
+    dig = lambda d: f", {DIGNITY_PLAIN[d]}" if d in DIGNITY_PLAIN else ""
+    if fam == "house" and rows:
+        r = rows[0]
+        agrees = (r["relative"] > 0) == (vote > 0) and r["relative"] != 0
+        text = (f"Taken together, the houses that govern {label} lean {lean}{': ' if agrees else ', though '}the main one, "
+                f"the {_ORD[r['house']]} house from your rising sign, in {r['sign']}, is {_rel_phrase(r['relative'])} "
+                f"of your twelve houses.")
+        notes.append(_sheet_note(sheet, 1, f"houses.lagna.{r['house']}", area))
+    elif fam == "lord" and rows:
+        r = rows[0]
+        text = (f"The planets that rule the houses of {label} lean {lean}; {_the(r['lord'])}, which rules the {_ORD[r['house']]} house, "
+                f"sits in {r['lord_sign']} in your {_ORD[r['lord_house_from_lagna']]} house{dig(r.get('dignity'))}.")
+        notes.append(_sheet_note(sheet, 2, f"planets.{r['lord']}", area))
+    elif fam == "karaka" and rows:
+        main = data["areas"][area].get("main_karaka")
+        r = next((x for x in rows if x["planet"] == main), rows[0])
+        text = (f"The planets that signify {label} lean {lean}; the main one, {_the(r['planet'])}, sits in {r['sign']} in "
+                f"your {_ORD[r['house']]} house{dig(r.get('dignity'))}.")
+        notes.append(_sheet_note(sheet, 3, f"planets.{r['planet']}", area))
+    elif fam == "varga" and rows:
+        side = [x for x in rows if (x.get("score") or 0) * vote > 0] or rows
+        r = max(side, key=lambda x: abs(x.get("score") or 0))
+        text = (f"The divisional chart for {label} ({r['varga']}) leans {lean}; there {_the(r['planet'])} falls in "
+                f"{r['varga_sign']}{dig(r.get('varga_dignity_label'))}.")
+        notes.append(_sheet_note(sheet, 5, f"vargas.{r['varga']}", area))
+    elif fam == "arudha" and isinstance(der, dict) and der.get("padas"):
+        padas = der["padas"]
+        signs = list(dict.fromkeys(p["sign"] for p in padas))
+        occ = list(dict.fromkeys(o for p in padas for o in p.get("occupants", [])))
+        ben = list(dict.fromkeys(b for p in padas for b in p.get("benefics", [])))
+        hard = [o for o in occ if o not in ben]
+        verb = "leans" if len(signs) == 1 else "lean"
+        where = f"The {'signs' if len(signs) > 1 else 'sign'} that {'show' if len(signs) > 1 else 'shows'} how {label} appears to others, {_and(signs)},"
+        if vote < 0 and hard:
+            text = (f"{where} {verb} {lean}: {_and([_the(p) for p in hard])} {'sits' if len(hard) == 1 else 'sit'} there"
+                    + (f", against {_and([_the(p) for p in ben])}." if ben else ", with no helpful planet beside."))
+        elif vote > 0 and ben:
+            text = f"{where} {verb} {lean}: {_and([_the(p) for p in ben])} {'sits' if len(ben) == 1 else 'sit'} there."
+        else:
+            text = f"{where} {verb} {lean}."
+        notes += [_sheet_note(sheet, 8, f"jaimini.arudhas.{p['pada']}", area) for p in padas]
+    elif fam == "kp":
+        text = f"The Krishnamurti method, which reads the exact start of each house, leans {lean} for {label}."
+        notes.append(_sheet_note(sheet, 7, f"areas.{area}.votes.kp.vote", area))
+    elif fam == "panchanga" and rows:
+        planets = list(dict.fromkeys(r["planet"] for r in rows))
+        text = f"The rulers of the day you were born, {_and([_the(p) for p in planets])}, lean {lean} for {label}."
+        notes.append(_sheet_note(sheet, 9, f"areas.{area}.votes.panchanga.derivation", area))
+    else:
+        return None
+    return EngineSentence(text=text, notes=[n for n in notes if n])
+
+
+def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first: bool) -> list[EngineSentence]:
+    tm = (data.get("timing") or {}).get(area) or {}
+    ws = tm.get("windows") or []
+    if not ws:
+        return []
+    i = max(range(len(ws)), key=lambda k: ws[k]["score"])
+    best = EngineSentence(text=f"The stretch the chart scores most favourable for {label} runs "
+                               f"{_months(ws[i]['start'], ws[i]['end'])}.",
+                          notes=[n for n in [_sheet_note(sheet, 11, f"timing.{area}.windows.{i}", area)] if n])
+    out = [best]
+    if tm.get("avoid"):
+        av = tm["avoid"]
+        out.append(EngineSentence(text=f"The stretch it scores least favourable runs {_months(av['start'], av['end'])}.",
+                                  notes=[n for n in [_sheet_note(sheet, 11, f"timing.{area}.avoid", area)] if n]))
+        if hard_first:
+            out.reverse()
+    out.append(EngineSentence(text=("These are the chart's scores, and neither stretch is a prediction of when you will "
+                                    "act." if len(out) > 1 else "This is the chart's score, not a prediction of when "
+                                                                "you will act."),
+                              notes=[n for s in out for n in s.notes]))
+    return out
+
+
+def engine_reading(chart: Chart, question: str, direction: str, areas: list[str], *, as_of: date,
+                   when: bool = False) -> EngineAnswer:
+    """The engine's own answer to a turn (SPEC Layer 8): for each area, in order, the tier in plain words, how far
+    it depends on the birth time, then the families leaning the way `direction` asks ("against": those against,
+    the hard part only; "for": those for; "both": for, then against), each with the row of its derivation it rests
+    on; with `when`, the most and least favourably scored stretches as months (the least first for "against").
+    Deterministic: the same chart, question, direction, areas and date give the same text. No model, no figure."""
+    from .fullchart import cached_payload
+    from .sheet import build
+    if direction not in DIRECTIONS:
+        raise ValueError(f"direction must be one of {DIRECTIONS}, not {direction!r}")
+    data = cached_payload(chart, as_of, *full_range(as_of), list(areas))
+    out: list[EngineSentence] = []
+    for area in areas:
+        label = CLIENT_AREA.get(area, area.replace("_", " "))
+        a = data["areas"].get(area) or {}
+        sheet = build(data, area)
+        if sheet is None:                              # an area the engine does not map (synastry)
+            tier = a.get("tier") or "needs two charts"
+            out.append(EngineSentence(text=TIER_SENTENCE.get(tier, TIER_SENTENCE["cannot be assessed"]).format(
+                label=label, Label=_cap(label)), notes=[]))
+            continue
+        st_note = _sheet_note(sheet, 14, f"areas.{area}.stability", area)
+        out.append(EngineSentence(text=TIER_SENTENCE[a["tier"]].format(label=label, Label=_cap(label)),
+                                  notes=[n for n in [_sheet_note(sheet, 10, None, area), st_note] if n]))
+        label_st = (a.get("stability") or {}).get("label")
+        if label_st in STABILITY_PLAIN:
+            out.append(EngineSentence(text=STABILITY_PLAIN[label_st], notes=[st_note] if st_note else []))
+        votes = {f: a["votes"][f] for f in FAMILY_ORDER if f in a["votes"] and a["votes"][f]["vote"] in (1, -1)}
+        sides = {"against": [-1], "for": [1], "both": [1, -1]}[direction]
+        said = 0
+        for side in sides:
+            for fam, v in votes.items():
+                if v["vote"] == side and (s := _family_sentence(fam, v, label, data, area, sheet)):
+                    out.append(s)
+                    said += 1
+        if not said:
+            lean = {"against": "unfavourably", "for": "favourably"}.get(direction, "either way")
+            out.append(EngineSentence(text=f"Nothing in the chart's reading of {label} leans {lean}.",
+                                      notes=[n for n in [_sheet_note(sheet, 10, None, area)] if n]))
+        if when:
+            out += _window_sentences(area, label, data, sheet, hard_first=direction == "against")
+    return EngineAnswer(question=question, direction=direction, areas=list(areas), when=when, sentences=out)
+
+
 def _vim_lords(w: ReadingWindow) -> str:
     lords = next((x["lords"] for x in w.why if x.get("kind") == "dasha" and x.get("system") == "vimshottari"), [])
     return "–".join(lords) or "no Vimshottari lords"
