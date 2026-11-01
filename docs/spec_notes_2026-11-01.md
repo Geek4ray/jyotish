@@ -277,3 +277,18 @@ tests/test_chat_review.py unless named otherwise.
   spec's "bare follow-up" says. After the challenges turn, "what are my strengths" is its own question (the top
   areas, "for", nothing carried) and "how is my health?" asks about health with no "against" carried, while "when?",
   "and marriage?" and "tell me more" still carry. Openers (and, but, what about) and "why" are follow-ups as before.
+- **M4. The routing vocabulary.** The conversation has its own area vocabulary (`conversation.AREA_VOCAB`): for each
+  area whole words, a few listed stems ("marri", "promot", "employ", "relocat"), Hinglish in Latin script and Hindi
+  in Devanagari (shaadi, vivah, pyar; naukri, vyapar, kaam; paisa, dhan; sehat; bacche, santan; ghar, maa, makaan;
+  padhai, pariksha; videsh; pita, papa; bhai, behen; izzat; kismat, bhagya; karz, dushman; labh; swabhav; शादी,
+  नौकरी, पैसा, सेहत, घर, विदेश and others). A substring never names an area ("learn" is not wealth, "example" not
+  intellect), "work" names career only as "my work", "at work", "work life" or "working", and "properly",
+  "medication", "Mary" and "friend" join the words never read as a typo. "Love", "romance", "husband" and "wife" are
+  marriage, and "hire", "interview" and "employer" career (H1). The against list grows (bad, negative(s), careful,
+  caution, dosha(s), issue(s), trouble(s), hard, hardship, danger, warning, and dikkat, pareshani, mushkil, samasya,
+  kharab, kamzori, rukawat, with समस्या, परेशानी, दिक्कत, मुश्किल, कमजोरी, दोष, खराब); the for list takes positive(s),
+  accha/achha, behtar, shubh, taakat, अच्छा, शुभ. "When" reads kab, kis saal and कब; "why" kyun, kyon and क्यों; "aur"
+  opens a follow-up. "My medication", "medicine" and "treatment" are illness questions. The readings' router
+  (`narrate.route`) is unchanged. Tests: the review's 54-row routing probe, cold and after the challenges turn, every
+  row's route frozen; sixteen Hindi, Hinglish and grown-list messages; and six messages in which no substring or
+  common word names an area. The answers stay in English until v2.

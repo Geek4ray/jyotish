@@ -3,7 +3,8 @@
 Nothing here computes anything new: it routes, orders and keeps. A turn's message is read with the conversation
 by keyword routing, tolerant of spelling, with no model guessing intent (`not_computed.question_routing` stands):
 
-- its areas (narrate.AREA_WORDS, a word within one or two letters of a listed form counting);
+- its areas (AREA_VOCAB: whole words, listed stems, Hinglish and Hindi; a word within one or two letters of a
+  listed form counting);
 - its direction: challenge, obstacle, problem, difficult, struggle, weakness, risk, worry mean what is against;
   strength, good, best mean what is for; neither means both;
 - "when" asks for the windows, "why" for the sheet's points behind the last answer;
@@ -24,17 +25,26 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .narrate import AREA_WORDS, DIRECTIONS
+from .narrate import DIRECTIONS
 
 # --- direction ------------------------------------------------------------------------------------------------
 
+# The against list grew after the review (SPEC Layer 8, M4: bad, negative, careful, dosha, issue, trouble, hard, worry),
+# and Hindi and Hinglish are read for directions, "when" and "why" (the answers in English until v2).
 AGAINST_WORDS = ("challenge", "challenges", "challenging", "obstacle", "obstacles", "problem", "problems",
                  "problematic", "difficult", "difficulty", "difficulties", "struggle", "struggles", "struggling",
-                 "weakness", "weaknesses", "weak", "risk", "risks", "risky", "worry", "worries", "worried", "worrying")
-FOR_WORDS = ("strength", "strengths", "strong", "good", "best")
-WHEN = re.compile(r"\bwhen\b|\bwhich year\b|\bwhat year\b|\btiming\b|\bhow soon\b", re.I)
-WHY = re.compile(r"\bwhy\b|\bhow come\b|\bwhat makes you say\b", re.I)
-FOLLOW_OPENER = re.compile(r"^\s*(?:and|but|also|so|what about|how about|and what about)\b", re.I)
+                 "weakness", "weaknesses", "weak", "risk", "risks", "risky", "worry", "worries", "worried", "worrying",
+                 "bad", "negative", "negatives", "careful", "caution", "dosha", "doshas", "dosh", "issue", "issues",
+                 "trouble", "troubles", "hard", "hardship", "hardships", "danger", "warning", "warnings",
+                 "dikkat", "dikkatein", "pareshani", "pareshaniyan", "mushkil", "mushkilein", "samasya", "kharab",
+                 "kamzori", "kamjori", "rukawat", "badha")
+FOR_WORDS = ("strength", "strengths", "strong", "good", "best", "positive", "positives", "accha", "achha", "acha",
+             "achchha", "behtar", "shubh", "taakat")
+AGAINST_HI = re.compile(r"समस्या|परेशानी|दिक्कत|मुश्किल|कमजोरी|कमज़ोरी|दोष|खराब|ख़राब")
+FOR_HI = re.compile(r"अच्छा|अच्छी|शुभ|ताकत|ताक़त")
+WHEN = re.compile(r"\bwhen\b|\bwhich year\b|\bwhat year\b|\btiming\b|\bhow soon\b|\bkab\b|\bkis saal\b|कब", re.I)
+WHY = re.compile(r"\bwhy\b|\bhow come\b|\bwhat makes you say\b|\bkyun\b|\bkyon\b|\bkyu\b|क्यों|क्यूं", re.I)
+FOLLOW_OPENER = re.compile(r"^\s*(?:and|but|also|so|what about|how about|and what about|aur)\b", re.I)
 FOLLOW_MAX_WORDS = 6          # a message this short with neither an area nor a direction of its own is a follow-up
                               # (SPEC Layer 8, review M3: "what are my strengths" is a question of its own)
 # Areas no default route goes to, top or weakest (SPEC Layer 8, decided after the review of chat v1, C1): long life
@@ -60,7 +70,8 @@ def _distance(a: str, b: str) -> int:
 
 # Common words a letter away from a listed form, never read as it ("rather" is not "father").
 NOT_A_TYPO = frozenset({"farther", "horse", "count", "county", "merry", "states", "string", "strings", "honey",
-                        "money", "bother", "other", "mothers", "worse", "words", "world", "carer", "pubic", "lucky"})
+                        "money", "bother", "other", "mothers", "worse", "words", "world", "carer", "pubic", "lucky",
+                        "properly", "medication", "mary", "friend"})
 
 
 def _near(token: str, form: str) -> bool:
@@ -95,8 +106,9 @@ def _has(toks: list[str], forms) -> bool:
 
 def direction_of(message: str) -> str | None:
     """"against", "for", or None when the message names neither (both, or the last turn's on a follow-up)."""
-    toks = tokens(message)
-    against, favour = _has(toks, AGAINST_WORDS), _has(toks, FOR_WORDS)
+    toks, text = tokens(message), normalise(message)
+    against = _has(toks, AGAINST_WORDS) or bool(AGAINST_HI.search(text))
+    favour = _has(toks, FOR_WORDS) or bool(FOR_HI.search(text))
     if against and not favour:
         return "against"
     if favour and not against:
@@ -104,19 +116,72 @@ def direction_of(message: str) -> str | None:
     return "both" if against and favour else None
 
 
-# Words the conversation reads for an area beyond narrate.AREA_WORDS (review H1: "will they hire me" is a career
-# question).
-MORE_AREA_WORDS = {"career": ("hire", "hired", "hiring", "interview", "employer")}
+# The conversation's words for each area (SPEC Layer 8, decided after the review of chat v1, M4): whole words, a
+# listed stem (a word starting with it), Hinglish in Latin script and Hindi in Devanagari; never a substring
+# ("learn" is not wealth, "example" not intellect). A Latin word within a letter or two of a word of five letters or
+# more counts (_near), except the common words in NOT_A_TYPO ("properly" is not property). "Love" is marriage, and
+# "will they hire me" a career question (H1). The readings' router (narrate.route) is unchanged.
+AREA_VOCAB: dict[str, dict[str, tuple[str, ...]]] = {
+    "career": {"words": ("career", "careers", "job", "jobs", "profession", "promotion", "promotions", "business",
+                         "status", "office", "hire", "hired", "hiring", "interview", "employer", "employment",
+                         "naukri", "naukari", "vyapar", "vyapaar", "dhandha", "kaam"),
+               "stems": ("promot", "employ"), "hindi": ("नौकरी", "करियर", "व्यापार", "काम")},
+    "marriage": {"words": ("marriage", "marry", "married", "spouse", "partner", "wedding", "relationship",
+                           "relationships", "love", "romance", "romantic", "husband", "wife", "shaadi", "shadi",
+                           "vivah", "rishta", "rishte", "pyar", "pyaar", "prem", "patni", "pati"),
+                 "stems": ("marri",), "hindi": ("शादी", "विवाह", "रिश्ता", "प्रेम", "प्यार")},
+    "wealth": {"words": ("wealth", "money", "income", "finance", "finances", "financial", "earn", "earning",
+                         "earnings", "salary", "savings", "rich", "paisa", "paise", "paisaa", "dhan", "daulat"),
+               "stems": (), "hindi": ("पैसा", "पैसे", "धन")},
+    "health": {"words": ("health", "healthy", "illness", "vitality", "disease", "fitness", "sehat", "swasthya",
+                         "tabiyat"),
+               "stems": (), "hindi": ("सेहत", "स्वास्थ्य")},
+    "children": {"words": ("child", "children", "kid", "kids", "progeny", "baby", "babies", "bacche", "bachche",
+                           "bacha", "baccha", "santan", "aulad"),
+                 "stems": (), "hindi": ("बच्चे", "संतान", "औलाद")},
+    "mother_home": {"words": ("mother", "mom", "mum", "home", "house", "property", "properties", "vehicle", "car",
+                              "land", "flat", "apartment", "ghar", "makaan", "makan", "maa", "mata", "gaadi"),
+                    "stems": (), "hindi": ("घर", "माँ", "मां", "माता", "मकान")},
+    "intellect": {"words": ("education", "study", "studies", "studying", "exam", "exams", "learning", "school",
+                            "college", "university", "degree", "padhai", "padhaai", "pariksha"),
+                  "stems": (), "hindi": ("पढ़ाई", "शिक्षा", "परीक्षा")},
+    "foreign": {"words": ("abroad", "foreign", "travel", "visa", "overseas", "immigration", "videsh"),
+                "stems": ("relocat",), "hindi": ("विदेश",)},
+    "spirituality": {"words": ("spiritual", "spirituality", "moksha", "meditation", "god", "adhyatm"),
+                     "stems": (), "hindi": ("आध्यात्म", "अध्यात्म")},
+    "father": {"words": ("father", "dad", "papa", "pita", "pitaji"), "stems": (), "hindi": ("पिता", "पापा")},
+    "siblings": {"words": ("sibling", "siblings", "brother", "brothers", "sister", "sisters", "courage", "bhai",
+                           "behen", "bahen"),
+                 "stems": (), "hindi": ("भाई", "बहन")},
+    "reputation": {"words": ("reputation", "fame", "famous", "public", "izzat", "sammaan", "samman"),
+                   "stems": (), "hindi": ("इज्जत", "इज़्ज़त", "प्रतिष्ठा")},
+    "fortune": {"words": ("fortune", "luck", "lucky", "dharma", "kismat", "kismet", "bhagya", "naseeb"),
+                "stems": (), "hindi": ("किस्मत", "भाग्य")},
+    "mind": {"words": ("mind", "emotion", "emotions", "emotional", "mental", "feelings"), "stems": (),
+             "hindi": ("दिमाग",)},
+    "gains": {"words": ("gains", "network", "friends", "friendship", "friendships", "profit", "profits", "labh",
+                        "laabh"),
+              "stems": (), "hindi": ("लाभ",)},
+    "debts_enemies": {"words": ("debt", "debts", "enemies", "enemy", "litigation", "court", "loan", "loans",
+                                "rivals", "dispute", "disputes", "karz", "karza", "karja", "dushman"),
+                      "stems": (), "hindi": ("कर्ज", "क़र्ज़", "दुश्मन")},
+    "personality": {"words": ("personality", "self", "temperament", "nature", "character", "swabhav"),
+                    "stems": (), "hindi": ("स्वभाव",)},
+    "longevity": {"words": ("longevity",), "stems": (), "hindi": ()},
+}
+# "Work" is the client's work only as "my work", "at work", "work life" (review M4: "will my medication work?").
+CAREER_WORK = re.compile(r"\b(?:my|at|from|for|in|of|to|with) work\b|\bwork ?(?:life|place|load)\b|\bworking\b")
 
 
 def areas_of(message: str) -> list[str]:
-    """The areas a message names: narrate.AREA_WORDS as substrings (as narrate.route reads them) or a word within
-    a letter or two of one of their forms."""
-    q, toks = message.lower(), tokens(message)
+    """The areas a message names (AREA_VOCAB): a listed word, a word starting with a listed stem, a Latin word
+    within a letter or two of a listed word of five letters or more, or a listed Hindi word."""
+    text, toks = normalise(message), tokens(message)
     out = []
-    for area, words in AREA_WORDS.items():
-        if any(w in q for w in words) or any(_near(t, w) for t in toks for w in words if len(w) >= 5) or \
-                set(MORE_AREA_WORDS.get(area, ())) & set(toks):
+    for area, v in AREA_VOCAB.items():
+        if any(t in v["words"] for t in toks) or any(t.startswith(st) for t in toks for st in v["stems"]) or \
+                any(_near(t, w) for t in toks for w in v["words"] if len(w) >= 5) or \
+                any(h in text for h in v["hindi"]) or (area == "career" and CAREER_WORK.search(text)):
             out.append(area)
     return out
 
@@ -201,7 +266,7 @@ ILLNESS = re.compile(rf"\b(?:(?:do|will|would|could|might|shall|am) i (?:\w+ ){{
                      rf"chance of|risk of) (?:an? |any |some )?{ILLNESS_WORD}|"
                      rf"(?:what|which|any|kind of|type of) (?:\w+ )?(?:disease|illness|sickness|health problems?|"
                      rf"disorder)s?|my (?:cancer(?! (?:rising|moon|sun|sign|ascendant|lagna))|tumou?r|disease|illness|"
-                     rf"diagnosis|surgery|operation|symptoms?|infection)|diagnos(?:e|is|ed|ing)|(?:will|do|am) i "
+                     rf"diagnosis|surgery|operation|symptoms?|infection|medication|medicines?|treatment)|diagnos(?:e|is|ed|ing)|(?:will|do|am) i "
                      rf"(?:get|fall|be|going to (?:get|fall|be)) (?:sick|ill)|health problems?|"
                      rf"(?:will|is) (?:my )?(?:surgery|operation) (?:go|be|succeed|work)|"
                      rf"(?:kaunsi|kya|koi) (?:bimari|beemari|rog)|(?:bimari|beemari) (?:hogi|hai|ho)|"

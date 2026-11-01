@@ -557,3 +557,101 @@ def test_m3_what_are_my_strengths_after_an_against_turn_is_a_question_of_its_own
     assert route_turn("when?", chart, first).carried == ["areas", "direction"]
     assert route_turn("and marriage?", chart, first).carried == ["direction"]
     assert route_turn("tell me more", chart, first).carried == ["areas", "direction"]
+
+
+# --- M4: the routing vocabulary --------------------------------------------------------------------------------------
+
+def _route_words(r):
+    if r.off_limits:
+        return f"off:{r.off_limits}"
+    return " ".join([",".join(r.areas), r.direction] + (["when"] if r.when else []) + (["why"] if r.why else [])
+                    + (["follow"] if r.follow_up else []))
+
+
+TOP, WEAK = "career,marriage,debts_enemies", "father,reputation,siblings"
+APPENDIX = [   # the review's routing probe (its appendix): (message, cold, after the challenges turn)
+    ("I can't go on this trip because of work, will my career suffer?", "career both", "career both"),
+    ("I cannot go on vacation this year, is that bad for my marriage?", "marriage against", "marriage against"),
+    ("I can’t go on like this anymore", "off:distress", "off:distress"),
+    ("I don’t want to live anymore", "off:distress", "off:distress"),
+    ("I’d be better off dead", "off:distress", "off:distress"),
+    ("mujhe marna hai, kuch accha nahi ho raha", "off:distress", "off:distress"),
+    ("jeena nahi chahta ab", "off:distress", "off:distress"),
+    ("I feel hopeless, nothing works", "off:distress", "off:distress"),
+    ("My father died last year. How is my career looking?", "career,father both", "career,father both"),
+    ("my mother passed away, will my home life settle?", "mother_home both", "mother_home both"),
+    ("after my brother's death I feel lost, what about my mind", "siblings,mind both", "siblings,mind both"),
+    ("my job feels like a dead end", "career both", "career both"),
+    ("is my career dead?", "career both", "career both"),
+    ("meri mrityu kab hogi", "off:death", "off:death"),
+    ("will I die early?", "off:death", "off:death"),
+    ("My Moon is in Cancer, what does that mean for my mind?", "mind both", "mind both"),
+    ("I'm a Cancer rising, how is my personality?", "personality both", "personality both"),
+    ("I'm sick of my job, should I change careers?", "career both", "career both"),
+    ("I'm a surgeon, how is my career?", "career both", "career both"),
+    ("I failed the vehicle inspection, what about property?", "mother_home both", "mother_home both"),
+    ("how is my health?", "health both", "health both"),
+    ("will my medication work?", "off:illness", "off:illness"),
+    ("my trade is carpentry, will my business grow?", "career both", "career both"),
+    ("I work in trade finance, is my career good?", "career,wealth for", "career,wealth for"),
+    ("should I invest time in this relationship?", "marriage both", "marriage both"),
+    ("my partner shares my values, is marriage good?", "marriage for", "marriage for"),
+    ("is changing careers a gamble?", "career both", "career both"),
+    ("should I buy a house this year?", "mother_home both", "mother_home both"),
+    ("kya mujhe share bazaar mein paisa lagana chahiye", "off:trade", "off:trade"),
+    ("will they hire me after the interview?", "career both", "career both"),
+    ("will they accept my visa application for abroad?", "foreign both", "foreign both"),
+    ("will she marry me?", "marriage both", "marriage both"),
+    ("my wife's career is affecting mine, what does my chart say?", "off:other_person", "off:other_person"),
+    ("how is my son's future? this is his chart", "off:other_person", "off:other_person"),
+    ("I'm worried about my mother's health", "off:other_person", "off:other_person"),
+    ("shaadi kab hogi?", "marriage both when", "marriage both when"),
+    ("naukri mein kya problem hai", "career against", "career against"),
+    ("paisa kab aayega", "wealth both when", "wealth both when"),
+    ("meri carrer kaisi hai", "career both", "career both"),
+    ("I want to learn about my chart", f"{TOP} both", f"{TOP} both"),
+    ("for example, how is my marriage?", "marriage both", "marriage both"),
+    ("I can't sleep properly, why?", f"{TOP} both why", f"{WEAK} against why follow"),
+    ("my friend Mary asked me to ask about love", "marriage both", "marriage both"),
+    ("tell me about my love life", "marriage both", "marriage both"),
+    ("what's bad in my chart?", f"{WEAK} against", f"{WEAK} against"),
+    ("what should I be careful about?", f"{WEAK} against", f"{WEAK} against"),
+    ("any doshas in my chart?", f"{WEAK} against", f"{WEAK} against"),
+    ("what are my negatives?", f"{WEAK} against", f"{WEAK} against"),
+    ("what are the challenges in my career and where am I strong", "career both", "career both"),
+    ("challenges?", f"{WEAK} against", f"{WEAK} against"),
+    ("what about kids", "children both", "children against follow"),
+    ("when will I get a job?", "career both when", "career both when"),
+    ("why?", f"{TOP} both why", f"{WEAK} against why follow"),
+    ("what are my strengths", f"{TOP} for", f"{TOP} for"),
+]
+
+
+@pytest.mark.parametrize("message,cold,after", APPENDIX)
+def test_m4_the_reviews_routing_probe(chart, message, cold, after):
+    first = route_turn("what are the challanges in my life", chart)
+    assert (_route_words(route_turn(message, chart)), _route_words(route_turn(message, chart, first))) == (cold, after)
+
+
+@pytest.mark.parametrize("message,areas,direction,when", [
+    ("shaadi kab hogi", ["marriage"], None, True), ("naukri kab milegi", ["career"], None, True),
+    ("sehat kaisi rahegi", ["health"], None, False), ("bacche kab honge", ["children"], None, True),
+    ("videsh jaane ka yog", ["foreign"], None, False), ("ghar kab banega", ["mother_home"], None, True),
+    ("padhai mein dikkat", ["intellect"], "against", False), ("kismat achhi hai kya", ["fortune"], "for", False),
+    ("मेरी शादी कब होगी", ["marriage"], None, True), ("नौकरी में समस्या", ["career"], "against", False),
+    ("पैसा कब आएगा", ["wealth"], None, True), ("love marriage hogi ya arrange", ["marriage"], None, False),
+    ("is my career good", ["career"], "for", False), ("any issues with money", ["wealth"], "against", False),
+    ("is it hard to find a job", ["career"], "against", False), ("I worry about my exams", ["intellect"], "against", False),
+])
+def test_m4_hindi_hinglish_and_the_grown_lists(message, areas, direction, when):
+    from jyotish.conversation import WHEN, areas_of, direction_of, normalise
+    assert areas_of(message) == areas
+    assert direction_of(message) == direction
+    assert bool(WHEN.search(normalise(message))) == when
+
+
+@pytest.mark.parametrize("message", ["I want to learn about my chart", "for example, how is my life", "I can't sleep properly",
+                                     "will my medicine work", "my friend Mary is here", "tell me something"])
+def test_m4_no_substring_or_common_word_names_an_area(message):
+    from jyotish.conversation import areas_of
+    assert areas_of(message) == []
