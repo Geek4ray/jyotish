@@ -237,3 +237,337 @@ def log_off_limits(kind: str, **fields: Any) -> None:
     from . import logs
     logs.event("turn.off_limits", kind=kind, **fields)
 
+
+# --- a turn's answer --------------------------------------------------------------------------------------------
+# The writer's answer is the client's face (SPEC Layer 8): written in plain words from the question, the direction,
+# the routed findings, the engine's own answer and the accepted text of earlier turns only; streamed; every sentence
+# validated and checked as Layer 7 checks a reading, and only a sentence that passed reaches the client, in order,
+# its tags taken off. A sentence refused is never shown, and nothing on the client's screen says it was: the review
+# page and the JSON have it with its reasons. When no sentence of the writer's answer passes after the attempts, the
+# engine's own answer is the client's. A "when" turn's dates are the engine's (the writer may not write timing): its
+# window sentences follow the writer's.
+
+TURN_PROMPT = """You are Tatva, an astrologer talking with a client about their own Vedic birth chart. You \
+answer the client's message in a few short paragraphs of plain, warm English, the way a good astrologer talks to \
+a client across a table: direct, kind, never vague, never alarming. When the message asks about what is hard \
+(the direction is "against"), start with the hard part and say it plainly; when it asks about what is good, start \
+there; otherwise give the good, then the hard. Use no jargon: say "the rising sign", "the house of career", \
+"significator", "divisional chart"; never "vote", "family", "cusp", "sub-lord", "arudha", "dasha", "Shadbala", \
+"Bhava Bala" or "rupa"; a yoga's name comes with its meaning in plain words. Never write a figure, a score, a \
+percentage or a probability.
+
+You add no facts. Everything you say comes from the findings given (the engine computed them) and from the \
+engine's own answer, which says the same findings in plain words: use it as your material, not as text to copy. \
+Each sentence that states something about the chart ends with the tags of the findings it draws on, written \
+exactly as listed (for example [vote:career.house] or [rule:yoga.budhaditya]); the tags are taken off before the \
+client reads the answer, and each sentence is checked against those findings' data alone, so a sentence says only \
+what its findings state. A sentence that only speaks to the client ("Let's start with the hard part, since you \
+asked about it.") carries no tag, says nothing about the chart and uses none of the verbs a claim uses (is, are, \
+has, shows, gives, means, will).
+
+When you weigh one finding against another, say so as "in the reading's view". Do not write about timing, \
+dates, years, months, periods, dashas, transits or windows: the engine adds the dates \
+itself after your answer. Do not state the strength tier (strong, moderate, weak, mixed). Never write about death \
+or its timing, illness, or buying and selling investments. About another person (a parent, a partner, a child), \
+say only what this chart shows about the relationship, never what will happen to them. When the client asks why, \
+explain which findings the last answer rests on. Earlier turns are given as the client read them; do not repeat \
+them, build on them."""
+
+
+class TurnDraft(BaseModel):
+    answer: str = Field(description=(
+        "The answer to the client's message: a few short paragraphs of plain, warm English, each sentence that "
+        "states something about the chart ending with the tags of the findings it draws on."))
+
+
+PLANET_NAMES = ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu")
+_PLANET = re.compile(r"\b(" + "|".join(PLANET_NAMES) + r")\b")
+_HOUSE_NO = re.compile(r"\b(\d{1,2})(?:st|nd|rd|th) house\b")
+_SIGN = re.compile(r"\b(Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)\b")
+
+
+def focus_of(text: str, chart) -> dict[str, list]:
+    """The planets and houses (from the rising sign) a sentence names: what the chart beside the conversation
+    lights while it is written. A sign named is lit as the house it is from the rising sign."""
+    from .narrate import TAG
+    bare = TAG.sub("", text)
+    signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn",
+             "Aquarius", "Pisces"]
+    asc = signs.index(chart.lagnas.asc_sign_name)
+    houses = [int(h) for h in _HOUSE_NO.findall(bare) if 1 <= int(h) <= 12]
+    houses += [(signs.index(s) - asc) % 12 + 1 for s in _SIGN.findall(bare)]
+    return {"planets": list(dict.fromkeys(_PLANET.findall(bare))), "houses": list(dict.fromkeys(houses))}
+
+
+def route_focus(chart, areas: list[str]) -> dict[str, list]:
+    """What a turn's areas rest on before a sentence is written: each area's houses from the rising sign, the
+    lord of its first house and its main significator, lit as the answer starts."""
+    from .constants import SIGN_LORD, SIGNS
+    from .scoring import AREAS
+    asc = SIGNS.index(chart.lagnas.asc_sign_name)
+    houses, planets = [], []
+    for a in areas:
+        spec = AREAS.get(a)
+        if not spec:
+            continue
+        houses += spec["houses"]
+        planets.append(SIGN_LORD[(asc + spec["houses"][0] - 1) % 12])
+        planets += [k for k in spec.get("karakas", [])[:1] if k in PLANET_NAMES]
+    return {"planets": list(dict.fromkeys(planets)), "houses": list(dict.fromkeys(houses))}
+
+
+def para_starts(text: str, parts: list[str]) -> list[bool]:
+    """For each sentence of `text` (`parts`, narrate.sentences of it), whether it opens a paragraph: the first, and
+    any with a line break between it and the sentence before."""
+    out, at = [], 0
+    for k, sentence in enumerate(parts):
+        head = sentence[:40]
+        pos = text.find(head, at)
+        out.append(k == 0 or (pos >= 0 and "\n" in text[at:pos]))
+        if pos >= 0:
+            at = pos + len(head)
+    return out
+
+
+class _Order:
+    """Shows the passed sentences in the order written: sentence k goes out once every sentence before it is
+    settled (passed or refused)."""
+
+    def __init__(self, emit):
+        import threading
+        self.emit, self.lock = emit, threading.Lock()
+        self.settled: dict[int, tuple[bool, str]] = {}
+        self.next = 0
+        self.shown: list[int] = []
+
+    def settle(self, k: int, passed: bool, shown: str) -> None:
+        with self.lock:
+            self.settled[k] = (passed, shown)
+            while self.next in self.settled:
+                ok, text = self.settled[self.next]
+                if ok:
+                    self.shown.append(self.next)
+                    self.emit(text, self.next)
+                self.next += 1
+
+
+def engine_tags(sentence, allowed: set[str]) -> list[str]:
+    """The vote tags an engine sentence rests on (its notes into the sheet's votes table), where offered."""
+    out = [f"vote:{n['area']}.{n['row']}" for n in sentence.notes if n.get("row")]
+    return [t for t in dict.fromkeys(out) if t in allowed]
+
+
+class OfflineTurnWriter:
+    """A turn's writer with no model, for the offline suite, the CI smoke test and the site's tests: it says the
+    engine's own sentences that rest on a family, each with that family's tag, after one opener in the direction
+    asked. A recording's replay in spirit: it calls nothing and claims no voice."""
+    last_meta = None
+    on_text = None
+    OPENER = {"against": "Let's start with the hard part, since you asked about it.",
+              "for": "Let's start with what goes well for you.", "both": "Here's how your chart reads on this."}
+
+    def __call__(self, system: str, user: str, errors: list[str]):
+        import json
+        body = json.loads(user)
+        said = [f"{x['text'][:-1]} {' '.join(f'[{t}]' for t in x['tags'])}." for x in body["engine_answer"] if x["tags"]]
+        text = " ".join([self.OPENER[body["direction"]]] + said)
+        self.last_meta = {"kind": "writer", "replayed": True}
+        if self.on_text is not None:                  # streamed as a model's draft is, in pieces
+            whole = json.dumps({"answer": text})
+            for i in range(0, len(whole), 40):
+                self.on_text(whole[i:i + 40])
+        return TurnDraft(answer=text)
+
+
+def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date):
+    """The writer's message and what its sentences are held to: the routed areas' findings with their tags."""
+    import json
+    from .narrate import area_votes, findings, offered_chains, offered_votes
+    areas_out, finding_data, tags = [], {}, set()
+    votes: dict[str, set[str]] = {}
+    for name in route.areas:
+        ok, _ = findings(chart, name, as_of)
+        for f in ok:
+            finding_data[f["finding_id"]] = f
+            tags |= set(f["allowed_tags"])
+        a = chart.scored.areas.get(name)
+        areas_out.append({"name": name, "findings": ok,
+                          **({"tests": area_votes(a)} if a is not None and a.score_classical is not None else {})})
+        for fam, tag in offered_votes(chart, [name]).get(name, {}).items():
+            votes.setdefault(fam, set()).add(tag)
+    chains: dict[str, list[str]] = {}
+    for per in offered_chains(chart, route.areas).values():
+        chains.update(per)
+    body = {"message": message, "direction": route.direction, "when": route.when, "why": route.why,
+            "earlier_turns": [{"question": h["question"], "answer": h["answer"]} for h in history],
+            "engine_answer": [{"text": s.text, "tags": engine_tags(s, tags)} for s in engine.sentences],
+            "areas": areas_out}
+    return json.dumps(body, indent=1, default=str), finding_data, tags, votes, chains
+
+
+def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, checker):
+    """(passed, refusals, warnings, check record) for one sentence of a turn's answer: the validator's refusals
+    (tags, forbidden claims, tier words) and the client's words (client.client_errors), then the checker against the
+    findings it cites."""
+    from .client import client_errors
+    from .narrate import _summary_checks, validate_summary
+    refusals = validate_summary(sentence, tags, offered_votes=votes, where="answer", family_rule=False, chains=chains)
+    refusals += client_errors(sentence)
+    warnings: list[str] = []
+    if refusals:
+        return False, refusals, warnings, None
+    (s, ids, data), = _summary_checks(sentence, finding_data)
+    if hasattr(checker, "ask_one"):
+        result, meta = checker.ask_one(s, data)
+    else:
+        result, meta = checker(s, data), getattr(checker, "last_meta", None)
+    bad = [p for p in result.propositions if not p.supported]
+    record = {"sentence": s, "findings": ids, "result": result.model_dump(), "meta": meta}
+    if bad:
+        return False, [f"the checker found it unsupported: {p.text} ({p.evidence})" for p in bad], warnings, record
+    return True, [], warnings, record
+
+
+def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list[dict] | None = None,
+                drafter=None, checker=None, emit=None, config=None, data: dict | None = None) -> dict[str, Any]:
+    """One turn, answered (the section above): returns the turn's document, the record the turns table keeps —
+    the route, the engine's answer, the writer's answer as the client read it (`shown`) with its source, every
+    removed sentence with its reasons, the warnings, the checks, the settings and usage of each role, and the
+    timeline (seconds to the engine's answer, the first sentence verified, done). `emit(event)` is told what the
+    client's screen shows: `light` (planets and houses to light), `text` (a passed sentence, tags off), `done`."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from .narrate import (CONFIG, TAG, ModelChecker, ModelDrafter, NarrationError, _backend_of, _model_of, _usage,
+                         engine_reading, make_backend, sentences)
+    from .live import JsonStrings
+    config = config or CONFIG
+    history = history or []
+    emit = emit or (lambda e: None)
+    t0 = time.perf_counter()
+    timeline: dict[str, float] = {}
+    mark = lambda k: timeline.setdefault(k, round(time.perf_counter() - t0, 3))
+    doc: dict[str, Any] = {"question": message, "route": route.model_dump(), "as_of": as_of.isoformat(),
+                           "removed": [], "warnings": [], "checks": [], "writer": {}, "checker": {}, "usage": {}}
+    if route.off_limits:
+        reply = fixed_reply(route.off_limits)
+        emit({"type": "text", "i": 0, "text": reply, "para": True})
+        mark("done")
+        emit({"type": "done", "status": "done"})
+        return doc | {"source": "fixed", "shown": [reply], "paragraphs": [0], "engine": None, "timeline": timeline,
+                      "usage": {"wall_seconds": timeline["done"]}}
+    engine = engine_reading(chart, message, route.direction, route.areas, as_of=as_of, when=route.when, data=data)
+    mark("engine")
+    doc["engine"] = engine.model_dump()
+    emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})
+    user, finding_data, tags, votes, chains = _material(chart, message, route, engine, history, as_of)
+    drafter = drafter or ModelDrafter(make_backend(None, "writer", config), config, schema=TurnDraft)
+    checker = checker or ModelChecker(make_backend(None, "checker", config), config)
+    pool = ThreadPoolExecutor(max_workers=max(1, min(8, getattr(checker, "concurrency", 4) or 4)),
+                              thread_name_prefix="turn-check")
+    writer_metas, checker_metas = [], []
+    shown: list[str] = []
+    paras: list[int] = []                      # the indices in `shown` that open a paragraph
+    accepted: list[str] = []                   # the writer's sentences that passed, tags on, in the order written
+    errors_for_retry: list[str] = []
+    attempts = 0
+    try:
+        for attempt in range(1, config.max_attempts + 1):
+            attempts = attempt
+            futures: dict[int, Any] = {}
+            texts: dict[int, str] = {}
+            starts: dict[int, bool] = {}
+
+            def show(text: str, k: int) -> None:
+                mark("first_verified")
+                shown.append(text)
+                para = not paras or starts.get(k, False)
+                if para:
+                    paras.append(len(shown) - 1)
+                emit({"type": "text", "i": len(shown) - 1, "text": text, "para": para})
+                f = focus_of(texts.get(k, ""), chart)
+                if f["planets"] or f["houses"]:
+                    emit({"type": "light", "stage": "sentence", **f})
+
+            order = _Order(show)
+
+            def judge(k: int, s: str) -> None:
+                ok, refusals, warnings, record = check_sentence(s, tags, votes, chains, finding_data, checker)
+                if record is not None:
+                    doc["checks"].append({k: v for k, v in record.items() if k != "meta"} | {"attempt": attempt})
+                    checker_metas.append(record["meta"])
+                doc["warnings"] += [{"sentence": s, "warning": w, "attempt": attempt} for w in warnings]
+                if not ok:
+                    doc["removed"].append({"sentence": s, "reasons": refusals, "attempt": attempt})
+                order.settle(k, ok, " ".join(TAG.sub("", s).split()).replace(" .", "."))
+
+            def submit(k: int, s: str, para: bool) -> None:
+                if k not in futures:
+                    texts[k], starts[k] = s, para
+                    futures[k] = pool.submit(judge, k, s)
+
+            def on_string(path: tuple, value: str, done: bool) -> None:
+                if path != ("answer",):
+                    return
+                parts = sentences(value)
+                opens = para_starts(value, parts)
+                for k, s in enumerate(parts if done else parts[:-1]):
+                    submit(k, s, opens[k])
+
+            reader = JsonStrings(on_string)
+            if hasattr(drafter, "on_text"):
+                drafter.on_text = reader.feed
+            try:
+                draft = drafter(TURN_PROMPT, user, errors_for_retry)
+            except NarrationError as e:
+                doc["removed"].append({"sentence": None, "reasons": [str(e)] + list(e.errors), "attempt": attempt})
+                draft = None
+            writer_metas.append(getattr(drafter, "last_meta", None))
+            mark("written")
+            if draft is not None:
+                text = (draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or ""
+                parts = sentences(text)
+                for k, (s, para) in enumerate(zip(parts, para_starts(text, parts))):
+                    submit(k, s, para)
+            for f in list(futures.values()):
+                f.result()
+            accepted = [texts[k] for k in order.shown]
+            if accepted:
+                break
+            errors_for_retry = [r for x in doc["removed"] if x["attempt"] == attempt for r in x["reasons"]] or \
+                ["the answer was empty"]
+    finally:
+        pool.shutdown(wait=True)
+    source = "writer"
+
+    def add(text: str, para: bool) -> None:
+        shown.append(text)
+        if para:
+            paras.append(len(shown) - 1)
+        emit({"type": "text", "i": len(shown) - 1, "text": text, "para": para})
+    if not accepted:
+        source = "engine"                      # the writer's whole answer failed: the engine's own, in plain words
+        area = None
+        for s in engine.sentences:             # a paragraph per area, and one for the stretches
+            here = next((n["area"] for n in s.notes), area)
+            timing = "stretch" in s.text
+            add(s.text, here != area or (timing and not any("stretch" in x for x in shown)))
+            area = here
+    elif route.when:
+        first = True
+        for s in engine.sentences:             # the dates are the engine's: its window sentences follow, in their paragraph
+            if "stretch" in s.text:
+                add(s.text, first)
+                first = False
+    for s in (engine.sentences if source == "engine" else []):
+        f = focus_of(s.text, chart)
+        if f["planets"] or f["houses"]:
+            emit({"type": "light", "stage": "sentence", **f})
+    mark("done")
+    emit({"type": "done", "status": "done", "source": source})
+    from .narrate import CONFIG as _C
+    return doc | {
+        "source": source, "shown": shown, "paragraphs": paras, "accepted": accepted, "attempts": attempts, "timeline": timeline,
+        "writer": {"model": _model_of(drafter, config.model), "effort": config.effort, **_backend_of(drafter)},
+        "checker": {"model": _model_of(checker, config.checker_model),
+                    "effort": getattr(checker, "effort", _C.checker_effort), **_backend_of(checker)},
+        "usage": {"writer": _usage(writer_metas), "checker": _usage(checker_metas), "wall_seconds": timeline["done"]}}

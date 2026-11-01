@@ -17,7 +17,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, inspect, text
+from sqlalchemy import (JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, create_engine,
+                        inspect, text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -269,11 +270,46 @@ class CredentialRow(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class SessionRow(Base):
+    """A conversation (SPEC Layer 8, 2026-11-01): the birth data entered once, the chart it made (cached, with its
+    technical sheets) and the check line shown before any question; its turns are in `turns`."""
+    __tablename__ = "sessions"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    chart_id: Mapped[str | None] = mapped_column(ForeignKey("charts.id"), nullable=True)
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    birth: Mapped[dict] = mapped_column(DOCUMENT)
+    as_of: Mapped[str] = mapped_column(String(10))                      # YYYY-MM-DD: the date every turn is read for
+    check: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)  # rising sign, the Moon's sign and nakshatra
+    minor: Mapped[bool] = mapped_column(Boolean, default=False)         # the chart is a minor's (conversation.MINOR_AGE)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class TurnRow(Base):
+    """One turn of a conversation, kept with the birth key: the question, the route, both answers (the client's
+    and the engine's own), every removed sentence with its reasons, the cost and the timeline (`document`,
+    conversation.answer_turn)."""
+    __tablename__ = "turns"
+    __table_args__ = (UniqueConstraint("session_id", "n"),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
+    n: Mapped[int] = mapped_column(Integer)                             # 1, 2, … within the session
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    question: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16))                     # queued | running | done | failed
+    route: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
+    document: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
+    error: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+
 class LedgerRow(Base):
-    """A finished reading's tokens and cost (jyotish.costs, from the usage the reading records): the
-    owner's per-reading ledger and, summed by `day` (UTC), the daily totals."""
+    """A finished reading's or turn's tokens and cost (jyotish.costs, from the usage it records): the owner's
+    ledger and, summed by `day` (UTC), the daily totals. `reading_id` is the reading's id, or the turn's when
+    `kind` is "turn" (revision 0004: the key no longer points at readings alone)."""
     __tablename__ = "ledger"
-    reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"), primary_key=True)
+    reading_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(8), default="reading", server_default="reading")   # reading | turn
     day: Mapped[str] = mapped_column(String(10), index=True)            # YYYY-MM-DD, UTC
     writer_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
     checker_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -339,6 +375,19 @@ def record_cost(session, reading_row) -> LedgerRow | None:
     when = reading_row.updated_at or _now()
     row = LedgerRow(reading_id=reading_row.id, day=when.astimezone(timezone.utc).strftime("%Y-%m-%d") if when.tzinfo
                     else when.strftime("%Y-%m-%d"), **v)
+    session.add(row)
+    return row
+
+
+def record_turn_cost(session, turn_row) -> LedgerRow | None:
+    """The ledger row of a finished turn, priced as a reading is (costs.reading_cost of its document)."""
+    from .costs import reading_cost
+    if turn_row.document is None or turn_row.status != "done" or session.get(LedgerRow, turn_row.id) is not None:
+        return None
+    v = reading_cost(turn_row.document) | {"depth": None}
+    when = turn_row.updated_at or _now()
+    row = LedgerRow(reading_id=turn_row.id, kind="turn", day=when.astimezone(timezone.utc).strftime("%Y-%m-%d")
+                    if when.tzinfo else when.strftime("%Y-%m-%d"), **v)
     session.add(row)
     return row
 
@@ -411,12 +460,16 @@ def migrate(url_or_engine=None):
 
 
 def _backfill_ledger(engine) -> None:
-    """Every finished reading has its ledger row (readings finished before the ledger get theirs)."""
+    """Every finished reading and turn has its ledger row (those finished before the ledger get theirs)."""
     with sessionmaker(engine).begin() as s:
         done = s.query(ReadingRow).outerjoin(LedgerRow, LedgerRow.reading_id == ReadingRow.id) \
             .filter(ReadingRow.status == "done", LedgerRow.reading_id.is_(None)).all()
         for r in done:
             record_cost(s, r)
+        turns = s.query(TurnRow).outerjoin(LedgerRow, LedgerRow.reading_id == TurnRow.id) \
+            .filter(TurnRow.status == "done", LedgerRow.reading_id.is_(None)).all()
+        for t in turns:
+            record_turn_cost(s, t)
 
 
 def _adopt_comparisons(engine) -> None:

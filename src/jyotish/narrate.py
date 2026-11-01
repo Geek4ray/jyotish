@@ -2699,17 +2699,19 @@ def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first
 
 
 def engine_reading(chart: Chart, question: str, direction: str, areas: list[str], *, as_of: date,
-                   when: bool = False) -> EngineAnswer:
+                   when: bool = False, data: dict | None = None) -> EngineAnswer:
     """The engine's own answer to a turn (SPEC Layer 8): for each area, in order, the tier in plain words, how far
     it depends on the birth time, then the families leaning the way `direction` asks ("against": those against,
     the hard part only; "for": those for; "both": for, then against), each with the row of its derivation it rests
     on; with `when`, the most and least favourably scored stretches as months (the least first for "against").
-    Deterministic: the same chart, question, direction, areas and date give the same text. No model, no figure."""
+    Deterministic: the same chart, question, direction, areas and date give the same text. No model, no figure.
+    `data` is the whole-chart payload over these areas or more (a conversation's session keeps one for every area);
+    by default it is made, or taken from the cache, for these areas."""
     from .fullchart import cached_payload
     from .sheet import build
     if direction not in DIRECTIONS:
         raise ValueError(f"direction must be one of {DIRECTIONS}, not {direction!r}")
-    data = cached_payload(chart, as_of, *full_range(as_of), list(areas))
+    data = data or cached_payload(chart, as_of, *full_range(as_of), list(areas))
     out: list[EngineSentence] = []
     for area in areas:
         label = CLIENT_AREA.get(area, area.replace("_", " "))

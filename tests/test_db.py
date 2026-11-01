@@ -12,7 +12,7 @@ from jyotish.db import (Base, ComparisonRow, ReadingRow, current_revision, datab
                         migrate)
 
 TABLES = {"charts", "readings", "reviews", "exclusions", "consents", "subjects", "events", "erasures", "comparisons",
-          "credentials", "ledger"}
+          "credentials", "ledger", "sessions", "turns"}
 
 
 def _drift(engine) -> list:

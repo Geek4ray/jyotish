@@ -238,13 +238,14 @@ def withdraw_consent(session, consent_id: str) -> None:
 
 
 def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
-    """Remove a subject's chart, readings, reviews, exclusions, events, consents and the subject
-    itself; log the erasure (who, when, how many rows), never the data. Charts, readings and
+    """Remove a subject's chart, readings, conversations (sessions and their turns), reviews, exclusions,
+    events, consents and the subject itself; log the erasure (who, when, how many rows), never the data. Charts, readings and
     exclusions are found by the birth key, so a reading of the same birth made under another engine
     version goes too. When another subject shares the birth (twins) the chart and its readings are
     theirs as well: they stay, and the log counts them as kept."""
     from sqlalchemy import or_
     from .api import ChartRow, ConsentRow, ErasureRow, EventRow, ExclusionRow, ReadingRow, ReviewRow, SubjectRow
+    from .db import SessionRow, TurnRow
     from .cache import birth_key_of_record
     subj = session.get(SubjectRow, subject_id)
     if subj is None:
@@ -254,8 +255,13 @@ def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
     chart_ids = {c.id for c in session.query(ChartRow).filter(or_(ChartRow.birth_key == bkey, ChartRow.id == subj.chart_id))}
     readings = [r.id for r in session.query(ReadingRow).filter(
         or_(ReadingRow.birth_key == bkey, *([ReadingRow.chart_id.in_(chart_ids)] if chart_ids else [])))]
-    counts = {"reviews": 0, "readings": 0, "exclusions": 0, "charts": 0}
+    sessions = [r.id for r in session.query(SessionRow).filter(
+        or_(SessionRow.birth_key == bkey, *([SessionRow.chart_id.in_(chart_ids)] if chart_ids else [])))]
+    counts = {"reviews": 0, "readings": 0, "turns": 0, "sessions": 0, "exclusions": 0, "charts": 0}
     if not twins:
+        if sessions:
+            counts["turns"] = session.query(TurnRow).filter(TurnRow.session_id.in_(sessions)).delete(synchronize_session=False)
+            counts["sessions"] = session.query(SessionRow).filter(SessionRow.id.in_(sessions)).delete(synchronize_session=False)
         if readings:
             counts["reviews"] = session.query(ReviewRow).filter(ReviewRow.reading_id.in_(readings)).delete(synchronize_session=False)
             counts["readings"] = session.query(ReadingRow).filter(ReadingRow.id.in_(readings)).delete(synchronize_session=False)

@@ -58,8 +58,8 @@ from sqlalchemy.orm import sessionmaker
 
 # The tables live in db.py; they are imported here too, where scripts and tests have always found them.
 from .db import (DOCUMENT, Base, ChartRow, ComparisonRow, ConsentRow, ErasureRow, EventRow, ExclusionRow,  # noqa: F401
-                 ReadingRow, ReviewRow, SubjectRow, _add_missing_columns, _now, add_comparison, compared_with,
-                 excluded_charts)
+                 ReadingRow, ReviewRow, SessionRow, SubjectRow, TurnRow, _add_missing_columns, _now, add_comparison,
+                 compared_with, excluded_charts)
 from .service import BirthInput
 
 
@@ -81,6 +81,18 @@ class ReadingRequest(BirthInput):
         if self.writer_effort is not None and self.writer_effort not in EFFORTS:
             raise ValueError(f"writer_effort must be one of {', '.join(EFFORTS)}")
         return self
+
+
+class SessionRequest(BirthInput):
+    """A conversation's birth data, entered once (SPEC Layer 8), and optionally the date it is read for."""
+    model_config = ConfigDict(extra="forbid")
+    as_of: str | None = None
+
+
+class TurnRequest(BaseModel):
+    """One message of a conversation."""
+    model_config = ConfigDict(extra="forbid")
+    message: str = Field(min_length=1, max_length=1000)
 
 
 class EditRequest(BaseModel):
@@ -238,7 +250,8 @@ class RateLimit:
 def create_app(database_url: str | None = None, *, model_fixture: str | None = None, workers: int = 2,
                web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
                reviewers: dict[str, str] | None = None, review_checker=None,
-               clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None) -> FastAPI:
+               clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None,
+               turn_writer=None, turn_checker=None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
     mounted when their directories exist (a source checkout). Reviewers, clerks and the owner
@@ -246,7 +259,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     add to it for a local run and default to JYOTISH_REVIEWERS and JYOTISH_CLERKS, which the log
     says. `review_checker` checks edited sentences (default the live AnthropicChecker; tests pass a
     stub). `rate` is (readings per client per hour, readings per day), default
-    JYOTISH_READINGS_PER_HOUR and JYOTISH_READINGS_PER_DAY, else 30 and 300."""
+    JYOTISH_READINGS_PER_HOUR and JYOTISH_READINGS_PER_DAY, else 30 and 300; a conversation's turns count
+    against the same limit. `turn_writer` and `turn_checker` make a turn's writer and checker (each called with
+    no argument, once per turn); by default the writer and checker backends of the environment."""
     from . import logs
     from .db import migrate
     logs.setup()
@@ -264,6 +279,12 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             logs.event("credentials.environment", logging.WARNING, variable=var, names=sorted(set(given.values())),
                        note="tokens from the environment: for a local run; deployed, use `jyotish reviewer add` "
                             "and `jyotish clerk add`, which store only a hash")
+    if model_fixture and turn_writer is None:
+        # A replay calls no model: a conversation's turns are written by the offline writer from the engine's own
+        # answer and pass unchecked (the CI smoke test, the site's tests).
+        from .conversation import OfflineTurnWriter
+        from .narrate import FixtureChecker
+        turn_writer, turn_checker = OfflineTurnWriter, (turn_checker or (lambda: FixtureChecker({})))
     limits = RateLimit(*(rate or (int(os.environ.get("JYOTISH_READINGS_PER_HOUR", 30)),
                                   int(os.environ.get("JYOTISH_READINGS_PER_DAY", 300)))))
     pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="reading")
@@ -471,6 +492,179 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         except ValueError:
             raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD")
         return tables(chart_of(chart_id), day)
+
+    # --- the conversation (SPEC Layer 8, 2026-11-01) --------------------------------------------------------
+    # POST /sessions takes the birth data once and answers with the check line; the whole-chart payload (every
+    # area, its technical sheets) is made on the pool and kept for the session's turns. POST /sessions/{id}/turns
+    # queues one message; its answer streams on GET /sessions/{id}/turns/{n}/events (as a reading's does), the
+    # client's events only: `light`, `text` (a passed sentence, tags off), `done`.
+    from .scoring import AREAS as _AREAS
+    PAYLOADS: dict[str, Any] = {}                 # session id -> Future of its whole-chart payload, in this process
+
+    def session_payload(sid: str, chart, as_of):
+        from .fullchart import cached_payload
+        from .narrate import full_range
+        fut = PAYLOADS.get(sid)
+        if fut is None:
+            fut = PAYLOADS[sid] = pool.submit(cached_payload, chart, as_of, *full_range(as_of), list(_AREAS))
+        return fut
+
+    def session_of(s, sid: str) -> SessionRow:
+        row = s.get(SessionRow, sid)
+        if row is None:
+            raise HTTPException(status_code=404, detail="no such conversation")
+        return row
+
+    def client_turn(t: TurnRow) -> dict:
+        """A turn as the client sees it: the question and the answer's shown text, nothing of the working."""
+        doc = t.document or {}
+        return {"n": t.n, "question": t.question, "status": t.status, "answer": doc.get("shown"),
+                "paragraphs": doc.get("paragraphs"),
+                "events": f"/sessions/{t.session_id}/turns/{t.n}/events"}
+
+    @app.post("/sessions", status_code=201)
+    def post_session(req: SessionRequest) -> dict:
+        """A conversation: the chart computed (cached) and stored, the check line (rising sign, the Moon's sign and
+        nakshatra) returned before any question, the whole chart's payload made on the pool for the turns."""
+        from datetime import date as _date
+        from .conversation import is_minor
+        from .service import assess_birth, birth_key_of, chart_line
+        birth = BirthInput(**req.model_dump(include=set(BirthInput.model_fields)))
+        try:
+            chart, _, chart_id = assess_birth(birth)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        if chart.scored is None:
+            raise HTTPException(status_code=422, detail="this chart cannot be scored (no birth moment)")
+        try:
+            as_of = _date.fromisoformat(req.as_of) if req.as_of else _date.today()
+        except ValueError:
+            raise HTTPException(status_code=422, detail="as_of must be YYYY-MM-DD")
+        bkey = birth_key_of(birth)
+        line = chart_line(chart, birth)
+        check = {"lagna": line["lagna"], "moon_sign": line["moon_sign"], "moon_nakshatra": line["moon_nakshatra"],
+                 "words": f"{line['lagna']} rising · Moon in {line['moon_sign']}, {line['moon_nakshatra']}"}
+        sid = uuid.uuid4().hex
+        try:
+            with Session.begin() as s:
+                if s.get(ChartRow, chart_id) is None:
+                    s.add(ChartRow(id=chart_id, birth_key=bkey, birth=birth.model_dump(), engine=chart.meta.engine,
+                                   document=chart.model_dump(mode="json")))
+        except IntegrityError:
+            pass
+        with Session.begin() as s:
+            s.add(SessionRow(id=sid, chart_id=chart_id, birth_key=bkey, birth=birth.model_dump(),
+                             as_of=as_of.isoformat(), check=check,
+                             minor=is_minor(_date.fromisoformat(birth.date), as_of)))
+        session_payload(sid, chart, as_of)
+        logs.event("session.created", session_id=sid)
+        return {"id": sid, "chart_id": chart_id, "check": check, "as_of": as_of.isoformat(),
+                "chart_svg": f"/charts/{chart_id}/chart.svg", "turns": []}
+
+    @app.get("/sessions/{sid}")
+    def get_session(sid: str) -> dict:
+        """The conversation as the client sees it: the check line and each turn's question and shown answer."""
+        with Session() as s:
+            row = session_of(s, sid)
+            turns = s.query(TurnRow).filter_by(session_id=sid).order_by(TurnRow.n).all()
+            return {"id": row.id, "chart_id": row.chart_id, "check": row.check, "as_of": row.as_of,
+                    "chart_svg": f"/charts/{row.chart_id}/chart.svg", "turns": [client_turn(t) for t in turns]}
+
+    def run_turn(turn_id: str) -> None:
+        from datetime import date as _date
+        from .conversation import answer_turn, route_turn
+        with Session() as s:
+            t = s.get(TurnRow, turn_id)
+            srow = s.get(SessionRow, t.session_id)
+            earlier = s.query(TurnRow).filter(TurnRow.session_id == t.session_id, TurnRow.n < t.n,
+                                              TurnRow.status == "done").order_by(TurnRow.n).all()
+            message, chart_id, as_of, minor = t.question, srow.chart_id, _date.fromisoformat(srow.as_of), srow.minor
+            last = next((x.route for x in reversed(earlier) if x.route and not x.route.get("off_limits")), None)
+            # The writer is given the accepted text of earlier turns only: what the client read.
+            history = [{"question": x.question, "answer": " ".join((x.document or {}).get("shown") or [])}
+                       for x in earlier]
+        try:
+            with Session.begin() as s:
+                s.get(TurnRow, turn_id).status = "running"
+            chart = chart_of(chart_id)
+            route = route_turn(message, chart, last, minor=minor)
+            with Session.begin() as s:
+                s.get(TurnRow, turn_id).route = route.model_dump()
+            data = None if route.off_limits else session_payload(t.session_id, chart, as_of).result()
+            doc = answer_turn(chart, message, route, as_of=as_of, history=history, data=data,
+                              drafter=turn_writer() if turn_writer and not route.off_limits else None,
+                              checker=turn_checker() if turn_checker and not route.off_limits else None,
+                              emit=LIVE.writer(turn_id))
+            if model_fixture:
+                doc["narration_source"] = f"fixture:{model_fixture}"
+            with Session.begin() as s:
+                row = s.get(TurnRow, turn_id)
+                row.status, row.document = "done", doc
+                s.flush()
+                from .db import record_turn_cost
+                ledger = record_turn_cost(s, row)
+            logs.event("turn.done", turn_id=turn_id, n=t.n, source=doc["source"], off_limits=route.off_limits,
+                       removed=len(doc["removed"]), cost_usd=ledger.cost_usd if ledger else None,
+                       seconds=doc["timeline"].get("done"))
+        except Exception as e:                       # the job reports its failure; it never raises into the pool
+            with Session.begin() as s:
+                row = s.get(TurnRow, turn_id)
+                row.status, row.error = "failed", {"message": f"{type(e).__name__}"}
+            LIVE.append(turn_id, {"type": "done", "status": "failed"})
+            logs.event("turn.failed", logging.WARNING, turn_id=turn_id, error=type(e).__name__)
+
+    @app.post("/sessions/{sid}/turns", status_code=202)
+    def post_turn(sid: str, req: TurnRequest, request: Request) -> dict:
+        """Queue one message. One turn at a time per conversation (409 while one is being answered); turns count
+        against the readings' rate limit."""
+        wait = limits.check(request.client.host if request.client else "unknown")
+        if wait is not None:
+            raise HTTPException(status_code=429, detail="too many questions: try again later",
+                                headers={"Retry-After": str(wait)})
+        tid = uuid.uuid4().hex
+        with Session.begin() as s:
+            srow = session_of(s, sid)
+            turns = s.query(TurnRow).filter_by(session_id=sid).all()
+            if any(t.status in ("queued", "running") for t in turns):
+                raise HTTPException(status_code=409, detail="the last question is still being answered")
+            n = max((t.n for t in turns), default=0) + 1
+            s.add(TurnRow(id=tid, session_id=sid, n=n, birth_key=srow.birth_key, question=req.message,
+                          status="queued"))
+        pool.submit(run_turn, tid)
+        return {"n": n, "status": "queued", "url": f"/sessions/{sid}/turns/{n}",
+                "events": f"/sessions/{sid}/turns/{n}/events"}
+
+    def turn_row(sid: str, n: int) -> TurnRow:
+        with Session() as s:
+            t = s.query(TurnRow).filter_by(session_id=sid, n=n).first()
+            if t is None:
+                raise HTTPException(status_code=404, detail="no such turn")
+            return t
+
+    @app.get("/sessions/{sid}/turns/{n}")
+    def get_turn(sid: str, n: int) -> dict:
+        """One turn as the client sees it."""
+        return client_turn(turn_row(sid, n))
+
+    @app.get("/sessions/{sid}/turns/{n}/live")
+    def get_turn_live(sid: str, n: int, since: int = 0) -> dict:
+        """The polling fallback of a turn's events."""
+        t = turn_row(sid, n)
+        events, version, done = LIVE.since(t.id, max(0, since))
+        return {"version": version, "events": events, "done": done or t.status in ("done", "failed"),
+                "status": t.status}
+
+    @app.get("/sessions/{sid}/turns/{n}/events")
+    async def get_turn_events(sid: str, n: int, request: Request, since: int = 0):
+        """A turn's answer as server-sent events, as GET /readings/{id}/events streams a reading's."""
+        from fastapi.concurrency import run_in_threadpool
+        t = await run_in_threadpool(turn_row, sid, n)
+
+        def finished() -> str | None:
+            with Session() as s:
+                row = s.get(TurnRow, t.id)
+                return row.status if row.status in ("done", "failed") and not LIVE.known(t.id) else None
+        return sse(t.id, request, int(request.headers.get("last-event-id") or since or 0), finished)
 
     # --- the review step ----------------------------------------------------------------
 
@@ -791,7 +985,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     @app.get("/costs/daily")
     def costs_daily(request: Request, days: int = 30) -> list[dict]:
-        """The owner's daily totals from the ledger, newest day first: readings, the writer's, the
+        """The owner's daily totals from the ledger, newest day first: readings, conversation turns, the writer's, the
         checker's and the client's layer's tokens, and the cost (a day with a reading on an unpriced
         model says how many)."""
         from sqlalchemy import func
@@ -804,7 +998,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             for day in days_seen:
                 rows = s.query(LedgerRow).filter_by(day=day).all()
                 total = lambda side, k: sum(int((getattr(r, side) or {}).get(k) or 0) for r in rows)
-                out.append({"day": day, "readings": len(rows), "replayed": sum(r.replayed for r in rows),
+                out.append({"day": day, "readings": sum(r.kind != "turn" for r in rows),
+                            "turns": sum(r.kind == "turn" for r in rows), "replayed": sum(r.replayed for r in rows),
                             "cost_usd": round(sum(r.cost_usd or 0.0 for r in rows), 4),
                             "unpriced": sum(r.cost_usd is None for r in rows),
                             "writer_tokens": {k: total("writer_tokens", k) for k in ("input_tokens", "output_tokens",
@@ -821,7 +1016,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         from .db import LedgerRow
         credential(request, "owner")
         with Session() as s:
-            return [{"reading_id": r.reading_id, "depth": r.depth, "writer_model": r.writer_model,
+            return [{"reading_id": r.reading_id, "kind": r.kind, "depth": r.depth, "writer_model": r.writer_model,
                      "checker_model": r.checker_model, "writer_tokens": r.writer_tokens,
                      "checker_tokens": r.checker_tokens, "writer_calls": r.writer_calls, "checker_calls": r.checker_calls,
                      "client_model": r.client_model, "client_tokens": r.client_tokens, "client_calls": r.client_calls,
@@ -914,18 +1109,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     @app.get("/readings/{reading_id}/events")
     async def get_events(reading_id: str, request: Request, since: int = 0):
-        """The live view as server-sent events: each event's `id` is its version (a reconnect sends
-        Last-Event-ID), its `event` its type; the stream ends after `done`. Comments keep it open. The
-        stream waits on the event loop, not on a worker thread (review R7), and a reading takes at most
-        STREAMS_PER_READING streams at once (429 beyond)."""
-        import asyncio
-        import json as _json
+        """The live view as server-sent events (`sse`)."""
         from fastapi.concurrency import run_in_threadpool
-        from fastapi.responses import StreamingResponse
         await run_in_threadpool(live_row, reading_id, request)
-        if STREAMS.get(reading_id, 0) >= STREAMS_PER_READING:
-            raise HTTPException(status_code=429, detail="too many live views of this reading", headers={"Retry-After": "5"})
-        start = int(request.headers.get("last-event-id") or since or 0)
 
         def finished_without_log() -> str | None:
             with Session() as s:
@@ -933,14 +1119,28 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 if row is None:
                     return "gone"
                 return row.status if row.status in ("done", "failed") and not LIVE.known(reading_id) else None
+        return sse(reading_id, request, int(request.headers.get("last-event-id") or since or 0), finished_without_log)
+
+    def sse(key: str, request: Request, start: int, finished):
+        """The live events of `key` (a reading's or a turn's) as server-sent events: each event's `id` is its
+        version (a reconnect sends Last-Event-ID), its `event` its type; the stream ends after `done`. Comments
+        keep it open. The stream waits on the event loop, not on a worker thread (review R7), and a key takes at
+        most STREAMS_PER_READING streams at once (429 beyond). `finished()` says, after a quiet spell, whether
+        the job ended with no events kept in this process (another process ran it, or this one restarted)."""
+        import asyncio
+        import json as _json
+        from fastapi.concurrency import run_in_threadpool
+        from fastapi.responses import StreamingResponse
+        if STREAMS.get(key, 0) >= STREAMS_PER_READING:
+            raise HTTPException(status_code=429, detail="too many live views of this reading", headers={"Retry-After": "5"})
 
         async def stream():
-            STREAMS[reading_id] = STREAMS.get(reading_id, 0) + 1
+            STREAMS[key] = STREAMS.get(key, 0) + 1
             try:
                 n, idle = start, 0.0
                 yield "retry: 2000\n\n"
                 while True:
-                    events, n_now, done = LIVE.since(reading_id, n)
+                    events, n_now, done = LIVE.since(key, n)
                     for e in events:
                         yield f"id: {e['seq']}\nevent: {e['type']}\ndata: {_json.dumps(e)}\n\n"
                     n = n_now
@@ -953,7 +1153,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                         idle += 0.25
                         if idle >= 15:
                             idle = 0.0
-                            status = await run_in_threadpool(finished_without_log)
+                            status = await run_in_threadpool(finished)
                             if status is not None:
                                 yield f"event: done\ndata: {_json.dumps({'type': 'done', 'status': status})}\n\n"
                                 return
@@ -961,9 +1161,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                     if await request.is_disconnected():
                         return
             finally:
-                STREAMS[reading_id] = STREAMS.get(reading_id, 1) - 1
-                if STREAMS[reading_id] <= 0:
-                    STREAMS.pop(reading_id, None)
+                STREAMS[key] = STREAMS.get(key, 1) - 1
+                if STREAMS[key] <= 0:
+                    STREAMS.pop(key, None)
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 

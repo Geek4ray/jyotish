@@ -137,10 +137,15 @@ def test_post_outcomes_and_erasure(tmp_path):
         s.add(ReadingRow(id="r-old", chart_id="e" * 64, birth_key=subj.birth_key, question="q", request={}, status="done",
                          progress={}))
         s.add(ExclusionRow(chart_id="e" * 64, birth_key=subj.birth_key, reason="reading seen in review", reviewer_id="judge-1"))
+        # A conversation of the same birth (SPEC Layer 8): its session and turns go with the subject.
+        from jyotish.db import SessionRow, TurnRow
+        s.add(SessionRow(id="s" * 32, chart_id="e" * 64, birth_key=subj.birth_key, birth=chart.birth, as_of="2026-11-01"))
+        s.flush()
+        s.add(TurnRow(id="t" * 32, session_id="s" * 32, n=1, birth_key=subj.birth_key, question="q", status="done"))
     with Session.begin() as s:
         counts = oc.erase(s, "S-0001", "dpo-1")
-    assert counts == {"reviews": 1, "readings": 2, "exclusions": 2, "charts": 2, "events": 4, "consents": 1,
-                      "subjects": 1}
+    assert counts == {"reviews": 1, "readings": 2, "turns": 1, "sessions": 1, "exclusions": 2, "charts": 2, "events": 4,
+                      "consents": 1, "subjects": 1}
     with Session() as s:
         assert s.get(SubjectRow, "S-0001") is None and s.query(EventRow).count() == 0
         assert s.query(ReadingRow).count() == 0 and s.query(ReviewRow).count() == 0 and s.query(ConsentRow).count() == 0
