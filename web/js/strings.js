@@ -209,6 +209,25 @@ export const STRINGS = {
     "done.body": "The reading is approved. The client sees it now, reviewed by {name}.",
     "done.client": "See the client's page",
     "done.already": "This reading was approved by {name}.",
+
+    // The conversation (web/chat.html, SPEC Layer 8): the client's words only, never the engine's.
+    "chat.first": "Where and when were you born? I will draw your chart, and we can start.",
+    "chat.drawing": "Drawing your chart…",
+    "chat.place_pick": "Choose your place of birth from the list.",
+    "chat.date_time": "Enter the date and the time of birth.",
+    "chat.failed_birth": "The chart could not be drawn: {why}",
+    "chat.check": "{lagna} rising · Moon in {moon_sign}, {moon_nakshatra}",
+    "chat.placeholder": "Ask about career, marriage, money, timing…",
+    "chat.chip.marriage": "and marriage?",
+    "chat.chip.when": "when?",
+    "chat.chip.why": "why?",
+    "chat.trust": "Checked against your chart; a real astrologer can review this.",
+    "chat.reading": "Reading your chart",
+    "chat.sorry": "Something went wrong while answering. Please ask again.",
+    "chat.busy": "Still answering your last question.",
+    "chat.wheel": "Your birth chart, {lagna} rising",
+    "chat.lit": "Reading {what}",
+    "chat.house": "your {n} house",
   },
 };
 

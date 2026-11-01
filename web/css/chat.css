@@ -1,0 +1,122 @@
+/* Tatva, the conversation (SPEC Layer 8): the design canvas "Tatva — website mockups" (2026-11-01). Deep ground,
+   one gold accent, Space Grotesk for the name, Inter for the words, JetBrains Mono for the chart's labels. */
+:root {
+  --ground: #07090F;
+  --panel: #0C101A;
+  --bubble: #121726;
+  --line: #141A28;
+  --rule: #1E2536;
+  --edge: #2A3348;
+  --text: #E9EDF6;
+  --soft: #C9D0DF;
+  --muted: #8C96AE;
+  --faint: #6E788F;
+  --gold: #E4C27B;
+  --gold-hi: #F2D79A;
+  --on-gold: #0B0D14;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--ground); color: var(--text); font: 16px/1.55 Inter, system-ui, sans-serif; }
+a { color: var(--gold); }
+a:hover { color: var(--gold-hi); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  padding: 18px 48px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; flex-direction: column; gap: 2px; color: var(--text); text-decoration: none; }
+.brand-name { font: 600 22px/1 "Space Grotesk", sans-serif; letter-spacing: 0.08em; }
+.brand-by { font: 10px/1 "JetBrains Mono", monospace; letter-spacing: 0.12em; color: var(--muted); }
+.check-line { margin: 0; font: 12px/1.4 "JetBrains Mono", monospace; letter-spacing: 0.04em; color: var(--muted); }
+
+.layout { display: flex; flex-wrap: wrap; gap: 40px; max-width: 1320px; margin: 0 auto; padding: 32px 48px; }
+.talk { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.sky { flex: 1 1 320px; max-width: 420px; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 24px;
+  align-self: flex-start; }
+
+.conversation { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 28px; }
+.asked { align-self: flex-end; max-width: 520px; background: var(--bubble); border: 1px solid var(--rule);
+  border-radius: 18px 18px 4px 18px; padding: 12px 18px; }
+.said { display: flex; gap: 14px; max-width: 760px; }
+.mark { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--gold); display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.mark span { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+.answer { display: flex; flex-direction: column; gap: 14px; font-size: 17px; line-height: 1.65; min-width: 0; }
+.answer p { margin: 0; }
+.answer .writing::after { content: ""; display: inline-block; width: 2px; height: 1.05em; background: var(--gold);
+  vertical-align: text-bottom; margin-left: 3px; animation: blink 1s steps(2) infinite; }
+.answer .waiting { color: var(--muted); font-size: 15px; }
+.answer .sorry { color: var(--soft); }
+@keyframes blink { 50% { opacity: 0; } }
+
+.first { display: flex; flex-direction: column; gap: 16px; background: var(--panel); border: 1px solid var(--rule);
+  border-radius: 20px; padding: 24px; max-width: 600px; }
+.first .said p { margin: 4px 0 0; font-size: 17px; }
+.birth { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.birth label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); position: relative; }
+.birth .wide { grid-column: span 2; }
+.birth input { height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--edge); background: var(--ground);
+  color: var(--text); font: inherit; font-size: 15px; }
+.birth input:focus, .ask-form input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.primary { height: 48px; border: none; border-radius: 12px; background: var(--gold); color: var(--on-gold);
+  font: 600 15px Inter, sans-serif; cursor: pointer; }
+.primary:disabled { opacity: 0.6; cursor: progress; }
+.fine { margin: 0; font-size: 12px; color: var(--faint); min-height: 1em; }
+.place-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 5; margin: 4px 0 0; padding: 4px; list-style: none;
+  background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; max-height: 260px; overflow: auto; }
+.place-list li { padding: 8px 10px; border-radius: 8px; color: var(--text); font-size: 14px; cursor: pointer; }
+.place-list li[aria-selected="true"], .place-list li:hover { background: var(--bubble); }
+
+.ask { display: flex; flex-direction: column; gap: 12px; max-width: 720px; margin-top: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--edge); background: transparent;
+  color: var(--text); font: 13px Inter, sans-serif; cursor: pointer; }
+.chips button:hover { border-color: var(--gold); }
+.ask-form { display: flex; align-items: center; gap: 10px; border: 1px solid var(--edge); border-radius: 16px;
+  background: var(--panel); padding: 6px 6px 6px 18px; }
+.ask-form input { flex: 1 1 auto; min-width: 0; height: 44px; border: none; background: transparent; color: var(--text);
+  font: inherit; font-size: 16px; }
+.ask-form input::placeholder, .birth input::placeholder { color: var(--faint); }
+.ask-form button { width: 44px; height: 44px; border-radius: 12px; border: none; background: var(--gold); color: var(--on-gold);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.ask-form button:disabled { opacity: 0.5; cursor: progress; }
+.trust { margin: 0; font-size: 12px; color: var(--faint); }
+
+/* The chart, alive: what the answer rests on lights while it is written, and settles when it is done. */
+#wheel { width: 100%; display: block; }
+#wheel .ring { fill: none; stroke: var(--edge); }
+#wheel .ring.outer { stroke: var(--line); }
+#wheel .spoke { stroke: var(--rule); }
+#wheel .sector { fill: var(--gold); fill-opacity: 0; transition: fill-opacity 0.6s ease; }
+#wheel .sector.lit { fill-opacity: 0.10; }
+#wheel .sign { font: 10px "JetBrains Mono", monospace; fill: var(--muted); text-anchor: middle; dominant-baseline: middle; }
+#wheel .sign.rising, #wheel .sign.lit { fill: var(--gold); }
+#wheel .asc { stroke: var(--gold); stroke-width: 2; }
+#wheel .body circle.dot { fill: var(--muted); transition: fill 0.4s ease; }
+#wheel .body circle.halo { fill: var(--gold); fill-opacity: 0; transition: fill-opacity 0.6s ease; }
+#wheel .body text { font: 10px Inter, sans-serif; fill: var(--muted); }
+#wheel .body.lit circle.dot { fill: var(--gold); }
+#wheel .body.lit circle.halo { fill-opacity: 0.16; }
+#wheel .body.lit text { fill: var(--text); }
+#wheel .body.now circle.halo, #wheel .sector.now { animation: pulse 1.4s ease-in-out infinite; }
+#wheel.settled .now { animation: none; }
+@keyframes pulse { 50% { fill-opacity: 0.32; } }
+.reading-now { margin: 0; padding: 14px 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--panel);
+  font-size: 14px; color: var(--soft); min-height: 1em; }
+.reading-now:empty { display: none; }
+
+@media (max-width: 760px) {
+  .bar { padding: 14px 16px; }
+  .layout { padding: 16px; gap: 16px; flex-direction: column-reverse; }
+  .sky { position: static; max-width: none; flex-direction: row; align-items: center; gap: 12px; }
+  #wheel { width: 120px; flex-shrink: 0; }
+  .reading-now { font-size: 13px; padding: 10px 12px; }
+  .birth { grid-template-columns: minmax(0, 1fr); }
+  .birth .wide { grid-column: auto; }
+  .answer { font-size: 16px; }
+  .asked { max-width: 85%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .answer .writing::after, #wheel .now { animation: none !important; }
+}
