@@ -1,0 +1,677 @@
+{
+  "question": "why do you say that?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": true,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false
+  },
+  "as_of": "2026-11-01",
+  "removed": [
+    {
+      "sentence": "Let's start with the hard part, since you asked about it.",
+      "reasons": [
+        "the checker found it unsupported: The reading contains a \"hard part\" (some especially difficult matter) that can be started with ()",
+        "the checker found it unsupported: The client asked about that hard part ()"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The planet that naturally represents partnership, Venus, is in Pisces and exalted, giving a strong boost to the marriage area. [vote:marriage.karaka]",
+      "reasons": [
+        "tier language ('strong') in the answer; the engine states the tier: 'The planet that naturally represents partnership, Venus, is in Pisces and exalted, giving a strong boost to the marriage area. [vote:marriage.karaka]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "In the reading’s view, six of the seven tests are for, and only the image point is against, so the overall balance leans favourably toward a positive marriage outlook.",
+      "reasons": [
+        "untagged claim: 'In the reading’s view, six of the seven tests are for, and only the image point is against, so the overall balance leans favourably toward a positive marriage outlook.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The image point that shows how marriage appears to the world is unfavourable because Rahu occupies the relevant points with no helpful planet beside it. [vote:marriage.arudha]",
+      "reasons": [
+        "the checker found it unsupported: Rahu occupies the relevant points (the marriage image points UL, UL2 and A7). (The data shows Rahu as an occupant of UL only; UL2 and A7 have occupants: []. 'The relevant points' plural attaches Rahu's occupancy to all three padas, but it holds for only one of them.)",
+        "the checker found it unsupported: The unfavourable verdict is because Rahu occupies the relevant points with no benefic beside it (the because-clause). (The data's stated reason is 'more malefics than benefics occupy UL, UL2, A7: the vote is against' — a malefic/benefic imbalance across the padas. The sentence's specific causal claim rests on Rahu occupying the points (plural), which the data does not state; the data supports only the weaker reason that one malefic occupies UL with no benefics anywhere on the padas.)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Let's start with the hard part, since you asked about it.",
+      "reasons": [
+        "the checker found it unsupported: There is a 'hard part' of the reading that can be started with. (://none)",
+        "the checker found it unsupported: The client asked about the 'hard part'. (://none)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The hard part is the image point for marriage being unfavourable. [vote:marriage.arudha]",
+      "reasons": [
+        "the checker found it unsupported: the image point's unfavourability comes from malefics rather than benefics occupying it (not asserted by the sentence)"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [
+    {
+      "sentence": "The planet that naturally represents partnership, Venus, is in Pisces and exalted, giving a strong boost to the marriage area. [vote:marriage.karaka]",
+      "warning": "engine vocabulary ('strong') in the client's text: say it in plain words: 'The planet that naturally represents partnership, Venus, is in Pisces and exalted, giving a strong boost to the marriage area. [vote:marriage.karaka]'",
+      "attempt": 1
+    },
+    {
+      "sentence": "The overall picture of the marriage house is positive; the vote for the house itself is in the favourable direction. [vote:marriage.house]",
+      "warning": "engine vocabulary ('vote') in the client's text: say it in plain words: 'The overall picture of the marriage house is positive; the vote for the house itself is in the favourable direction. [vote:marriage.house]'",
+      "attempt": 1
+    },
+    {
+      "sentence": "The KP analysis of the seventh house gives a favourable outcome for marriage. [vote:marriage.kp]",
+      "warning": "engine vocabulary ('KP') in the client's text: say it in plain words: 'The KP analysis of the seventh house gives a favourable outcome for marriage. [vote:marriage.kp]'",
+      "attempt": 1
+    },
+    {
+      "sentence": "The panchanga factors (the day‑time elements at birth) also support marriage. [vote:marriage.panchanga]",
+      "warning": "'panchanga' is a Sanskrit term: gloss it in the same sentence, right after it (', a …' or '(…)'), or use a plain phrase: 'The panchanga factors (the day‑time elements at birth) also support marriage. [vote:marriage.panchanga]'",
+      "attempt": 1
+    }
+  ],
+  "checks": [
+    {
+      "sentence": "Let's start with the hard part, since you asked about it.",
+      "findings": [],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading contains a \"hard part\" (some especially difficult matter) that can be started with",
+            "supported": false,
+            "evidence": ""
+          },
+          {
+            "text": "The client asked about that hard part",
+            "supported": false,
+            "evidence": ""
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The overall picture of the marriage house is positive; the vote for the house itself is in the favourable direction. [vote:marriage.house]",
+      "findings": [
+        "vote:marriage.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The overall picture of the marriage house is positive",
+            "supported": true,
+            "evidence": "The finding's area_votes verdict has house: \"for\", with 6 votes for and 1 against, and the finding's area_houses call the 7th (and its related houses) \"a marriage house\", so the overall verdict on that house is in the favourable direction."
+          },
+          {
+            "text": "The vote for the house itself is in the favourable direction",
+            "supported": true,
+            "evidence": "The finding's area_votes verdict gives house: \"for\"."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for marriage also leans favourably, with Saturn placed in Capricorn, its own sign. [vote:marriage.varga]",
+      "findings": [
+        "vote:marriage.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "A divisional chart is read for marriage",
+            "supported": true,
+            "evidence": "the finding's family is \"varga\" on the D9 chart, whose glossary entry reads it \"for marriage and the strength of planets\""
+          },
+          {
+            "text": "The marriage divisional chart leans favourably",
+            "supported": true,
+            "evidence": "the finding's direction is \"for\" and its area_votes verdict lists \"varga\": \"for\""
+          },
+          {
+            "text": "Other areas of the reading also lean favourably (\"also\")",
+            "supported": true,
+            "evidence": "area_votes shows 6 votes \"for\" against 1 \"against\""
+          },
+          {
+            "text": "Saturn is placed in Capricorn in that divisional chart",
+            "supported": true,
+            "evidence": "Saturn's derivation row: varga D9, varga_sign Capricorn"
+          },
+          {
+            "text": "Capricorn is Saturn's own sign (Saturn is in its own dignity there)",
+            "supported": true,
+            "evidence": "Saturn's row: varga_dignity_label \"own\", varga_dignity 1.0"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The KP analysis of the seventh house gives a favourable outcome for marriage. [vote:marriage.kp]",
+      "findings": [
+        "vote:marriage.kp"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a KP analysis concerning the seventh house",
+            "supported": true,
+            "evidence": "finding vote:marriage.kp is of family \"kp\" and its derivation rows all carry \"cusp\": 7"
+          },
+          {
+            "text": "that analysis gives a favourable outcome (direction \"for\")",
+            "supported": true,
+            "evidence": "the finding's direction is \"for\" and its area_votes.verdict lists \"kp\": \"for\""
+          },
+          {
+            "text": "the favourable outcome is for marriage (the seventh house is read for marriage)",
+            "supported": true,
+            "evidence": "area_houses lists house 7 with the words \"the 7th, a marriage house\", and the glossary's entry for \"7th house\" reads it for \"marriage, partners, partnerships and travel\""
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The image point that shows how marriage appears to the world is unfavourable because Rahu occupies the relevant points with no helpful planet beside it. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is an image point that is read for how marriage appears to the world (the marriage image point, judged here).",
+            "supported": true,
+            "evidence": "Glossary: 'arudha' is 'the image point of a house... read for how its matters appear to the world'; 'Upapada' is 'the image point of the 12th house, read for marriage'. The finding's family is 'arudha' with rests_on UL, UL2, A7."
+          },
+          {
+            "text": "That marriage image point is judged unfavourable (the arudha vote is against).",
+            "supported": true,
+            "evidence": "direction: 'against'; area_votes.verdict.arudha: 'against'; area_votes counts against: 1."
+          },
+          {
+            "text": "Rahu occupies the relevant points (the marriage image points UL, UL2 and A7).",
+            "supported": false,
+            "evidence": "The data shows Rahu as an occupant of UL only; UL2 and A7 have occupants: []. 'The relevant points' plural attaches Rahu's occupancy to all three padas, but it holds for only one of them."
+          },
+          {
+            "text": "No helpful planet (benefic) occupies those points alongside it.",
+            "supported": true,
+            "evidence": "benefics: [] for UL, UL2 and A7; glossary 'benefic' matches 'helpful planet'. Note: the phrase 'beside it' ties the absence to Rahu, which only fits UL; the underlying fact that no benefic occupies any of the three padas is stated."
+          },
+          {
+            "text": "The unfavourable verdict is because Rahu occupies the relevant points with no benefic beside it (the because-clause).",
+            "supported": false,
+            "evidence": "The data's stated reason is 'more malefics than benefics occupy UL, UL2, A7: the vote is against' — a malefic/benefic imbalance across the padas. The sentence's specific causal claim rests on Rahu occupying the points (plural), which the data does not state; the data supports only the weaker reason that one malefic occupies UL with no benefics anywhere on the padas."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The panchanga factors (the day‑time elements at birth) also support marriage. [vote:marriage.panchanga]",
+      "findings": [
+        "vote:marriage.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There are panchanga factors in this chart reading.",
+            "supported": true,
+            "evidence": "The cited finding is a vote with family \"panchanga\"."
+          },
+          {
+            "text": "These panchanga factors support marriage.",
+            "supported": true,
+            "evidence": "The finding's direction is \"for\", and its area (the marriage vote) treats marriage; generic framing of the vote's direction is supported."
+          },
+          {
+            "text": "Other factors besides the panchanga also support marriage (\"also\").",
+            "supported": true,
+            "evidence": "The finding's area_votes shows the house, lord, karaka, varga and kp votes all \"for\" (6 for vs 1 against)."
+          },
+          {
+            "text": "Gloss: panchanga means \"the day-time elements at birth\".",
+            "supported": true,
+            "evidence": "The glossary entry reads \"The five limbs of the day at birth: tithi, vara, nakshatra, nitya yoga and karana\", which matches the gloss's meaning (elements of the day at birth)."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The ruler of that house, Mars, sits in Scorpio, its own sign, which is a supportive placement. [vote:marriage.lord]",
+      "findings": [
+        "vote:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The house under discussion (the marriage house) has Mars as its ruler",
+            "supported": true,
+            "evidence": "derivation rows for the 7th from lagna (sign Scorpio, lord Mars), and likewise the 7th from the Moon (Aries, lord Mars) and the 2nd from the Moon (Scorpio, lord Mars); the finding's verdict also records \"lord\": \"for\" for the marriage vote"
+          },
+          {
+            "text": "Mars sits in Scorpio",
+            "supported": true,
+            "evidence": "\"lord_sign\": \"Scorpio\" in the rows whose lord is Mars (lagna 7th, moon 7th, moon 2nd)"
+          },
+          {
+            "text": "Scorpio is Mars's own sign, i.e. Mars is placed in its own sign",
+            "supported": true,
+            "evidence": "\"dignity\": \"own\" on the Mars rows"
+          },
+          {
+            "text": "This placement (a planet in its own sign) is a supportive one for the matter (marriage)",
+            "supported": true,
+            "evidence": "the finding's verdict records \"lord\": \"for\" — the lord's vote is for marriage; the \"own\" dignity with shadbala_ratio 1.3 is the basis the data gives for that favorable lord vote"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "Let's start with the hard part, since you asked about it.",
+      "findings": [],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a 'hard part' of the reading that can be started with.",
+            "supported": false,
+            "evidence": "://none"
+          },
+          {
+            "text": "The client asked about the 'hard part'.",
+            "supported": false,
+            "evidence": "://none"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The image point for marriage is unfavourable as malefic planets outnumber benefic ones at its three points. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading concerns an image point (arudha) for marriage",
+            "supported": true,
+            "evidence": "The finding is the marriage arudha vote; the glossary reads the Upapada (UL) for marriage, and the derivation rests on UL, UL2, A7."
+          },
+          {
+            "text": "That image point is unfavourable (the vote is against)",
+            "supported": true,
+            "evidence": "direction: 'against'; why: 'the vote is against'"
+          },
+          {
+            "text": "Its reason is that malefic planets outnumber benefic ones",
+            "supported": true,
+            "evidence": "why: 'more malefics than benefics occupy UL, UL2, A7'"
+          },
+          {
+            "text": "The count is taken at three points belonging to it",
+            "supported": true,
+            "evidence": "rests_on: ['UL', 'UL2', 'A7'] — three pads, with the 'why' text covering UL, UL2 and A7 together"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Venus, the partnership planet, is in Pisces and exalted, supporting the marriage area. [vote:marriage.karaka]",
+      "findings": [
+        "vote:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is in Pisces",
+            "supported": true,
+            "evidence": "derivation[0]: Venus, sign Pisces"
+          },
+          {
+            "text": "Venus is the partnership planet (appositive on Venus)",
+            "supported": true,
+            "evidence": "glossary karaka: \"Venus for partnership\"; the vote's family is karaka"
+          },
+          {
+            "text": "Venus is exalted",
+            "supported": true,
+            "evidence": "derivation[0]: Venus, dignity \"exalted\""
+          },
+          {
+            "text": "Venus (as karaka) supports the marriage area",
+            "supported": true,
+            "evidence": "finding direction \"for\", family \"karaka\"; area_votes verdict karaka \"for\""
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Six of the seven indicators are for marriage and one, the image point, is against, giving an overall favourable balance. [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.kp] [vote:marriage.panchanga] [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.house",
+        "vote:marriage.lord",
+        "vote:marriage.karaka",
+        "vote:marriage.varga",
+        "vote:marriage.arudha",
+        "vote:marriage.kp",
+        "vote:marriage.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading weighs seven indicators for marriage (there are seven indicators, taken for marriage).",
+            "supported": true,
+            "evidence": "each cited finding carries area_votes with tests: 7 and a marriage vote; all seven finding_ids are vote:marriage.*"
+          },
+          {
+            "text": "Six of the seven indicators are for marriage.",
+            "supported": true,
+            "evidence": "area_votes in every cited finding: for: 6, against: 1; verdicts house, lord, karaka, varga, kp and panchanga are all \"for\""
+          },
+          {
+            "text": "One of the seven indicators is against marriage.",
+            "supported": true,
+            "evidence": "area_votes in every cited finding: against: 1"
+          },
+          {
+            "text": "The one indicator against is the image point (arudha).",
+            "supported": true,
+            "evidence": "the appositive \"the image point\" attaches to the one against; verdict.arudha is \"against\" in every cited finding, and the glossary in vote:marriage.arudha defines arudha as \"the image point of a house\" — vote:marriage.arudha's direction is \"against\""
+          },
+          {
+            "text": "The overall balance across the seven indicators is favourable.",
+            "supported": true,
+            "evidence": "follows from the tally in the cited findings: for: 6 against against: 1"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The hard part is the image point for marriage being unfavourable. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading uses an image point (arudha) for marriage",
+            "supported": true,
+            "evidence": "the finding's family is \"arudha\" and its area is marriage; the glossary's entry for \"arudha\" defines it as \"the image point of a house\", and its entry for \"Upapada\" calls it \"the image point of the 12th house, read for marriage\""
+          },
+          {
+            "text": "that image point is unfavourable / votes against",
+            "supported": true,
+            "evidence": "the finding's direction is \"against\" and its verdict row for \"arudha\" is \"against\""
+          },
+          {
+            "text": "this unfavourable image-point vote is the hard part of the marriage reading (i.e. the one thing going against)",
+            "supported": true,
+            "evidence": "the verdict shows arudha as the single \"against\" among seven tests (6 for, 1 against, 0 abstains); the framing \"the hard part\" matches the data's direction and area"
+          },
+          {
+            "text": "the image point's unfavourability comes from malefics rather than benefics occupying it",
+            "supported": false,
+            "evidence": "not asserted by the sentence"
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "openai/gpt-oss-120b",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "openai/gpt-oss-120b",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 50735,
+      "output_tokens": 3199,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 114.893
+    },
+    "checker": {
+      "calls": 12,
+      "input_tokens": 25913,
+      "output_tokens": 7989,
+      "cache_read_input_tokens": 1536,
+      "cache_creation_input_tokens": 0,
+      "seconds": 90.004
+    },
+    "wall_seconds": 158.833
+  },
+  "engine": {
+    "question": "why do you say that?",
+    "direction": "both",
+    "areas": [
+      "marriage"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "For marriage, most of the chart's indications agree, and on balance they lean favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "house",
+            "text": "for — 7th Scorpio, 7.37 rupas, relative -0.04"
+          },
+          {
+            "area": "marriage",
+            "point": 1,
+            "item": 0,
+            "text": "7th from the lagna: Scorpio, lord Mars, occupied by Mars; Bhava Bala (house strength) 7.37 rupas (units of 60 virupas), rank 8 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in your 7th house, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mars, 7th lord, own, ratio 1.30"
+          },
+          {
+            "area": "marriage",
+            "point": 2,
+            "item": 0,
+            "text": "Mars — lord of the 7th from the lagna, 7th from the Moon, 2nd from the Moon: Scorpio 18°37′11″ in the 7th; own; Shadbala (sixfold strength) ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha (age-state by degree) Kumara; marana karaka sthana (a placement in which a planet cannot give its good results); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, exalted, where it is at its best.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Venus in the 11th, exalted, ratio 1.33"
+          },
+          {
+            "area": "marriage",
+            "point": 3,
+            "item": 0,
+            "text": "Venus — main karaka (significator): Pisces 23°39′19″ in the 11th; exalted; Shadbala ratio 1.33 (7.32 of 5.50 rupas); Baladi avastha Kumara; retrograde; lagna lord."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "varga",
+            "text": "for — D9: Saturn own (+0.50), Mars friend (+0.25)"
+          },
+          {
+            "area": "marriage",
+            "point": 5,
+            "item": 0,
+            "text": "D9 (navamsa): Sun Gemini neutral; Moon Libra neutral; Mars Sagittarius friend; Mercury Libra friend; Jupiter Aries friend; Venus Aquarius friend; Saturn Capricorn own; Rahu Pisces; Ketu Virgo."
+          }
+        ]
+      },
+      {
+        "text": "The reading of the exact start of each house leans favourably for marriage.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "kp",
+            "text": "for — cusp 7, star lord Mars: for"
+          },
+          {
+            "area": "marriage",
+            "point": 7,
+            "item": 3,
+            "text": "KP verdict: for."
+          }
+        ]
+      },
+      {
+        "text": "Mars, a ruler of the day you were born, leans favourably for marriage.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra)"
+          },
+          {
+            "area": "marriage",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 7th from the lagna; 7th from the moon; 2nd from the moon."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "writer",
+  "shown": [
+    "The image point for marriage is unfavourable as malefic planets outnumber benefic ones at its three points.",
+    "The overall picture of the marriage house is positive; the vote for the house itself is in the favourable direction.",
+    "The ruler of that house, Mars, sits in Scorpio, its own sign, which is a supportive placement.",
+    "Venus, the partnership planet, is in Pisces and exalted, supporting the marriage area.",
+    "The divisional chart for marriage also leans favourably, with Saturn placed in Capricorn, its own sign.",
+    "The KP analysis of the seventh house gives a favourable outcome for marriage.",
+    "The panchanga factors (the day‑time elements at birth) also support marriage.",
+    "Six of the seven indicators are for marriage and one, the image point, is against, giving an overall favourable balance."
+  ],
+  "paragraphs": [
+    0
+  ],
+  "accepted": [
+    "The image point for marriage is unfavourable as malefic planets outnumber benefic ones at its three points. [vote:marriage.arudha]",
+    "The overall picture of the marriage house is positive; the vote for the house itself is in the favourable direction. [vote:marriage.house]",
+    "The ruler of that house, Mars, sits in Scorpio, its own sign, which is a supportive placement. [vote:marriage.lord]",
+    "Venus, the partnership planet, is in Pisces and exalted, supporting the marriage area. [vote:marriage.karaka]",
+    "The divisional chart for marriage also leans favourably, with Saturn placed in Capricorn, its own sign. [vote:marriage.varga]",
+    "The KP analysis of the seventh house gives a favourable outcome for marriage. [vote:marriage.kp]",
+    "The panchanga factors (the day‑time elements at birth) also support marriage. [vote:marriage.panchanga]",
+    "Six of the seven indicators are for marriage and one, the image point, is against, giving an overall favourable balance. [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.kp] [vote:marriage.panchanga] [vote:marriage.arudha]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.001,
+    "written": 31.466,
+    "first_verified": 34.141,
+    "done": 158.833
+  },
+  "word_rules": "warn"
+}

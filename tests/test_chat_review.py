@@ -794,3 +794,26 @@ def test_m1_a_conversation_past_180_days_is_erased_at_start(tmp_path):
         assert s.get(SessionRow, sids[0]) is None and s.get(SessionRow, sids[1]) is not None
         e = s.query(ErasureRow).one()
         assert (e.erased_by, e.counts["sessions"], e.counts["turns"]) == ("expiry", 1, 1)
+
+
+# --- M6: scripts/live_timing.py --turn times the whole five-turn conversation --------------------------------------
+
+def test_m6_live_timing_turn_runs_the_five_turn_conversation(monkeypatch, capsys):
+    import importlib.util
+    import jyotish.conversation as conv
+    import jyotish.envfile
+    spec = importlib.util.spec_from_file_location("live_timing", ROOT / "scripts" / "live_timing.py")
+    lt = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lt)
+    real = conv.answer_turn
+    monkeypatch.setattr(jyotish.envfile, "load", lambda path: [])                 # no key read in the suite
+    monkeypatch.setattr(conv, "answer_turn", lambda *a, **k: real(*a, **(k | {"drafter": OfflineTurnWriter(),
+                                                                            "checker": passes})))
+    assert lt.main(["--label", "five", "--turn", "--no-write", "--as-of", AS_OF.isoformat()]) == 0
+    out = capsys.readouterr().out
+    rows = [json.loads(x) for x in re.findall(r"^\{\n.*?^\}", out, re.S | re.M)]
+    assert [r["question"] for r in rows] == list(lt.FIVE_TURNS) and [r["turn"] for r in rows] == [1, 2, 3, 4, 5]
+    assert {r["conversation"] for r in rows} == {"five"} and rows[0]["session_s"] is not None
+    assert [r["route"]["areas"] for r in rows[:4]] == [["father", "reputation", "siblings"], ["marriage"],
+                                                       ["marriage"], ["marriage"]]
+    assert rows[4]["source"] == "fixed" and rows[4]["route"]["off_limits"] == "death"

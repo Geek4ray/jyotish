@@ -1,0 +1,489 @@
+{
+  "question": "and marriage?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "follow_up": true,
+    "carried": [
+      "direction"
+    ],
+    "areas_from": "named",
+    "off_limits": null,
+    "third_party": false
+  },
+  "as_of": "2026-11-01",
+  "removed": [
+    {
+      "sentence": "The main marriage house itself is strong and supportive. [vote:marriage.house]",
+      "reasons": [
+        "tier language ('strong') in the answer; the engine states the tier: 'The main marriage house itself is strong and supportive. [vote:marriage.house]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The chain of Mars, the lord of marriage, ends in a self‑disposition, reinforcing its strength. [chain:marriage.lord]",
+      "reasons": [
+        "[chain:marriage.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'The chain of Mars, the lord of marriage, ends in a self‑disposition, reinforcing its strength. [chain:marriage.lord]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Venus, the partnership significator, is in an exalted sign, reinforcing its benefit. [chain:marriage.karaka]",
+      "reasons": [
+        "the checker found it unsupported: The exaltation reinforces Venus's benefit (its benefic effect) (No fact or derivation step states that exaltation reinforces or strengthens Venus's benefit. The glossary entry for 'exalted' says only that it is 'the sign where the texts hold a planet at its strongest' — a claim about strength, not about reinforcing the planet's benefic outcome for the area. The interpretation that exaltation makes Venus more beneficial is not stated by the data.)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The main marriage house shows a favourable indication. [vote:marriage.house]",
+      "reasons": [
+        "the checker found it unsupported: That house — the 7th — shows a favourable indication. (The finding's direction \"for\" is the verdict on the house family as a whole (area_votes: house \"for\", 6 for / 1 against), not a statement about the 7th specifically. The 7th house's own rows in the derivation are mixed and mostly below par: relative −0.04 from lagna (Scorpio, 7.37 rupas), −0.27 from the Moon (Aries, 6.7 rupas), and +0.34 from the Sun (Leo, 8.51 rupas). Nothing in the data states that the main marriage house itself is favourable; the sentence attaches the family-level favourable direction to one house that the derivation does not favour.)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mars, the lord of marriage, ends in a self‑disposition, reinforcing its effect. [chain:marriage.lord]",
+      "reasons": [
+        "[chain:marriage.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'Mars, the lord of marriage, ends in a self‑disposition, reinforcing its effect. [chain:marriage.lord]'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Venus, the partnership significator, is in an exalted sign. [chain:marriage.karaka]",
+      "reasons": [
+        "it restates held sentence 4 in other words: write the sentence asked for"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mars, the lord of marriage, ends in a self‑disposition. [chain:marriage.lord]",
+      "reasons": [
+        "[chain:marriage.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'Mars, the lord of marriage, ends in a self‑disposition. [chain:marriage.lord]'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Venus is the main karaka for marriage. [chain:marriage.karaka]",
+      "reasons": [
+        "[chain:marriage.karaka] on a sentence that names no chain (sign, nakshatra or navamsa): 'Venus is the main karaka for marriage. [chain:marriage.karaka]'"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [
+    {
+      "sentence": "The main marriage house itself is strong and supportive. [vote:marriage.house]",
+      "warning": "engine vocabulary ('strong') in the client's text: say it in plain words: 'The main marriage house itself is strong and supportive. [vote:marriage.house]'",
+      "attempt": 1
+    },
+    {
+      "sentence": "The KP analysis of the seventh house also gives a favourable result. [vote:marriage.kp]",
+      "warning": "engine vocabulary ('KP') in the client's text: say it in plain words: 'The KP analysis of the seventh house also gives a favourable result. [vote:marriage.kp]'",
+      "attempt": 1
+    },
+    {
+      "sentence": "The lunar day and nakshatra related to marriage support a positive outcome. [vote:marriage.panchanga]",
+      "warning": "'nakshatra' is a Sanskrit term: gloss it in the same sentence, right after it (', a …' or '(…)'), or use a plain phrase: 'The lunar day and nakshatra related to marriage support a positive outcome. [vote:marriage.panchanga]'",
+      "attempt": 1
+    },
+    {
+      "sentence": "The marriage house family is for. [vote:marriage.house]",
+      "warning": "engine vocabulary ('family') in the client's text: say it in plain words: 'The marriage house family is for. [vote:marriage.house]'",
+      "attempt": 3
+    },
+    {
+      "sentence": "Venus is the main karaka for marriage. [chain:marriage.karaka]",
+      "warning": "'karaka' has a plain phrase: say 'significator' in the client's text: 'Venus is the main karaka for marriage. [chain:marriage.karaka]'",
+      "attempt": 3
+    }
+  ],
+  "checks": [
+    {
+      "sentence": "The image point that shows how marriage appears to the world is unfavourable. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is an image point (an arudha) in this reading — \"The image point\"",
+            "supported": true,
+            "evidence": "the glossary entry for arudha, and the cited vote is in the arudha family"
+          },
+          {
+            "text": "An image point is read for how a matter appears to the world — \"...that shows how marriage appears to the world\"",
+            "supported": true,
+            "evidence": "glossary: an arudha is \"read for how its matters appear to the world\""
+          },
+          {
+            "text": "This image point is the one for marriage — \"...how marriage appears to the world\"",
+            "supported": true,
+            "evidence": "glossary: the Upapada is \"read for marriage\"; the cited vote is the arudha vote in the marriage area"
+          },
+          {
+            "text": "That marriage image point is unfavourable — \"is unfavourable\"",
+            "supported": true,
+            "evidence": "the cited finding's direction is \"against\" for the arudha test"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The natural significator for partnership, Venus, is exalted and also gives a positive influence. [vote:marriage.karaka]",
+      "findings": [
+        "vote:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is the natural significator (karaka) for partnership",
+            "supported": true,
+            "evidence": "The glossary entry for karaka states: 'the planet that naturally stands for a matter (Venus for partnership, the Sun for status)'"
+          },
+          {
+            "text": "Venus is exalted",
+            "supported": true,
+            "evidence": "The derivation row for Venus carries dignity: 'exalted', and the glossary defines exalted as placed in its exaltation sign"
+          },
+          {
+            "text": "Venus gives a positive influence on the matter",
+            "supported": true,
+            "evidence": "The vote's direction is 'for' and the karaka area verdict is 'for', so the reading's judgment about Venus is positive"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The KP analysis of the seventh house also gives a favourable result. [vote:marriage.kp]",
+      "findings": [
+        "vote:marriage.kp"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading contains a KP analysis of the seventh house (a KP-style cusp analysis for house 7).",
+            "supported": true,
+            "evidence": "the finding is a KP vote for cusp 7, and the glossary defines KP as reading houses by the star lord and sub-lord of their cusps"
+          },
+          {
+            "text": "That KP analysis of the seventh house gives a favourable result (an outcome 'for' marriage).",
+            "supported": true,
+            "evidence": "the finding's direction is 'for', its area_votes verdict lists kp: 'for', and the deciding derivation row for cusp 7 has outcome 'for'"
+          },
+          {
+            "text": "The KP analysis is favourable alongside other favourable analyses (the word 'also' implies other results in the reading are favourable too).",
+            "supported": true,
+            "evidence": "area_votes shows 6 votes 'for' to 1 'against', with house, lord, karaka, varga and panchanga all 'for'"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "Venus, the partnership significator, is in an exalted sign, reinforcing its benefit. [chain:marriage.karaka]",
+      "findings": [
+        "chain:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is the partnership significator (karaka)",
+            "supported": true,
+            "evidence": "The finding's facts state 'Venus is the area's main significator (karaka)' and its role is 'the area's main significator (karaka)'; the glossary entry for 'karaka' names Venus as the natural significator for partnership."
+          },
+          {
+            "text": "Venus is in an exalted sign",
+            "supported": true,
+            "evidence": "The facts state 'Sign chain of Venus: Venus in Pisces, the 11th, exalted', and the derivation's sign and nakshatra steps both record Venus's dignity as 'exalted'."
+          },
+          {
+            "text": "The exaltation reinforces Venus's benefit (its benefic effect)",
+            "supported": false,
+            "evidence": "No fact or derivation step states that exaltation reinforces or strengthens Venus's benefit. The glossary entry for 'exalted' says only that it is 'the sign where the texts hold a planet at its strongest' — a claim about strength, not about reinforcing the planet's benefic outcome for the area. The interpretation that exaltation makes Venus more beneficial is not stated by the data."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The planet that rules that house, Mars, is well placed and acts positively. [vote:marriage.lord]",
+      "findings": [
+        "vote:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The planet in question rules that house (the marriage house under discussion).",
+            "supported": true,
+            "evidence": "The cited finding vote:marriage.lord lists Mars as the lord of the 7th from the lagna (sign Scorpio), and also of the 7th from the Moon and the 2nd from the Moon, all marriage houses in its area_houses. Whichever marriage house 'that house' refers to, the data states Mars rules it."
+          },
+          {
+            "text": "That planet is Mars (the appositive attaches correctly: the lord of that house is Mars).",
+            "supported": true,
+            "evidence": "The finding's derivation rows for house 7 (lagna and moon) and house 2 (moon) give lord: 'Mars'."
+          },
+          {
+            "text": "Mars is well placed.",
+            "supported": true,
+            "evidence": "The finding's verdict gives 'lord': 'for' — the lord component votes in favor — and its derivation shows Mars in his own sign with a Shadbala ratio of 1.3, the placement the favorable lord vote is based on. The finding's direction for the lord supports the positive placement claim."
+          },
+          {
+            "text": "Mars acts positively (for the matter at hand).",
+            "supported": true,
+            "evidence": "The finding's direction is 'for' and its verdict records 'lord': 'for': the lord is weighed in favor, which is what 'acts positively' asserts here."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The lunar day and nakshatra related to marriage support a positive outcome. [vote:marriage.panchanga]",
+      "findings": [
+        "vote:marriage.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The lunar day (tithi) is part of the panchanga considered for marriage",
+            "supported": true,
+            "evidence": "The finding's derivation lists Mars with the role \"tithi\" in a marriage vote (vote:marriage.panchanga)."
+          },
+          {
+            "text": "The nakshatra is part of the panchanga considered for marriage",
+            "supported": true,
+            "evidence": "The derivation lists Mars with the role \"nakshatra\" in the same marriage vote."
+          },
+          {
+            "text": "The panchanga vote on marriage is \"for\", i.e. supports a positive outcome",
+            "supported": true,
+            "evidence": "The finding's direction is \"for\" and its verdict records panchanga: \"for\"."
+          },
+          {
+            "text": "The vote concerns marriage",
+            "supported": true,
+            "evidence": "The finding is identified as vote:marriage.panchanga, a panchanga vote in the marriage reading."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The ninth‑part divisional chart for marriage shows friendly and helpful positions. [vote:marriage.varga]",
+      "findings": [
+        "vote:marriage.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a ninth-part divisional chart (navamsa) in this reading.",
+            "supported": true,
+            "evidence": "derivation rows carry varga: D9; glossary entry for navamsa"
+          },
+          {
+            "text": "It is the chart for marriage (the ninth-part chart is read for marriage).",
+            "supported": true,
+            "evidence": "glossary: \"navamsa: The ninth-part divisional chart, read for marriage and the strength of planets.\""
+          },
+          {
+            "text": "Its positions are friendly.",
+            "supported": true,
+            "evidence": "Four of six planets carry varga_dignity_label \"friend\" (Mars, Mercury, Jupiter, Venus); the vote's direction is \"for\". Caveat: not every planet is friendly — Sun is \"neutral\" and Saturn \"own\" — but as a general characterization the sentence matches the data's overall direction."
+          },
+          {
+            "text": "Its positions are helpful / favorable.",
+            "supported": true,
+            "evidence": "Generic framing matching the data's direction: the varga vote is \"for\" (verdict.varga: \"for\", area_votes for 6 vs against 1)."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The main marriage house shows a favourable indication. [vote:marriage.house]",
+      "findings": [
+        "vote:marriage.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chart has a principal marriage house — the 7th house, which the sentence's \"the main marriage house\" picks out.",
+            "supported": true,
+            "evidence": "area_houses lists the 7th from lagna as \"the 7th, a marriage house\", and the glossary defines the 7th house as \"marriage, partners, partnerships and travel\". Caveat: the data calls it only \"a marriage house\" and lists fifteen marriage-house seats without ranking any as the main one; \"main\" is the sentence's own word, though identifying the principal seat as the 7th is the ordinary reading."
+          },
+          {
+            "text": "That house — the 7th — shows a favourable indication.",
+            "supported": false,
+            "evidence": "The finding's direction \"for\" is the verdict on the house family as a whole (area_votes: house \"for\", 6 for / 1 against), not a statement about the 7th specifically. The 7th house's own rows in the derivation are mixed and mostly below par: relative −0.04 from lagna (Scorpio, 7.37 rupas), −0.27 from the Moon (Aries, 6.7 rupas), and +0.34 from the Sun (Leo, 8.51 rupas). Nothing in the data states that the main marriage house itself is favourable; the sentence attaches the family-level favourable direction to one house that the derivation does not favour."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The marriage house family is for. [vote:marriage.house]",
+      "findings": [
+        "vote:marriage.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The vote concerns the marriage houses (houses read for marriage).",
+            "supported": true,
+            "evidence": "area_houses of the cited vote call each entry 'a marriage house' (e.g. 'the 7th, a marriage house'), and the finding_id is vote:marriage.house"
+          },
+          {
+            "text": "The family voted on is the house family.",
+            "supported": true,
+            "evidence": "finding vote:marriage.house states family: 'house'"
+          },
+          {
+            "text": "The vote's direction is 'for'.",
+            "supported": true,
+            "evidence": "finding vote:marriage.house states direction: 'for', and its verdict states house: 'for'"
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "openai/gpt-oss-120b",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "openai/gpt-oss-120b",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 48761,
+      "output_tokens": 2519,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 120.523
+    },
+    "checker": {
+      "calls": 9,
+      "input_tokens": 18380,
+      "output_tokens": 9184,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 95.883
+    },
+    "wall_seconds": 170.192
+  },
+  "engine": {
+    "question": "and marriage?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "For marriage, most of the chart's indications agree, and on balance they lean favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "writer",
+  "shown": [
+    "The image point that shows how marriage appears to the world is unfavourable.",
+    "The marriage house family is for.",
+    "The planet that rules that house, Mars, is well placed and acts positively.",
+    "The natural significator for partnership, Venus, is exalted and also gives a positive influence.",
+    "The ninth‑part divisional chart for marriage shows friendly and helpful positions.",
+    "The KP analysis of the seventh house also gives a favourable result.",
+    "The lunar day and nakshatra related to marriage support a positive outcome."
+  ],
+  "paragraphs": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "accepted": [
+    "The image point that shows how marriage appears to the world is unfavourable. [vote:marriage.arudha]",
+    "The marriage house family is for. [vote:marriage.house]",
+    "The planet that rules that house, Mars, is well placed and acts positively. [vote:marriage.lord]",
+    "The natural significator for partnership, Venus, is exalted and also gives a positive influence. [vote:marriage.karaka]",
+    "The ninth‑part divisional chart for marriage shows friendly and helpful positions. [vote:marriage.varga]",
+    "The KP analysis of the seventh house also gives a favourable result. [vote:marriage.kp]",
+    "The lunar day and nakshatra related to marriage support a positive outcome. [vote:marriage.panchanga]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.001,
+    "first_verified": 34.844,
+    "written": 35.937,
+    "done": 170.192
+  },
+  "word_rules": "warn"
+}

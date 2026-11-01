@@ -1,0 +1,276 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false
+  },
+  "as_of": "2026-11-01",
+  "removed": [
+    {
+      "sentence": "The most challenging period for marriage shows up from August 2029 to October 2029. [vote:marriage.arudha]",
+      "reasons": [
+        "timing language ('August') in 'The most challenging period for marriage shows up from August\\u202f2029 to October\\u202f2029. [vote:marriage.arudha]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "During that stretch the image point of marriage (how the partnership appears to the world) is less favorable, even though the other indicators still point toward a generally positive outlook for marriage.",
+      "reasons": [
+        "untagged claim: 'During that stretch the image point of marriage (how the partnership appears to the world) is less favorable, even though the other indicators still point toward a generally positive outlook for marriage.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The least favourable stretch for marriage runs from the middle of 2029 to the end of 2029.",
+      "reasons": [
+        "timing language ('2029') in 'The least favourable stretch for marriage runs from the middle of 2029 to the end of 2029.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The image point of marriage, which shows how the partnership appears to the world, is unfavourable during that period. [vote:marriage.arudha]",
+      "reasons": [
+        "the checker found it unsupported: This unfavourability holds during a particular period (\"that period\") (the finding states a vote against the marriage arudha but no date, age or period anywhere in the data; a period not stated by the cited finding is unsupported)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The chart does not indicate a particular time when this unfavourable influence will be felt.",
+      "reasons": [
+        "untagged claim: 'The chart does not indicate a particular time when this unfavourable influence will be felt.'"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "The image point of marriage, which shows how the partnership appears to the world, is unfavourable during that period. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is an image point (arudha) read for marriage",
+            "supported": true,
+            "evidence": "the vote's family is \"arudha\" in the Jaimini school, and the glossary defines the Upapada as \"The image point of the 12th house, read for marriage\""
+          },
+          {
+            "text": "That image point shows how the partnership appears to the world",
+            "supported": true,
+            "evidence": "the glossary's arudha entry: \"The image point of a house: ... read for how its matters appear to the world\" (and A7 is read for partners as they appear)"
+          },
+          {
+            "text": "That image point is unfavourable (the vote is against it)",
+            "supported": true,
+            "evidence": "the finding's direction is \"against\", with derivation why \"the vote is against\" — generic framing matches the data's direction"
+          },
+          {
+            "text": "This unfavourability holds during a particular period (\"that period\")",
+            "supported": false,
+            "evidence": "the finding states a vote against the marriage arudha but no date, age or period anywhere in the data; a period not stated by the cited finding is unsupported"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The image point of marriage, which shows how the partnership appears to the world, is unfavourable. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is an image point of marriage (an arudha read for marriage).",
+            "supported": true,
+            "evidence": "The vote's family is arudha and it rests on UL, UL2 and A7; the glossary defines Upapada as 'the image point of the 12th house, read for marriage' and A7 as 'the image point of the 7th house, read for partners as they appear.'"
+          },
+          {
+            "text": "That image point shows how the partnership appears to the world.",
+            "supported": true,
+            "evidence": "The glossary defines arudha as 'the image point of a house... read for how its matters appear to the world,' and A7 as read for partners as they appear; for the marriage image point, its matters are the partnership."
+          },
+          {
+            "text": "The image point of marriage is unfavourable (the arudha vote is against marriage).",
+            "supported": true,
+            "evidence": "The cited finding vote:marriage.arudha has family arudha and direction against, with derivation 'the vote is against.'"
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "openai/gpt-oss-120b",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "openai/gpt-oss-120b",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 47622,
+      "output_tokens": 2811,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 90.206
+    },
+    "checker": {
+      "calls": 2,
+      "input_tokens": 2815,
+      "output_tokens": 1356,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 13.908
+    },
+    "wall_seconds": 102.755
+  },
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "For marriage, most of the chart's indications agree, and on balance they lean favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "writer",
+  "shown": [
+    "The image point of marriage, which shows how the partnership appears to the world, is unfavourable.",
+    "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+    "The most favourable stretch runs from January 2030 to October 2031.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    1
+  ],
+  "accepted": [
+    "The image point of marriage, which shows how the partnership appears to the world, is unfavourable. [vote:marriage.arudha]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.001,
+    "written": 23.354,
+    "first_verified": 102.754,
+    "done": 102.755
+  },
+  "word_rules": "warn"
+}

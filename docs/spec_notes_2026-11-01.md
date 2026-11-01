@@ -185,7 +185,7 @@ tests/test_chat_review.py unless named otherwise.
   they hire me" are the client's own marriage and career (`Route.third_party`; "hire", "interview" and "employer"
   are career words): the answer is read from the client's chart and ends, in its own paragraph, with
   `THIRD_PARTY_LINE` ("This is read from your own chart, so it describes your side of it; it cannot say what
-  another person will decide."). The false-positive set (the review's eighteen rows and four more) must all be
+  another person will decide."). The false-positive set (the review's eighteen messages and four more) must all be
   answered, and 23 off-limits phrases, Hindi and Hinglish among them, are still refused.
 - **H3. The client's screen is held to the client's words.** Every engine sentence the client can see is now in
   the client's words. The "when" lines say "The most favourable stretch for marriage, as the chart reads it, runs
@@ -321,3 +321,40 @@ tests/test_chat_review.py unless named otherwise.
   runs it by hand. How long turns are kept is the spec's 180 days (H7). Tests: erasure by id, then by birth key,
   another birth's conversation kept, two erasures logged; and a conversation 181 days old erased when the service
   starts, the other kept.
+- **M6. The five-turn conversation, timed live.** `scripts/live_timing.py --turn` with no message runs the five-turn
+  conversation of the spec's tests (`FIVE_TURNS`), each turn routed with the conversation and given the earlier
+  turns' shown text, each writing a row (`turn`, `conversation`) and its record; with messages it runs those in order,
+  and with `--url` it asks a deployed service (the cookie kept, the server's date). A test runs it offline. One live
+  run after the fixes above, on the deployed stack (gpt-oss-120b writing at medium effort, GLM-5.3-Flash at
+  temperature 0 checking, DeepInfra), on the reference chart, read for 2026-11-01:
+  docs/live_2026-11-01/conversation-1-{1..5}.turn.json and five rows in docs/live_timings.jsonl.
+
+  | turn | route | first verified | done | removed | attempts | warnings | USD |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | 1 "what are the challanges in my life" | father, reputation, siblings; against | 38.0 s | 195.6 s | 7 of 14 | 3 | 1 | 0.0126 |
+  | 2 "and marriage?" | marriage; against | 34.8 s | 170.2 s | 8 of 15 | 3 | 5 | 0.0096 |
+  | 3 "when?" | marriage; against; when | 102.8 s | 102.8 s | 5 of 6 | 3 | 0 | 0.0033 |
+  | 4 "why do you say that?" | marriage; why | 34.1 s | 158.8 s | 6 of 14 | 3 | 4 | 0.0103 |
+  | 5 "will I die early?" | death, fixed reply | — | 0.0 s | — | — | — | 0 |
+
+  The session's payload took 13.3 s, the engine's answer 1 to 3 ms, and the conversation cost USD 0.036. What it
+  shows, plainly:
+  - **The retries work and cost time.** Every answered turn took three attempts. The failed sentences were
+    rewritten alone and stood in their places (turn 1: the "weak" sentence came back as "The 9th house, which
+    represents your father, is in Capricorn and is among the least supported houses."), and no turn fell back to
+    the engine's answer. Each retry is a whole writer call of 30 to 70 s, so a turn is done at 103 to 196 s where
+    chat v1's single attempt was done at 32 to 40 s. The first verified sentence is unchanged (34 to 38 s), except
+    turn 3, where nothing of the first two drafts passed.
+  - **The removed share is higher, not lower:** 0.43 to 0.83, because each retry's refused rewrites are counted
+    too. Refusals were the tier words ("weak", "strong"), a chain tag on a sentence naming no chain, unsupported
+    glosses and outcomes ("reinforcing its strength", "debilitated and at ease"), "courage" where the findings say
+    siblings, and the opener "Let's start with the hard part" in turn 4, which the checker refused as a claim of a
+    "hard part" (twice). One rewrite was refused as restating a held sentence when it was about another chart (the
+    restatement rule reads shared words like "divisional chart" and "unfriendly sign"); that rule wants a look.
+  - **The voice is not yet the spec's.** The shown sentences are still placement statements. Turns 2 and 4 put
+    engine words on the client's screen, which the spec's rule makes warnings and not refusals: "The marriage house
+    family is for.", "The KP analysis of the seventh house…", "the vote for the house itself", "The panchanga
+    factors…" (ten warnings over the conversation, each logged and on the review page). Turn 1 did not say that no
+    part of the chart leans against the client, though the engine's answer opened with it. These are the client's
+    view's problems for the person who tries it (definition of done, item 8) and for the next build: the writer's
+    material still carries the vote table (`area_votes`) in its own terms.
