@@ -161,6 +161,12 @@ def checker(card: Card):
     card.num("checker.validator.wording_caught_share", round(caught / len(wording), 4), "higher")
     card.num("checker.validator.false_rejects", s["accepted"]["fp"], "lower")
     card.num("checker.bench_rows", len(rows), None)
+    # A conversation turn's sentences are a category of their own (SPEC Layer 8, review M5): reported, not gated.
+    answer = [r for r in rows if r["where"] == "answer"]
+    sa = cb.scores(answer, pred)["overall"]
+    card.num("checker.answer.rows", len(answer), None)
+    card.num("checker.answer.validator_recall", round(sa["recall"], 4), "higher", gate=False)
+    card.num("checker.answer.validator_false_rejects", sa["fp"], "lower", gate=False)
     t = pytest("tests/test_checker_bench.py")
     card.num("checker.tests_failed", t["failed"] + t["errors"], "lower")
     card.skips += [f"checker benchmark: {x}" for x in t["skips"]]
@@ -169,7 +175,8 @@ def checker(card: Card):
         f"{len(rows)} rows; the validator alone: precision {s['overall']['precision']:.3f}, recall "
         f"{s['overall']['recall']:.3f}, F1 {s['overall']['f1']:.3f}; {caught} of {len(wording)} tag and wording "
         f"errors caught; {s['accepted']['fp']} accepted sentences rejected. The semantic categories are the "
-        "checker's. " + live]))
+        f"checker's. A turn's sentences (`where: \"answer\"`, {len(answer)} rows from the live turns of 2026-11-01): "
+        f"the validator alone refuses {sa['tp']} of {sa['tp'] + sa['fn']} wrong ones and {sa['fp']} true ones. " + live]))
 
 
 def live_checker(card: Card) -> str:

@@ -36,7 +36,7 @@ def test_the_file_has_its_schema(cb, rows):
     assert len(ids) == len(set(ids))
     for r in rows:
         assert keys <= set(r), r["id"]
-        assert r["label"] in ("accept", "reject") and r["where"] in ("claim", "summary", "paragraph", "analysis")
+        assert r["label"] in ("accept", "reject") and r["where"] in ("claim", "summary", "paragraph", "analysis", "answer")
         assert r["tags"] == [f"{k}:{v}" for k, v in TAG.findall(r["sentence"])]
         assert isinstance(json.loads(r["facts"]), dict)                   # what the checker is given
         assert set(r["validator"]) - {"full", "standalone"} == {"allowed", "offered_votes", "chains", "family_rule"}

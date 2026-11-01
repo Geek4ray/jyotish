@@ -533,6 +533,25 @@ def shown_text(sentence: str) -> str:
     return plain(TAG.sub("", sentence)).replace(" .", ".")
 
 
+TURN_RETRY_NOTE = ("The answer is held sentence by sentence: the held sentences stand as written, in their places, "
+                   "and are not sent again. Send in `answer` only the rewritten sentences, exactly one for each "
+                   "sentence listed below, in the order listed, and nothing else. Each states only what its findings "
+                   "state, ends with their tags, uses none of the tier words and stands on its own (no also, too, "
+                   "further, more or again).")
+
+
+def turn_retry_instruction(held) -> str:
+    """The writer's retry of a turn (review M5): what is held, quoted with its positions, and each failed sentence
+    with the reasons it failed, as narrate.retry_instruction says them for a reading."""
+    from .narrate import RETRY_HEAD
+    lines = [f"{RETRY_HEAD} {TURN_RETRY_NOTE}", "", f"Held: {held.held_lines() or 'nothing yet'}.", "",
+             "Rewrite only these, each for the reasons quoted:"]
+    for i, _, sentence, why in held.failed():
+        lines.append(f"- sentence {i} ({sentence!r}):")
+        lines += [f"    - {r}" for r in why]
+    return "\n".join(lines)
+
+
 def engine_tags(sentence, allowed: set[str]) -> list[str]:
     """The vote tags an engine sentence rests on (its notes into the sheet's votes table), where offered."""
     out = [f"vote:{n['area']}.{n['row']}" for n in sentence.notes if n.get("row")]
@@ -644,7 +663,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     from concurrent.futures import ThreadPoolExecutor
     from .narrate import (CONFIG, TAG, ModelChecker, ModelDrafter, NarrationError, _backend_of, _model_of, _usage,
                          engine_reading, make_backend, sentences)
-    from .live import JsonStrings
+    from .live import HeldParagraph, JsonStrings
     config = config or CONFIG
     from . import client as _client
     word_rules = word_rules or _client.WORD_RULES
@@ -678,76 +697,124 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     shown: list[str] = []
     paras: list[int] = []                      # the indices in `shown` that open a paragraph
     accepted: list[str] = []                   # the writer's sentences that passed, tags on, in the order written
+    # The answer is held sentence by sentence (review M5), as a held paragraph is (live.HeldParagraph): a draft that
+    # replaces the whole answer streams, each sentence shown once it passes; a retry rewrites only the failed
+    # sentences, one for each, and a rewrite that passes is shown as it passes and stands in its sentence's place.
+    held = HeldParagraph()
+    opens_para: dict[str, bool] = {}           # key -> whether its sentence opens a paragraph
     errors_for_retry: list[str] = []
     attempts = 0
+
+    def show(text: str, tagged: str, para: bool) -> None:
+        mark("first_verified")
+        shown.append(text)
+        if para or not paras:
+            paras.append(len(shown) - 1)
+        emit({"type": "text", "i": len(shown) - 1, "text": text, "para": para or len(shown) == 1})
+        f = focus_of(tagged, chart)
+        if f["planets"] or f["houses"]:
+            emit({"type": "light", "stage": "sentence", **f})
+
+    def judge(s: str, attempt: int) -> tuple[bool, list[str]]:
+        ok, refusals, warnings, record = check_sentence(s, tags, votes, chains, finding_data, checker, word_rules)
+        if record is not None:
+            doc["checks"].append({k: v for k, v in record.items() if k != "meta"} | {"attempt": attempt})
+            checker_metas.append(record["meta"])
+        doc["warnings"] += [{"sentence": s, "warning": w, "attempt": attempt} for w in warnings]
+        if not ok:
+            doc["removed"].append({"sentence": s, "reasons": refusals, "attempt": attempt})
+        return ok, refusals
+
+    def answer_of(draft) -> str:
+        return unbullet((draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or "")
+
     try:
         for attempt in range(1, config.max_attempts + 1):
             attempts = attempt
-            futures: dict[int, Any] = {}
-            texts: dict[int, str] = {}
-            starts: dict[int, bool] = {}
+            open_ = held.open()
+            if open_ is None:                  # nothing held yet: the whole answer, streamed
+                futures: dict[int, Any] = {}
+                texts: dict[int, str] = {}
+                starts: dict[int, bool] = {}
+                order = _Order(lambda text, k: show(text, texts.get(k, ""), starts.get(k, False)))
 
-            def show(text: str, k: int) -> None:
-                mark("first_verified")
-                shown.append(text)
-                para = not paras or starts.get(k, False)
-                if para:
-                    paras.append(len(shown) - 1)
-                emit({"type": "text", "i": len(shown) - 1, "text": text, "para": para})
-                f = focus_of(texts.get(k, ""), chart)
-                if f["planets"] or f["houses"]:
-                    emit({"type": "light", "stage": "sentence", **f})
+                def run(k: int, s: str, attempt=attempt) -> tuple[bool, list[str]]:
+                    ok, why = judge(s, attempt)
+                    order.settle(k, ok, shown_text(s))
+                    return ok, why
 
-            order = _Order(show)
+                def submit(k: int, s: str, para: bool) -> None:
+                    if k not in futures:
+                        texts[k], starts[k] = s, para
+                        futures[k] = pool.submit(run, k, s)
 
-            def judge(k: int, s: str) -> None:
-                ok, refusals, warnings, record = check_sentence(s, tags, votes, chains, finding_data, checker, word_rules)
-                if record is not None:
-                    doc["checks"].append({k: v for k, v in record.items() if k != "meta"} | {"attempt": attempt})
-                    checker_metas.append(record["meta"])
-                doc["warnings"] += [{"sentence": s, "warning": w, "attempt": attempt} for w in warnings]
-                if not ok:
-                    doc["removed"].append({"sentence": s, "reasons": refusals, "attempt": attempt})
-                order.settle(k, ok, shown_text(s))
+                def on_string(path: tuple, value: str, done: bool) -> None:
+                    if path != ("answer",):
+                        return
+                    value = unbullet(value)
+                    parts = sentences(value)
+                    opens = para_starts(value, parts)
+                    for k, s in enumerate(parts if done else parts[:-1]):
+                        submit(k, s, opens[k])
 
-            def submit(k: int, s: str, para: bool) -> None:
-                if k not in futures:
-                    texts[k], starts[k] = s, para
-                    futures[k] = pool.submit(judge, k, s)
-
-            def on_string(path: tuple, value: str, done: bool) -> None:
-                if path != ("answer",):
-                    return
-                value = unbullet(value)
-                parts = sentences(value)
-                opens = para_starts(value, parts)
-                for k, s in enumerate(parts if done else parts[:-1]):
-                    submit(k, s, opens[k])
-
-            reader = JsonStrings(on_string)
-            if hasattr(drafter, "on_text"):
-                drafter.on_text = reader.feed
-            try:
-                draft = drafter(TURN_PROMPT, user, errors_for_retry)
-            except NarrationError as e:
-                doc["removed"].append({"sentence": None, "reasons": [str(e)] + list(e.errors), "attempt": attempt})
-                draft = None
-            writer_metas.append(getattr(drafter, "last_meta", None))
-            mark("written")
-            if draft is not None:
-                text = unbullet((draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or "")
+                reader = JsonStrings(on_string)
+                if hasattr(drafter, "on_text"):
+                    drafter.on_text = reader.feed
+                try:
+                    draft = drafter(TURN_PROMPT, user, errors_for_retry)
+                except NarrationError as e:
+                    doc["removed"].append({"sentence": None, "reasons": [str(e)] + list(e.errors), "attempt": attempt})
+                    draft = None
+                writer_metas.append(getattr(drafter, "last_meta", None))
+                mark("written")
+                text = answer_of(draft) if draft is not None else ""
                 parts = sentences(text)
                 for k, (s, para) in enumerate(zip(parts, para_starts(text, parts))):
                     submit(k, s, para)
-            for f in list(futures.values()):
-                f.result()
-            accepted = [texts[k] for k in order.shown]
-            if accepted:
+                results = {k: f.result() for k, f in futures.items()}
+                for key, s in held.place(text):
+                    k = int(key) - 1
+                    opens_para[key] = starts.get(k, k == 0)
+                    ok, why = results.get(k) or judge(s, attempt)
+                    held.hold(key) if ok else held.fail(key, why)
+                if not held.held:
+                    errors_for_retry = [r for x in doc["removed"] if x["attempt"] == attempt for r in x["reasons"]] or \
+                        ["the answer was empty"]
+            else:                              # some held: only the failed sentences, one for each
+                if hasattr(drafter, "on_text"):
+                    drafter.on_text = None
+                try:
+                    draft = drafter(TURN_PROMPT, user, [turn_retry_instruction(held)])
+                except NarrationError as e:
+                    doc["removed"].append({"sentence": None, "reasons": [str(e)] + list(e.errors), "attempt": attempt})
+                    draft = None
+                writer_metas.append(getattr(drafter, "last_meta", None))
+                placed = held.place(answer_of(draft)) if draft is not None else []
+                if held.refusal:
+                    doc["removed"].append({"sentence": answer_of(draft), "reasons": [held.refusal], "attempt": attempt})
+                for key, s in placed:
+                    base = key.split(".")[0]
+                    opens_para.setdefault(key, opens_para.get(base, False) if key != base else False)
+                    if (i := held.repeats(s)) is not None:
+                        why = [f"it restates held sentence {i} in other words: write the sentence asked for"]
+                        doc["removed"].append({"sentence": s, "reasons": why, "attempt": attempt})
+                        held.fail(key, why)
+                        continue
+                    ok, why = pool.submit(judge, s, attempt).result()
+                    if ok:
+                        held.hold(key)
+                        show(shown_text(s), s, opens_para.get(key, False))
+                    else:
+                        held.fail(key, why)
+            if held.complete():
                 break
-            errors_for_retry = [r for x in doc["removed"] if x["attempt"] == attempt for r in x["reasons"]] or \
-                ["the answer was empty"]
     finally:
         pool.shutdown(wait=True)
+    # The answer as it stands: the held sentences in their places (a rewrite where its sentence was).
+    keys = [k for k in held.keys() if k in held.held]
+    accepted = [held.slots[k] for k in keys]
+    shown = [shown_text(x) for x in accepted]
+    paras = [i for i, k in enumerate(keys) if i == 0 or opens_para.get(k, False)]
     source = "writer"
 
     def add(text: str, para: bool) -> None:

@@ -655,3 +655,83 @@ def test_m4_hindi_hinglish_and_the_grown_lists(message, areas, direction, when):
 def test_m4_no_substring_or_common_word_names_an_area(message):
     from jyotish.conversation import areas_of
     assert areas_of(message) == []
+
+
+# --- M5: a turn retries its failed sentences alone; the splitter; the turn's benchmark rows --------------------------
+
+class OneWeak(OfflineTurnWriter):
+    """Writes three tagged sentences, the second with a tier word; asked again, rewrites only that one."""
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        from jyotish.narrate import RETRY_HEAD
+        self.calls.append(errors)
+        body = json.loads(user)
+        said = [x for x in body["engine_answer"] if x["tags"]][:3]
+        self.last_meta = {"kind": "writer", "replayed": True}
+        if errors and errors[0].startswith(RETRY_HEAD):
+            return TurnDraft(answer=f"{said[1]['text'][:-1]} [{said[1]['tags'][0]}].")
+        out = [f"{x['text'][:-1]} [{x['tags'][0]}]." for x in said]
+        out[1] = out[1].replace("lean", "are weak and lean", 1)
+        return TurnDraft(answer=" ".join(out))
+
+
+def test_m5_a_turn_retries_its_failed_sentence_alone_and_it_stands_in_its_place(chart):
+    from jyotish.narrate import RETRY_HEAD
+    writer = OneWeak()
+    route = route_turn("how is my career", chart)
+    doc = answer_turn(chart, "how is my career", route, as_of=AS_OF, drafter=writer, checker=passes)
+    assert len(writer.calls) == 2 and doc["attempts"] == 2 and doc["source"] == "writer"
+    retry = writer.calls[1][0]
+    assert retry.startswith(RETRY_HEAD) and "Held: 1 (" in retry and "3 (" in retry and "- sentence 2 (" in retry
+    assert "tier language ('weak')" in retry
+    assert [x["sentence"] for x in doc["removed"]] and "weak" in doc["removed"][0]["sentence"]
+    assert len(doc["shown"]) == 3 and "weak" not in " ".join(doc["shown"])
+    body = json.loads(__import__("jyotish.conversation", fromlist=["x"])._material(
+        chart, "how is my career", route, engine_reading(chart, "how is my career", route.direction, route.areas,
+                                                         as_of=AS_OF), [], AS_OF)[0])
+    said = [x["text"] for x in body["engine_answer"] if x["tags"]][:3]
+    assert doc["shown"] == said                          # the rewrite stands where its sentence was
+
+
+def test_m5_a_retry_that_sends_the_wrong_count_is_not_placed(chart):
+    class Whole(OneWeak):
+        def __call__(self, system, user, errors):
+            from jyotish.conversation import TurnDraft
+            from jyotish.narrate import RETRY_HEAD
+            draft = super().__call__(system, user, [] if errors and errors[0].startswith(RETRY_HEAD) else errors)
+            return TurnDraft(answer=draft.answer + " " + draft.answer) if len(self.calls) > 1 else draft
+    route = route_turn("how is my career", chart)
+    doc = answer_turn(chart, "how is my career", route, as_of=AS_OF, drafter=Whole(), checker=passes)
+    assert doc["attempts"] == 3 and len(doc["shown"]) == 2
+    assert any("send exactly one sentence for each sentence listed" in r for x in doc["removed"] for r in x["reasons"])
+
+
+@pytest.mark.parametrize("text,parts", [
+    ("Mars is in Gemini [vote:father.varga]Your children carry their own [vote:children.karaka].",
+     ["Mars is in Gemini [vote:father.varga]", "Your children carry their own [vote:children.karaka]."]),
+    ("For purpose. [vote:father.varga]Your area [vote:x.y].", ["For purpose. [vote:father.varga]", "Your area [vote:x.y]."]),
+    ("A [vote:x.y] [vote:z.w]. Then B [vote:a.b].", ["A [vote:x.y] [vote:z.w].", "Then B [vote:a.b]."]),
+    ("A [vote:x.y]. b continues [vote:a.b].", ["A [vote:x.y]. b continues [vote:a.b]."]),
+    ("A [tradition:BPHS 24]. Then B.", ["A [tradition:BPHS 24].", "Then B."]),
+])
+def test_m5_the_splitter_splits_after_a_tag_followed_by_a_capital(text, parts):
+    from jyotish.narrate import sentences
+    assert sentences(text) == parts
+
+
+def test_m5_turn_sentences_are_a_benchmark_category():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("checker_bench", ROOT / "scripts" / "checker_bench.py")
+    cb = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cb)
+    rows = [r for r in cb.load() if r["where"] == "answer"]
+    assert len(rows) >= 15 and {r["label"] for r in rows} == {"accept", "reject"}
+    cats = {r["category"] for r in rows}
+    assert {"tier_word", "wrong_dignity", "unstated_claim", "leans_on_another_sentence", "unsupported_clause",
+            "untagged"} <= cats
+    pred = cb.run_validator(rows)
+    assert all(pred[r["id"]][0] for r in rows if r["category"] in cb.WORDING)
+    assert not any(pred[r["id"]][0] for r in rows if r["label"] == "accept")

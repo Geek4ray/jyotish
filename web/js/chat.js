@@ -191,8 +191,8 @@ function follow(n, answer) {
       p.classList.add("writing");
       p.textContent = p.textContent ? `${p.textContent} ${e.text}` : e.text;
     } else if (e.type === "done") {
-      if (e.status === "failed" && !started) sorry(answer);
-      done();
+      // The stored answer is the answer as it stands: a rewritten sentence in its place (review M5).
+      settle(n, answer, e.status, started);
       return true;
     }
     return false;
@@ -206,6 +206,19 @@ function follow(n, answer) {
     }
     src.onerror = () => { if (!finished) { src.close(); poll(base, on); } };
   } else poll(base, on);
+}
+
+async function settle(n, answer, status, started) {
+  try {
+    const r = await fetch(`/sessions/${encodeURIComponent(sid)}/turns/${n}`);
+    const turn = r.ok ? await r.json() : null;
+    if (turn && turn.status === "done" && Array.isArray(turn.answer) && turn.answer.length) {
+      render(answer, turn.answer, turn.paragraphs || [0]);
+    } else if ((turn ? turn.status === "failed" : status === "failed") && !started) sorry(answer);
+  } catch {
+    if (status === "failed" && !started) sorry(answer);
+  }
+  done();
 }
 
 async function poll(base, on, since = 0) {

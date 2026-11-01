@@ -292,3 +292,22 @@ tests/test_chat_review.py unless named otherwise.
   (`narrate.route`) is unchanged. Tests: the review's 54-row routing probe, cold and after the challenges turn, every
   row's route frozen; sixteen Hindi, Hinglish and grown-list messages; and six messages in which no substring or
   common word names an area. The answers stay in English until v2.
+- **M5. A turn retries its failed sentences alone; the splitter; the turn's benchmark rows.** A turn's answer is held
+  sentence by sentence (`live.HeldParagraph`, as a held paragraph is). A draft that replaces the whole answer (the
+  first, or one after a draft of which nothing passed) streams, and each sentence is shown once it passes. When some
+  sentences pass and some fail, the next attempt asks only for the failed ones (`conversation.turn_retry_instruction`:
+  the held sentences quoted with their positions, each failed one with its reasons, `TURN_RETRY_NOTE`: one sentence
+  for each, in order, standing alone, no tier word). A rewrite is placed in its sentence's place, and one that
+  restates a held sentence or a retry that sends the wrong count is not placed. A rewrite that passes is shown as it
+  passes; the stored answer has it in its place, and the page renders the stored answer when the turn is done. The
+  material the writer paraphrases carries no tier word (H2). `narrate.sentences` now splits after a tag followed by a
+  capital with no space between ("…purpose. [vote:father.varga]Your children…" is two sentences); this changes no
+  existing benchmark row. Twenty rows with `where: "answer"` join `tests/fixtures/checker_bench.jsonl` (177 rows: 71
+  accept, 106 reject), each a live turn's sentence verbatim: the four "weak" refusals, "friendships", the "also"
+  that leaned on Taurus, the Sun in Pisces in the D11 called an enemy (twice), "several planets", the untagged
+  "several strains", the two sentences the splitter lost (an untagged difficulty, and an "also"), the doubtful
+  passes ("also leans unfavourably", "adding more strain", "further weakening", "difficulty in that relationship",
+  "obstacles in matters related to children") as rejects, and four true sentences as accepts (one with its D12 code,
+  a word warning). The validator alone refuses the wording ones; the rest are the checker's. The scorecard reports
+  the turn category (`checker.answer.*`, not gated). Tests: a failed sentence rewritten alone and standing in its
+  place, a wrong-count retry not placed, five splitter boundaries, and the turn rows.

@@ -484,8 +484,9 @@ HYPHENS = str.maketrans({"\u2010": "-", "\u2011": "-"})
 
 
 def sentences(text: str) -> list[str]:
-    """Split prose into sentences, keeping trailing tags with the sentence they end."""
-    parts = re.split(r"(?<=[.!?])\s+(?=[A-Z])|(?<=\])\s+(?=[A-Z])", text.strip())
+    """Split prose into sentences, keeping trailing tags with the sentence they end; a tag followed by a capital
+    ends its sentence with or without a space ("…purpose. [vote:father.varga]Your children…", review M5)."""
+    parts = re.split(r"(?<=[.!?])\s+(?=[A-Z])|(?<=\])\s*(?=[A-Z])", text.strip())
     return [p.strip() for p in parts if p.strip()]
 
 

@@ -281,7 +281,106 @@ def build() -> list[dict]:
         row["tags"] = _tags(row["sentence"])
         row["validator"] = inputs(row["where"], row["area"] or "career", row["finding_id"])
         row["facts"] = facts(row["where"], row["sentence"], row["finding_id"])
-    return out + comparison_rows()
+    return out + comparison_rows() + answer_rows()
+
+
+# --- a conversation turn's sentences (SPEC Layer 8, review M5) --------------------------------------------------
+
+ANSWER_AS_OF = "2026-11-01"
+ANSWER_LIVE = ROOT / "docs" / "live_2026-11-01"
+
+
+def _live_turn_sentence(prefix: str) -> str:
+    """The sentence of a live turn (docs/live_2026-11-01/*.turn.json, removed or accepted) that starts so."""
+    for f in sorted(ANSWER_LIVE.glob("turn-challenges*.turn.json")):
+        doc = json.loads(f.read_text())
+        for s in [x["sentence"] for x in doc["removed"] if x["sentence"]] + doc.get("accepted", []):
+            for part in sentences(s):                       # split as the splitter now splits (review M5)
+                if part.startswith(prefix):
+                    return part
+    raise KeyError(prefix)
+
+
+def answer_rows() -> list[dict]:
+    """Every live refusal and doubtful pass of the five live turns the review read (docs/review_2026-11-01_chat.md, M5),
+    and true passes beside them, as rows `where: "answer"`: held to the turn's checks (conversation.check_sentence:
+    the validator as the turn runs it, the checker on the routed areas' findings). Every sentence is a live turn's
+    verbatim, split as the splitter now splits; each label was read against the findings (the audit)."""
+    from jyotish.conversation import Route, held_to
+    r, chart, _ = reading_chart()
+    as_of = date.fromisoformat(ANSWER_AS_OF)
+    areas = ["father", "children", "gains"]
+    tags, votes, chains, finding_data = held_to(chart, Route(areas=areas), as_of)
+    live = "live turn of 2026-11-01 (docs/live_2026-11-01)"
+    rows = [
+        # (id, prefix of the live sentence, label, category, why)
+        ("live-ans-father-house-weak", "The house that represents your father is weak, with", "reject", "tier_word",
+         "refused live for 'weak', the tier word, in all three medium runs"),
+        ("live-ans-father-house-weak-2", "The 9th house, which represents your father, is weak", "reject", "tier_word",
+         "refused live for 'weak'"),
+        ("live-ans-gains-varga-weak", "The divisional chart for gains (D11) places Sun and Saturn", "reject",
+         "tier_word", "refused live for 'weak'"),
+        ("live-ans-gains-friendships", "The planet that represents gains and friendships", "reject", "unstated_claim",
+         "refused live: the gains findings state no friendships (the label 'gains and friendships' invited it)"),
+        ("live-ans-gains-also-taurus", "The key planet for gains, Jupiter, is also in Taurus", "reject",
+         "leans_on_another_sentence", "refused live: 'also' leans on another sentence's planet in Taurus"),
+        ("live-ans-sun-pisces-enemy", "In the gains’ divisional chart, the Sun is in Pisces in the D11 chart, an enemy",
+         "reject", "wrong_dignity", "refused live: the D11 row gives the Sun in Pisces as a friend, not an enemy"),
+        ("live-ans-sun-pisces-not-favour", "In the gains’ divisional chart the Sun is placed in Pisces, a sign that does "
+         "not favor", "reject", "wrong_dignity", "refused live: the Sun in Pisces in the D11 is in a friend's sign"),
+        ("live-ans-several-planets", "The divisional chart for children (D7) shows several planets", "reject",
+         "unsupported_clause", "refused live: two of the D7 rows lean against, not 'several planets'"),
+        ("live-ans-untagged-strains", "Your father's area shows several strains.", "reject", "untagged",
+         "refused live: a claim with no tag"),
+        ("live-ans-untagged-after-split", "Your children’s area carries its own difficulties.", "reject",
+         "untagged_unsupported", "lost live to the splitter (no space after the tag before it); split now, a sentence "
+         "with no tag and no claim verb the validator knows, which states a difficulty no finding is cited for: the "
+         "checker's to refuse"),
+        ("live-ans-father-varga-also-places", "The divisional chart for your father also places Mars in Gemini",
+         "reject", "leans_on_another_sentence", "lost live to the splitter; split now, its 'also' leans on another "
+         "sentence"),
+        ("live-ans-father-varga-also-leans", "The divisional chart for your father also leans unfavourably, with Mars "
+         "placed", "reject", "leans_on_another_sentence", "a doubtful live pass (run 1): 'also' leans on another "
+         "sentence, which the prompt forbids"),
+        ("live-ans-father-varga-more-strain", "The divisional chart for your father also leans unfavourably, with Mars "
+         "in Gemini, an enemy sign, adding more strain", "reject", "leans_on_another_sentence",
+         "a doubtful live pass (run 2): 'also' and 'adding more strain' lean on other sentences"),
+        ("live-ans-children-varga-further", "In the children’s divisional chart, Jupiter falls in Capricorn, "
+         "debilitated, further", "reject", "leans_on_another_sentence",
+         "a doubtful live pass (run 2): 'further weakening' leans on another sentence"),
+        ("live-ans-father-difficulty", "The planet that stands for your father, the Sun, sits in Aquarius, an "
+         "unfriendly sign, showing difficulty", "reject", "unstated_claim",
+         "a doubtful live pass (run 2): 'difficulty in that relationship' is an outcome no finding states"),
+        ("live-ans-children-obstacles", "The main significator for children, Jupiter, is placed in Taurus, an enemy "
+         "sign, indicating obstacles", "reject", "unstated_claim",
+         "a doubtful live pass (run 2): 'obstacles in matters related to children' is an outcome no finding states"),
+        ("live-ans-father-karaka", "The planet that signifies your father, the Sun, sits in Aquarius", "accept",
+         "accepted", "the Sun, the father's significator, in Aquarius, its D1 dignity enemy (karaka row): read"),
+        ("live-ans-children-karaka", "Jupiter, the main significator for children, sits in Taurus in the 1st house",
+         "accept", "accepted", "Jupiter, the children's main significator, in Taurus in the 1st house, enemy: read"),
+        ("live-ans-children-varga", "In the children’s divisional chart Jupiter falls in Capricorn, a debilitated sign",
+         "accept", "accepted", "lost live to the splitter; split now: Jupiter in Capricorn in the D7, debilitated "
+         "(varga row): read"),
+        ("live-ans-father-d12", "In the divisional chart for your father (D12), Mars falls in Gemini", "accept",
+         "accepted", "Mars in Gemini in the D12, enemy (varga row): read; true, and its D-code is a word warning "
+         "(client.CONVERSATION_WORDS), never a refusal"),
+    ]
+    out = []
+    for rid, prefix, label, cat, why in rows:
+        sentence = _live_turn_sentence(prefix)
+        area = next((a for a in areas if f"{a}." in " ".join(_tags(sentence))), "father")
+        row = {"id": rid, "where": "answer", "area": area, "finding_id": None, "section": None, "sentence": sentence,
+               "label": label, "category": cat, "origin": f"{live}: {why}", "tags": _tags(sentence),
+               "validator": {"allowed": sorted(tags), "offered_votes": {k: sorted(v) for k, v in votes.items()},
+                             "chains": chains, "family_rule": False}}
+        if label == "accept":
+            row["audit"] = why
+            if (warn := client_warnings(sentence, conversation=True)):
+                row["warnings"] = warn
+        checks = _summary_checks(sentence, finding_data)
+        row["facts"] = checks[0][2] if checks else json.dumps({"findings": []})
+        out.append(row)
+    return out
 
 
 # --- the depth-full comparison's refusals that were the engine's fault ----------------------------
@@ -621,6 +720,9 @@ def validator_errors(row: dict) -> list[str]:
         if not TAG.search(row["sentence"]):
             errs.append(f"claim without a tag: {row['sentence']!r}")
         return errs
+    if row["where"] == "answer":                         # a conversation turn's sentence (review M5)
+        return validate_summary(row["sentence"], allowed, offered_votes=ov, where="answer", family_rule=False,
+                                chains=v["chains"]) + client_errors(row["sentence"])
     where = f"{row['area']} paragraph" if row["where"] == "paragraph" else "summary"
     # `standalone`: a held paragraph's sentence written on a retry, read alone (review Q3, Q11).
     return validate_summary(row["sentence"], allowed, offered_votes=ov, where=where, family_rule=v["family_rule"],
