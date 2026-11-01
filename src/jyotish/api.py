@@ -251,7 +251,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
                reviewers: dict[str, str] | None = None, review_checker=None,
                clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None,
-               turn_writer=None, turn_checker=None) -> FastAPI:
+               turn_writer=None, turn_checker=None, turn_limit: float | None = None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
     mounted when their directories exist (a source checkout). Reviewers, clerks and the owner
@@ -261,7 +261,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     stub). `rate` is (readings per client per hour, readings per day), default
     JYOTISH_READINGS_PER_HOUR and JYOTISH_READINGS_PER_DAY, else 30 and 300; a conversation's turns count
     against the same limit. `turn_writer` and `turn_checker` make a turn's writer and checker (each called with
-    no argument, once per turn); by default the writer and checker backends of the environment."""
+    no argument, once per turn); by default the writer and checker backends of the environment. `turn_limit`: the
+    seconds after which a turn still queued or running is marked failed (JYOTISH_TURN_LIMIT_SECONDS, else 600)."""
     from . import logs
     from .db import migrate
     logs.setup()
@@ -514,6 +515,28 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             fut = PAYLOADS[sid] = payload_pool.submit(cached_payload, chart, as_of, *full_range(as_of), list(_AREAS))
         return fut
 
+    # A turn still queued or running when the service starts was cut off by a restart, and one older than the limit
+    # is taken to have stopped: each is marked failed, so its conversation goes on (review H6).
+    limit = turn_limit if turn_limit is not None else float(os.environ.get("JYOTISH_TURN_LIMIT_SECONDS", 600))
+
+    def fail_turns(s, rows, why: str) -> None:
+        for t in rows:
+            t.status, t.error = "failed", {"message": why}
+        if rows:
+            logs.event("turn.interrupted", logging.WARNING, count=len(rows), why=why)
+
+    with Session.begin() as s:
+        fail_turns(s, s.query(TurnRow).filter(TurnRow.status.in_(("queued", "running"))).all(),
+                   "interrupted by a restart")
+
+    def expire_turns(s, turns) -> None:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        age = lambda t: (now - (t.created_at if t.created_at.tzinfo else t.created_at.replace(tzinfo=timezone.utc))
+                         ).total_seconds()
+        fail_turns(s, [t for t in turns if t.status in ("queued", "running") and age(t) > limit],
+                   "took longer than the turn limit")
+
     def session_of(s, sid: str) -> SessionRow:
         row = s.get(SessionRow, sid)
         if row is None:
@@ -590,7 +613,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                        for x in earlier]
         try:
             with Session.begin() as s:
-                s.get(TurnRow, turn_id).status = "running"
+                row = s.get(TurnRow, turn_id)
+                if row.status != "queued":                # marked failed while it waited (review H6)
+                    return
+                row.status = "running"
             chart = chart_of(chart_id)
             route = route_turn(message, chart, last, minor=minor)
             with Session.begin() as s:
@@ -630,6 +656,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         with Session.begin() as s:
             srow = session_of(s, sid)
             turns = s.query(TurnRow).filter_by(session_id=sid).all()
+            expire_turns(s, turns)
             if any(t.status in ("queued", "running") for t in turns):
                 raise HTTPException(status_code=409, detail="the last question is still being answered")
             n = max((t.n for t in turns), default=0) + 1
@@ -640,10 +667,11 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 "events": f"/sessions/{sid}/turns/{n}/events"}
 
     def turn_row(sid: str, n: int) -> TurnRow:
-        with Session() as s:
+        with Session.begin() as s:
             t = s.query(TurnRow).filter_by(session_id=sid, n=n).first()
             if t is None:
                 raise HTTPException(status_code=404, detail="no such turn")
+            expire_turns(s, [t])
             return t
 
     @app.get("/sessions/{sid}/turns/{n}")

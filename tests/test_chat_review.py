@@ -259,3 +259,53 @@ def test_h4_a_turn_in_a_fresh_app_with_one_worker_finishes(tmp_path):
             n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
             urls.append(f"/sessions/{sid}/turns/{n}")
         assert [wait_turn(c, u) for u in urls] == ["done", "done"]
+
+
+# --- H6: a turn cut off by a restart, or past the limit, is marked failed and the conversation goes on ---------------
+
+def _stuck(app, sid, status, minutes_ago=0):
+    from datetime import datetime, timedelta, timezone
+    import uuid
+    from jyotish.db import SessionRow, TurnRow
+    with app.state.Session.begin() as s:
+        srow = s.get(SessionRow, sid)
+        n = 1 + max([t.n for t in s.query(TurnRow).filter_by(session_id=sid)] or [0])
+        s.add(TurnRow(id=uuid.uuid4().hex, session_id=sid, n=n, birth_key=srow.birth_key, question="how is my career",
+                      status=status, created_at=datetime.now(timezone.utc) - timedelta(minutes=minutes_ago)))
+    return n
+
+
+def test_h6_a_turn_cut_off_by_a_restart_is_failed_and_the_conversation_goes_on(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    db = f"sqlite:///{tmp_path / 'h6.db'}"
+    app = create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=BIRTH).json()["id"]
+    stuck = [_stuck(app, sid, "running")]
+    fresh = create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)    # the restart
+    with TestClient(fresh) as c:
+        assert c.get(f"/sessions/{sid}/turns/{stuck[0]}").json()["status"] == "failed"
+        r = c.post(f"/sessions/{sid}/turns", json={"message": "and marriage?"})
+        assert r.status_code == 202
+        assert wait_turn(c, f"/sessions/{sid}/turns/{r.json()['n']}") == "done"
+
+
+def test_h6_a_turn_past_the_limit_is_failed_and_the_conversation_goes_on(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    app = create_app(f"sqlite:///{tmp_path / 'h6b.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+                     turn_limit=600)
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=BIRTH).json()["id"]
+        fresh_turn = _stuck(app, sid, "queued", minutes_ago=1)
+        assert c.post(f"/sessions/{sid}/turns", json={"message": "and marriage?"}).status_code == 409
+        with app.state.Session.begin() as s:                  # the same turn, eleven minutes old
+            from datetime import datetime, timedelta, timezone
+            from jyotish.db import TurnRow
+            s.query(TurnRow).filter_by(session_id=sid, n=fresh_turn).one().created_at = \
+                datetime.now(timezone.utc) - timedelta(minutes=11)
+        r = c.post(f"/sessions/{sid}/turns", json={"message": "and marriage?"})
+        assert r.status_code == 202
+        assert c.get(f"/sessions/{sid}/turns/{fresh_turn}").json()["status"] == "failed"
+        assert wait_turn(c, f"/sessions/{sid}/turns/{r.json()['n']}") == "done"

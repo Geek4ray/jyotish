@@ -211,3 +211,10 @@ tests/test_chat_review.py unless named otherwise.
   executor, which never waits on the pool, so a turn after a restart (no payload held in this process) can no longer
   hold the only worker waiting for a job queued behind it. The test is the review's: two sessions made in one app,
   then a fresh app on the same database with `workers=1`, one question in each, and both done within 120 s.
+- **H6. A turn cut off is failed, and the conversation goes on.** When the service starts, every turn still queued
+  or running is marked failed ("interrupted by a restart", logged as `turn.interrupted` with a count). A turn queued
+  or running longer than the turn limit (`create_app(turn_limit=…)`, `JYOTISH_TURN_LIMIT_SECONDS`, 600 s by default)
+  is marked failed when its conversation is asked a question or the turn is read, so the next question is accepted
+  and the page stops waiting. A queued turn marked failed before a worker reaches it is not run. Two tests: a turn
+  left running is failed by a restart and the next question is answered; a queued turn is still a 409 at one minute
+  old and failed at eleven, and the next question is answered.
