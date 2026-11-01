@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "commit": "90ded9f",
+  "commit": "1052a92",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -789,19 +789,19 @@
       "gate": false
     },
     "paragraph.complete": {
-      "value": 2,
+      "value": 4,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "paragraph.partial": {
-      "value": 3,
+      "value": 2,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "paragraph.none": {
-      "value": 1,
+      "value": 0,
       "better": "lower",
       "unit": "",
       "gate": false
@@ -819,19 +819,19 @@
       "gate": false
     },
     "paragraph.sentences_held_attempt_1": {
-      "value": 2,
+      "value": 9,
       "better": null,
       "unit": "",
       "gate": false
     },
     "paragraph.sentences_held_attempt_2": {
-      "value": 8,
+      "value": 6,
       "better": null,
       "unit": "",
       "gate": false
     },
     "paragraph.sentences_held_attempt_3": {
-      "value": 5,
+      "value": 7,
       "better": null,
       "unit": "",
       "gate": false

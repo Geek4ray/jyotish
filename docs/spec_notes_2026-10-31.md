@@ -491,3 +491,20 @@ One commit per finding.
   - **DoD 10.** 22ce828's "Replaying … changes nothing" was blind to paragraphs (Q9). 26ecf65's "the client's
     page and the site show `client_text`" did not hold for stored readings until Q6. Those messages are history.
     This round's messages claim only what their tests show.
+
+**Measured after the round** (definition of done, condition 7: Q2-Q4 changed the writer's prompt;
+`docs/comparison_2026-11-01_curious_r2.md`, at 1052a92, the .env stack, both sides at curious depth):
+
+| Side | Claims of 37 | Paragraph sentences shown (career / marriage / longevity) | Complete paragraphs of 3 | Gaps | Summary | USD | Done |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 37 | 2 / 4 / 4 | 2 | 1 | engine's | 0.06 | 236 s |
+| B | 37 | 5 / 3 / 4 | 2 | 1 | writer's | 0.05 | 215 s |
+
+- **Paragraphs.** Four complete in six, two held in part, none missing. The comparison before the round
+  (docs/comparison_2026-11-01_curious.md) had two complete, three in part and one missing.
+- **The two gaps.** A's career sentence: the checker refused "The tradition links Kendra-Trikona Raja yoga with
+  intellect"; the yoga's themes do not say intellect. B's marriage sentence: "vote".
+- **The client's words.** B's writer-written summary passes `client_errors`. The scorecard's paragraph numbers
+  (`paragraph.*`) are read from this comparison.
+
+One run a side on a shared provider.

@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-01 at commit `90ded9f` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-01 at commit `1052a92` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -41,14 +41,14 @@ One live reading per stack on the reference chart (docs/live_timings.jsonl; docs
 
 ## The paragraph held sentence by sentence (reported, not gated)
 
-From docs/comparison_2026-11-01_curious (6 curious paragraphs, one live run per side): 2 complete, 3 held in part, 1 none; the writer's rounds per area, mean 3.00; sentences held at each attempt: attempt 1 2, attempt 2 8, attempt 3 5; ended early with attempts unused: 0. The latest comparison at curious depth is read; a later one replaces it.
+From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run per side): 4 complete, 2 held in part, 0 none; the writer's rounds per area, mean 3.00; sentences held at each attempt: attempt 1 9, attempt 2 6, attempt 3 7; ended early with attempts unused: 0. The latest comparison at curious depth is read; a later one replaces it.
 
 ## Synthetic validation (the pipeline, not the engine)
 
 Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 25 s.
 Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 9 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 290 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 102 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 240 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 99 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -187,14 +187,14 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `live.fly_median.done_s` | 330.469 |  | lower | no |
 | `live.fly_median.cost_usd` | 0.029619 |  | lower | no |
 | `live.fly_median.gaps` | 0 |  | lower | no |
-| `paragraph.complete` | 2 |  | higher | no |
-| `paragraph.partial` | 3 |  | lower | no |
-| `paragraph.none` | 1 |  | lower | no |
+| `paragraph.complete` | 4 |  | higher | no |
+| `paragraph.partial` | 2 |  | lower | no |
+| `paragraph.none` | 0 |  | lower | no |
 | `paragraph.writer_rounds_mean` | 3.0 |  | lower | no |
 | `paragraph.ended_early` | 0 |  | lower | no |
-| `paragraph.sentences_held_attempt_1` | 2 |  | informational | no |
-| `paragraph.sentences_held_attempt_2` | 8 |  | informational | no |
-| `paragraph.sentences_held_attempt_3` | 5 |  | informational | no |
+| `paragraph.sentences_held_attempt_1` | 9 |  | informational | no |
+| `paragraph.sentences_held_attempt_2` | 6 |  | informational | no |
+| `paragraph.sentences_held_attempt_3` | 7 |  | informational | no |
 | `synthetic.planted.2000.predicted_power` | 0.4101 |  | informational | no |
 | `synthetic.planted.2000.recovered_share` | 0.375 |  | higher | no |
 | `synthetic.planted.2000.survived_bh_share` | 0.375 |  | higher | no |

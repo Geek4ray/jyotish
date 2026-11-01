@@ -316,6 +316,13 @@ the retry asks for the failed sentences by position, `PARAGRAPH_RETRY_NOTE`, and
 use, `narrate.name_hint`); an engine summary carries `summary.client_text` (`narrate.client_summary`: no engine vocabulary,
 windows as months), shown on the client's face with the figures and each area's classical score, probability, families
 agreeing and polarity under "For the astrologer"; the curious paragraph is held to `client.client_errors` like the
-client's layer (benchmark category `client_words`; tests/fixtures/narration_curious.json hand-edited to it, see its note). A sign placement carries the planet's dignity (`placement.dignity`), and an untagged refusal names the tags the sentence states (`narrate.tags_for` in `name_hint`). `scripts/live_timing.py --url` times a deployed service (rows marked
+client's layer (benchmark category `client_words`; tests/fixtures/narration_curious.json hand-edited to it, see its note). A sign placement carries the planet's dignity (`placement.dignity`), and an untagged refusal names the tags the sentence states (`narrate.tags_for` in `name_hint`). The review of these (docs/review_2026-10-31.md, Q1-Q11) is fixed: the client's summary gives each window as the engine
+scores it, never "to avoid"; a held paragraph is one rewrite per listed sentence, refuses restatements and pronoun
+openers on retries, quotes its held sentences, and stands only with its first sentence; settings, stability figures,
+windows, conflicts, depends, learner and citations are under "For the astrologer" on the page and the site, the curious
+summary is held to the client's words and `summary.client_when` gives a model summary's windows in words; a reviewer edits
+an engine summary's client words; GET fills them for older readings; the lordship list rule reads only stated lists;
+the replay compares paragraphs; the scorecard reports the paragraph policy (`paragraph.*`, from the latest curious
+comparison). DoD 8 (a person trying the client's face) is still open. `scripts/live_timing.py --url` times a deployed service (rows marked
 `where`; docs/models.md has the Fly medians); docs/comparison_2026-10-31.md re-measures the writer.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.
