@@ -8,7 +8,7 @@ from datetime import date
 
 import pytest
 
-from jyotish.client import CLIENT_PROMPT, ClientDraft, client_errors
+from jyotish.client import CLIENT_PROMPT, ClientDraft, client_errors, client_warnings
 from jyotish.narrate import (CONFIG, CheckResult, FixtureDrafter, Proposition, ReadingDraft, anthropic_client_drafter,
                              is_judgement, narrate, writer_config)
 from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
@@ -97,12 +97,21 @@ def run(chart, writer, clientw, checker=None, **kw):
     ("Both house systems agree [fact:houses.system].", "engine vocabulary ('house systems')"),
     ("It holds in every sample [fact:areas.career.stability].", "engine vocabulary ('sample')"),
     ("I give more weight to Saturn [fact:vargas.D10.Saturn].", "never says 'I'"),
-    ("Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn].", "says 'in the reading's view'"),
-    ("Saturn's dignity matters most here [fact:vargas.D10.Saturn].", "says 'in the reading's view'"),
 ])
-def test_the_clients_words_refuse_the_engines_vocabulary_and_an_unmarked_weighing(sentence, needle):
-    errs = client_errors(sentence)
-    assert any(needle in e for e in errs), errs
+def test_the_engines_vocabulary_and_i_are_warnings_not_refusals(sentence, needle):
+    # SPEC Layer 8 (2026-11-01): the checks refuse wrong facts, not word choices. The rule of 2026-10-24 to -31
+    # (client.WORD_RULES "refuse") still refuses them.
+    assert any(needle in w for w in client_warnings(sentence)), client_warnings(sentence)
+    assert not any(needle in e for e in client_errors(sentence))
+    assert any(needle in e for e in client_errors(sentence, word_rules="refuse"))
+
+
+@pytest.mark.parametrize("sentence", [
+    "Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn].",
+    "Saturn's dignity matters most here [fact:vargas.D10.Saturn].",
+])
+def test_an_unmarked_weighing_is_still_refused(sentence):
+    assert any("says 'in the reading's view'" in e for e in client_errors(sentence))
 
 
 @pytest.mark.parametrize("sentence,needle", [
@@ -114,9 +123,9 @@ def test_the_clients_words_refuse_the_engines_vocabulary_and_an_unmarked_weighin
     ("The 10th house is lowest by Bhava Bala [fact:bhava_bala.whole_sign.H10].", "('Bhava Bala')"),
     ("It has 4.51 rupas [fact:bhava_bala.whole_sign.H10.rupas].", "('rupas')"),
 ])
-def test_the_clients_words_refuse_the_wider_engine_vocabulary(sentence, needle):
-    errs = client_errors(sentence)
-    assert any("engine vocabulary " + needle in e for e in errs), errs
+def test_the_wider_engine_vocabulary_is_a_warning(sentence, needle):
+    assert any("engine vocabulary " + needle in w for w in client_warnings(sentence)), client_warnings(sentence)
+    assert not client_errors(sentence) and client_errors(sentence, word_rules="refuse")
 
 
 @pytest.mark.parametrize("sentence,plain", [
@@ -125,17 +134,18 @@ def test_the_clients_words_refuse_the_wider_engine_vocabulary(sentence, needle):
     ("Mars sits in a kendra [fact:planets.Mars.house].", "angular house"),
     ("The Sun is the main karaka of your work [fact:areas.career.main_karaka].", "significator"),
 ])
-def test_a_sanskrit_word_with_a_plain_phrase_is_refused_for_the_phrase(sentence, plain):
-    errs = client_errors(sentence)
-    assert any(f"say {plain!r}" in e for e in errs), errs
+def test_a_sanskrit_word_with_a_plain_phrase_warns_with_the_phrase(sentence, plain):
+    assert any(f"say {plain!r}" in w for w in client_warnings(sentence)), client_warnings(sentence)
+    assert not client_errors(sentence) and client_errors(sentence, word_rules="refuse")
 
 
 def test_a_sanskrit_term_with_no_plain_phrase_needs_its_gloss_in_the_same_sentence():
     bare = "Mars in its own sign in the 7th forms Ruchaka yoga [rule:yoga.ruchaka]."
-    assert any("is a Sanskrit term: gloss it" in e for e in client_errors(bare))
+    assert any("is a Sanskrit term: gloss it" in w for w in client_warnings(bare)) and not client_errors(bare)
+    assert any("is a Sanskrit term: gloss it" in e for e in client_errors(bare, word_rules="refuse"))
     glossed = ("Mars in its own sign in the 7th forms Ruchaka yoga, a combination formed when Mars is in its own "
                "sign in an angular house [rule:yoga.ruchaka].")
-    assert client_errors(glossed) == []
+    assert client_errors(glossed) == [] and client_warnings(glossed) == []
     kt = ("The Sun and Mercury form a Kendra-Trikona Raja yoga, a combination of the lord of an angular house with "
           "the lord of a trine [rule:yoga.kendra_trikona_raja].")
     assert client_errors(kt) == []                          # "kendra" and "trikona" in the rule's own name pass
@@ -229,14 +239,14 @@ def test_a_tradition_sentence_never_reaches_the_client_writer(chart):
 
 def test_a_refused_paragraph_is_retried_and_a_passed_summary_held(chart):
     from jyotish.narrate import RETRY_HEAD
-    bad = "Five of the seven families vote for career [fact:vimshottari.current]."
+    bad = "Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn]."
     c = client((SUMMARY, bad), ("", PARAGRAPH))
     r = run(chart, Replay(draft()), c)
     assert r.areas[0].paragraph == PARAGRAPH and r.summary.text == SUMMARY and r.usage["client"]["attempts"] == 2
     ask = c.calls[1]["errors"][0]
     assert ask.startswith(RETRY_HEAD) and "Held: the summary; the career when." in ask
     assert f"- the career paragraph, sentence 1 of 1 ({bad!r}):" in ask           # held sentence by sentence
-    assert "engine vocabulary ('families')" in ask
+    assert "says 'in the reading's view'" in ask
 
 
 def test_a_paragraph_that_never_passes_is_a_gap_and_the_summary_the_engines(chart):
@@ -265,8 +275,17 @@ def test_a_legacy_not_said_section_replays_as_the_astrologers_list(chart):
     assert {g["finding_id"] for g in r.areas[0].narration_gaps if g["kind"] == "analysis"} == {"analysis.not_said_client"}
 
 
-def test_the_clients_list_is_held_to_the_clients_words(chart):
-    w = Replay(draft(not_decided="The KP family abstains on career [fact:areas.career.votes.kp.vote]."), draft())
+def test_the_clients_list_keeps_an_engine_word_with_a_warning(chart, monkeypatch):
+    # SPEC Layer 8: a word choice is a warning, kept with the reading and logged; under the rule of 2026-10-24 to
+    # -31 ("refuse") the list was rewritten.
+    words = "The KP family abstains on career [fact:areas.career.votes.kp.vote]."
+    w = Replay(draft(not_decided=words), draft())
+    r = run(chart, w, client((SUMMARY, PARAGRAPH)))
+    assert len(w.calls) == 1 and r.areas[0].analysis["not_said_client"] == words
+    assert [x["unit"] for x in r.word_warnings if "('family')" in x["warning"]] == ["not_said_client:career"]
+    from jyotish import client as client_module
+    monkeypatch.setattr(client_module, "WORD_RULES", "refuse")
+    w = Replay(draft(not_decided=words), draft())
     r = run(chart, w, client((SUMMARY, PARAGRAPH)))
     assert any("engine vocabulary ('family')" in e for e in w.calls[1]["errors"][0].splitlines())
     assert r.areas[0].analysis["not_said_client"] == NOT_DECIDED
@@ -296,9 +315,12 @@ def test_a_reviewers_edit_of_a_depth_full_paragraph_is_held_to_the_clients_words
     ok = check_edit(r, chart, "paragraph:career:0", "Saturn leads your work house and sits in its own sign in the "
                     "chart of career [fact:houses.lagna.10.lord] [fact:vargas.D10.Saturn].", Stub())
     assert ok["accepted"], ok["errors"]
-    bad = check_edit(r, chart, "paragraph:career:0", "Five of the seven families vote for career "
-                     "[fact:houses.lagna.10.lord].", Stub())
-    assert not bad["accepted"] and any("engine vocabulary" in e for e in bad["errors"])
+    words = check_edit(r, chart, "paragraph:career:0", "Five of the seven families vote for career "
+                       "[fact:houses.lagna.10.lord].", Stub())
+    assert words["accepted"] and any("engine vocabulary" in w for w in words["warnings"])      # a word choice warns
+    bad = check_edit(r, chart, "paragraph:career:0", "Saturn's dignity outweighs its strength "
+                     "[fact:vargas.D10.Saturn].", Stub())
+    assert not bad["accepted"] and any("in the reading's view" in e for e in bad["errors"])
 
 
 # --- a paragraph held sentence by sentence (2026-10-31) -----------------------------------------
@@ -311,7 +333,7 @@ REPLACED = "Saturn is the planet the reading looks to first for your work [fact:
 def test_a_paragraph_keeps_its_passed_sentences_and_a_retry_rewrites_only_the_failed_one(chart):
     # The marriage paragraph on Fly was lost three times for one sentence; each sentence is now held on its
     # own: the retry is asked for the failed sentence alone, and its replacement takes that sentence's place.
-    bad = "Five of the seven families vote for career [fact:vimshottari.current]."
+    bad = "Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn]."
     c = client((SUMMARY, " ".join([S1, bad, S3])), ("", REPLACED))
     r = run(chart, Replay(draft()), c)
     assert r.areas[0].paragraph == " ".join([S1, REPLACED, S3])
@@ -337,7 +359,7 @@ def test_a_sentence_that_never_passes_leaves_the_others_standing_and_one_paragra
 def test_a_retry_that_sends_the_held_sentences_again_places_only_the_new_one(chart):
     # A writer that ignores the instruction and sends the whole paragraph: the held sentences are not
     # placed twice.
-    bad = "Five of the seven families vote for career [fact:vimshottari.current]."
+    bad = "Saturn's dignity outweighs its strength [fact:vargas.D10.Saturn]."
     c = client((SUMMARY, " ".join([S1, bad, S3])), ("", " ".join([S1, REPLACED, S3])))
     r = run(chart, Replay(draft()), c)
     assert r.areas[0].paragraph == " ".join([S1, REPLACED, S3])

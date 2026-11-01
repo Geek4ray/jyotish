@@ -405,15 +405,17 @@ def _material(chart, message: str, route: Route, engine, history: list[dict], as
     return json.dumps(body, indent=1, default=str), finding_data, tags, votes, chains
 
 
-def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, checker):
+def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, checker, word_rules: str | None = None):
     """(passed, refusals, warnings, check record) for one sentence of a turn's answer: the validator's refusals
-    (tags, forbidden claims, tier words) and the client's words (client.client_errors), then the checker against the
-    findings it cites."""
-    from .client import client_errors
+    (tags, forbidden claims, tier words, an unmarked weighing), then the checker against the findings it cites.
+    The client's-word rules (CLIENT_WORDS, CLIENT_PLAIN, the same-sentence gloss, "I"; client.client_warnings) are
+    warnings under `word_rules` "warn" (client.WORD_RULES, SPEC Layer 8) and refusals under "refuse"."""
+    from . import client
     from .narrate import _summary_checks, validate_summary
+    word_rules = word_rules or client.WORD_RULES
     refusals = validate_summary(sentence, tags, offered_votes=votes, where="answer", family_rule=False, chains=chains)
-    refusals += client_errors(sentence)
-    warnings: list[str] = []
+    refusals += client.client_errors(sentence, word_rules=word_rules)
+    warnings = client.client_warnings(sentence) if word_rules != "refuse" else []
     if refusals:
         return False, refusals, warnings, None
     (s, ids, data), = _summary_checks(sentence, finding_data)
@@ -429,7 +431,8 @@ def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, c
 
 
 def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list[dict] | None = None,
-                drafter=None, checker=None, emit=None, config=None, data: dict | None = None) -> dict[str, Any]:
+                drafter=None, checker=None, emit=None, config=None, data: dict | None = None,
+                word_rules: str | None = None) -> dict[str, Any]:
     """One turn, answered (the section above): returns the turn's document, the record the turns table keeps —
     the route, the engine's answer, the writer's answer as the client read it (`shown`) with its source, every
     removed sentence with its reasons, the warnings, the checks, the settings and usage of each role, and the
@@ -441,6 +444,8 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                          engine_reading, make_backend, sentences)
     from .live import JsonStrings
     config = config or CONFIG
+    from . import client as _client
+    word_rules = word_rules or _client.WORD_RULES
     history = history or []
     emit = emit or (lambda e: None)
     t0 = time.perf_counter()
@@ -491,7 +496,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
             order = _Order(show)
 
             def judge(k: int, s: str) -> None:
-                ok, refusals, warnings, record = check_sentence(s, tags, votes, chains, finding_data, checker)
+                ok, refusals, warnings, record = check_sentence(s, tags, votes, chains, finding_data, checker, word_rules)
                 if record is not None:
                     doc["checks"].append({k: v for k, v in record.items() if k != "meta"} | {"attempt": attempt})
                     checker_metas.append(record["meta"])
@@ -567,6 +572,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     from .narrate import CONFIG as _C
     return doc | {
         "source": source, "shown": shown, "paragraphs": paras, "accepted": accepted, "attempts": attempts, "timeline": timeline,
+        "word_rules": word_rules,
         "writer": {"model": _model_of(drafter, config.model), "effort": config.effort, **_backend_of(drafter)},
         "checker": {"model": _model_of(checker, config.checker_model),
                     "effort": getattr(checker, "effort", _C.checker_effort), **_backend_of(checker)},

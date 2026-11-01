@@ -312,6 +312,32 @@ class Reading(BaseModel):
     unstable: list[dict[str, Any]]
     depends_on_birth_time: list[dict[str, Any]]
     disclaimers: list[str]
+    # The client's-word rules the client-facing text breaks (client.WORD_RULES "warn", SPEC Layer 8): {unit,
+    # warning}, logged, never refusals; the review page shows them.
+    word_warnings: list[dict[str, str]] = Field(default_factory=list)
+
+
+def _logged_warnings(warnings: list[dict]) -> list[dict]:
+    """The reading's word warnings, logged by unit kind and count (never the text)."""
+    if warnings:
+        from . import logs
+        from collections import Counter
+        logs.event("narration.word_warnings", count=len(warnings),
+                   units=dict(Counter(w["unit"].split(":")[0] for w in warnings)))
+    return warnings
+
+
+def reading_word_warnings(summary: "ReadingSummary", areas: list["ReadingArea"], client_face: bool) -> list[dict]:
+    """The warnings of every client-facing text of a reading: each area's paragraph, when and the client's
+    not-said list, and the summary where it is the client's (`client_face`: curious or full depth)."""
+    out = []
+    texts = [("summary", summary.text if client_face and summary.source == "model" else None)]
+    for a in areas:
+        texts += [(f"paragraph:{a.name}", a.paragraph), (f"when:{a.name}", a.when),
+                  (f"not_said_client:{a.name}", (a.analysis or {}).get("not_said_client"))]
+    for unit, text in texts:
+        out += [{"unit": unit, "warning": w} for w in word_warnings(text)]
+    return out
 
 
 class BackendFatal(Exception):
@@ -561,6 +587,20 @@ def rule_names(rule_id: str) -> list[str]:
 # may not open on a word that points back.
 PRONOUN_OPENER = re.compile(r"^\s*(it|its|this|these|that|those|they|their|them|he|she|his|her)\b", re.I)
 
+
+def word_warnings(text: str | None, standalone: bool = False) -> list[str]:
+    """The client's-word rules a client-facing text breaks, as warnings (client.WORD_RULES "warn", SPEC Layer 8):
+    client.client_warnings, and with `standalone` (a held paragraph's sentence written on a retry) a pronoun
+    opener."""
+    from .client import client_warnings
+    out = client_warnings(text)
+    for sentence in sentences(text or "") if standalone else []:
+        if (m := PRONOUN_OPENER.match(TAG.sub("", sentence))):
+            out.append(f"this sentence is written apart from the sentences around it and opens on {m.group(1)!r}: "
+                       f"{sentence!r}")
+    return out
+
+
 # The engine states the tier (SPEC Layer 7 item 3): the model's summary may not use the tier words.
 TIER_WORDS = re.compile(r"\b(strong|moderate|weak|mixed)\b", re.I)
 
@@ -573,8 +613,9 @@ def validate_summary(text: str, allowed: set[str], *, offered_votes=None, where:
     curious-depth paragraph (`where` names which, in the error)."""
     errors = validate(text, allowed, offered_votes=offered_votes, family_rule=family_rule, chains=chains, standalone=standalone,
                       facts=facts, traditions=traditions, judgements=judgements)
+    from . import client
     for sentence in sentences(text):
-        if standalone and (m := PRONOUN_OPENER.match(TAG.sub("", sentence))):
+        if standalone and client.WORD_RULES == "refuse" and (m := PRONOUN_OPENER.match(TAG.sub("", sentence))):
             errors.append(f"this sentence is written apart from the sentences around it: name what it is about "
                           f"rather than opening on {m.group(1)!r}: {sentence!r}")
         m = TIER_WORDS.search(TRADITION.sub("", TAG.sub("", sentence)))
@@ -3650,7 +3691,8 @@ def narrate(chart: Chart, question: str, *, drafter: Drafter | None = None, chec
                    model=_model_of(drafter, wcfg.model), attempts=attempts, summary=summary, areas=reading_areas,
                    narration_complete=source == "model" and not any(a.narration_gaps for a in reading_areas),
                    depth=depth,
-                   fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers)
+                   fired_rules=fired, unstable=unstable, depends_on_birth_time=depends, disclaimers=disclaimers,
+                   word_warnings=_logged_warnings(reading_word_warnings(summary, reading_areas, curious or full)))
 
 
 # --- the live narration: the areas in parallel, the summary last (2026-10-26) --------------------

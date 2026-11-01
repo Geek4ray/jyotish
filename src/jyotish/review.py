@@ -122,7 +122,10 @@ def check_edit(reading: Reading, chart: Chart, target: str, text: str,
             checks.append({"sentence": sentence, "findings": ids, "result": result.model_dump()})
             errors += [f"unsupported: {p.text!r} ({p.evidence})" for p in result.propositions if not p.supported]
             reasons += [{"code": "unsupported", "detail": p.text} for p in result.propositions if not p.supported]
-    return {"accepted": not errors, "errors": errors, "reasons": reasons, "checks": checks}
+    # The client's-word rules are warnings (client.WORD_RULES, SPEC Layer 8): shown to the reviewer, never a refusal.
+    from .narrate import word_warnings
+    warnings = word_warnings(text) if kind in ("paragraph", "summary") else []
+    return {"accepted": not errors, "errors": errors, "reasons": reasons, "checks": checks, "warnings": warnings}
 
 
 def with_tags(before: str, text: str) -> str:

@@ -161,24 +161,50 @@ def gloss_errors(s: str, bare: str) -> list[str]:
 
 DATE = re.compile(r"\b(?:19|20)\d{2}\b")
 
+# The checks refuse wrong facts, not word choices (SPEC Layer 8, 2026-11-01): the client's-word rules (engine
+# vocabulary, CLIENT_WORDS; a Sanskrit word with a plain phrase, CLIENT_PLAIN; a Sanskrit term unglossed in its own
+# sentence; "I"; and a held paragraph's sentence opening on a pronoun, narrate.PRONOUN_OPENER) are warnings, logged
+# and kept with the reading or the turn (`client_warnings`), never refusals; the plain words and the voice are asked
+# for in the writer's prompt instead. "refuse" is the rule of 2026-10-24 to -31, when they were refusals. The tag
+# rules, the forbidden claims, the tier words, a date in the paragraph, an unmarked weighing and the checker's
+# verdict stay refusals.
+WORD_RULES = "warn"
 
-def client_errors(text: str | None, accepted: set[str] | None = None, dates: bool = True) -> list[str]:
-    """The client's words: no engine vocabulary, a Sanskrit term glossed or replaced by its plain
-    phrase, no "I", a weighing marked as the reading's view, and (the paragraph, the when and the
-    summary, `accepted` the tags of the accepted text they draw on) every sentence tagged with tags
-    from that text only. `dates` False (the paragraph): no date, which belongs under When."""
+
+def client_warnings(text: str | None) -> list[str]:
+    """The client's-word rules a text breaks (the comment above): engine vocabulary, a Sanskrit term with a plain
+    phrase or unglossed, "I". Under WORD_RULES "warn" they are these warnings; under "refuse", client_errors."""
     from .narrate import HYPHENS, TAG, TRADITION, sentences
+    out = []
+    for s in sentences(text or ""):
+        bare = TRADITION.sub("", TAG.sub("", s)).translate(HYPHENS)
+        if (m := CLIENT_WORDS.search(bare)):
+            out.append(f"engine vocabulary ({m.group(0)!r}) in the client's text: say it in plain words: {s!r}")
+        out += gloss_errors(s, bare)
+        if FIRST_PERSON.search(bare):
+            out.append(f"the client's text never says 'I'; a weighing is 'in the reading's view': {s!r}")
+    return out
+
+
+def client_errors(text: str | None, accepted: set[str] | None = None, dates: bool = True,
+                  word_rules: str | None = None) -> list[str]:
+    """What refuses a sentence of the client's text: a weighing not marked as the reading's view, and (the
+    paragraph, the when and the summary, `accepted` the tags of the accepted text they draw on) every sentence
+    tagged with tags from that text only; `dates` False (the paragraph): no date, which belongs under When. Under
+    `word_rules` (default WORD_RULES) "refuse", the client's-word rules too (client_warnings); under "warn" they
+    are not refusals."""
+    from .narrate import HYPHENS, TAG, TRADITION, sentences
+    refuse_words = (word_rules or WORD_RULES) == "refuse"
     errors = []
     for s in sentences(text or ""):
         bare = TRADITION.sub("", TAG.sub("", s)).translate(HYPHENS)
         tags = {f"{k}:{v}" for k, v in TAG.findall(s)}
-        if (m := CLIENT_WORDS.search(bare)):
-            errors.append(f"engine vocabulary ({m.group(0)!r}) in the client's text: say it in plain words: {s!r}")
-        errors += gloss_errors(s, bare)
+        if refuse_words:
+            errors += client_warnings(s)
         if not dates and (m := DATE.search(bare)):
             errors.append(f"a date ({m.group(0)!r}) in 'What the chart says for you': dates go under When: {s!r}")
         if FIRST_PERSON.search(bare):
-            errors.append(f"the client's text never says 'I'; a weighing is 'in the reading's view': {s!r}")
+            pass                                         # "I" is a client's-word rule (client_warnings)
         elif (m := WEIGHING.search(bare)) and not VIEW.search(bare):
             errors.append(f"a weighing ({m.group(0)!r}) in the client's text says 'in the reading's view': {s!r}")
         if accepted is not None:

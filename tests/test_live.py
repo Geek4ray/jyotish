@@ -419,9 +419,13 @@ def test_a_retry_that_leaves_out_the_failed_sentence_is_retried_again(chart, bac
     ("It is the 12th lord and sits in the 7th house [rule:place.l12_h7].", "rather than opening on 'It'"),
     ("Mars, as noted, is the 12th lord in the 7th house [rule:place.l12_h7].", "refers to another"),
 ])
-def test_a_sentence_written_on_a_retry_stands_alone(chart, backends, rewrite, needle):
+def test_a_sentence_written_on_a_retry_stands_alone(chart, backends, rewrite, needle, monkeypatch):
     # Review Q3: a held paragraph is sentences from different attempts, each checked alone; one written on a
-    # retry may not lean on a sentence it was not written with ("It …", "as noted").
+    # retry may not lean on a sentence it was not written with ("It …", "as noted"). The pronoun opener is a
+    # client's-word rule, a warning since SPEC Layer 8 (2026-11-01): it refuses under the rule "refuse".
+    if rewrite.startswith("It "):
+        from jyotish import client
+        monkeypatch.setattr(client, "WORD_RULES", "refuse")
     from jyotish.narrate import findings
     votes = [f for f in findings(chart, "marriage", AS_OF)[0] if f["kind"] == "vote"][:2]
     first, last = (client_line(f, "marriage") for f in votes)

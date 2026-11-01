@@ -37,7 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from jyotish.client import client_errors  # noqa: E402
+from jyotish.client import client_errors, client_warnings  # noqa: E402
 from jyotish.narrate import (TAG, TIER_WORDS, _check_payload, _summary_checks, findings, offered_chains,  # noqa: E402
                              offered_votes, sentences, validate, validate_summary)
 
@@ -57,13 +57,20 @@ CONSTRUCTED = ["planet_swapped", "house_changed", "sign_changed", "dignity_chang
 # (`client_words`): the curious paragraph is held to client.client_errors as the client's layer is.
 # A rule tag on a sentence that does not name the rule (`rule_not_named`) joined them on 2026-11-01 (review Q8: the
 # list rule's false accepts).
+# Since 2026-11-01 (SPEC Layer 8: the checks refuse wrong facts, not word choices) the client's-word rules are
+# warnings (client.WORD_RULES "warn"): a build makes no `client_words` row, and the three sentences that were ones
+# are accepted rows again, their warnings kept on the row; `client_words` stays a wording category for a build
+# under "refuse".
 WORDING = {"tier_word", "untagged", "tag_not_offered", "forbidden_word", "family_not_cited", "refers_to_another_claim",
            "ranking_not_cited", "nth_sign", "client_words", "rule_not_named"}
 # The depth-full comparison's rows (comparison_rows) add three semantic kinds: a sentence citing a field
 # narrower than its claim, a judgement whose premise is false, and a clause no field states.
+# A held paragraph's sentence leaning on another by a pronoun (`leans_on_another_sentence`) was the validator's
+# under "refuse" (narrate.PRONOUN_OPENER) and is the checker's since the word rules are warnings.
 SEMANTIC = set(CONSTRUCTED) - WORDING | {"misattached_detail", "wrong_dignity", "cites_too_narrowly",
                                          "judgement_premise", "unstated_claim", "contradicts_its_fact",
-                                         "synthesis_does_not_follow", "untagged_unsupported"}
+                                         "synthesis_does_not_follow", "untagged_unsupported",
+                                         "leans_on_another_sentence"}
 COMPARISON = ROOT / "docs" / "comparison_2026-10-23" / "b.recording.json"
 COMPARISON_R2 = ROOT / "docs" / "comparison_2026-10-23_r2" / "b.recording.json"   # the re-run after F1-F13
 FULL = {"as_of": "2026-10-21", "areas": ["career", "marriage", "longevity"]}
@@ -268,6 +275,8 @@ def build() -> list[dict]:
                        origin=f"{row['origin']}; accepted before the curious paragraph was held to the client's "
                               f"words (2026-10-31), now refused: {why[0].split(':')[0]}")
             row.pop("audit", None)
+        elif row["where"] == "paragraph" and row["label"] == "accept" and (warn := client_warnings(row["sentence"])):
+            row["warnings"] = warn                       # the client's-word rules it breaks, as warnings (Layer 8)
     for row in out:
         row["tags"] = _tags(row["sentence"])
         row["validator"] = inputs(row["where"], row["area"] or "career", row["finding_id"])
@@ -467,7 +476,7 @@ def comparison_rows() -> list[dict]:
         # Review Q11 (2026-11-01): a held paragraph's sentence written on a retry stands beside sentences written
         # apart from it, so the validator reads it alone (review Q3); constructed from the Fly marriage case.
         ("live-retry-sentence-leans-back", "paragraph", "marriage", None,
-         "It is the 12th lord and sits in the 7th house [rule:place.l12_h7].", "reject", "refers_to_another_claim",
+         "It is the 12th lord and sits in the 7th house [rule:place.l12_h7].", "reject", "leans_on_another_sentence",
          "constructed for review Q11: a retry's rewrite of the Fly marriage paragraph's sentence 2, opening on 'It', "
          "which leans on held sentence 1; the checker, given only place.l12_h7, cannot tell what 'It' is"),
         # Review Q8 (2026-11-01): forms the list rule of 1ec91cd took as naming the 5th lord, constructed; and two
@@ -758,6 +767,64 @@ def _misses(rows, preds) -> list[str]:
     return out or ["None."]
 
 
+def word_rules_kept(rows) -> list[dict]:
+    """The rows the validator refused under the client's-word rules as refusals (client.WORD_RULES "refuse", the
+    rule of 2026-10-24 to -31) and passes under "warn" (SPEC Layer 8): what the new rule keeps."""
+    from jyotish import client
+    was = client.WORD_RULES
+    try:
+        client.WORD_RULES = "refuse"
+        old = run_validator(rows)
+        client.WORD_RULES = "warn"
+        new = run_validator(rows)
+    finally:
+        client.WORD_RULES = was
+    return [dict(r, old_reason=old[r["id"]][1]) for r in rows if old[r["id"]][0] and not new[r["id"]][0]]
+
+
+WORD_RULES_REPORT = ROOT / "docs" / "word_rules_2026-11-01.md"
+
+
+def word_rules_report(rows, backend: str | None = None, live: bool = True) -> str:
+    """docs/word_rules_<date>.md: the rows the new rule keeps, why the old rule threw each out, and (live) the
+    gate checker's verdict on each, so the report says how many of them the checker still refuses on the facts."""
+    kept = word_rules_kept(rows)
+    verdicts: dict[str, tuple[bool, str]] = {}
+    usage = None
+    if live and kept:
+        from jyotish.narrate import CONFIG, ModelChecker, make_backend
+        checker = ModelChecker(make_backend(backend, "checker", CONFIG), CONFIG)
+        results = checker.check_many([(r["sentence"], r["facts"]) for r in kept])
+        for r, (result, meta) in zip(kept, results):
+            bad = [p for p in result.propositions if not p.supported]
+            verdicts[r["id"]] = (bool(bad), "; ".join(f"{p.text!r}: {p.evidence}" for p in bad[:2]) or "supported")
+        usage = checker.backend.describe()
+    refused = sum(v[0] for v in verdicts.values())
+    true_ones = [r for r in kept if r["label"] == "accept"]
+    wrong = [r for r in kept if r["label"] == "reject"]
+    wrong_refused = sum(verdicts.get(r["id"], (False,))[0] for r in wrong)
+    true_refused = sum(verdicts.get(r["id"], (False,))[0] for r in true_ones)
+    L = ["# The client's-word rules as warnings: what the benchmark keeps", "",
+         f"Run {date.today().isoformat()} at commit `{_commit()}` by `scripts/checker_bench.py --word-rules` on "
+         f"`tests/fixtures/checker_bench.jsonl` ({len(rows)} rows). SPEC Layer 8 (2026-11-01): the checks refuse wrong "
+         "facts, not word choices; engine vocabulary, a Sanskrit word with a plain phrase, an unglossed Sanskrit term, "
+         "\"I\" and a held paragraph's pronoun opener are warnings (client.WORD_RULES \"warn\"), the tag rules, the "
+         "forbidden claims, the tier words and the checker's verdict stay refusals.", "",
+         f"The old rule (\"refuse\") threw out {len(kept)} rows the new one keeps: {len(true_ones)} true sentences "
+         f"(labelled accept) and {len(wrong)} wrong ones (labelled reject) that the old rule caught on their words "
+         "before their facts were read."
+         + (f" The checker ({usage['model']} on {usage['host']}) still refuses {refused} of the {len(kept)} on the "
+            f"facts: {wrong_refused} of the {len(wrong)} wrong ones and {true_refused} of the {len(true_ones)} true ones."
+            if usage else " The checker was not run (offline)."), "",
+         "| row | label | where | the old rule's reason | the checker now |", "| --- | --- | --- | --- | --- |"]
+    for r in kept:
+        why = r["old_reason"].split(": ")[0]
+        now = ("refused: " + verdicts[r["id"]][1] if verdicts[r["id"]][0] else "passed") if r["id"] in verdicts else "not run"
+        L.append(f"| `{r['id']}` | {r['label']} | {r['where']} | {why} | {now.replace('|', '/')} |")
+    L += ["", "The sentences:", ""] + [f"- `{r['id']}`: {r['sentence']}" for r in kept]
+    return "\n".join(L) + "\n"
+
+
 def report(rows, vpred, live) -> str:
     from jyotish.narrate import CONFIG
     vs = scores(rows, vpred)
@@ -879,6 +946,9 @@ def main(argv=None) -> int:
                          "backend sends it as reasoning_effort, and 'none' switches reasoning off there")
     ap.add_argument("--checker-temperature", type=float, default=None,
                     help="the checker's temperature for this run (sent as `temperature`; none is sent by default)")
+    ap.add_argument("--word-rules", action="store_true",
+                    help="write docs/word_rules_2026-11-01.md: the rows the client's-word rules as warnings keep, and "
+                         "the checker's verdict on each (with --offline, none)")
     a = ap.parse_args(argv)
     if a.checker_temperature is not None:
         os.environ["JYOTISH_CHECKER_TEMPERATURE"] = str(a.checker_temperature)
@@ -901,6 +971,10 @@ def main(argv=None) -> int:
         print(f"{len(rows)} rows -> {BENCH}")
         return 0
     rows = load()
+    if a.word_rules:
+        WORD_RULES_REPORT.write_text(word_rules_report(rows, a.checker_backend, live=not a.offline))
+        print(f"-> {WORD_RULES_REPORT}")
+        return 0
     vpred = run_validator(rows)
     if a.checker_backend and a.checker_backend != "anthropic":
         # Another backend's scorecard, beside Opus's, which it never overwrites.

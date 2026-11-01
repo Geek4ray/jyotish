@@ -54,12 +54,13 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
         expected += [c["text"] for c in a["claims"]] + sentences(a["paragraph"] or "")
     rows = [r for r in rows if not r["id"].startswith(("b-", "r2-", "kind-", "live-"))]   # comparisons', kinds', live: own tests
     accepted = [r for r in rows if r["label"] == "accept"]
-    # 2026-10-31: three paragraph sentences the reading accepted break the client's words, now held at
-    # curious depth; they are wording rejects (client_words), the rest of the reading as it was.
+    # 2026-10-31 to 11-01: three paragraph sentences the reading accepted broke the client's words and were wording
+    # rejects (client_words). Since SPEC Layer 8 the word rules are warnings: they are accepted rows again, each
+    # carrying its warnings.
     relabelled = [r for r in rows if r["category"] == "client_words"]
-    assert {r["id"] for r in relabelled} == {"accept-18", "accept-19", "accept-44"}
-    expected = [x for x in expected if x not in {r["sentence"] for r in relabelled}]
-    assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 42
+    assert relabelled == []
+    assert {r["id"] for r in accepted if r.get("warnings")} == {"accept-18", "accept-19", "accept-44"}
+    assert sorted(r["sentence"] for r in accepted) == sorted(expected) and len(accepted) == 45
     assert all(r["audit"] and "CONTRADICTED" not in r["audit"] for r in accepted)
     assert sum("ratio" in r["audit"] for r in accepted) >= 8                  # strength words computed
     accepted_ids = {r["id"] for r in accepted + relabelled}         # a constructed row's source, relabelled or not
@@ -69,6 +70,19 @@ def test_accepted_rows_are_the_reading_audited(cb, rows):
     for r in rows:                                                           # one change each, never the original
         if r["label"] == "reject":
             assert r["sentence"] not in expected
+
+
+def test_the_word_rules_as_warnings_keep_ten_rows_the_old_rule_threw_out(cb, rows):
+    # SPEC Layer 8 (2026-11-01): under the rule "refuse" the validator threw these out on words alone. Under "warn"
+    # three true sentences are accepted rows, and seven wrong ones (six dasha-lord changes, whose unglossed
+    # "nakshatra" the old rule caught first, and the pronoun opener) are the checker's to refuse on the facts.
+    kept = cb.word_rules_kept(rows)
+    assert {r["id"] for r in kept if r["label"] == "accept"} == {"accept-18", "accept-19", "accept-44"}
+    assert {r["id"] for r in kept if r["label"] == "reject"} == {f"dasha_lord_changed-{i}" for i in range(1, 7)} | {
+        "live-retry-sentence-leans-back"}
+    assert all(r["old_reason"] for r in kept)
+    report = cb.word_rules_report(rows, live=False)
+    assert "threw out 10 rows the new one keeps" in report and "not run" in report
 
 
 def test_dasha_rows_cite_the_chain_that_names_the_true_lord(rows):

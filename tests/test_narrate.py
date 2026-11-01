@@ -909,14 +909,20 @@ def test_paragraph_is_validated_like_the_summary(chart):
     ("Mars forms Ruchaka yoga in your chart [rule:yoga.ruchaka].", "'Ruchaka yoga' is a Sanskrit term: gloss it"),
     ("I read the 10th as the chart's soft spot [vote:career.house].", "never says 'I'"),
 ])
-def test_the_curious_paragraph_is_held_to_the_clients_words(chart, sentence, needle):
-    # 2026-10-31: the first curious reading on the open stack showed the client "Bhava Bala", "tests" of
-    # "votes", "arudha" and "KP". The curious paragraph is the client's and is now held to
-    # client.client_errors as the client's layer's paragraph is; the claims, the astrologer's, are not.
+def test_the_curious_paragraphs_word_choices_are_warnings(chart, sentence, needle, monkeypatch):
+    # SPEC Layer 8 (2026-11-01): the checks refuse wrong facts, not word choices. The curious paragraph keeps a
+    # sentence in the engine's words, with a warning on the reading, logged; from 2026-10-31 to 11-01 (the rule
+    # "refuse", which still runs) it was refused and the paragraph lost.
     bad = json.loads(json.dumps(ACCEPTED))
     for a in bad["areas"]:
         if a["name"] == "career":
             a["paragraph"] = sentence
+    r = _curious(chart, drafts=[json.loads(json.dumps(bad))], rec=[])
+    career = next(a for a in r.areas if a.name == "career")
+    assert career.paragraph == sentence
+    assert any(needle in w["warning"] and w["unit"] == "paragraph:career" for w in r.word_warnings), r.word_warnings
+    from jyotish import client
+    monkeypatch.setattr(client, "WORD_RULES", "refuse")
     rec = []
     r = _curious(chart, drafts=[bad], rec=rec)
     assert any(needle in e for e in rec[0]["validator_errors"]), rec[0]["validator_errors"]
@@ -927,12 +933,13 @@ def test_the_curious_paragraph_is_held_to_the_clients_words(chart, sentence, nee
 def test_a_yoga_named_with_a_non_breaking_hyphen_is_its_name_not_kendra():
     # The curious comparison of 2026-10-31 refused "Kendra\u2011Trikona Raja yoga" (U+2011) as "'Kendra' has a
     # plain phrase" in both runs; a Unicode hyphen reads as "-" for the client's words and the rule's name.
-    from jyotish.client import client_errors
+    from jyotish.client import client_errors, client_warnings
     from jyotish.narrate import validate
     s = ("The Sun and Mercury together form Kendra\u2011Trikona Raja yoga, a combination joining the lord of an angular "
          "house with the lord of a trine house [rule:yoga.kendra_trikona_raja].")
-    assert client_errors(s) == [] and not [e for e in validate(s, {"rule:yoga.kendra_trikona_raja"}) if "names none" in e]
-    assert any("'Kendra' has a plain phrase" in e for e in client_errors("Saturn sits in a Kendra [vote:career.house]."))
+    assert client_errors(s) == [] and client_warnings(s) == []
+    assert not [e for e in validate(s, {"rule:yoga.kendra_trikona_raja"}) if "names none" in e]
+    assert any("'Kendra' has a plain phrase" in e for e in client_warnings("Saturn sits in a Kendra [vote:career.house]."))
 
 
 def test_a_sign_placement_carries_the_planets_dignity_there(chart):

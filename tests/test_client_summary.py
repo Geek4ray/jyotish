@@ -152,8 +152,9 @@ def test_a_reviewer_edits_an_engine_summary_in_the_clients_words(chart, reading)
     said = sentences(reading.summary.client_text)
     assert [u["text"] for u in units(reading) if u["kind"] == "summary"] == said
     ok = lambda s, d: CheckResult(propositions=[Proposition(text=s, supported=True, evidence="stub")])
-    refused = check_edit(reading, chart, "summary:0", "For career, the votes lean in favour.", ok)
-    assert not refused["accepted"] and any("engine vocabulary ('votes')" in e for e in refused["errors"])
+    # A word choice warns (SPEC Layer 8, 2026-11-01); it refused from 2026-11-01's review Q5 until then.
+    words = check_edit(reading, chart, "summary:0", "For career, the votes lean in favour.", ok)
+    assert words["accepted"] and any("engine vocabulary ('votes')" in w for w in words["warnings"])
     # An edit is held as the writer's text is: tagged where it states something, glossed, no tier word.
     new = ("Your work is backed by the Sun and Mercury sitting together in the 10th house, forming Budhaditya yoga, "
            "the combination of Mercury and the Sun in the same sign [rule:yoga.budhaditya].")
