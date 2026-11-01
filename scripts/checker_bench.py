@@ -464,6 +464,12 @@ def comparison_rows() -> list[dict]:
          "the validator's false reject in the curious comparison of 2026-10-31: 'Kendra\u2011Trikona' with a non-breaking "
          "hyphen is the yoga's name, not 'kendra' for 'angular house'. The Sun and Mercury in the 10th form the yoga "
          "(its fire); the gloss is the glossary's: read."),
+        # Review Q11 (2026-11-01): a held paragraph's sentence written on a retry stands beside sentences written
+        # apart from it, so the validator reads it alone (review Q3); constructed from the Fly marriage case.
+        ("live-retry-sentence-leans-back", "paragraph", "marriage", None,
+         "It is the 12th lord and sits in the 7th house [rule:place.l12_h7].", "reject", "refers_to_another_claim",
+         "constructed for review Q11: a retry's rewrite of the Fly marriage paragraph's sentence 2, opening on 'It', "
+         "which leans on held sentence 1; the checker, given only place.l12_h7, cannot tell what 'It' is"),
         # Review Q8 (2026-11-01): forms the list rule of 1ec91cd took as naming the 5th lord, constructed; and two
         # forms it refused, now taken.
         ("live-list-house-not-lordship", "paragraph", "career", None,
@@ -513,6 +519,7 @@ def comparison_rows() -> list[dict]:
                "validator": {"allowed": sorted(data[unit]["allowed_tags"]) if where == "claim" else
                              area_tags[area or "career"], "offered_votes": votes[area or "career"],
                              "chains": chains[area or "career"], "family_rule": where != "paragraph",
+                             **({"standalone": True} if rid == "live-retry-sentence-leans-back" else {}),
                              **({} if where in ("summary", "paragraph") else {"full": FULL})}}
         if label == "accept":
             row["audit"] = note
@@ -606,8 +613,10 @@ def validator_errors(row: dict) -> list[str]:
             errs.append(f"claim without a tag: {row['sentence']!r}")
         return errs
     where = f"{row['area']} paragraph" if row["where"] == "paragraph" else "summary"
+    # `standalone`: a held paragraph's sentence written on a retry, read alone (review Q3, Q11).
     return validate_summary(row["sentence"], allowed, offered_votes=ov, where=where, family_rule=v["family_rule"],
-                            chains=v["chains"]) + (client_errors(row["sentence"]) if row["where"] == "paragraph" else [])
+                            chains=v["chains"], standalone=v.get("standalone", False)) + \
+        (client_errors(row["sentence"]) if row["where"] == "paragraph" else [])
 
 
 def load() -> list[dict]:

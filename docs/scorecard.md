@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-01 at commit `7ee9447` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-01 at commit `90ded9f` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -16,7 +16,7 @@ Run 2026-11-01 at commit `7ee9447` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-156 rows; the validator alone: precision 1.000, recall 0.370, F1 0.540; 26 of 26 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+157 rows; the validator alone: precision 1.000, recall 0.376, F1 0.547; 27 of 27 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -39,12 +39,16 @@ One live reading per stack on the reference chart (docs/live_timings.jsonl; docs
 - compare-2026-10-31-b (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, concurrency None): instant page 0.865 s, first sentence 50.603 s, first verified 52.636 s, first area 147.799 s, done 492.992 s; USD 0.03687; 36 claims, 1 gaps.
 - Median of the 3 readings on fly: instant_s 3.296, first_sentence_s 45.03, first_verified_s 48.768, first_area_s 77.593, done_s 330.469, cost_usd 0.029619, gaps 0.
 
+## The paragraph held sentence by sentence (reported, not gated)
+
+From docs/comparison_2026-11-01_curious (6 curious paragraphs, one live run per side): 2 complete, 3 held in part, 1 none; the writer's rounds per area, mean 3.00; sentences held at each attempt: attempt 1 2, attempt 2 8, attempt 3 5; ended early with attempts unused: 0. The latest comparison at curious depth is read; a later one replaces it.
+
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 28 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 10 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 358 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 135 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 25 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 9 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 290 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 102 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -90,11 +94,11 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `metamorphic.seed_agreement.synthetic-3` | 1.0 |  | higher | no |
 | `metamorphic.changed_at_one_minute.synthetic-3` | 2 |  | informational | no |
 | `checker.validator.precision` | 1.0 |  | higher | no |
-| `checker.validator.recall` | 0.3696 |  | higher | no |
-| `checker.validator.f1` | 0.5397 |  | higher | no |
+| `checker.validator.recall` | 0.3763 |  | higher | no |
+| `checker.validator.f1` | 0.5469 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
-| `checker.bench_rows` | 156 |  | informational | no |
+| `checker.bench_rows` | 157 |  | informational | no |
 | `checker.tests_failed` | 0 |  | lower | yes |
 | `checker.live.precision` | 1.0 |  | informational | no |
 | `checker.live.recall` | 0.973 |  | informational | no |
@@ -183,6 +187,14 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `live.fly_median.done_s` | 330.469 |  | lower | no |
 | `live.fly_median.cost_usd` | 0.029619 |  | lower | no |
 | `live.fly_median.gaps` | 0 |  | lower | no |
+| `paragraph.complete` | 2 |  | higher | no |
+| `paragraph.partial` | 3 |  | lower | no |
+| `paragraph.none` | 1 |  | lower | no |
+| `paragraph.writer_rounds_mean` | 3.0 |  | lower | no |
+| `paragraph.ended_early` | 0 |  | lower | no |
+| `paragraph.sentences_held_attempt_1` | 2 |  | informational | no |
+| `paragraph.sentences_held_attempt_2` | 8 |  | informational | no |
+| `paragraph.sentences_held_attempt_3` | 5 |  | informational | no |
 | `synthetic.planted.2000.predicted_power` | 0.4101 |  | informational | no |
 | `synthetic.planted.2000.recovered_share` | 0.375 |  | higher | no |
 | `synthetic.planted.2000.survived_bh_share` | 0.375 |  | higher | no |

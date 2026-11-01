@@ -471,3 +471,23 @@ One commit per finding.
   - `scripts/live_timing.py --url` stamps each first event when its answer arrived.
 
   The committed comparison reports keep the layout they were written with.
+- **Q11, process.**
+  - **DoD 5.**
+    - `client_summary`'s content is now tested for what it says (Q1).
+    - The held paragraph has a benchmark row, `live-retry-sentence-leans-back`: a retry's rewrite opening on
+      "It", read alone as the loop reads it (the row's validator inputs carry `standalone`). 157 rows, 0 false
+      rejects, 27 of 27 wording rows caught.
+  - **DoD 4.** The paragraph policy's own quantities are in the scorecard, reported and never gated
+    (`scripts/evaluate.py` `paragraph_policy`, read from the latest committed comparison at curious depth):
+    - paragraphs complete, held in part, or none;
+    - the writer's rounds per area;
+    - the sentences held at each attempt;
+    - paragraphs that ended with attempts unused (Q2).
+
+    Test: `tests/test_evaluate.py`.
+  - **DoD 8: not done.** Nobody has tried the client's new face: the summary in the client's words, the figures
+    under the toggle, partial paragraphs, the live sentence pieces. That is Ray's, or a client's, and outranks the
+    next build.
+  - **DoD 10.** 22ce828's "Replaying … changes nothing" was blind to paragraphs (Q9). 26ecf65's "the client's
+    page and the site show `client_text`" did not hold for stored readings until Q6. Those messages are history.
+    This round's messages claim only what their tests show.

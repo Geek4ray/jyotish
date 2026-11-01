@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "commit": "7ee9447",
+  "commit": "90ded9f",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.3696,
+      "value": 0.3763,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.5397,
+      "value": 0.5469,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,7 +255,7 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 156,
+      "value": 157,
       "better": null,
       "unit": "",
       "gate": false
@@ -785,6 +785,54 @@
     "live.fly_median.gaps": {
       "value": 0,
       "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.complete": {
+      "value": 2,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.partial": {
+      "value": 3,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.none": {
+      "value": 1,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.writer_rounds_mean": {
+      "value": 3.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.ended_early": {
+      "value": 0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.sentences_held_attempt_1": {
+      "value": 2,
+      "better": null,
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.sentences_held_attempt_2": {
+      "value": 8,
+      "better": null,
+      "unit": "",
+      "gate": false
+    },
+    "paragraph.sentences_held_attempt_3": {
+      "value": 5,
+      "better": null,
       "unit": "",
       "gate": false
     },

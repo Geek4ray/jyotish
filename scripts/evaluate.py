@@ -232,6 +232,53 @@ def live_timings(card: Card):
         "Each is a single run on a shared provider, so it is reported and never gated.", ""] + lines))
 
 
+def paragraph_policy(card: Card):
+    """The paragraph held sentence by sentence (review Q11, DoD 4): from the latest committed comparison at curious
+    depth (docs/comparison_<date>*/ with curious readings and their recordings), per area paragraph: complete,
+    held in part, or none; the writer's rounds; the sentences held at each attempt; and paragraphs that ended
+    with attempts unused and not complete (review Q2). Reported, never gated: each is a live run."""
+    from jyotish.narrate import CONFIG
+    def curious(d):
+        return any(json.loads(p.read_text()).get("depth") == "curious" for p in d.glob("*.reading.json"))
+    dirs = sorted(d for d in DOCS.glob("comparison_*") if d.is_dir() and curious(d))
+    if not dirs:
+        card.skip("paragraph policy", "no committed comparison at curious depth")
+        return
+    d = dirs[-1]
+    ends = {"complete": 0, "partial": 0, "none": 0}
+    rounds, early, held = [], 0, {}
+    for rp in sorted(d.glob("*.reading.json")):
+        reading = json.loads(rp.read_text())
+        recp = rp.with_name(rp.name.replace(".reading.json", ".recording.json"))
+        if reading.get("depth") != "curious" or not recp.exists():
+            continue
+        calls = json.loads(recp.read_text())["calls"]
+        for a in reading["areas"]:
+            gap = any(g["finding_id"] == "paragraph" for g in a["narration_gaps"])
+            end = "partial" if a.get("paragraph") and gap else "complete" if a.get("paragraph") else "none"
+            ends[end] += 1
+            writer = [c for c in calls if c.get("kind") == "writer" and c.get("scope") == a["name"]]
+            rounds.append(len(writer))
+            early += end != "complete" and len(writer) < CONFIG.max_attempts
+            for c in calls:
+                if c.get("kind") == "checker" and str(c.get("finding_id", "")).startswith(f"paragraph:{a['name']}:") \
+                        and all(p["supported"] for p in c["result"]["propositions"]):
+                    held[c["attempt"]] = held.get(c["attempt"], 0) + 1
+    n = sum(ends.values())
+    for k, v in ends.items():
+        card.num(f"paragraph.{k}", v, "higher" if k == "complete" else "lower", gate=False)
+    card.num("paragraph.writer_rounds_mean", round(sum(rounds) / len(rounds), 2) if rounds else None, "lower", gate=False)
+    card.num("paragraph.ended_early", early, "lower", gate=False)
+    for att, v in sorted(held.items()):
+        card.num(f"paragraph.sentences_held_attempt_{att}", v, None, gate=False)
+    card.sections.append(("The paragraph held sentence by sentence (reported, not gated)", [
+        f"From {d.relative_to(ROOT)} ({n} curious paragraphs, one live run per side): {ends['complete']} complete, "
+        f"{ends['partial']} held in part, {ends['none']} none; the writer's rounds per area, mean "
+        f"{sum(rounds) / len(rounds) if rounds else 0:.2f}; sentences held at each attempt: "
+        + ", ".join(f"attempt {k} {v}" for k, v in sorted(held.items())) + f"; ended early with attempts unused: "
+        f"{early}. The latest comparison at curious depth is read; a later one replaces it."]))
+
+
 def placements_check(card: Card):
     out = subprocess.run([PY, str(ROOT / "scripts" / "make_placements.py"), "--check"], cwd=ROOT, capture_output=True,
                          text=True)
@@ -347,7 +394,7 @@ def main(argv=None) -> int:
     ap.add_argument("--quick", action="store_true", help="synthetic runs at N = 2,000 only")
     a = ap.parse_args(argv)
     card = Card()
-    for step in (reference, crosscheck, metamorphic, checker, placements_check, live_timings):
+    for step in (reference, crosscheck, metamorphic, checker, placements_check, live_timings, paragraph_policy):
         t = time.time()
         step(card)
         print(f"{step.__name__}: {time.time() - t:.0f} s", flush=True)                 # progress, for a CI log

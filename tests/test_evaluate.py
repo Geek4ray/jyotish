@@ -82,3 +82,15 @@ def test_ci_runs_the_suite_then_the_gate_with_the_crosscheck_install_apart():
     assert setup["with"]["cache"] == "pip" and setup["with"]["cache-dependency-path"] == "pyproject.toml"
     browser = next(s for s in steps if "actions/cache" in s.get("uses", ""))
     assert "ms-playwright" in browser["with"]["path"] and "pyproject.toml" in browser["with"]["key"]
+
+
+def test_the_paragraph_policy_is_counted_from_the_latest_curious_comparison():
+    # Review Q11 (DoD 4): the paragraph held sentence by sentence has its own numbers, reported and never gated.
+    ev = _ev()
+    card = ev.Card()
+    ev.paragraph_policy(card)
+    nums = card.numbers
+    ends = [nums[f"paragraph.{k}"]["value"] for k in ("complete", "partial", "none")]
+    assert sum(ends) >= 6 and not any(nums[k]["gate"] for k in nums if k.startswith("paragraph."))
+    assert "paragraph.ended_early" in nums and "paragraph.writer_rounds_mean" in nums
+    assert any(k.startswith("paragraph.sentences_held_attempt_") for k in nums)
