@@ -84,8 +84,7 @@ def test_nothing_is_carried_from_an_off_limits_turn(chart):
     ("I can't go on anymore", "distress"), ("do I have cancer", "illness"), ("what disease will I get", "illness"),
     ("should I buy bitcoin", "trade"), ("is the stock market good for me", "trade"), ("should I invest now", "trade"),
     ("what is my wife's future", "other_person"), ("read my husband's chart", "other_person"),
-    ("will she marry me", "other_person"),
-])
+])                                # "will she marry me" is the client's own marriage (SPEC rev 130; review H1)
 def test_off_limits_kinds(message, kind):
     assert off_limits(message) == kind
 

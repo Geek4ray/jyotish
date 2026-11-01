@@ -171,3 +171,19 @@ tests/test_chat_review.py unless named otherwise.
   published Tele-MANAS list of phrases was found (a web search on 2026-11-01 turned up general warning signs only), so
   the Hindi and Hinglish list is the review's examples and their common forms; a Hindi-speaking clinician or the
   helpline has still to read it.
+- **H1. Off limits are phrases, not words.** `conversation.DEATH`, `ILLNESS`, `TRADE` and `OTHER_PERSON` are phrase
+  patterns on the normalised message. Death is the client's own death or lifespan ("will I die", "my death", "how
+  long will I live", "meri mrityu kab", मेरी मृत्यु), never a death in the family or a dead end. Illness is a
+  diagnosis or a disease asked about ("do I have cancer", "will I get diabetes", "what disease", "will my surgery go
+  well", "koi bimari"); "Cancer" next to rising, Moon, Sun, sign, ascendant or lagna, or after "in", is the sign. A
+  trade is a market instrument or a bet (stocks, crypto, mutual funds, the share market or share bazaar, buying or
+  selling shares, investing money or savings, the lottery, betting, satta); "my trade is carpentry", "trade
+  finance", "shares my values", "invest time", "a gamble" and "should I buy a house" are ordinary. Another person
+  is a question about that person's own chart, fate, life, luck, marriage, career, health or job ("my wife's
+  future", "will my son get a job"). "Can't go on" is distress only at the end of the message or before "anymore",
+  "like this", "any longer" or "living", so "I can't go on this trip" is answered. "Will she marry me" and "will
+  they hire me" are the client's own marriage and career (`Route.third_party`; "hire", "interview" and "employer"
+  are career words): the answer is read from the client's chart and ends, in its own paragraph, with
+  `THIRD_PARTY_LINE` ("This is read from your own chart, so it describes your side of it; it cannot say what
+  another person will decide."). The false-positive set (the review's eighteen rows and four more) must all be
+  answered, and 23 off-limits phrases, Hindi and Hinglish among them, are still refused.

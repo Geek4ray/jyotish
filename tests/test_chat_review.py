@@ -131,3 +131,56 @@ def test_c2_every_distress_message_reaches_the_helpline_cold_and_after_a_turn(ch
                                      "meri shaadi kab hogi", "I am a marine engineer", "is my marriage hopeful?"])
 def test_c2_ordinary_messages_are_not_distress(chart, message):
     assert route_turn(message, chart).off_limits != "distress"
+
+
+# --- H1: off limits are phrases, not words ---------------------------------------------------------------------------
+
+ORDINARY = [   # the review's table: each was refused, and each is an ordinary message
+    "My Moon is in Cancer, what does that mean for my mind?", "I'm a Cancer rising, how is my personality?",
+    "I'm sick of my job, should I change careers?", "I failed the vehicle inspection, what about property?",
+    "My father died last year. How is my career looking?", "after my brother's death I feel lost, what about my mind",
+    "my job feels like a dead end", "is my career dead?", "my trade is carpentry, will my business grow?",
+    "I work in trade finance, is my career good?", "should I invest time in this relationship?",
+    "my partner shares my values, is marriage good?", "is changing careers a gamble?", "should I buy a house this year?",
+    "will they hire me after the interview?", "will they accept my visa application for abroad?",
+    "I can't go on this trip because of work, will my career suffer?",
+    "I cannot go on vacation this year, is that bad for my marriage?",
+    # and the appendix's other ordinary rows
+    "my mother passed away, will my home life settle?", "I'm a surgeon, how is my career?", "how is my health?",
+    "will she marry me?",
+]
+
+
+@pytest.mark.parametrize("message", ORDINARY)
+def test_h1_ordinary_messages_are_answered(chart, message):
+    route = route_turn(message, chart)
+    assert route.off_limits is None, (message, route.off_limits)
+    assert route.areas
+
+
+@pytest.mark.parametrize("message,kind", [
+    ("will I die early?", "death"), ("when will I die", "death"), ("how long will I live", "death"),
+    ("what is my lifespan", "death"), ("tell me about my longevity", "death"), ("meri mrityu kab hogi", "death"),
+    ("मेरी मृत्यु कब होगी", "death"),
+    ("do I have cancer", "illness"), ("what disease will I get", "illness"), ("will I get diabetes", "illness"),
+    ("will my surgery go well", "illness"), ("kya mujhe koi bimari hogi", "illness"),
+    ("should I buy bitcoin", "trade"), ("is the stock market good for me", "trade"), ("should I invest now", "trade"),
+    ("should I buy shares in Tata", "trade"), ("should I invest my savings", "trade"),
+    ("kya mujhe share bazaar mein paisa lagana chahiye", "trade"), ("will I win the lottery", "trade"),
+    ("what is my wife's future", "other_person"), ("read my husband's chart", "other_person"),
+    ("will my son get a job", "other_person"), ("I'm worried about my mother's health", "other_person"),
+])
+def test_h1_off_limits_phrases_are_still_refused(message, kind):
+    from jyotish.conversation import off_limits
+    assert off_limits(message) == kind
+
+
+@pytest.mark.parametrize("message,area", [("will she marry me?", "marriage"),
+                                          ("will they hire me after the interview?", "career")])
+def test_h1_another_persons_decision_is_the_clients_own_area_with_the_third_party_line(chart, message, area):
+    from jyotish.conversation import THIRD_PARTY_LINE
+    route = route_turn(message, chart)
+    assert (route.off_limits, route.areas, route.third_party) == (None, [area], True)
+    doc = answer_turn(chart, message, route, as_of=AS_OF, drafter=OfflineTurnWriter(), checker=passes)
+    assert doc["shown"][-1] == THIRD_PARTY_LINE and doc["paragraphs"][-1] == len(doc["shown"]) - 1
+    assert not route_turn("how is my marriage", chart).third_party

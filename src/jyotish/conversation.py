@@ -102,13 +102,19 @@ def direction_of(message: str) -> str | None:
     return "both" if against and favour else None
 
 
+# Words the conversation reads for an area beyond narrate.AREA_WORDS (review H1: "will they hire me" is a career
+# question).
+MORE_AREA_WORDS = {"career": ("hire", "hired", "hiring", "interview", "employer")}
+
+
 def areas_of(message: str) -> list[str]:
     """The areas a message names: narrate.AREA_WORDS as substrings (as narrate.route reads them) or a word within
     a letter or two of one of their forms."""
     q, toks = message.lower(), tokens(message)
     out = []
     for area, words in AREA_WORDS.items():
-        if any(w in q for w in words) or any(_near(t, w) for t in toks for w in words if len(w) >= 5):
+        if any(w in q for w in words) or any(_near(t, w) for t in toks for w in words if len(w) >= 5) or \
+                set(MORE_AREA_WORDS.get(area, ())) & set(toks):
             out.append(area)
     return out
 
@@ -153,7 +159,8 @@ DISTRESS_EN = (r"kill(?:ing)? my ?self|suicid\w*|end(?:ing)? (?:my|it) (?:life|a
                r"going on|being alive)|life (?:is|isn't) (?:not )?worth living|not worth living|better off dead|"
                r"better off without me|tired of (?:living|life|being alive)|(?:don't|do not|dont) want to (?:live|be alive|"
                r"exist|wake up)|can't take (?:it|this) any ?more|cannot take (?:it|this) any ?more|"
-               r"(?:can't|cannot|cant) go on|give up on (?:life|living)|hopeless\w*|no hope (?:left|anymore)|worthless")
+               r"(?:can't|cannot|cant) go on(?= *(?:$|[.!?,]|any ?more|any longer|like this|living|with (?:life|this)))|"
+               r"give up on (?:life|living)|hopeless\w*|no hope (?:left|anymore)|worthless")
 DISTRESS_HI_LATIN = (r"marn[ae] (?:hai|h|chahta|chahti|chahte|chahiye)|mar ja(?:u|un|unga|ungi|oon|na|ana|yenge)|"
                      r"mar(?:ne)? ka (?:mann?|dil) |marne ki (?:icchha|ichha|iccha|soch)|"
                      r"jee?na nahi(?:n)? (?:chahta|chahti|chahte|hai)|jee?ne ka (?:mann?|dil) nahi|"
@@ -165,20 +172,52 @@ DISTRESS_HI = (r"मरना|मर जा(?:ऊं|ऊँ|ऊ|ना|एंग
                r"ख़ुदकुशी|खुदकुशी|जान दे दू|ज़िंदगी खत्म|जिंदगी खत्म|ज़िन्दगी खत्म|जिन्दगी खत्म|ख़ुद को ख़त्म|खुद को खत्म|"
                r"कोई उम्मीद नहीं|निराश")
 DISTRESS = re.compile(rf"(?:\b(?:{DISTRESS_EN}|{DISTRESS_HI_LATIN})|{DISTRESS_HI})")
-DEATH = ("die", "dies", "died", "dying", "death", "deaths", "dead", "lifespan", "longevity")
-DEATH_PHRASE = re.compile(r"\bhow long (?:will|do|would) i live\b|\blive (?:long|short)\b|\bshort life\b|"
-                          r"\bmy age at death\b", re.I)
-ILLNESS = ("illness", "illnesses", "disease", "diseases", "sick", "sickness", "cancer", "diagnosis", "diagnose",
-           "tumour", "tumor", "surgery", "symptom", "symptoms", "diabetes", "infection", "disorder")
-TRADE = ("stock", "stocks", "crypto", "bitcoin", "invest", "invests", "investing", "investment", "investments",
-         "trade", "trades", "trading", "trader", "forex", "lottery", "gamble", "gambling", "betting", "shares")
-TRADE_PHRASE = re.compile(r"\bmutual funds?\b|\bshare market\b|\bstock market\b|\bshould i (?:buy|sell)\b", re.I)
+# Off limits are phrases, not words (SPEC Layer 8, decided after the review of chat v1, H1), read on the normalised
+# message. Death: the client's own death or lifespan ("a death in the family" is an ordinary message). Illness: a
+# diagnosis or a disease asked about ("Cancer" the sign, "sick of my job" and "a surgeon" are ordinary). A trade: a
+# market instrument or a bet ("my trade is carpentry", "should I buy a house" are ordinary). Another person: a
+# question about that person's own chart, fate, health, career or future; "will she marry me" and "will they hire me"
+# are the client's own marriage and career, answered from the client's chart with THIRD_PARTY_LINE.
+DEATH = re.compile(r"\b(?:(?:will|shall|am|do|would) i (?:die|be dead|going to die)|when (?:will|do|would|shall) i die|"
+                   r"i(?:'ll| will) die|die (?:young|early|soon|before)|my (?:own )?(?:death|lifespan|life span|"
+                   r"longevity|age at death|life expectancy)|(?:early|untimely|premature|sudden) death|"
+                   r"how long (?:will|do|would|shall|can) i (?:live|survive)|(?:will|do) i live (?:long|short)|"
+                   r"(?:a |my )?short life|how many years (?:will|do|have) i (?:have left|live|got)|"
+                   r"life expectancy|lifespan|longevity|age (?:of|at) death|"
+                   r"(?:meri|mera) (?:mrityu|mirtyu|maut|aayu|ayu|umar|umr)|(?:mrityu|maut) kab|kab (?:marunga|marungi|"
+                   r"maroonga)|kitni (?:umar|umr|aayu)|kitne saal (?:jiyunga|jiyungi|jeeunga))\b"
+                   r"|मेरी मृत्यु|मृत्यु कब|मेरी मौत|मौत कब|मेरी आयु|कितनी उम्र|कब मरूंगा|कब मरूँगा|कब मरूंगी")
+ILLNESS_WORD = r"(?:cancer|tumou?r|diabetes|disease|illness|infection|disorder|sickness|stroke|heart attack|tb|tuberculosis)"
+ILLNESS = re.compile(rf"\b(?:(?:do|will|would|could|might|shall|am) i (?:\w+ ){{0,2}}(?:have|get|got|develop|suffer from|"
+                     rf"catch|be diagnosed with|getting) (?:an? |any |some )?(?:\w+ )?{ILLNESS_WORD}|"
+                     rf"(?:have|has|got|get|getting|develop|diagnosed with|suffering from|cure for|treatment for|"
+                     rf"chance of|risk of) (?:an? |any |some )?{ILLNESS_WORD}|"
+                     rf"(?:what|which|any|kind of|type of) (?:\w+ )?(?:disease|illness|sickness|health problems?|"
+                     rf"disorder)s?|my (?:cancer(?! (?:rising|moon|sun|sign|ascendant|lagna))|tumou?r|disease|illness|"
+                     rf"diagnosis|surgery|operation|symptoms?|infection)|diagnos(?:e|is|ed|ing)|(?:will|do|am) i "
+                     rf"(?:get|fall|be|going to (?:get|fall|be)) (?:sick|ill)|health problems?|"
+                     rf"(?:will|is) (?:my )?(?:surgery|operation) (?:go|be|succeed|work)|"
+                     rf"(?:kaunsi|kya|koi) (?:bimari|beemari|rog)|(?:bimari|beemari) (?:hogi|hai|ho)|"
+                     rf"mujhe (?:\w+ )?(?:bimari|beemari))\b|बीमारी|रोग होगा")
+TRADE = re.compile(r"\b(?:stocks?|crypto\w*|bitcoin|ethereum|forex|intraday|options trading|futures trading|"
+                   r"mutual funds?|ipos?|share market|stock market|share bazaa?r|sensex|nifty|lottery|casino|"
+                   r"gambling|betting|satta|(?:place|make) a bet|should i (?:bet|gamble)|day trading|"
+                   r"(?:buy|sell|invest in|trade|trading|purchase)(?: \w+){0,2} shares|"
+                   r"invest(?:ing)? (?:my |some |the )?(?:money|savings|salary|now|today|this year)|"
+                   r"(?:should|can|shall) i invest(?:\?|$| now| in (?:gold|property|real estate|the market|stocks|"
+                   r"shares|crypto|bonds|funds))|paisa (?:lagana|lagau|lagaun|invest))\b|शेयर|सट्टा")
 PERSON = (r"(?:wife|husband|son|daughter|mother|mom|mum|father|dad|brother|sister|friend|boyfriend|girlfriend|"
           r"partner|boss|child|kid|baby|fianc[eé]e?|spouse|colleague)")
 OTHER_PERSON = re.compile(rf"\b(?:my|his|her|their) {PERSON}'?s? (?:chart|kundli|horoscope|future|fate|destiny|life|"
-                          rf"luck|marriage|career|health)\b|\b(?:his|her|their) (?:chart|kundli|horoscope|future|fate|"
-                          rf"destiny)\b|\bwill (?:he|she|they) (?!be good to me)\w+|\bread (?:the )?chart of\b|"
-                          rf"\bsomeone else'?s chart\b", re.I)
+                          rf"luck|marriage|career|health|job)\b|\b(?:his|her|their) (?:chart|kundli|horoscope|"
+                          rf"future|fate|destiny)\b|\bwill my {PERSON} (?:get|have|become|marry|pass|recover|succeed|"
+                          rf"find|live|die|earn)\b(?! me\b)|\bread (?:the )?chart of\b|\bsomeone else'?s chart\b")
+# The client's own question about what another will do ("will she marry me", "will they hire me"): answered from the
+# client's chart, with this line after it.
+THIRD_PARTY = re.compile(rf"\bwill (?:he|she|they|my {PERSON}|the (?:company|employer|interviewer|embassy|"
+                         rf"university|college))\b")
+THIRD_PARTY_LINE = ("This is read from your own chart, so it describes your side of it; it cannot say what another "
+                    "person will decide.")
 MINOR_AGE = 18
 MINOR_AREAS = ("personality", "intellect", "mind", "siblings", "mother_home", "father", "fortune", "spirituality")
 OFF_LIMITS = ("distress", "death", "illness", "trade", "other_person", "minor")
@@ -208,14 +247,14 @@ def off_limits(message: str, *, minor: bool = False, areas: list[str] | None = N
     """The kind of an off-limits message (OFF_LIMITS), or None. Distress is read first, so "I want to die" gets
     the helpline reply, never the death reply. `minor`: the session's chart is a minor's, and `areas` the turn's;
     a minor's chart answers only the general areas (MINOR_AREAS)."""
-    toks, text = tokens(message), normalise(message)
+    text = normalise(message)
     if DISTRESS.search(text):
         return "distress"
-    if DEATH_PHRASE.search(text) or any(t in DEATH[:7] for t in toks) or _has(toks, DEATH[7:]):
+    if DEATH.search(text):
         return "death"
-    if _has(toks, ILLNESS):
+    if ILLNESS.search(text):
         return "illness"
-    if TRADE_PHRASE.search(text) or any(t in TRADE for t in toks):          # exact: "trading" is a letter from "reading"
+    if TRADE.search(text):
         return "trade"
     if OTHER_PERSON.search(text):
         return "other_person"
@@ -242,6 +281,7 @@ class Route(BaseModel):
     carried: list[str] = Field(default_factory=list)       # "areas", "direction", "when"
     areas_from: str = "named"                              # named | carried | weakest | top
     off_limits: str | None = None
+    third_party: bool = False                              # "will she marry me": THIRD_PARTY_LINE follows the answer
 
 
 def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: bool = False) -> Route:
@@ -274,7 +314,7 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     if kind:
         log_off_limits(kind)
     return Route(areas=areas, direction=direction, when=when, why=why, follow_up=follow, carried=carried,
-                 areas_from=areas_from, off_limits=kind)
+                 areas_from=areas_from, off_limits=kind, third_party=bool(THIRD_PARTY.search(normalise(message))))
 
 
 def fixed_reply(kind: str) -> str:
@@ -624,6 +664,8 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
             if "stretch" in s.text:
                 add(s.text, first)
                 first = False
+    if route.third_party:
+        add(THIRD_PARTY_LINE, True)
     for s in (engine.sentences if source == "engine" else []):
         f = focus_of(s.text, chart)
         if f["planets"] or f["houses"]:
