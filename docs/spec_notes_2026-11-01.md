@@ -272,3 +272,8 @@ tests/test_chat_review.py unless named otherwise.
   the "when" stretches, and a birth after that date is refused (422), the case C1's test met in synthetic-3. The
   smoke test sends its reviewer token with its date; `scripts/live_timing.py --url` asks for the server's date.
   Tests: nine general questions on a minor's chart answered from the general areas, four refused, and the date.
+- **M3. A short message is a follow-up only with neither an area nor a direction of its own.** The short-message rule
+  (six words or fewer) now carries the last turn only when the message names no area and asks no direction, as the
+  spec's "bare follow-up" says. After the challenges turn, "what are my strengths" is its own question (the top
+  areas, "for", nothing carried) and "how is my health?" asks about health with no "against" carried, while "when?",
+  "and marriage?" and "tell me more" still carry. Openers (and, but, what about) and "why" are follow-ups as before.

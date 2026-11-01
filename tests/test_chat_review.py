@@ -542,3 +542,18 @@ def test_m2_the_sessions_date_is_the_servers(tmp_path):
     from jyotish.db import SessionRow
     with app.state.Session() as s:
         assert not any(r.minor for r in s.query(SessionRow))
+
+
+# --- M3: a short message is a follow-up only with neither an area nor a direction of its own --------------------------
+
+def test_m3_what_are_my_strengths_after_an_against_turn_is_a_question_of_its_own(chart):
+    from jyotish.conversation import top_areas
+    first = route_turn("what are the challanges in my life", chart)
+    r = route_turn("what are my strengths", chart, first)
+    assert (r.follow_up, r.carried, r.direction, r.areas, r.areas_from) == (False, [], "for", top_areas(chart), "top")
+    health = route_turn("how is my health?", chart, first)
+    assert (health.follow_up, health.direction, health.areas) == (False, "both", ["health"])
+    # A bare follow-up still carries ("and marriage?", "when?", "why?").
+    assert route_turn("when?", chart, first).carried == ["areas", "direction"]
+    assert route_turn("and marriage?", chart, first).carried == ["direction"]
+    assert route_turn("tell me more", chart, first).carried == ["areas", "direction"]

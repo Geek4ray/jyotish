@@ -35,7 +35,8 @@ FOR_WORDS = ("strength", "strengths", "strong", "good", "best")
 WHEN = re.compile(r"\bwhen\b|\bwhich year\b|\bwhat year\b|\btiming\b|\bhow soon\b", re.I)
 WHY = re.compile(r"\bwhy\b|\bhow come\b|\bwhat makes you say\b", re.I)
 FOLLOW_OPENER = re.compile(r"^\s*(?:and|but|also|so|what about|how about|and what about)\b", re.I)
-FOLLOW_MAX_WORDS = 6          # a message this short with no area or no direction of its own is a follow-up
+FOLLOW_MAX_WORDS = 6          # a message this short with neither an area nor a direction of its own is a follow-up
+                              # (SPEC Layer 8, review M3: "what are my strengths" is a question of its own)
 # Areas no default route goes to, top or weakest (SPEC Layer 8, decided after the review of chat v1, C1): long life
 # and health reach the client only when the client names them ("how is my health?"), and synastry needs two charts.
 NOT_DEFAULT = ("longevity", "health", "synastry")
@@ -305,7 +306,7 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     when, why = bool(WHEN.search(message)), bool(WHY.search(message))
     short = len(tokens(message)) <= FOLLOW_MAX_WORDS
     follow = bool(last and not last.off_limits and last.areas and
-                  (FOLLOW_OPENER.search(message) or why or (short and (not named or direction is None))))
+                  (FOLLOW_OPENER.search(message) or why or (short and not named and direction is None)))
     carried: list[str] = []
     if named:
         areas, areas_from = named, "named"
