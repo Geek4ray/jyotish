@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-01 at commit `57a33b2` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-01 at commit `ec3dd10` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -8,7 +8,7 @@ Run 2026-11-01 at commit `57a33b2` by `scripts/evaluate.py`. CI fails when any g
 
 ## Phase 0 cross-check
 
-1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 12 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
+1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 9 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
 
 ## Metamorphic tests
 
@@ -16,7 +16,7 @@ Run 2026-11-01 at commit `57a33b2` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-157 rows; the validator alone: precision 1.000, recall 0.278, F1 0.435; 23 of 23 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+177 rows; the validator alone: precision 1.000, recall 0.274, F1 0.430; 27 of 27 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 20 rows from the live turns of 2026-11-01): the validator alone refuses 4 of 16 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -48,6 +48,10 @@ Live turns of the reference chart (docs/live_timings.jsonl, scripts/live_timing.
 - turn-challenges-3 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.002 s, first verified 36.108 s, done 38.391 s; 3 of 7 sentences removed; answer from the writer; USD 0.005673.
 - turn-challenges-low-1 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.695 s, first verified 9.839 s, done 14.541 s; 0 of 3 sentences removed; answer from the writer; USD 0.002962.
 - turn-challenges-low-2 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.724 s, first verified 22.017 s, done 25.493 s; 5 of 8 sentences removed; answer from the writer; USD 0.003505.
+- conversation-1-1 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.003 s, first verified 37.993 s, done 195.607 s; 7 of 14 sentences removed; answer from the writer; USD 0.012647.
+- conversation-1-2 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.001 s, first verified 34.844 s, done 170.192 s; 8 of 15 sentences removed; answer from the writer; USD 0.009581.
+- conversation-1-3 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.001 s, first verified 102.754 s, done 102.755 s; 5 of 6 sentences removed; answer from the writer; USD 0.00334.
+- conversation-1-4 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.001 s, first verified 34.141 s, done 158.833 s; 6 of 14 sentences removed; answer from the writer; USD 0.010349.
 
 ## The paragraph held sentence by sentence (reported, not gated)
 
@@ -55,10 +59,10 @@ From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run p
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 60 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 16 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 371 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 177 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 40 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 17 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 304 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 97 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -104,11 +108,14 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `metamorphic.seed_agreement.synthetic-3` | 1.0 |  | higher | no |
 | `metamorphic.changed_at_one_minute.synthetic-3` | 2 |  | informational | no |
 | `checker.validator.precision` | 1.0 |  | higher | no |
-| `checker.validator.recall` | 0.2778 |  | higher | no |
-| `checker.validator.f1` | 0.4348 |  | higher | no |
+| `checker.validator.recall` | 0.2736 |  | higher | no |
+| `checker.validator.f1` | 0.4296 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
-| `checker.bench_rows` | 157 |  | informational | no |
+| `checker.bench_rows` | 177 |  | informational | no |
+| `checker.answer.rows` | 20 |  | informational | no |
+| `checker.answer.validator_recall` | 0.25 |  | higher | no |
+| `checker.answer.validator_false_rejects` | 0 |  | lower | no |
 | `checker.tests_failed` | 0 |  | lower | yes |
 | `checker.live.precision` | 1.0 |  | informational | no |
 | `checker.live.recall` | 0.973 |  | informational | no |
@@ -222,11 +229,31 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `turn.turn-challenges-low-2.removed_share` | 0.625 |  | lower | no |
 | `turn.turn-challenges-low-2.done_s` | 25.493 |  | lower | no |
 | `turn.turn-challenges-low-2.cost_usd` | 0.003505 |  | lower | no |
+| `turn.conversation-1-1.engine_s` | 0.003 |  | lower | no |
+| `turn.conversation-1-1.first_verified_s` | 37.993 |  | lower | no |
+| `turn.conversation-1-1.removed_share` | 0.5 |  | lower | no |
+| `turn.conversation-1-1.done_s` | 195.607 |  | lower | no |
+| `turn.conversation-1-1.cost_usd` | 0.012647 |  | lower | no |
+| `turn.conversation-1-2.engine_s` | 0.001 |  | lower | no |
+| `turn.conversation-1-2.first_verified_s` | 34.844 |  | lower | no |
+| `turn.conversation-1-2.removed_share` | 0.533 |  | lower | no |
+| `turn.conversation-1-2.done_s` | 170.192 |  | lower | no |
+| `turn.conversation-1-2.cost_usd` | 0.009581 |  | lower | no |
+| `turn.conversation-1-3.engine_s` | 0.001 |  | lower | no |
+| `turn.conversation-1-3.first_verified_s` | 102.754 |  | lower | no |
+| `turn.conversation-1-3.removed_share` | 0.833 |  | lower | no |
+| `turn.conversation-1-3.done_s` | 102.755 |  | lower | no |
+| `turn.conversation-1-3.cost_usd` | 0.00334 |  | lower | no |
+| `turn.conversation-1-4.engine_s` | 0.001 |  | lower | no |
+| `turn.conversation-1-4.first_verified_s` | 34.141 |  | lower | no |
+| `turn.conversation-1-4.removed_share` | 0.429 |  | lower | no |
+| `turn.conversation-1-4.done_s` | 158.833 |  | lower | no |
+| `turn.conversation-1-4.cost_usd` | 0.010349 |  | lower | no |
 | `turn.median.engine_s` | 0.002 |  | lower | no |
-| `turn.median.first_verified_s` | 22.939 |  | lower | no |
+| `turn.median.first_verified_s` | 34.141 |  | lower | no |
 | `turn.median.removed_share` | 0.429 |  | lower | no |
-| `turn.median.done_s` | 32.471 |  | lower | no |
-| `turn.median.cost_usd` | 0.004904 |  | lower | no |
+| `turn.median.done_s` | 39.793 |  | lower | no |
+| `turn.median.cost_usd` | 0.005306 |  | lower | no |
 | `paragraph.complete` | 4 |  | higher | no |
 | `paragraph.partial` | 2 |  | lower | no |
 | `paragraph.none` | 0 |  | lower | no |

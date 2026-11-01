@@ -249,7 +249,8 @@ def turn_timings(card: Card):
     import statistics
     path = DOCS / "live_timings.jsonl"
     rows = [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
-    turns = [r for r in rows if r.get("kind") == "turn" and not r.get("where")]
+    # A fixed reply (an off-limits turn) calls no model and times nothing: it is left out.
+    turns = [r for r in rows if r.get("kind") == "turn" and not r.get("where") and r.get("source") != "fixed"]
     if not turns:
         card.skip("turn timings", "no turn row in docs/live_timings.jsonl; run scripts/live_timing.py --turn")
         return

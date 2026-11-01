@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "commit": "57a33b2",
+  "commit": "ec3dd10",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.2778,
+      "value": 0.2736,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.4348,
+      "value": 0.4296,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,8 +255,26 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 157,
+      "value": 177,
       "better": null,
+      "unit": "",
+      "gate": false
+    },
+    "checker.answer.rows": {
+      "value": 20,
+      "better": null,
+      "unit": "",
+      "gate": false
+    },
+    "checker.answer.validator_recall": {
+      "value": 0.25,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "checker.answer.validator_false_rejects": {
+      "value": 0,
+      "better": "lower",
       "unit": "",
       "gate": false
     },
@@ -938,6 +956,126 @@
       "unit": "",
       "gate": false
     },
+    "turn.conversation-1-1.engine_s": {
+      "value": 0.003,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-1.first_verified_s": {
+      "value": 37.993,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-1.removed_share": {
+      "value": 0.5,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-1.done_s": {
+      "value": 195.607,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-1.cost_usd": {
+      "value": 0.012647,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-2.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-2.first_verified_s": {
+      "value": 34.844,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-2.removed_share": {
+      "value": 0.533,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-2.done_s": {
+      "value": 170.192,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-2.cost_usd": {
+      "value": 0.009581,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-3.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-3.first_verified_s": {
+      "value": 102.754,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-3.removed_share": {
+      "value": 0.833,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-3.done_s": {
+      "value": 102.755,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-3.cost_usd": {
+      "value": 0.00334,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-4.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-4.first_verified_s": {
+      "value": 34.141,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-4.removed_share": {
+      "value": 0.429,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-4.done_s": {
+      "value": 158.833,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.conversation-1-4.cost_usd": {
+      "value": 0.010349,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
     "turn.median.engine_s": {
       "value": 0.002,
       "better": "lower",
@@ -945,7 +1083,7 @@
       "gate": false
     },
     "turn.median.first_verified_s": {
-      "value": 22.939,
+      "value": 34.141,
       "better": "lower",
       "unit": "",
       "gate": false
@@ -957,13 +1095,13 @@
       "gate": false
     },
     "turn.median.done_s": {
-      "value": 32.471,
+      "value": 39.793,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.cost_usd": {
-      "value": 0.004904,
+      "value": 0.005306,
       "better": "lower",
       "unit": "",
       "gate": false
