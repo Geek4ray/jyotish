@@ -14,7 +14,7 @@ from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.uncertainty import assess
 
 AS_OF = date(2026, 10, 21)
-MARRIAGE_TIER = "For marriage, the chart's indications are moderately supportive."
+MARRIAGE_TIER = "For marriage, most of the chart's indications agree, and on balance they lean favourably."
 MARRIAGE_AGAINST = ("The signs that show how marriage appears to others, Gemini, Cancer and Leo, lean unfavourably: "
                     "Rahu sits there, with no helpful planet beside.")
 TURNS = [
@@ -30,21 +30,21 @@ TURNS = [
      dict(areas=["marriage"], direction="against", when=True, why=False, follow_up=True, carried=["areas", "direction"],
           areas_from="carried", off_limits=None, third_party=False),
      [MARRIAGE_TIER, MARRIAGE_AGAINST,
-      "The stretch the chart scores least favourable for marriage runs from August 2029 to October 2029.",
-      "The stretch it scores most favourable runs from January 2030 to October 2031.",
-      "These are the chart's scores, and neither stretch is a prediction of when you will act."]),
+      "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+      "The most favourable stretch runs from January 2030 to October 2031.",
+      "Neither stretch is a prediction of when you will act."]),
     ("why do you say that?",
      dict(areas=["marriage"], direction="against", when=False, why=True, follow_up=True, carried=["areas", "direction"],
           areas_from="carried", off_limits=None, third_party=False),
      [MARRIAGE_TIER,
       "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your "
-      "rising sign, in Scorpio, is weaker than most of your twelve houses.",
+      "rising sign, in Scorpio, is less supported than most of your twelve houses.",
       "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in "
       "your 7th house, in its own sign.",
       "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, "
-      "exalted, where it is at its strongest.",
-      "The divisional chart for marriage (D9) leans favourably; there Saturn falls in Capricorn, in its own sign.",
-      "The Krishnamurti method, which reads the exact start of each house, leans favourably for marriage.",
+      "exalted, where it is at its best.",
+      "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
+      "The reading of the exact start of each house leans favourably for marriage.",
       "Mars, a ruler of the day you were born, leans favourably for marriage.",
       MARRIAGE_AGAINST]),
     ("will I die early?",

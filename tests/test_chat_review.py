@@ -184,3 +184,45 @@ def test_h1_another_persons_decision_is_the_clients_own_area_with_the_third_part
     doc = answer_turn(chart, message, route, as_of=AS_OF, drafter=OfflineTurnWriter(), checker=passes)
     assert doc["shown"][-1] == THIRD_PARTY_LINE and doc["paragraphs"][-1] == len(doc["shown"]) - 1
     assert not route_turn("how is my marriage", chart).third_party
+
+
+# --- H3: the client's screen is held to the client's words --------------------------------------------------------
+
+def test_h3_every_engine_sentence_the_client_can_see_passes_the_conversations_words(chart):
+    """The fallback and the "when" lines for every area and every direction, the fixed replies and the third-party
+    line: no engine word, D-code, score, method name or tier word (client_warnings with the conversation's list)."""
+    from jyotish.client import client_warnings
+    from jyotish.conversation import REPLIES, THIRD_PARTY_LINE
+    from jyotish.narrate import TIER_WORDS
+    areas = [a for a in chart.scored.areas if a != "synastry"]
+    said = list(REPLIES.values()) + [THIRD_PARTY_LINE]
+    for direction in ("against", "for", "both"):
+        said += [s.text for s in engine_reading(chart, "q", direction, areas, as_of=AS_OF, when=True).sentences]
+    assert len(said) > 100
+    bad = [(s, w) for s in said for w in client_warnings(s, conversation=True)]
+    assert not bad, bad[:3]
+    assert not [s for s in said if TIER_WORDS.search(s) or re.search(r"strongest|weakest|\bscor(?:e|es|ed|ing)\b", s, re.I)]
+    assert not [s for s in said if re.search(r"\bD\d|Krishnamurti", s)]
+
+
+@pytest.mark.parametrize("sentence,flag", [("The D9 leans favourably.", "D9"), ("The chart scores this well.", "scores"),
+                                           ("The Krishnamurti method agrees.", "Krishnamurti"),
+                                           ("Your career is moderately supported.", "moderately")])
+def test_h3_the_conversations_word_list_warns(sentence, flag):
+    from jyotish.client import client_warnings
+    assert client_warnings(sentence) == [] or flag in ("scores",)   # a reading's list is unchanged
+    assert flag in client_warnings(sentence, conversation=True)[0]
+
+
+def test_h3_markdown_never_reaches_the_client(chart):
+    class Markdown(OfflineTurnWriter):
+        def __call__(self, system, user, errors):
+            body = json.loads(user)
+            tagged = [x for x in body["engine_answer"] if x["tags"]][:2]
+            text = "\n\n".join(f"- **{x['text'][:-1]}** [{x['tags'][0]}]." for x in tagged)
+            from jyotish.conversation import TurnDraft
+            return TurnDraft(answer="## Your career\n" + text)
+    route = route_turn("how is my career", chart)
+    doc = answer_turn(chart, "how is my career", route, as_of=AS_OF, drafter=Markdown(), checker=passes)
+    assert doc["source"] == "writer" and len(doc["shown"]) >= 2
+    assert not [s for s in doc["shown"] if re.search(r"\*|^\s*[-#]|`|\[", s)], doc["shown"]

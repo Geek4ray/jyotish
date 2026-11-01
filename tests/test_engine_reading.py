@@ -18,37 +18,37 @@ CAREER_Q = "How will my career go, and when is the best time for a job change?"
 CHALLENGES_Q = "what are the challanges in my life"
 
 CAREER = [
-    "For your career, the chart's indications are moderately supportive.",
+    "For your career, most of the chart's indications agree, and on balance they lean favourably.",
     "Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from "
-    "your rising sign, in Aquarius, is one of the weakest of your twelve houses.",
+    "your rising sign, in Aquarius, is among the least supported of your twelve houses.",
     "The planets that rule the houses of your career lean favourably; Saturn, which rules the 10th house, sits in "
     "Taurus in your 1st house, in a friendly sign.",
     "The planets that signify your career lean favourably; the main one, the Sun, sits in Aquarius in your 10th "
     "house, in an unfriendly sign.",
-    "The divisional chart for your career (D10) leans favourably; there Mars falls in Capricorn, exalted, where it "
-    "is at its strongest.",
+    "The divisional chart for your career leans favourably; there Mars falls in Capricorn, exalted, where it is at "
+    "its best.",
     "The rulers of the day you were born, Mars and the Moon, lean favourably for your career.",
-    "The stretch the chart scores most favourable for your career runs from October 2029 to June 2032.",
-    "The stretch it scores least favourable runs from November 2028 to August 2029.",
-    "These are the chart's scores, and neither stretch is a prediction of when you will act.",
+    "The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.",
+    "The least favourable stretch runs from November 2028 to August 2029.",
+    "Neither stretch is a prediction of when you will act.",
 ]
 CHALLENGES = [
-    "This chart does not emphasise your father.",
+    "This chart does not emphasise your father; on balance its indications lean favourably.",
     "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your "
-    "rising sign, in Capricorn, is one of the weakest of your twelve houses.",
+    "rising sign, in Capricorn, is among the least supported of your twelve houses.",
     "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th "
     "house, in an unfriendly sign.",
-    "The divisional chart for your father (D12) leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
-    "This chart does not emphasise children.",
+    "The divisional chart for your father leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
+    "This chart does not emphasise children; on balance its indications lean favourably.",
     "The planets that signify children lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, "
     "in an unfriendly sign.",
-    "The divisional chart for children (D7) leans unfavourably; there Jupiter falls in Capricorn, debilitated, where "
-    "it is at its weakest.",
-    "This chart does not emphasise your gains.",
+    "The divisional chart for children leans unfavourably; there Jupiter falls in Capricorn, debilitated, where it "
+    "is least at ease.",
+    "This chart does not emphasise your gains; on balance its indications lean favourably.",
     "The planets that signify your gains lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, "
     "in an unfriendly sign.",
-    "The divisional chart for your gains (D11) leans unfavourably; there Jupiter falls in Capricorn, debilitated, "
-    "where it is at its weakest.",
+    "The divisional chart for your gains leans unfavourably; there Jupiter falls in Capricorn, debilitated, where "
+    "it is least at ease.",
 ]
 
 
@@ -113,7 +113,8 @@ def test_a_hard_question_puts_the_least_favourable_stretch_first(chart):
     texts = [s.text for s in ans.sentences]
     least = next(i for i, t in enumerate(texts) if "least favourable" in t)
     assert least < next(i for i, t in enumerate(texts) if "most favourable" in t)
-    assert not any("leans favourably" in t or "lean favourably" in t for t in texts)
+    # Only the first sentence, the area's overall lean, may say it leans favourably (review H2, H3).
+    assert not any("leans favourably" in t or "lean favourably" in t for t in texts[1:])
 
 
 def test_both_directions_say_for_then_against_and_a_bad_direction_is_refused(chart):

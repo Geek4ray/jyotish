@@ -238,8 +238,8 @@ REPLIES = {
                      "else's chart or fate. You can ask how your own chart reads for your relationships, or enter "
                      "their birth details in a conversation of their own, with their consent."),
     "minor": ("This chart belongs to someone under eighteen, so Tatva gives only the general reading for it: "
-              "temperament, learning, family and home. Questions about marriage, children, money, work or health "
-              "wait until they are an adult."),
+              "temperament, learning, brothers and sisters, home and parents. Questions about marriage, children, "
+              "money, work or health wait until they are an adult."),
 }
 
 
@@ -440,6 +440,21 @@ class _Order:
                 self.next += 1
 
 
+def unbullet(text: str) -> str:
+    """A writer's answer read before it is split into sentences (review H3): a heading line dropped, list items as
+    paragraphs, bold and code marks taken off, so each item is a sentence of its own and no mark reaches the client."""
+    text = re.sub(r"(?m)^[ \t]*#{1,6}[ \t]+[^\n]*\n?", "", text)
+    text = re.sub(r"(?m)^[ \t]*(?:[-*•]|\d+[.)])[ \t]+", "\n", text)
+    return re.sub(r"\*\*|__|`", "", text).strip()
+
+
+def shown_text(sentence: str) -> str:
+    """A sentence as the client reads it: its tags and any markdown taken off (review H3)."""
+    from .client import plain
+    from .narrate import TAG
+    return plain(TAG.sub("", sentence)).replace(" .", ".")
+
+
 def engine_tags(sentence, allowed: set[str]) -> list[str]:
     """The vote tags an engine sentence rests on (its notes into the sheet's votes table), where offered."""
     out = [f"vote:{n['area']}.{n['row']}" for n in sentence.notes if n.get("row")]
@@ -513,7 +528,7 @@ def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, c
     word_rules = word_rules or client.WORD_RULES
     refusals = validate_summary(sentence, tags, offered_votes=votes, where="answer", family_rule=False, chains=chains)
     refusals += client.client_errors(sentence, word_rules=word_rules)
-    warnings = client.client_warnings(sentence) if word_rules != "refuse" else []
+    warnings = client.client_warnings(sentence, conversation=True) if word_rules != "refuse" else []
     if refusals:
         return False, refusals, warnings, None
     (s, ids, data), = _summary_checks(sentence, finding_data)
@@ -604,7 +619,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                 doc["warnings"] += [{"sentence": s, "warning": w, "attempt": attempt} for w in warnings]
                 if not ok:
                     doc["removed"].append({"sentence": s, "reasons": refusals, "attempt": attempt})
-                order.settle(k, ok, " ".join(TAG.sub("", s).split()).replace(" .", "."))
+                order.settle(k, ok, shown_text(s))
 
             def submit(k: int, s: str, para: bool) -> None:
                 if k not in futures:
@@ -614,6 +629,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
             def on_string(path: tuple, value: str, done: bool) -> None:
                 if path != ("answer",):
                     return
+                value = unbullet(value)
                 parts = sentences(value)
                 opens = para_starts(value, parts)
                 for k, s in enumerate(parts if done else parts[:-1]):
@@ -630,7 +646,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
             writer_metas.append(getattr(drafter, "last_meta", None))
             mark("written")
             if draft is not None:
-                text = (draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or ""
+                text = unbullet((draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or "")
                 parts = sentences(text)
                 for k, (s, para) in enumerate(zip(parts, para_starts(text, parts))):
                     submit(k, s, para)
@@ -716,7 +732,7 @@ def apply_turn_edit(doc: dict, i: int, text: str, who: str) -> dict:
     from .narrate import TAG
     doc = dict(doc)
     shown, accepted = list(doc.get("shown") or []), list(doc.get("accepted") or [])
-    shown[i] = " ".join(TAG.sub("", text).split()).replace(" .", ".")
+    shown[i] = shown_text(text)
     if doc.get("source") == "writer" and i < len(accepted):
         accepted[i] = text
     doc["shown"], doc["accepted"] = shown, accepted

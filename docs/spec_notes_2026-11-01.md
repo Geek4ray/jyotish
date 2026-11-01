@@ -187,3 +187,22 @@ tests/test_chat_review.py unless named otherwise.
   `THIRD_PARTY_LINE` ("This is read from your own chart, so it describes your side of it; it cannot say what
   another person will decide."). The false-positive set (the review's eighteen rows and four more) must all be
   answered, and 23 off-limits phrases, Hindi and Hinglish among them, are still refused.
+- **H3. The client's screen is held to the client's words.** Every engine sentence the client can see is now in
+  the client's words. The "when" lines say "The most favourable stretch for marriage, as the chart reads it, runs
+  from …", "The least favourable stretch runs from …" and "Neither stretch is a prediction of when you will act."
+  (no "scores"). A divisional chart is "the divisional chart for marriage", with no D-code (the code stays in the
+  sentence's note into the sheet), and the KP family is "the reading of the exact start of each house". The tier
+  sentence carries no tier word and gives the area's overall lean ("For your career, most of the chart's
+  indications agree, and on balance they lean favourably."; "This chart does not emphasise your father; on balance
+  its indications lean favourably."). A house is "among the least supported", "less supported than most", "better
+  supported than most" or "among the best supported" of the twelve, and a dignity "exalted, where it is at its
+  best" or "debilitated, where it is least at ease", so no "weakest" or "strongest" either. The minor's reply says
+  "brothers and sisters, home and parents" where it said "family and home", "family" being an engine word.
+  `client.CONVERSATION_WORDS` (a D-code, a score, "Krishnamurti", "KP", the tier words and their adverbs) is added
+  to `client_warnings(…, conversation=True)`, which the turn's checks use; a reading's list is unchanged (D9 and
+  D10 stay its English aliases). `conversation.unbullet` drops a heading line, makes list items paragraphs and takes
+  bold and code marks off a writer's answer before it is split, and `shown_text` (`client.plain`) takes any mark
+  left off a sentence with its tags. The test runs `client_warnings` with the conversation's list over every engine
+  sentence the client can see on the reference chart (every area, every direction, with the "when" lines, the fixed
+  replies and the third-party line) and finds none, and a writer's markdown answer reaches the client unmarked. The
+  frozen career, challenges and five-turn texts change with it.

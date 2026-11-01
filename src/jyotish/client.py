@@ -171,14 +171,29 @@ DATE = re.compile(r"\b(?:19|20)\d{2}\b")
 WORD_RULES = "warn"
 
 
-def client_warnings(text: str | None) -> list[str]:
+# The conversation's words besides (SPEC Layer 8, review H3): a divisional chart's code (D9), a score, the
+# Krishnamurti method's name and the tier words (strong, moderate, weak, mixed and their adverbs) never reach the
+# client's screen; the astrologer reads them on the sheet. D9 and D10 stay English aliases for a reading.
+CONVERSATION_WORDS = re.compile(r"\bD\d{1,2}\b|\bscor(?:e|es|ed|ing)\b|\bkrishnamurti\b|\bKP\b|"
+                                r"\b(?:strong|moderate|weak|mixed)(?:ly)?\b", re.I)
+# Markdown a writer may send: never shown as marks (review H3).
+MARKDOWN = re.compile(r"\*\*|__|`|^\s*#{1,6}\s+|^\s*[-*•]\s+|(?<!\w)\*(?=\S)|(?<=\S)\*(?!\w)", re.M)
+
+
+def plain(text: str) -> str:
+    """A sentence as the client's screen shows it: markdown marks taken off, spaces collapsed."""
+    return " ".join(MARKDOWN.sub("", text).split())
+
+
+def client_warnings(text: str | None, conversation: bool = False) -> list[str]:
     """The client's-word rules a text breaks (the comment above): engine vocabulary, a Sanskrit term with a plain
-    phrase or unglossed, "I". Under WORD_RULES "warn" they are these warnings; under "refuse", client_errors."""
+    phrase or unglossed, "I"; with `conversation`, a D-code, a score, a method's name or a tier word
+    (CONVERSATION_WORDS). Under WORD_RULES "warn" they are these warnings; under "refuse", client_errors."""
     from .narrate import HYPHENS, TAG, TRADITION, sentences
     out = []
     for s in sentences(text or ""):
         bare = TRADITION.sub("", TAG.sub("", s)).translate(HYPHENS)
-        if (m := CLIENT_WORDS.search(bare)):
+        if (m := CLIENT_WORDS.search(bare)) or (conversation and (m := CONVERSATION_WORDS.search(bare))):
             out.append(f"engine vocabulary ({m.group(0)!r}) in the client's text: say it in plain words: {s!r}")
         out += gloss_errors(s, bare)
         if FIRST_PERSON.search(bare):

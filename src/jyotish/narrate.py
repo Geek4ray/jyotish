@@ -2583,14 +2583,17 @@ CLIENT_AREA = {"personality": "yourself and your temperament", "wealth": "money"
                "longevity": "long life", "father": "your father", "fortune": "fortune and faith", "career": "your career",
                "gains": "your gains", "foreign": "travel and life abroad", "spirituality": "spiritual life",
                "mind": "your mind and feelings", "reputation": "your reputation", "synastry": "a match between two charts"}
-DIGNITY_PLAIN = {"exalted": "exalted, where it is at its strongest", "moolatrikona": "in its own sign",
+# No tier word (strong, moderate, weak, mixed, and "strongest" and "weakest" with them) in an engine sentence the
+# client can see or the writer is given (SPEC Layer 8, review H3, M5).
+DIGNITY_PLAIN = {"exalted": "exalted, where it is at its best", "moolatrikona": "in its own sign",
                  "own": "in its own sign", "great friend": "in a very friendly sign", "friend": "in a friendly sign",
                  "neutral": "in a neutral sign", "enemy": "in an unfriendly sign", "great enemy": "in a hostile sign",
-                 "debilitated": "debilitated, where it is at its weakest"}
-TIER_SENTENCE = {"strong": "For {label}, the chart's indications are strongly supportive.",
-                 "moderate": "For {label}, the chart's indications are moderately supportive.",
-                 "weak / mixed": "For {label}, the chart's indications are mixed.",
-                 "not emphasised": "This chart does not emphasise {label}.",
+                 "debilitated": "debilitated, where it is least at ease"}
+# The tier in plain words with the area's overall lean (its direction): no tier word reaches the client (review H3).
+TIER_SENTENCE = {"strong": "For {label}, the chart's indications agree closely, and on balance they lean {lean}.",
+                 "moderate": "For {label}, most of the chart's indications agree, and on balance they lean {lean}.",
+                 "weak / mixed": "For {label}, the chart's indications point different ways; on balance they lean {lean}.",
+                 "not emphasised": "This chart does not emphasise {label}; on balance its indications lean {lean}.",
                  "cannot be assessed": "{Label} cannot be judged from this chart.",
                  "needs two charts": "{Label} needs a second person's chart to be read."}
 
@@ -2653,8 +2656,8 @@ def _row_note(sheet: dict, family: str, area: str) -> dict | None:
 
 
 def _rel_phrase(r: float) -> str:
-    return ("one of the weakest" if r <= -0.5 else "weaker than most" if r < 0 else "about average" if r == 0
-            else "stronger than most" if r < 0.5 else "one of the strongest")
+    return ("among the least supported" if r <= -0.5 else "less supported than most" if r < 0 else
+            "about average" if r == 0 else "better supported than most" if r < 0.5 else "among the best supported")
 
 
 def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet: dict) -> EngineSentence | None:
@@ -2685,7 +2688,7 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
     elif fam == "varga" and rows:
         side = [x for x in rows if (x.get("score") or 0) * vote > 0] or rows
         r = max(side, key=lambda x: abs(x.get("score") or 0))
-        text = (f"The divisional chart for {label} ({r['varga']}) leans {lean}; there {_the(r['planet'])} falls in "
+        text = (f"The divisional chart for {label} leans {lean}; there {_the(r['planet'])} falls in "
                 f"{r['varga_sign']}{dig(r.get('varga_dignity_label'))}.")
         notes.append(_sheet_note(sheet, 5, f"vargas.{r['varga']}", area))
     elif fam == "arudha" and isinstance(der, dict) and der.get("padas"):
@@ -2705,7 +2708,7 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
             text = f"{where} {verb} {lean}."
         notes += [_sheet_note(sheet, 8, f"jaimini.arudhas.{p['pada']}", area) for p in padas]
     elif fam == "kp":
-        text = f"The Krishnamurti method, which reads the exact start of each house, leans {lean} for {label}."
+        text = f"The reading of the exact start of each house leans {lean} for {label}."
         notes.append(_sheet_note(sheet, 7, f"areas.{area}.votes.kp.vote", area))
     elif fam == "panchanga" and rows:
         planets = list(dict.fromkeys(r["planet"] for r in rows))
@@ -2739,12 +2742,12 @@ def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first
         pieces.append(("least", _months(av["start"], av["end"]), _sheet_note(sheet, 11, f"timing.{area}.avoid", area)))
         if hard_first:
             pieces.reverse()
-    out = [EngineSentence(text=(f"The stretch the chart scores {kind} favourable for {label} runs {when}." if k == 0 else
-                                f"The stretch it scores {kind} favourable runs {when}."), notes=[n for n in [note] if n])
+    # In the client's words: no "score" (review H3), as narrate.client_windows says a reading's.
+    out = [EngineSentence(text=(f"The {kind} favourable stretch for {label}, as the chart reads it, runs {when}." if k == 0
+                                else f"The {kind} favourable stretch runs {when}."), notes=[n for n in [note] if n])
            for k, (kind, when, note) in enumerate(pieces)]
-    out.append(EngineSentence(text=("These are the chart's scores, and neither stretch is a prediction of when you will "
-                                    "act." if len(out) > 1 else "This is the chart's score, not a prediction of when "
-                                                                "you will act."),
+    out.append(EngineSentence(text=("Neither stretch is a prediction of when you will act." if len(out) > 1 else
+                                    "This stretch is not a prediction of when you will act."),
                               notes=[n for s in out for n in s.notes]))
     return out
 
@@ -2774,7 +2777,8 @@ def engine_reading(chart: Chart, question: str, direction: str, areas: list[str]
                 label=label, Label=_cap(label)), notes=[]))
             continue
         st_note = _sheet_note(sheet, 14, f"areas.{area}.stability", area)
-        out.append(EngineSentence(text=TIER_SENTENCE[a["tier"]].format(label=label, Label=_cap(label)),
+        lean = {"supportive": "favourably", "adverse": "unfavourably"}.get(a.get("direction"), "neither way")
+        out.append(EngineSentence(text=TIER_SENTENCE[a["tier"]].format(label=label, Label=_cap(label), lean=lean),
                                   notes=[n for n in [_sheet_note(sheet, 10, None, area), st_note] if n]))
         label_st = (a.get("stability") or {}).get("label")
         if label_st in STABILITY_PLAIN:
