@@ -82,6 +82,9 @@ a:hover { color: var(--gold-hi); }
   display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .ask-form button:disabled { opacity: 0.5; cursor: progress; }
 .trust { margin: 0; font-size: 12px; color: var(--faint); }
+.forget { margin: 8px 0 0; padding: 0; background: none; border: 0; font: inherit; font-size: 12px; color: var(--faint);
+  text-decoration: underline; cursor: pointer; }
+.forget:hover, .forget:focus-visible { color: var(--soft); }
 
 /* The chart, alive: what the answer rests on lights while it is written, and settles when it is done. */
 #wheel { width: 100%; display: block; }

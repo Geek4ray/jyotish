@@ -3,7 +3,7 @@ data. What is logged is chosen field by field (a reading's id, depth, writer, at
 cost and seconds; a request's method, path, status and milliseconds), so a birth date, time, place,
 coordinates or question cannot reach a log by being part of something else: a request's query string
 (/places?q= carries a birthplace) is never logged, a chart id in a path (a hash of birth data) is
-written as <chart>, and a failure is logged by its exception's class, not its message."""
+written as <chart> and a conversation's id as <session>, and a failure is logged by its exception's class, not its message."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from typing import Any
 
 LOGGER = "jyotish"
 _CHART_PATH = re.compile(r"^/charts/[^/]+")
+_SESSION_PATH = re.compile(r"^/(review/)?sessions/(?!current\b)[^/]+")
 
 
 class JsonLines(logging.Formatter):
@@ -44,5 +45,6 @@ def event(name: str, level: int = logging.INFO, **fields: Any) -> None:
 
 
 def safe_path(path: str) -> str:
-    """A request path as logged: a chart id (a hash of birth data) replaced; no query string ever."""
-    return _CHART_PATH.sub("/charts/<chart>", path)
+    """A request path as logged: a chart id (a hash of birth data) and a conversation's id (review H7) replaced; no
+    query string ever."""
+    return _SESSION_PATH.sub(lambda m: f"/{m.group(1) or ''}sessions/<session>", _CHART_PATH.sub("/charts/<chart>", path))

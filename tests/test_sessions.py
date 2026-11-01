@@ -75,7 +75,8 @@ def two_turns(client, session):
 def test_a_session_shows_the_check_line_before_any_question(session):
     assert session["check"] == {"lagna": "Taurus", "moon_sign": "Libra", "moon_nakshatra": "Chitra",
                                 "words": "Taurus rising · Moon in Libra, Chitra"}
-    assert session["chart_svg"].startswith("/charts/") and session["as_of"] == "2026-10-21"
+    assert session["chart_svg"] == f"/sessions/{session['id']}/chart.svg" and session["as_of"] == "2026-10-21"
+    assert "chart_id" not in session                                          # a hash of birth data (review H7)
 
 
 def test_a_turn_is_answered_and_the_client_sees_only_its_shown_text(two_turns):

@@ -75,7 +75,6 @@ form.addEventListener("submit", async (e) => {
     const r = await fetch("/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : `${r.status}`);
-    history.replaceState(null, "", `?s=${encodeURIComponent(data.id)}`);
     await open(data);
   } catch (err) {
     status.textContent = t("chat.failed_birth", { why: err.message });
@@ -91,7 +90,8 @@ async function open(session) {
   line.textContent = t("chat.check", session.check);
   line.hidden = false;
   $("#ask-area").hidden = false;
-  await drawWheel(session.chart_id);
+  $("#forget").hidden = false;
+  await drawWheel(session.tables);
   const turns = Array.isArray(session.turns) ? session.turns : [];
   answered = turns.length;
   chips();
@@ -249,10 +249,10 @@ function sectorPath(k) {
   return `M${f(x0)},${f(y0)} A${R_OUT},${R_OUT} 0 0 0 ${f(x1)},${f(y1)} L${f(x2)},${f(y2)} A${R_HUB},${R_HUB} 0 0 1 ${f(x3)},${f(y3)} Z`;
 }
 
-async function drawWheel(chartId) {
+async function drawWheel(tablesUrl) {
   const svg = $("#wheel");
   let planets = [];
-  try { planets = (await (await fetch(`/charts/${encodeURIComponent(chartId)}/tables.json`)).json()).planets; } catch { return; }
+  try { planets = (await (await fetch(tablesUrl)).json()).planets; } catch { return; }
   const asc = planets.find((p) => p.planet === "Ascendant");
   ascSign = SIGNS.indexOf(asc.sign);
   ascLon = ascSign * 30 + degrees(asc.degree);
@@ -298,10 +298,18 @@ function light(houses, planets) {
   if (said.length) $("#reading-now").textContent = t("chat.lit", { what: said.join(", ") });
 }
 
+// --- forgetting ----------------------------------------------------------------------------------------------
+// The conversation is the browser's by an HttpOnly cookie (never in the address); "forget this conversation" erases
+// it on the server and clears the cookie (SPEC Layer 8, review H7).
+$("#forget").textContent = t("chat.forget");
+$("#forget").addEventListener("click", async () => {
+  if (!sid || busy || !window.confirm(t("chat.forget_confirm"))) return;
+  const r = await fetch(`/sessions/${encodeURIComponent(sid)}`, { method: "DELETE" });
+  if (r.ok) location.reload();
+  else $("#reading-now").textContent = t("chat.busy");
+});
+
 // --- start -----------------------------------------------------------------------------------------------------
-const asked = new URLSearchParams(location.search).get("s");
-if (asked) {
-  fetch(`/sessions/${encodeURIComponent(asked)}`).then((r) => (r.ok ? r.json() : null)).then((s) => {
-    if (s) open(s);
-  });
-}
+fetch("/sessions/current").then((r) => (r.ok ? r.json() : null)).then((s) => {
+  if (s) open(s);
+}).catch(() => {});

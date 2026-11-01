@@ -234,6 +234,13 @@ BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": 
          "node": "mean", "place": "Rewari, Haryana", "as_of": AS_OF.isoformat()}
 
 
+def carry(old, new):
+    """The browser's cookies (the conversations' secrets) kept across a restart of the service."""
+    for cookie in old.cookies.jar:
+        new.cookies.jar.set_cookie(cookie)
+    return new
+
+
 def wait_turn(c, url, limit=120.0):
     import time
     t = time.monotonic()
@@ -250,10 +257,10 @@ def test_h4_a_turn_in_a_fresh_app_with_one_worker_finishes(tmp_path):
     from fastapi.testclient import TestClient
     from jyotish.api import create_app
     db = f"sqlite:///{tmp_path / 'h4.db'}"
-    with TestClient(create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)) as c:
-        sids = [c.post("/sessions", json=BIRTH).json()["id"] for _ in range(2)]
+    with TestClient(create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)) as before:
+        sids = [before.post("/sessions", json=BIRTH).json()["id"] for _ in range(2)]
     fresh = create_app(db, workers=1, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
-    with TestClient(fresh) as c:
+    with carry(before, TestClient(fresh)) as c:
         urls = []
         for sid in sids:
             n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
@@ -280,11 +287,11 @@ def test_h6_a_turn_cut_off_by_a_restart_is_failed_and_the_conversation_goes_on(t
     from jyotish.api import create_app
     db = f"sqlite:///{tmp_path / 'h6.db'}"
     app = create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
-    with TestClient(app) as c:
-        sid = c.post("/sessions", json=BIRTH).json()["id"]
+    with TestClient(app) as before:
+        sid = before.post("/sessions", json=BIRTH).json()["id"]
     stuck = [_stuck(app, sid, "running")]
     fresh = create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)    # the restart
-    with TestClient(fresh) as c:
+    with carry(before, TestClient(fresh)) as c:
         assert c.get(f"/sessions/{sid}/turns/{stuck[0]}").json()["status"] == "failed"
         r = c.post(f"/sessions/{sid}/turns", json={"message": "and marriage?"})
         assert r.status_code == 202
@@ -309,3 +316,117 @@ def test_h6_a_turn_past_the_limit_is_failed_and_the_conversation_goes_on(tmp_pat
         assert r.status_code == 202
         assert c.get(f"/sessions/{sid}/turns/{fresh_turn}").json()["status"] == "failed"
         assert wait_turn(c, f"/sessions/{sid}/turns/{r.json()['n']}") == "done"
+
+
+# --- H7: a conversation has a secret and an end ----------------------------------------------------------------------
+
+@pytest.fixture()
+def h7(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    app = create_app(f"sqlite:///{tmp_path / 'h7.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+                     reviewers={"rtok": "ray"})
+    with TestClient(app) as c:
+        r = c.post("/sessions", json=BIRTH)
+        yield app, c, r
+
+
+def test_h7_the_secret_is_an_httponly_cookie_never_in_the_body_or_the_url(h7):
+    app, c, r = h7
+    sid = r.json()["id"]
+    cookies = r.headers.get_list("set-cookie")
+    mine = next(x for x in cookies if x.startswith(f"tatva_{sid}="))
+    assert "HttpOnly" in mine and "SameSite=strict" in mine and "Path=/sessions" in mine and "Max-Age=15552000" in mine
+    secret = mine.split("=", 1)[1].split(";")[0]
+    assert len(secret) >= 40 and secret not in r.text and "chart_id" not in r.json()
+    assert r.json()["chart_svg"] == f"/sessions/{sid}/chart.svg" and "/charts/" not in r.text
+    from jyotish.db import SessionRow
+    with app.state.Session() as s:
+        row = s.get(SessionRow, sid)
+        assert row.secret_hash and secret not in row.secret_hash
+    assert c.get("/sessions/current").json()["id"] == sid
+    page = (ROOT / "web" / "js" / "chat.js").read_text()
+    assert "?s=" not in page and "history.replaceState" not in page and "/charts/" not in page
+
+
+def test_h7_every_client_route_needs_the_secret(h7):
+    from fastapi.testclient import TestClient
+    app, c, r = h7
+    sid = r.json()["id"]
+    n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
+    assert wait_turn(c, f"/sessions/{sid}/turns/{n}") == "done"
+    routes = [f"/sessions/{sid}", f"/sessions/{sid}/turns/{n}", f"/sessions/{sid}/turns/{n}/live",
+              f"/sessions/{sid}/tables.json", f"/sessions/{sid}/chart.svg"]
+    assert [c.get(u).status_code for u in routes] == [200] * 5
+    with TestClient(app) as stranger:                                   # the link without the cookie
+        assert [stranger.get(u).status_code for u in routes] == [404] * 5
+        assert stranger.post(f"/sessions/{sid}/turns", json={"message": "hi"}).status_code == 404
+        assert stranger.get(f"/sessions/{sid}/turns/{n}/events").status_code == 404
+        assert stranger.delete(f"/sessions/{sid}").status_code == 404
+        stranger.cookies.set(f"tatva_{sid}", "a-guess", path="/sessions")
+        assert stranger.get(f"/sessions/{sid}").status_code == 404
+    # The reviewer's routes take a reviewer token, not the secret.
+    with TestClient(app) as reviewer:
+        assert reviewer.get(f"/sessions/{sid}/review", headers={"Authorization": "Bearer rtok"}).status_code == 200
+
+
+def test_h7_the_session_id_is_masked_in_the_logs_and_not_logged_at_creation(h7, caplog):
+    import logging
+    from jyotish import logs
+    assert logs.safe_path("/sessions/0123abcd/turns/2/events") == "/sessions/<session>/turns/2/events"
+    assert logs.safe_path("/review/sessions/0123abcd") == "/review/sessions/<session>"
+    assert logs.safe_path("/sessions/current") == "/sessions/current"
+    app, c, _ = h7
+    logger = logging.getLogger(logs.LOGGER)
+    logger.propagate = True
+    try:
+        with caplog.at_level(logging.INFO, logger=logs.LOGGER):
+            sid = c.post("/sessions", json=BIRTH).json()["id"]
+            c.get(f"/sessions/{sid}")
+    finally:
+        logger.propagate = False
+    text = json.dumps([getattr(x, "fields", {}) for x in caplog.records])
+    assert "session.created" in [x.getMessage() for x in caplog.records] and sid not in text
+
+
+def test_h7_a_conversation_ends_180_days_after_its_last_turn(h7):
+    from datetime import datetime, timedelta, timezone
+    from jyotish.db import SessionRow, TurnRow
+    app, c, r = h7
+    sid = r.json()["id"]
+    now = datetime.now(timezone.utc)
+    with app.state.Session.begin() as s:
+        s.get(SessionRow, sid).created_at = now - timedelta(days=400)
+        s.add(TurnRow(id="t" * 32, session_id=sid, n=1, question="q", status="done", created_at=now - timedelta(days=179)))
+    assert c.get(f"/sessions/{sid}").status_code == 200
+    with app.state.Session.begin() as s:
+        s.get(TurnRow, "t" * 32).created_at = now - timedelta(days=181)
+    assert c.get(f"/sessions/{sid}").status_code == 404
+    assert c.post(f"/sessions/{sid}/turns", json={"message": "hi"}).status_code == 404
+
+
+def test_h7_forget_this_conversation_erases_it_and_keeps_a_reviewed_turns_judgement(h7):
+    from jyotish.api import ErasureRow, ReviewRow
+    from jyotish.db import SessionRow, TurnRow
+    app, c, r = h7
+    sid = r.json()["id"]
+    n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
+    wait_turn(c, f"/sessions/{sid}/turns/{n}")
+    assert c.get(f"/sessions/{sid}/review", headers={"Authorization": "Bearer rtok"}).status_code == 200
+    with app.state.Session.begin() as s:
+        tid = s.query(TurnRow).filter_by(session_id=sid).one().id
+        s.add(ReviewRow(turn_id=tid, reviewer_id="ray", action="edit", target="answer:0", before="a", after="b",
+                        accepted=True))
+    gone = c.delete(f"/sessions/{sid}")
+    assert gone.status_code == 200 and any(x.startswith(f"tatva_{sid}=") and "Max-Age=0" in x
+                                           for x in gone.headers.get_list("set-cookie"))
+    with app.state.Session() as s:
+        assert s.get(SessionRow, sid) is None and not s.query(TurnRow).filter_by(session_id=sid).count()
+        kept = s.query(ReviewRow).filter_by(action="edit", reviewer_id="ray").one()
+        assert (kept.turn_id, kept.chart_id, kept.after) == (None, None, "b")
+        assert s.query(ReviewRow).filter(ReviewRow.target == f"session:{sid}").count() == 0
+        erasure = s.query(ErasureRow).one()
+        assert erasure.erased_by == "client" and erasure.counts["sessions"] == 1 and erasure.counts["turns"] == 1
+    assert c.get(f"/sessions/{sid}").status_code == 404
+    html = (ROOT / "web" / "chat.html").read_text()
+    assert 'id="forget"' in html and "Forget this conversation" in (ROOT / "web" / "js" / "strings.js").read_text()

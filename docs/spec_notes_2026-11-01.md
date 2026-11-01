@@ -218,3 +218,22 @@ tests/test_chat_review.py unless named otherwise.
   and the page stops waiting. A queued turn marked failed before a worker reaches it is not run. Two tests: a turn
   left running is failed by a restart and the next question is answered; a queued turn is still a 409 at one minute
   old and failed at eleven, and the next question is answered.
+- **H7. A conversation has a secret and an end.** `POST /sessions` makes a secret (`secrets.token_urlsafe(32)`), keeps
+  only its hash (`sessions.secret_hash`, Alembic 0006) and sets it as an HttpOnly, SameSite=Strict cookie on
+  `/sessions` (`tatva_<id>`, with `tatva_last` naming the latest; Secure behind HTTPS), 180 days long and renewed with
+  every turn. Every client route of a conversation needs it, and a wrong or missing secret is a 404, as a missing
+  conversation is: `GET /sessions/{id}`, its turns, their live and SSE events, and the conversation's own chart routes
+  (`/sessions/{id}/chart.svg`, `/sessions/{id}/tables.json`). The page keeps no id in its address: after a reload it
+  asks `GET /sessions/current`, which reads the cookie. No response to the client carries `chart_id`. The reviewer's
+  routes take a reviewer token as before, and `/charts/{id}/…` stays as it was for the reading page, whose reading
+  JSON still carries its chart id (a reading has no secret yet; not in this finding's scope). `logs.safe_path`
+  writes `/sessions/<session>` and `/review/sessions/<session>`, and `session.created` is logged with no id. A
+  conversation ends 180 days after its last turn (or its start when it has none): its routes are then a 404, and
+  M1's expiry erases it. "Forget this conversation" on the page asks to confirm and calls `DELETE /sessions/{id}`,
+  which erases the conversation (`outcomes.erase_sessions`: the session, its turns, and its chart when no other
+  conversation, reading or subject refers to it), logs an `erasures` row with the counts (`erased_by` "client") and
+  clears the cookies; a reviewed turn's judgement is kept, its review row's turn, chart and conversation taken off.
+  The smoke test now makes the session in the browser. Tests: the cookie's flags and that the secret is in no body,
+  URL or stored hash; every client route a 404 without the secret or with a guessed one, and the reviewer's route
+  still open to a reviewer; the masked paths and the creation log; the end at 180 days; forgetting, with the review
+  kept; and the page's "Forget this conversation" in Playwright.

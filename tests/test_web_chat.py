@@ -58,7 +58,7 @@ def test_the_birth_data_once_then_the_check_line_and_the_chart(page, url):
     page.wait_for_selector("#check-line:not([hidden])")
     assert page.inner_text("#check-line") == "Taurus rising · Moon in Libra, Chitra"
     assert page.locator("#first").is_hidden() and page.locator("#wheel .body").count() == 9
-    assert re.search(r"\?s=[0-9a-f]{32}$", page.url)
+    assert "?s=" not in page.url                     # the conversation is the browser's by a cookie (review H7)
     assert page.inner_text("#trust") == "Checked against your chart; a real astrologer can review this."
     # Before the first question every chip names an area (review C1).
     assert page.locator("#chips button").all_inner_texts() == ["How is my career?", "What about marriage?",
@@ -98,3 +98,14 @@ def test_a_phone_width_has_no_sideways_scroll(page):
     page.wait_for_selector(".turn:nth-child(3)")
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     page.set_viewport_size({"width": 1280, "height": 900})
+
+
+def test_forget_this_conversation_erases_it_and_the_page_starts_again(page):
+    page.reload()
+    page.wait_for_selector(".turn:nth-child(3)")
+    assert page.inner_text("#forget") == "Forget this conversation"
+    page.once("dialog", lambda d: d.accept())
+    page.click("#forget")
+    page.wait_for_selector("#birth-form", state="visible")
+    assert page.locator(".turn").count() == 0 and page.locator("#check-line").is_hidden()
+    assert page.evaluate("fetch('/sessions/current').then(r => r.status)") == 404

@@ -74,13 +74,15 @@ def main(argv=None) -> int:
     check(("match", "career", "agree") in answers, f"the server holds the answer: {answers}")
 
     # The conversation: birth data once, a question answered on the page, the turn on the review.
+    # The session is made by the browser, which keeps its secret in a cookie (review H7); the page finds it again.
     birth = {k: v for k, v in BODY.items() if k not in ("question", "depth")}
-    s = httpx.post(f"{url}/sessions", json=birth, timeout=60).json()
-    check(s.get("check", {}).get("words") == "Taurus rising · Moon in Libra, Chitra", f"session check line: {s.get('check')}")
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1280, "height": 900})
-        page.goto(f"{url}/chat.html?s={s['id']}")
+        s = page.request.post(f"{url}/sessions", data=birth, timeout=60000).json()
+        check(s.get("check", {}).get("words") == "Taurus rising · Moon in Libra, Chitra",
+              f"session check line: {s.get('check')}")
+        page.goto(f"{url}/chat.html")
         page.wait_for_selector("#check-line:not([hidden])")
         page.fill("#message", "what are the challanges in my life")
         page.press("#message", "Enter")

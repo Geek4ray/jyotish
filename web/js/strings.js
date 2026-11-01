@@ -255,6 +255,8 @@ export const STRINGS = {
     "chat.chip.when": "when?",
     "chat.chip.why": "why?",
     "chat.trust": "Checked against your chart; a real astrologer can review this.",
+    "chat.forget": "Forget this conversation",
+    "chat.forget_confirm": "Forget this conversation? Your questions, the answers and your birth details for it are erased.",
     "chat.reading": "Reading your chart",
     "chat.sorry": "Something went wrong while answering. Please ask again.",
     "chat.busy": "Still answering your last question.",

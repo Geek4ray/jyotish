@@ -282,6 +282,8 @@ class SessionRow(Base):
     as_of: Mapped[str] = mapped_column(String(10))                      # YYYY-MM-DD: the date every turn is read for
     check: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)  # rising sign, the Moon's sign and nakshatra
     minor: Mapped[bool] = mapped_column(Boolean, default=False)         # the chart is a minor's (conversation.MINOR_AGE)
+    # The hash of the conversation's secret, which the client's browser holds in an HttpOnly cookie (revision 0006).
+    secret_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

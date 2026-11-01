@@ -284,6 +284,43 @@ def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
     return counts
 
 
+def erase_sessions(session, session_ids: list[str], erased_by: str) -> dict[str, int]:
+    """Remove conversations (SPEC Layer 8, decided after the review of chat v1, H7 and M1): each session, its turns
+    and, when nothing else refers to it (no other conversation, reading or subject), its chart; logged in `erasures`
+    as a subject's erasure is (who, when, how many rows), never the data. A reviewed turn's judgement is kept with
+    the review: the review row stays, its turn, chart and conversation taken off."""
+    from .api import ChartRow, ErasureRow, ExclusionRow, ReadingRow, ReviewRow, SubjectRow
+    from .db import SessionRow, TurnRow
+    rows = session.query(SessionRow).filter(SessionRow.id.in_(session_ids)).all() if session_ids else []
+    ids = [r.id for r in rows]
+    counts = {"sessions": 0, "turns": 0, "reviews_kept": 0, "charts": 0, "exclusions": 0}
+    if not ids:
+        return counts
+    turn_ids = [t.id for t in session.query(TurnRow).filter(TurnRow.session_id.in_(ids))]
+    if turn_ids:
+        for r in session.query(ReviewRow).filter(ReviewRow.turn_id.in_(turn_ids)):
+            r.turn_id, r.chart_id = None, None
+            r.target = "session:<erased>" if (r.target or "").startswith("session:") else r.target
+            counts["reviews_kept"] += 1
+        session.flush()
+    for r in session.query(ReviewRow).filter(ReviewRow.target.in_([f"session:{i}" for i in ids])):
+        r.target, r.chart_id = "session:<erased>", None
+    counts["turns"] = session.query(TurnRow).filter(TurnRow.session_id.in_(ids)).delete(synchronize_session=False)
+    charts = {r.chart_id for r in rows if r.chart_id}
+    counts["sessions"] = session.query(SessionRow).filter(SessionRow.id.in_(ids)).delete(synchronize_session=False)
+    session.flush()
+    for cid in charts:
+        if (session.query(SessionRow).filter_by(chart_id=cid).count() or
+                session.query(ReadingRow).filter_by(chart_id=cid).count() or
+                session.query(SubjectRow).filter_by(chart_id=cid).count()):
+            continue
+        counts["exclusions"] += session.query(ExclusionRow).filter_by(chart_id=cid).delete(synchronize_session=False)
+        counts["charts"] += session.query(ChartRow).filter_by(id=cid).delete(synchronize_session=False)
+    session.add(ErasureRow(subject_id="conversation", erased_by=erased_by, counts=counts))
+    session.flush()
+    return counts
+
+
 def sessionmaker_for(database_url: str):
     from sqlalchemy.orm import sessionmaker
     from .db import migrate

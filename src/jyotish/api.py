@@ -501,6 +501,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     # queues one message; its answer streams on GET /sessions/{id}/turns/{n}/events (as a reading's does), the
     # client's events only: `light`, `text` (a passed sentence, tags off), `done`.
     from .scoring import AREAS as _AREAS
+    SESSION_DAYS = 180                            # a conversation ends this many days after its last turn (H7)
     PAYLOADS: dict[str, Any] = {}                 # session id -> Future of its whole-chart payload, in this process
     # The payloads have an executor of their own: a turn on the reading pool waits on it, and it never waits on the
     # pool, so a turn cannot hold a pool worker waiting for a job queued behind it (review H4).
@@ -543,6 +544,48 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             raise HTTPException(status_code=404, detail="no such conversation")
         return row
 
+    # A conversation has a secret and an end (SPEC Layer 8, review H7): the secret is made with the session, its hash
+    # kept, and the client's browser holds it in an HttpOnly cookie (one per conversation, `tatva_<id>`, and
+    # `tatva_last` naming the latest), never in a URL or a log. Every client route of a conversation needs it; a
+    # wrong or missing secret is a 404, as a missing conversation is. A conversation ends SESSION_DAYS after its
+    # last turn (or its start).
+    def secret_hash(secret: str) -> str:
+        import hashlib
+        return hashlib.sha256(secret.encode()).hexdigest()
+
+    def last_active(s, row: SessionRow):
+        from datetime import timezone
+        from sqlalchemy import func
+        last = s.query(func.max(TurnRow.created_at)).filter(TurnRow.session_id == row.id).scalar() or row.created_at
+        return last if last.tzinfo else last.replace(tzinfo=timezone.utc)
+
+    def ended(s, row: SessionRow) -> bool:
+        from datetime import datetime, timedelta, timezone
+        return datetime.now(timezone.utc) - last_active(s, row) > timedelta(days=SESSION_DAYS)
+
+    def client_session(s, sid: str, request: Request) -> SessionRow:
+        """The conversation `sid` for the client holding its secret; 404 otherwise, and for one that has ended."""
+        import hmac
+        row = s.get(SessionRow, sid)
+        secret = request.cookies.get(f"tatva_{sid}") or ""
+        if row is None or not row.secret_hash or not hmac.compare_digest(secret_hash(secret), row.secret_hash) \
+                or ended(s, row):
+            raise HTTPException(status_code=404, detail="no such conversation")
+        return row
+
+    def keep_secret(response: Response, request: Request, sid: str, secret: str) -> None:
+        secure = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+        for name, value in ((f"tatva_{sid}", secret), ("tatva_last", sid)):
+            response.set_cookie(name, value, max_age=SESSION_DAYS * 86400, httponly=True, samesite="strict",
+                                secure=secure, path="/sessions")
+
+    def client_view(s, row: SessionRow) -> dict:
+        """The conversation as the client sees it: the check line and each turn's question and shown answer; no
+        chart id (a hash of birth data), the chart's drawing and table under the conversation's own routes."""
+        turns = s.query(TurnRow).filter_by(session_id=row.id).order_by(TurnRow.n).all()
+        return {"id": row.id, "check": row.check, "as_of": row.as_of, "chart_svg": f"/sessions/{row.id}/chart.svg",
+                "tables": f"/sessions/{row.id}/tables.json", "turns": [client_turn(t) for t in turns]}
+
     def client_turn(t: TurnRow) -> dict:
         """A turn as the client sees it: the question and the answer's shown text, nothing of the working."""
         doc = t.document or {}
@@ -551,7 +594,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 "events": f"/sessions/{t.session_id}/turns/{t.n}/events"}
 
     @app.post("/sessions", status_code=201)
-    def post_session(req: SessionRequest) -> dict:
+    def post_session(req: SessionRequest, request: Request, response: Response) -> dict:
         """A conversation: the chart computed (cached) and stored, the check line (rising sign, the Moon's sign and
         nakshatra) returned before any question, the whole chart's payload made on its own executor for the turns."""
         from datetime import date as _date
@@ -572,7 +615,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         line = chart_line(chart, birth)
         check = {"lagna": line["lagna"], "moon_sign": line["moon_sign"], "moon_nakshatra": line["moon_nakshatra"],
                  "words": f"{line['lagna']} rising · Moon in {line['moon_sign']}, {line['moon_nakshatra']}"}
-        sid = uuid.uuid4().hex
+        import secrets
+        sid, secret = uuid.uuid4().hex, secrets.token_urlsafe(32)
         try:
             with Session.begin() as s:
                 if s.get(ChartRow, chart_id) is None:
@@ -582,21 +626,58 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             pass
         with Session.begin() as s:
             s.add(SessionRow(id=sid, chart_id=chart_id, birth_key=bkey, birth=birth.model_dump(),
-                             as_of=as_of.isoformat(), check=check,
+                             as_of=as_of.isoformat(), check=check, secret_hash=secret_hash(secret),
                              minor=is_minor(_date.fromisoformat(birth.date), as_of)))
         session_payload(sid, chart, as_of)
-        logs.event("session.created", session_id=sid)
-        return {"id": sid, "chart_id": chart_id, "check": check, "as_of": as_of.isoformat(),
-                "chart_svg": f"/charts/{chart_id}/chart.svg", "turns": []}
+        logs.event("session.created")
+        keep_secret(response, request, sid, secret)
+        with Session() as s:
+            return client_view(s, s.get(SessionRow, sid))
+
+    @app.get("/sessions/current")
+    def get_current_session(request: Request) -> dict:
+        """The latest conversation this browser holds the secret of (`tatva_last`), as GET /sessions/{id} gives it:
+        how the page finds its conversation again after a reload, with no id in its address."""
+        with Session() as s:
+            return client_view(s, client_session(s, request.cookies.get("tatva_last") or "", request))
 
     @app.get("/sessions/{sid}")
-    def get_session(sid: str) -> dict:
+    def get_session(sid: str, request: Request) -> dict:
         """The conversation as the client sees it: the check line and each turn's question and shown answer."""
         with Session() as s:
-            row = session_of(s, sid)
-            turns = s.query(TurnRow).filter_by(session_id=sid).order_by(TurnRow.n).all()
-            return {"id": row.id, "chart_id": row.chart_id, "check": row.check, "as_of": row.as_of,
-                    "chart_svg": f"/charts/{row.chart_id}/chart.svg", "turns": [client_turn(t) for t in turns]}
+            return client_view(s, client_session(s, sid, request))
+
+    @app.delete("/sessions/{sid}")
+    def forget_session(sid: str, request: Request, response: Response) -> dict:
+        """Forget this conversation: the client erases it (outcomes.erase_sessions, logged as an erasure is) and the
+        browser's cookies for it are cleared."""
+        from .outcomes import erase_sessions
+        with Session.begin() as s:
+            client_session(s, sid, request)
+            if any(t.status in ("queued", "running") for t in s.query(TurnRow).filter_by(session_id=sid)):
+                raise HTTPException(status_code=409, detail="the last question is still being answered")
+            counts = erase_sessions(s, [sid], "client")
+        logs.event("session.erased", by="client", **counts)
+        for name in (f"tatva_{sid}", "tatva_last"):
+            response.delete_cookie(name, path="/sessions")
+        return {"erased": True}
+
+    @app.get("/sessions/{sid}/chart.svg")
+    def session_chart_svg(sid: str, request: Request) -> Response:
+        """The conversation's chart drawn, behind its secret (the chart's own id is never given to the client)."""
+        from .display import svg
+        with Session() as s:
+            row = client_session(s, sid, request)
+        return Response(svg(chart_of(row.chart_id), ("D1",)), media_type="image/svg+xml")
+
+    @app.get("/sessions/{sid}/tables.json")
+    def session_tables(sid: str, request: Request) -> dict:
+        """The conversation's chart tables (planets, periods), behind its secret, for the session's date."""
+        from datetime import date as _date
+        from .display import tables
+        with Session() as s:
+            row = client_session(s, sid, request)
+        return tables(chart_of(row.chart_id), _date.fromisoformat(row.as_of))
 
     def run_turn(turn_id: str) -> None:
         from datetime import date as _date
@@ -645,7 +726,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             logs.event("turn.failed", logging.WARNING, turn_id=turn_id, error=type(e).__name__)
 
     @app.post("/sessions/{sid}/turns", status_code=202)
-    def post_turn(sid: str, req: TurnRequest, request: Request) -> dict:
+    def post_turn(sid: str, req: TurnRequest, request: Request, response: Response) -> dict:
         """Queue one message. One turn at a time per conversation (409 while one is being answered); turns count
         against the readings' rate limit."""
         wait = limits.check(request.client.host if request.client else "unknown")
@@ -654,7 +735,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                                 headers={"Retry-After": str(wait)})
         tid = uuid.uuid4().hex
         with Session.begin() as s:
-            srow = session_of(s, sid)
+            srow = client_session(s, sid, request)
             turns = s.query(TurnRow).filter_by(session_id=sid).all()
             expire_turns(s, turns)
             if any(t.status in ("queued", "running") for t in turns):
@@ -663,11 +744,13 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             s.add(TurnRow(id=tid, session_id=sid, n=n, birth_key=srow.birth_key, question=req.message,
                           status="queued"))
         pool.submit(run_turn, tid)
+        keep_secret(response, request, sid, request.cookies.get(f"tatva_{sid}"))     # 180 days from this turn
         return {"n": n, "status": "queued", "url": f"/sessions/{sid}/turns/{n}",
                 "events": f"/sessions/{sid}/turns/{n}/events"}
 
-    def turn_row(sid: str, n: int) -> TurnRow:
+    def turn_row(sid: str, n: int, request: Request) -> TurnRow:
         with Session.begin() as s:
+            client_session(s, sid, request)
             t = s.query(TurnRow).filter_by(session_id=sid, n=n).first()
             if t is None:
                 raise HTTPException(status_code=404, detail="no such turn")
@@ -675,14 +758,14 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             return t
 
     @app.get("/sessions/{sid}/turns/{n}")
-    def get_turn(sid: str, n: int) -> dict:
+    def get_turn(sid: str, n: int, request: Request) -> dict:
         """One turn as the client sees it."""
-        return client_turn(turn_row(sid, n))
+        return client_turn(turn_row(sid, n, request))
 
     @app.get("/sessions/{sid}/turns/{n}/live")
-    def get_turn_live(sid: str, n: int, since: int = 0) -> dict:
+    def get_turn_live(sid: str, n: int, request: Request, since: int = 0) -> dict:
         """The polling fallback of a turn's events."""
-        t = turn_row(sid, n)
+        t = turn_row(sid, n, request)
         events, version, done = LIVE.since(t.id, max(0, since))
         return {"version": version, "events": events, "done": done or t.status in ("done", "failed"),
                 "status": t.status}
@@ -691,7 +774,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     async def get_turn_events(sid: str, n: int, request: Request, since: int = 0):
         """A turn's answer as server-sent events, as GET /readings/{id}/events streams a reading's."""
         from fastapi.concurrency import run_in_threadpool
-        t = await run_in_threadpool(turn_row, sid, n)
+        t = await run_in_threadpool(turn_row, sid, n, request)
 
         def finished() -> str | None:
             with Session() as s:
