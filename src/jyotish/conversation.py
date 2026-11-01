@@ -72,8 +72,19 @@ def _near(token: str, form: str) -> bool:
     return _distance(token, form) <= (2 if len(form) >= 8 else 1)
 
 
+# Apostrophes as phones type them (’ ‘ ʼ ′ ` ´), read as ' before every pattern (SPEC Layer 8, review C2).
+APOSTROPHES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'", "\u2032": "'", "`": "'", "\u00b4": "'"})
+
+
+def normalise(message: str) -> str:
+    """A message as every pattern reads it: Unicode composed (NFKC), apostrophes straight, lower case, spaces
+    collapsed. Devanagari is kept as written."""
+    import unicodedata
+    return " ".join(unicodedata.normalize("NFKC", message).translate(APOSTROPHES).lower().split())
+
+
 def tokens(message: str) -> list[str]:
-    return re.findall(r"[a-z]+", message.lower())
+    return re.findall(r"[a-z]+", normalise(message))
 
 
 def _has(toks: list[str], forms) -> bool:
@@ -131,9 +142,29 @@ def weakest_areas(chart, n: int | None = None) -> list[str]:
 
 # --- off limits -----------------------------------------------------------------------------------------------
 
-DISTRESS = re.compile(r"\b(?:kill(?:ing)? my ?self|suicid\w*|end(?:ing)? (?:my|it) (?:life|all)|want(?:ed)? to die|"
-                      r"wish i (?:was|were) dead|self[- ]?harm\w*|hurt(?:ing)? my ?self|no reason to live|"
-                      r"can'?t go on|cannot go on|don'?t want to (?:live|be alive))\b", re.I)
+# Acute distress, read first and widest (SPEC Layer 8, review C2), on the normalised message: in English, then in
+# Hinglish (Latin script) and Hindi (Devanagari). The Hindi and Hinglish forms are the review's and their common
+# variants; no published Tele-MANAS phrase list was found (2026-11-01), so a Hindi-speaking clinician or the helpline
+# has yet to read this list (docs/spec_notes_2026-11-01.md).
+DISTRESS_EN = (r"kill(?:ing)? my ?self|suicid\w*|end(?:ing)? (?:my|it) (?:life|all)|(?:want|going|plan(?:ning)?) to end it|"
+               r"want(?:ed)? to die|wanna die|wish i (?:was|were|could be) dead|wish i could die|"
+               r"wish i (?:was|were|had) never (?:been )?born|self[- ]?harm\w*|hurt(?:ing)? my ?self|cut(?:ting)? my ?self|"
+               r"no reason to (?:live|go on)|nothing (?:left )?to live for|(?:no|not any) point (?:in )?(?:living|life|"
+               r"going on|being alive)|life (?:is|isn't) (?:not )?worth living|not worth living|better off dead|"
+               r"better off without me|tired of (?:living|life|being alive)|(?:don't|do not|dont) want to (?:live|be alive|"
+               r"exist|wake up)|can't take (?:it|this) any ?more|cannot take (?:it|this) any ?more|"
+               r"(?:can't|cannot|cant) go on|give up on (?:life|living)|hopeless\w*|no hope (?:left|anymore)|worthless")
+DISTRESS_HI_LATIN = (r"marn[ae] (?:hai|h|chahta|chahti|chahte|chahiye)|mar ja(?:u|un|unga|ungi|oon|na|ana|yenge)|"
+                     r"mar(?:ne)? ka (?:mann?|dil) |marne ki (?:icchha|ichha|iccha|soch)|"
+                     r"jee?na nahi(?:n)? (?:chahta|chahti|chahte|hai)|jee?ne ka (?:mann?|dil) nahi|"
+                     r"jee?ne ki (?:icchha|ichha|iccha|wajah) nahi|zindagi (?:khatam|khatm|se tang|bekaar|bekar)|"
+                     r"jindagi (?:khatam|khatm|se tang|bekaar|bekar)|khud ?khushi|khud ?kushi|a{1,2}tm?a?hatya|"
+                     r"jaan de (?:du|dun|doon|dunga|dungi)|apni jaan|khud ko (?:khatam|maar|nuksan|nuksaan)|"
+                     r"sab khatam kar (?:du|dun|doon|dunga|dungi)|koi umeed nahi|ummeed nahi")
+DISTRESS_HI = (r"मरना|मर जा(?:ऊं|ऊँ|ऊ|ना|एंगे)|मरने का मन|जीना नहीं|जीने का मन नहीं|जीने की इच्छा नहीं|आत्महत्या|"
+               r"ख़ुदकुशी|खुदकुशी|जान दे दू|ज़िंदगी खत्म|जिंदगी खत्म|ज़िन्दगी खत्म|जिन्दगी खत्म|ख़ुद को ख़त्म|खुद को खत्म|"
+               r"कोई उम्मीद नहीं|निराश")
+DISTRESS = re.compile(rf"(?:\b(?:{DISTRESS_EN}|{DISTRESS_HI_LATIN})|{DISTRESS_HI})")
 DEATH = ("die", "dies", "died", "dying", "death", "deaths", "dead", "lifespan", "longevity")
 DEATH_PHRASE = re.compile(r"\bhow long (?:will|do|would) i live\b|\blive (?:long|short)\b|\bshort life\b|"
                           r"\bmy age at death\b", re.I)
@@ -177,16 +208,16 @@ def off_limits(message: str, *, minor: bool = False, areas: list[str] | None = N
     """The kind of an off-limits message (OFF_LIMITS), or None. Distress is read first, so "I want to die" gets
     the helpline reply, never the death reply. `minor`: the session's chart is a minor's, and `areas` the turn's;
     a minor's chart answers only the general areas (MINOR_AREAS)."""
-    toks = tokens(message)
-    if DISTRESS.search(message):
+    toks, text = tokens(message), normalise(message)
+    if DISTRESS.search(text):
         return "distress"
-    if DEATH_PHRASE.search(message) or any(t in DEATH[:7] for t in toks) or _has(toks, DEATH[7:]):
+    if DEATH_PHRASE.search(text) or any(t in DEATH[:7] for t in toks) or _has(toks, DEATH[7:]):
         return "death"
     if _has(toks, ILLNESS):
         return "illness"
-    if TRADE_PHRASE.search(message) or any(t in TRADE for t in toks):          # exact: "trading" is a letter from "reading"
+    if TRADE_PHRASE.search(text) or any(t in TRADE for t in toks):          # exact: "trading" is a letter from "reading"
         return "trade"
-    if OTHER_PERSON.search(message):
+    if OTHER_PERSON.search(text):
         return "other_person"
     if minor and areas and any(a not in MINOR_AREAS for a in areas):
         return "minor"
@@ -216,6 +247,9 @@ class Route(BaseModel):
 def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: bool = False) -> Route:
     """Read one message with the conversation (the module docstring). `last` is the previous turn's route."""
     last = Route(**last) if isinstance(last, dict) else last
+    if off_limits(message) == "distress":         # before a follow-up can carry anything (review C2)
+        log_off_limits("distress")
+        return Route(areas=[], direction="both", off_limits="distress")
     named, direction = areas_of(message), direction_of(message)
     when, why = bool(WHEN.search(message)), bool(WHY.search(message))
     short = len(tokens(message)) <= FOLLOW_MAX_WORDS

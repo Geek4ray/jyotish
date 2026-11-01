@@ -88,3 +88,46 @@ def test_c1_no_stretch_for_long_life_or_health_on_any_route(chart):
     doc = answer_turn(chart, "when will my health improve", route, as_of=AS_OF, drafter=OfflineTurnWriter(),
                       checker=passes)
     assert not [s for s in doc["shown"] if "stretch" in s]
+
+
+# --- C2: distress is read first and widest, before a follow-up can carry anything ------------------------------------
+
+DISTRESS_SET = [
+    # the review's table
+    "I can’t go on like this anymore", "I don’t want to live anymore", "I’d be better off dead",
+    "mujhe marna hai, kuch accha nahi ho raha", "jeena nahi chahta ab", "I feel hopeless, nothing works",
+    # the same with other apostrophes, case and spacing
+    "I can't go on like this anymore", "I CAN‘T GO ON", "I dont want to live", "i do not want to be alive",
+    "Id be better off dead", "everyone is better off without me", "I’m better off dead tbh",
+    # their kin in English
+    "there is no point living", "no point in living anymore", "what is the point of living, no point in life",
+    "I have nothing to live for", "life is not worth living", "I’m so tired of living", "I want to end it all",
+    "I'm going to end it", "I can’t take it anymore", "I wish I was never born", "I feel worthless",
+    "I have been cutting myself", "I want to kill myself", "thinking about suicide",
+    # Hinglish in Latin script
+    "marna chahta hu", "main mar jaun to accha", "mar jana chahti hoon", "jeena nahi chahti", "jeene ka mann nahi karta",
+    "zindagi khatam kar dunga", "khudkushi ke baare mein soch raha hoon", "aatmahatya", "atmahatya kar lunga",
+    "apni jaan de dunga", "koi umeed nahi bachi",
+    # Hindi in Devanagari
+    "मुझे मरना है", "मैं मर जाऊं", "अब जीना नहीं चाहता", "जीने का मन नहीं करता", "आत्महत्या के बारे में सोच रहा हूँ",
+    "खुदकुशी कर लूँ", "ज़िंदगी खत्म कर दूँ", "कोई उम्मीद नहीं है",
+]
+
+
+@pytest.mark.parametrize("message", DISTRESS_SET)
+def test_c2_every_distress_message_reaches_the_helpline_cold_and_after_a_turn(chart, message):
+    from jyotish.conversation import fixed_reply
+    challenges = route_turn("what are the challanges in my life", chart)
+    for last in (None, challenges):
+        route = route_turn(message, chart, last)
+        assert route.off_limits == "distress", (message, last is not None)
+        assert not route.follow_up and not route.carried and not route.areas
+        doc = answer_turn(chart, message, route, as_of=AS_OF)
+        assert doc["source"] == "fixed" and doc["shown"] == [fixed_reply("distress")]
+        assert "14416" in doc["shown"][0] and "112" in doc["shown"][0]
+
+
+@pytest.mark.parametrize("message", ["how is my career", "when will I marry", "tell me about my life",
+                                     "meri shaadi kab hogi", "I am a marine engineer", "is my marriage hopeful?"])
+def test_c2_ordinary_messages_are_not_distress(chart, message):
+    assert route_turn(message, chart).off_limits != "distress"

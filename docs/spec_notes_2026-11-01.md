@@ -159,3 +159,15 @@ tests/test_chat_review.py unless named otherwise.
   engine sentence that mentions long life or health. The synthetic birth of 2036 is read thirty years on: a session
   dated before the birth breaks the technical sheet (the Yogini period has no current entry), which M2's server
   date now refuses.
+- **C2. Distress is read first and widest.** `conversation.normalise` reads every message with its apostrophes
+  straight (’ ‘ ʼ ′ ` ´), in lower case, NFKC and with its spaces collapsed, before every pattern. `DISTRESS` now
+  holds, in English, "better off dead", "no point (in) living", "nothing to live for", "not worth living", "tired of
+  living", "can't take it anymore", "hopeless", "worthless", "end it all" and their kin; in Hinglish (Latin script)
+  marna hai/chahta, mar jaun/jana, jeena nahi chahta, jeene ka mann nahi, zindagi khatam, khudkushi, aatmahatya, jaan
+  de dun, koi umeed nahi; in Devanagari मरना, मर जाऊं, जीना नहीं, जीने का मन नहीं, आत्महत्या, खुदकुशी, ज़िंदगी खत्म,
+  कोई उम्मीद नहीं, निराश. `route_turn` reads distress before anything else, so a distress message is never a
+  follow-up and carries nothing. The test set (46 messages: the review's table, apostrophe and case variants, English
+  kin, Hinglish, Devanagari) must all reach the helpline reply, cold and after the challenges turn. **Open:** no
+  published Tele-MANAS list of phrases was found (a web search on 2026-11-01 turned up general warning signs only), so
+  the Hindi and Hinglish list is the review's examples and their common forms; a Hindi-speaking clinician or the
+  helpline has still to read it.
