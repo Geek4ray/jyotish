@@ -247,6 +247,10 @@ export const STRINGS = {
     "chat.failed_birth": "The chart could not be drawn: {why}",
     "chat.check": "{lagna} rising · Moon in {moon_sign}, {moon_nakshatra}",
     "chat.placeholder": "Ask about career, marriage, money, timing…",
+    // Before the first question every chip names an area (SPEC Layer 8, review C1); after it, the follow-ups.
+    "chat.chip.first.career": "How is my career?",
+    "chat.chip.first.marriage": "What about marriage?",
+    "chat.chip.first.money": "When does money come in?",
     "chat.chip.marriage": "and marriage?",
     "chat.chip.when": "when?",
     "chat.chip.why": "why?",

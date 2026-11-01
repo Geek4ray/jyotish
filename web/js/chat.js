@@ -91,9 +91,11 @@ async function open(session) {
   line.textContent = t("chat.check", session.check);
   line.hidden = false;
   $("#ask-area").hidden = false;
-  chips();
   await drawWheel(session.chart_id);
-  for (const turn of Array.isArray(session.turns) ? session.turns : []) {
+  const turns = Array.isArray(session.turns) ? session.turns : [];
+  answered = turns.length;
+  chips();
+  for (const turn of turns) {
     const answer = addTurn(turn.question);
     if (turn.status === "done") render(answer, turn.answer || [], turn.paragraphs || [0]);
     else if (turn.status === "failed") sorry(answer);
@@ -102,8 +104,13 @@ async function open(session) {
   $("#message").focus();
 }
 
+// Before the first question each chip names an area, so none is read as a question about the chart's top areas
+// (SPEC Layer 8, review C1); once a question is answered, the follow-ups.
+const FIRST_CHIPS = ["chat.chip.first.career", "chat.chip.first.marriage", "chat.chip.first.money"];
+const NEXT_CHIPS = ["chat.chip.marriage", "chat.chip.when", "chat.chip.why"];
+let answered = 0;
 function chips() {
-  $("#chips").innerHTML = ["chat.chip.marriage", "chat.chip.when", "chat.chip.why"]
+  $("#chips").innerHTML = (answered ? NEXT_CHIPS : FIRST_CHIPS)
     .map((k) => `<button type="button">${esc(t(k))}</button>`).join("");
 }
 $("#chips").addEventListener("click", (e) => {
@@ -147,6 +154,7 @@ async function ask(message) {
   $("#send").disabled = true;
   $("#message").value = "";
   const answer = addTurn(message);
+  if (!answered++) chips();
   try {
     const r = await fetch(`/sessions/${encodeURIComponent(sid)}/turns`, { method: "POST",
       headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }) });

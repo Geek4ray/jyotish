@@ -36,9 +36,10 @@ WHEN = re.compile(r"\bwhen\b|\bwhich year\b|\bwhat year\b|\btiming\b|\bhow soon\
 WHY = re.compile(r"\bwhy\b|\bhow come\b|\bwhat makes you say\b", re.I)
 FOLLOW_OPENER = re.compile(r"^\s*(?:and|but|also|so|what about|how about|and what about)\b", re.I)
 FOLLOW_MAX_WORDS = 6          # a message this short with no area or no direction of its own is a follow-up
-# Areas a general "what is against me" question never routes to: the off-limits rules keep death and illness out
-# of a question that did not name them (SPEC Layer 8; the client may still ask "how is my health?").
-NOT_FOR_WEAKEST = ("longevity", "health", "synastry")
+# Areas no default route goes to, top or weakest (SPEC Layer 8, decided after the review of chat v1, C1): long life
+# and health reach the client only when the client names them ("how is my health?"), and synastry needs two charts.
+NOT_DEFAULT = ("longevity", "health", "synastry")
+NOT_FOR_WEAKEST = NOT_DEFAULT
 TIER_RANK = {"not emphasised": 0, "weak / mixed": 1, "moderate": 2, "strong": 3}
 
 
@@ -99,6 +100,19 @@ def areas_of(message: str) -> list[str]:
         if any(w in q for w in words) or any(_near(t, w) for t in toks for w in words if len(w) >= 5):
             out.append(area)
     return out
+
+
+def top_areas(chart, n: int | None = None) -> list[str]:
+    """The chart's strongest areas for a question with no area and no "against": the scored top areas (scoring's
+    emphasis order) without longevity, health or synastry (NOT_DEFAULT), filled from the other emphasised areas by
+    tier, then score."""
+    sc = chart.scored
+    n = n or len(sc.top)
+    out = [a for a in sc.top if a not in NOT_DEFAULT]
+    rest = sorted((a for a, x in sc.areas.items() if x.emphasised and a not in NOT_DEFAULT and a not in out
+                   and x.tier in TIER_RANK),
+                  key=lambda a: (-TIER_RANK[sc.areas[a].tier], -(sc.areas[a].score_classical or 0), a))
+    return (out + rest)[:n]
 
 
 def weakest_areas(chart, n: int | None = None) -> list[str]:
@@ -216,7 +230,7 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     elif direction == "against":
         areas, areas_from = weakest_areas(chart), "weakest"
     else:
-        areas, areas_from = list(chart.scored.top), "top"
+        areas, areas_from = top_areas(chart), "top"
     if direction is None and follow:
         direction = last.direction
         carried.append("direction")

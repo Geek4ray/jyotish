@@ -8,7 +8,7 @@ import logging
 import pytest
 
 from jyotish.conversation import (MINOR_AREAS, OFF_LIMITS, REPLIES, areas_of, direction_of, fixed_reply, is_minor,
-                                  off_limits, route_turn, weakest_areas)
+                                  off_limits, route_turn, top_areas, weakest_areas)
 from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.uncertainty import assess
 
@@ -45,9 +45,11 @@ def test_a_question_against_with_no_area_goes_to_the_weakest_areas(chart):
     assert not set(weak) & set(chart.scored.top)                   # never the strongest
     r = route_turn("what are the challanges in my life", chart)
     assert (r.areas, r.direction, r.areas_from) == (weak, "against", "weakest")
-    # The same question asking what is for goes to the chart's top areas.
+    # The same question asking what is for goes to the chart's top areas, never long life or health (review C1).
     r = route_turn("what are the strengths in my life", chart)
-    assert (r.areas, r.direction, r.areas_from) == (list(chart.scored.top), "for", "top")
+    assert (r.areas, r.direction, r.areas_from) == (top_areas(chart), "for", "top")
+    assert list(chart.scored.top) == ["career", "marriage", "longevity"] and top_areas(chart)[:2] == ["career", "marriage"]
+    assert "longevity" not in top_areas(chart) and len(top_areas(chart)) == 3
 
 
 def test_the_weakest_areas_never_include_death_or_illness(chart):
@@ -73,7 +75,7 @@ def test_nothing_is_carried_from_an_off_limits_turn(chart):
     refused = route_turn("will I die early?", chart, route_turn("and marriage?", chart))
     assert refused.off_limits == "death"
     after = route_turn("when?", chart, refused)
-    assert not after.follow_up and after.areas == list(chart.scored.top)
+    assert not after.follow_up and after.areas == top_areas(chart)
 
 
 @pytest.mark.parametrize("message,kind", [

@@ -60,7 +60,9 @@ def test_the_birth_data_once_then_the_check_line_and_the_chart(page, url):
     assert page.locator("#first").is_hidden() and page.locator("#wheel .body").count() == 9
     assert re.search(r"\?s=[0-9a-f]{32}$", page.url)
     assert page.inner_text("#trust") == "Checked against your chart; a real astrologer can review this."
-    assert page.locator("#chips button").all_inner_texts() == ["and marriage?", "when?", "why?"]
+    # Before the first question every chip names an area (review C1).
+    assert page.locator("#chips button").all_inner_texts() == ["How is my career?", "What about marriage?",
+                                                               "When does money come in?"]
 
 
 def test_an_answer_is_plain_words_and_the_chart_lights_what_it_rests_on(page):
@@ -75,6 +77,7 @@ def test_an_answer_is_plain_words_and_the_chart_lights_what_it_rests_on(page):
 
 
 def test_the_chips_carry_the_conversation_and_death_gets_the_fixed_reply(page):
+    assert page.locator("#chips button").all_inner_texts() == ["and marriage?", "when?", "why?"]
     page.click("#chips button:has-text('and marriage?')")
     assert "marriage" in answered(page, 2)
     page.fill("#message", "will I die early?")

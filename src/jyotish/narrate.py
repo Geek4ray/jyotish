@@ -2718,7 +2718,14 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
     return EngineSentence(text=text, notes=[n for n in notes if n])
 
 
+# Areas whose stretches never reach the client, on any route (SPEC Layer 8, decided after the review of chat v1, C1):
+# the timing of long life or of health is off limits, as death and illness are.
+NO_STRETCHES = ("longevity", "health")
+
+
 def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first: bool) -> list[EngineSentence]:
+    if area in NO_STRETCHES:
+        return []
     tm = (data.get("timing") or {}).get(area) or {}
     ws = tm.get("windows") or []
     if not ws:

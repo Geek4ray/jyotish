@@ -139,3 +139,23 @@ removed share, never gated.
 
 The astrologer's first session runs on the deployed conversation (Layer 8), so that waits for a redeploy. The
 independent review (definition of done, item 9) follows the build.
+
+## The review of chat v1, fixed
+
+docs/review_2026-11-01_chat.md found two critical, seven high and six medium findings and one list of smaller points;
+SPEC Layer 8 (rev 130, "Decided after the independent review") settles every open reading. Each finding is fixed in
+its own commit, in the order C1, C2, H1, H3, H4, H6, H7, H5, H2, M2, M3, M4, M5, M1, M6, L1, with its test in
+tests/test_chat_review.py unless named otherwise.
+
+- **C1. Long life and health are never a default route.** `conversation.top_areas` is the scored top areas without
+  longevity, health or synastry (`NOT_DEFAULT`), filled from the other emphasised areas by tier and then score; on
+  the reference chart a question with no area and no "against" now goes to career, marriage and debts and rivals,
+  where it went to career, marriage and longevity. The weakest areas already left them out. `narrate.NO_STRETCHES`
+  keeps the stretch sentences of long life and health out of the engine's answer on every route, a named one
+  included ("when will my health improve" gets no stretch). Before the first question the page offers three chips
+  that each name an area ("How is my career?", "What about marriage?", "When does money come in?"); the follow-ups
+  ("and marriage?", "when?", "why?") come once a question is answered. The test runs every chip, "when?", "why?" and
+  "what are my strengths" as first turns on the reference chart and the three synthetic births and finds no shown or
+  engine sentence that mentions long life or health. The synthetic birth of 2036 is read thirty years on: a session
+  dated before the birth breaks the technical sheet (the Yogini period has no current entry), which M2's server
+  date now refuses.
