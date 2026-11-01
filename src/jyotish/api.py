@@ -759,6 +759,101 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         if mode == "blind" and area is not None and area not in shown_areas(s, row, reading, who, mode):
             raise HTTPException(status_code=409, detail=f"answer {area} from the chart alone first")
 
+    # --- the astrologer's review of a conversation (SPEC Layer 8) --------------------------------------------
+    # /review/sessions/{id} is the page; GET /sessions/{id}/review (a reviewer token) lists the session's turns,
+    # each beside the engine's own answer (its footnotes quoting the sheet), the sheets of the areas it routed to,
+    # the sentences removed with their reasons and the warnings; POST /sessions/{id}/turns/{n}/review/edit holds a
+    # reviewer's sentence to the turn's checks and, accepted, puts it in the client's answer. Every open and edit is
+    # a `reviews` row (turn_id), as a reading's are, and the chart is excluded from the blind learning set.
+
+    def turn_checker_for_review():
+        return review_checker or app.state.__dict__.setdefault("live_turn_checker", _model_checker())
+
+    def session_review_view(s, srow, who: str) -> dict:
+        from datetime import date as _date
+        from .conversation import turn_units
+        from .db import LedgerRow
+        from .sheet import build
+        as_of = _date.fromisoformat(srow.as_of)
+        chart = chart_of(srow.chart_id)
+        data = session_payload(srow.id, chart, as_of).result()
+        turns = s.query(TurnRow).filter_by(session_id=srow.id).order_by(TurnRow.n).all()
+        sheets: dict[str, Any] = {}
+        out = []
+        for t in turns:
+            doc = t.document or {}
+            for a in (t.route or {}).get("areas") or []:
+                if a not in sheets and not (t.route or {}).get("off_limits"):
+                    sheets[a] = build(data, a)
+            led = s.get(LedgerRow, t.id)
+            edits = [{"target": r.target, "before": r.before, "after": r.after, "accepted": r.accepted,
+                      "errors": r.errors, "reviewer": r.reviewer_id, "at": r.created_at.isoformat()}
+                     for r in s.query(ReviewRow).filter_by(turn_id=t.id, action="edit").order_by(ReviewRow.id)]
+            out.append({"n": t.n, "question": t.question, "status": t.status, "route": t.route,
+                        "source": doc.get("source"), "units": turn_units(doc) if doc else [],
+                        "paragraphs": doc.get("paragraphs"), "engine": doc.get("engine"),
+                        "removed": doc.get("removed") or [], "warnings": doc.get("warnings") or [],
+                        "timeline": doc.get("timeline"), "attempts": doc.get("attempts"),
+                        "cost_usd": led.cost_usd if led else None, "writer": doc.get("writer"),
+                        "checker": doc.get("checker"), "edits": edits, "edited": doc.get("edits") or [],
+                        "replayed": str(doc.get("narration_source", "")).startswith("fixture:")})
+        return {"id": srow.id, "chart_id": srow.chart_id, "check": srow.check, "as_of": srow.as_of, "reviewer": who,
+                "turns": out, "sheets": {a: x for a, x in sheets.items() if x}}
+
+    def log_turn(s, srow, who: str, action: str, turn_id: str | None = None, **fields) -> None:
+        s.add(ReviewRow(turn_id=turn_id, chart_id=srow.chart_id, reviewer_id=who, action=action, **fields))
+        if srow.chart_id and s.get(ExclusionRow, srow.chart_id) is None:
+            s.add(ExclusionRow(chart_id=srow.chart_id, birth_key=srow.birth_key, reason="conversation seen in review",
+                               reviewer_id=who))
+
+    @app.get("/review/sessions/{sid}", include_in_schema=False)
+    def review_session_page(sid: str):
+        from fastapi.responses import FileResponse
+        if web_dir is None or not (Path(web_dir) / "review-session.html").exists():
+            raise HTTPException(status_code=404, detail="no review page")
+        return FileResponse(Path(web_dir) / "review-session.html")
+
+    @app.get("/sessions/{sid}/review")
+    def get_session_review(sid: str, request: Request) -> dict:
+        """A conversation as the astrologer reviews it; opening it is logged and excludes the chart from the blind
+        learning set."""
+        who = reviewer(request)
+        with Session.begin() as s:
+            srow = session_of(s, sid)
+            log_turn(s, srow, who, "open", target=f"session:{sid}")
+            s.flush()
+            return session_review_view(s, srow, who)
+
+    @app.post("/sessions/{sid}/turns/{n}/review/edit")
+    def post_turn_edit(sid: str, n: int, req: EditRequest, request: Request) -> dict:
+        """A reviewer's sentence for a turn's answer (target "answer:<i>"): accepted only if it passes the turn's
+        validator and checker; stored as a reading's edit is, and, accepted, read by the client in place of the
+        sentence."""
+        from datetime import date as _date
+        from .conversation import apply_turn_edit, check_turn_edit, turn_units
+        from .review import with_tags
+        who = reviewer(request)
+        with Session.begin() as s:
+            srow = session_of(s, sid)
+            t = s.query(TurnRow).filter_by(session_id=sid, n=n).first()
+            if t is None:
+                raise HTTPException(status_code=404, detail="no such turn")
+            if t.status != "done" or not t.document or t.document.get("source") == "fixed":
+                raise HTTPException(status_code=409, detail="this turn has no answer to edit")
+            unit = next((u for u in turn_units(t.document) if u["target"] == req.target), None)
+            if unit is None:
+                raise HTTPException(status_code=404, detail=f"no sentence {req.target!r} in this turn")
+            text_ = with_tags(unit["tagged"], req.text) if req.keep_tags else req.text
+            result = check_turn_edit(chart_of(srow.chart_id), t.document, _date.fromisoformat(srow.as_of), text_,
+                                     turn_checker_for_review())
+            log_turn(s, srow, who, "edit", turn_id=t.id, target=req.target, before=unit["tagged"],
+                     after=text_.strip(), accepted=result["accepted"], errors=result["errors"], mode="review",
+                     area=((t.route or {}).get("areas") or [None])[0])
+            if result["accepted"]:
+                t.document = apply_turn_edit(t.document, int(req.target.split(":")[1]), text_.strip(), who)
+            s.flush()
+            return dict(result, review=session_review_view(s, srow, who))
+
     @app.get("/review/{reading_id}", include_in_schema=False)
     def review_page(reading_id: str):
         from fastapi.responses import FileResponse
@@ -1183,6 +1278,12 @@ STREAMS_PER_READING = 8
 def _live_checker():
     from .narrate import CONFIG, AnthropicChecker
     return AnthropicChecker(CONFIG)
+
+
+def _model_checker():
+    """The checker of the environment's backend (JYOTISH_CHECKER_BACKEND), for a reviewer's sentence in a turn."""
+    from .narrate import CONFIG, ModelChecker, make_backend
+    return ModelChecker(make_backend(None, "checker", CONFIG), CONFIG)
 
 
 def __getattr__(name: str):

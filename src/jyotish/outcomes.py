@@ -260,6 +260,10 @@ def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
     counts = {"reviews": 0, "readings": 0, "turns": 0, "sessions": 0, "exclusions": 0, "charts": 0}
     if not twins:
         if sessions:
+            turn_ids = [t.id for t in session.query(TurnRow).filter(TurnRow.session_id.in_(sessions))]
+            if turn_ids:
+                counts["reviews"] += session.query(ReviewRow).filter(ReviewRow.turn_id.in_(turn_ids)).delete(
+                    synchronize_session=False)
             counts["turns"] = session.query(TurnRow).filter(TurnRow.session_id.in_(sessions)).delete(synchronize_session=False)
             counts["sessions"] = session.query(SessionRow).filter(SessionRow.id.in_(sessions)).delete(synchronize_session=False)
         if readings:

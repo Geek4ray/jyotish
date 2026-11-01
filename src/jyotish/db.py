@@ -104,11 +104,12 @@ class ReadingRow(Base):
 
 
 class ReviewRow(Base):
-    """One reviewer action on a reading: open, edit (accepted or not, with the checks' errors),
-    note, approve. The judgement data of the review step."""
+    """One reviewer action on a reading or on a conversation's turn (`turn_id`, revision 0005): open, edit
+    (accepted or not, with the checks' errors), note, approve. The judgement data of the review step."""
     __tablename__ = "reviews"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    reading_id: Mapped[str] = mapped_column(ForeignKey("readings.id"))
+    reading_id: Mapped[str | None] = mapped_column(ForeignKey("readings.id"), nullable=True)
+    turn_id: Mapped[str | None] = mapped_column(ForeignKey("turns.id"), nullable=True)
     chart_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     reviewer_id: Mapped[str] = mapped_column(String(64))
     action: Mapped[str] = mapped_column(String(16))                # open | edit | note | approve | verdict | answer | compare

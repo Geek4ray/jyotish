@@ -379,25 +379,34 @@ class OfflineTurnWriter:
         return TurnDraft(answer=text)
 
 
-def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date):
-    """The writer's message and what its sentences are held to: the routed areas' findings with their tags."""
-    import json
-    from .narrate import area_votes, findings, offered_chains, offered_votes
-    areas_out, finding_data, tags = [], {}, set()
+def held_to(chart, route: Route, as_of: date):
+    """What a turn's sentences are held to: the routed areas' findings (finding id -> finding), their tags, the votes
+    offered (family -> its tags) and the chains offered."""
+    from .narrate import findings, offered_chains, offered_votes
+    finding_data, tags = {}, set()
     votes: dict[str, set[str]] = {}
     for name in route.areas:
-        ok, _ = findings(chart, name, as_of)
-        for f in ok:
+        for f in findings(chart, name, as_of)[0]:
             finding_data[f["finding_id"]] = f
             tags |= set(f["allowed_tags"])
-        a = chart.scored.areas.get(name)
-        areas_out.append({"name": name, "findings": ok,
-                          **({"tests": area_votes(a)} if a is not None and a.score_classical is not None else {})})
         for fam, tag in offered_votes(chart, [name]).get(name, {}).items():
             votes.setdefault(fam, set()).add(tag)
     chains: dict[str, list[str]] = {}
     for per in offered_chains(chart, route.areas).values():
         chains.update(per)
+    return tags, votes, chains, finding_data
+
+
+def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date):
+    """The writer's message and what its sentences are held to (held_to)."""
+    import json
+    from .narrate import area_votes, findings
+    tags, votes, chains, finding_data = held_to(chart, route, as_of)
+    areas_out = []
+    for name in route.areas:
+        a = chart.scored.areas.get(name)
+        areas_out.append({"name": name, "findings": findings(chart, name, as_of)[0],
+                          **({"tests": area_votes(a)} if a is not None and a.score_classical is not None else {})})
     body = {"message": message, "direction": route.direction, "when": route.when, "why": route.why,
             "earlier_turns": [{"question": h["question"], "answer": h["answer"]} for h in history],
             "engine_answer": [{"text": s.text, "tags": engine_tags(s, tags)} for s in engine.sentences],
@@ -577,3 +586,45 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
         "checker": {"model": _model_of(checker, config.checker_model),
                     "effort": getattr(checker, "effort", _C.checker_effort), **_backend_of(checker)},
         "usage": {"writer": _usage(writer_metas), "checker": _usage(checker_metas), "wall_seconds": timeline["done"]}}
+
+
+# --- the astrologer's review of a turn (SPEC Layer 8) -------------------------------------------------------------
+
+def turn_units(doc: dict) -> list[dict]:
+    """The sentences of a turn's answer as the review page offers them to edit: {target "answer:<i>", text (as the
+    client read it), tagged (the sentence with its tags, where the writer wrote it), source}."""
+    shown, accepted = doc.get("shown") or [], doc.get("accepted") or []
+    writer = doc.get("source") == "writer"
+    return [{"target": f"answer:{i}", "text": x, "tagged": accepted[i] if writer and i < len(accepted) else x,
+             "source": doc.get("source") if not writer or i < len(accepted) else "engine"} for i, x in enumerate(shown)]
+
+
+def check_turn_edit(chart, doc: dict, as_of: date, text: str, checker) -> dict[str, Any]:
+    """A reviewer's sentence for a turn's answer, held as the writer's are (check_sentence): accepted only if the
+    validator and the checker pass it; the client's-word rules are warnings."""
+    from .narrate import sentences
+    route = Route(**doc["route"])
+    tags, votes, chains, finding_data = held_to(chart, route, as_of)
+    errors, warnings, checks = [], [], []
+    for s in sentences(text) or [text]:
+        ok, refusals, warns, record = check_sentence(s, tags, votes, chains, finding_data, checker)
+        errors += refusals
+        warnings += warns
+        if record is not None:
+            checks.append({k: v for k, v in record.items() if k != "meta"})
+    return {"accepted": not errors, "errors": errors, "warnings": warnings, "checks": checks}
+
+
+def apply_turn_edit(doc: dict, i: int, text: str, who: str) -> dict:
+    """The turn's document with sentence i replaced by the reviewer's (accepted) text: the client reads it without
+    its tags; the edit is recorded with who and when."""
+    from datetime import datetime, timezone
+    from .narrate import TAG
+    doc = dict(doc)
+    shown, accepted = list(doc.get("shown") or []), list(doc.get("accepted") or [])
+    shown[i] = " ".join(TAG.sub("", text).split()).replace(" .", ".")
+    if doc.get("source") == "writer" and i < len(accepted):
+        accepted[i] = text
+    doc["shown"], doc["accepted"] = shown, accepted
+    doc["edits"] = list(doc.get("edits") or []) + [{"i": i, "by": who, "at": datetime.now(timezone.utc).isoformat()}]
+    return doc

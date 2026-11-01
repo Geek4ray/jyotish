@@ -5,6 +5,11 @@
                                         its tags), the chart facts shown beside it (stored with the edit;
                                         recomputed, and said so, for a row from before that), the
                                         reviewer, the time
+    data/preferences/turns.jsonl        one row per reviewed turn of a conversation (SPEC Layer 8): its session,
+                                        number, question, route, the answer the client read, the engine's own
+                                        answer and the sentences removed with their reasons; a reviewer's
+                                        accepted rewrite of a turn's sentence is a row of rewrites.jsonl with
+                                        `turn_id`
     data/preferences/judgements.jsonl   one row per (reading, reviewer, mode, area) with the latest answer
                                         to each question (agree / partly / disagree, what is off, the best
                                         period, in blind mode the reviewer's own reading and period), the
@@ -40,10 +45,10 @@ def _header(kind: str, with_birth: bool) -> dict:
 
 
 def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data: bool = False) -> dict[str, int]:
-    """Write the two files; returns the number of rows in each (headers not counted)."""
+    """Write the three files; returns the number of rows in each (headers not counted)."""
     from sqlalchemy.orm import sessionmaker
 
-    from .db import ChartRow, ReadingRow, ReviewRow, migrate
+    from .db import ChartRow, ReadingRow, ReviewRow, TurnRow, migrate
     from .models import Chart
     from .review import facts, plain, sentence_facts, units
     from .narrate import Reading
@@ -51,7 +56,7 @@ def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data
     Session = sessionmaker(migrate(database_url))
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    rewrites, judgements = [], []
+    rewrites, judgements, turns_out = [], [], []
     with Session() as s:
         readings = {r.id: r for r in s.query(ReadingRow).all()}
         charts = {c.id: c for c in s.query(ChartRow).all()}
@@ -73,7 +78,21 @@ def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data
                                         date.fromisoformat(reading.document["as_of"]))
             return sentence_facts(before, fact_cache[key].get(area, []))
 
+        turns_seen: dict[str, Any] = {}
         for row in s.query(ReviewRow).filter_by(action="edit", accepted=True).order_by(ReviewRow.id):
+            if row.turn_id is not None:                   # a conversation's turn (SPEC Layer 8)
+                t = s.get(TurnRow, row.turn_id)
+                turns_seen[row.turn_id] = t
+                x = {"turn_id": row.turn_id, "session_id": t.session_id if t else None, "n": t.n if t else None,
+                     "chart_hash": row.chart_id, "area": row.area, "step": "edit", "target": row.target,
+                     "mode": row.mode, "original": row.before, "rewritten": row.after,
+                     "original_plain": plain(row.before or ""), "rewritten_plain": plain(row.after or ""),
+                     "facts_shown": row.facts or [], "facts_shown_source": "stored at review",
+                     "reviewer": row.reviewer_id, "at": row.created_at.isoformat()}
+                if with_birth_data:
+                    x["birth"] = birth(row.chart_id)
+                rewrites.append(x)
+                continue
             kind, _, rest = (row.target or "").partition(":")
             area = row.area or (rest.split(":", 1)[0] if kind in ("claim", "paragraph") else None)
             x = {"reading_id": row.reading_id, "chart_hash": row.chart_id, "area": area,
@@ -128,7 +147,21 @@ def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data
                 x["birth"] = birth(row.chart_id)
             judgements.append(x)
 
-    for name, rows in (("rewrites.jsonl", rewrites), ("judgements.jsonl", judgements)):
+        # Every turn a reviewer opened or edited, with what the client read and the engine's own answer.
+        reviewed = {r.turn_id for r in s.query(ReviewRow).filter(ReviewRow.turn_id.isnot(None))}
+        for tid in sorted(reviewed | set(turns_seen)):
+            t = turns_seen.get(tid) or s.get(TurnRow, tid)
+            if t is None:
+                continue
+            doc = t.document or {}
+            x = {"turn_id": t.id, "session_id": t.session_id, "n": t.n, "question": t.question, "route": t.route,
+                 "source": doc.get("source"), "answer": doc.get("shown"),
+                 "engine_answer": [x["text"] for x in (doc.get("engine") or {}).get("sentences") or []],
+                 "removed": doc.get("removed") or [], "warnings": doc.get("warnings") or [],
+                 "edits": doc.get("edits") or []}
+            turns_out.append(x)
+
+    for name, rows in (("rewrites.jsonl", rewrites), ("judgements.jsonl", judgements), ("turns.jsonl", turns_out)):
         lines = [_header(name, with_birth_data)] + rows
         (out / name).write_text("".join(json.dumps(r, ensure_ascii=False, default=str) + "\n" for r in lines))
-    return {"rewrites": len(rewrites), "judgements": len(judgements)}
+    return {"rewrites": len(rewrites), "judgements": len(judgements), "turns": len(turns_out)}

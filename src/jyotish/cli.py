@@ -576,7 +576,7 @@ def main(argv: list[str] | None = None) -> None:
         from .export import export_reviews
         url = args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
         n = export_reviews(url, args.out, with_birth_data=args.with_birth_data)
-        print(f"{n['rewrites']} accepted rewrites, {n['judgements']} judgement rows -> {args.out} "
+        print(f"{n['rewrites']} accepted rewrites, {n['judgements']} judgement rows, {n['turns']} reviewed turns -> {args.out} "
               f"(judgements, not outcomes{'; with birth data' if args.with_birth_data else '; no birth data'})")
         raise SystemExit(0)
     if args.cmd == "page":
