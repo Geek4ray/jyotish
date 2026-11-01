@@ -430,3 +430,28 @@ def test_h7_forget_this_conversation_erases_it_and_keeps_a_reviewed_turns_judgem
     assert c.get(f"/sessions/{sid}").status_code == 404
     html = (ROOT / "web" / "chat.html").read_text()
     assert 'id="forget"' in html and "Forget this conversation" in (ROOT / "web" / "js" / "strings.js").read_text()
+
+
+# --- H5: the payloads held are bounded, and POST /sessions is rate-limited --------------------------------------------
+
+def test_h5_the_payloads_held_are_bounded(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    app = create_app(f"sqlite:///{tmp_path / 'h5.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+                     payloads_held=2)
+    with TestClient(app) as c:
+        sids = [c.post("/sessions", json=BIRTH).json()["id"] for _ in range(4)]
+        assert list(app.state.payloads) == sids[-2:]                     # the two most recent only
+        n = c.post(f"/sessions/{sids[0]}/turns", json={"message": "how is my career"}).json()["n"]
+        assert wait_turn(c, f"/sessions/{sids[0]}/turns/{n}") == "done"  # a payload let go is made again
+        assert len(app.state.payloads) == 2 and list(app.state.payloads)[-1] == sids[0]
+
+
+def test_h5_post_sessions_is_rate_limited(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    app = create_app(f"sqlite:///{tmp_path / 'h5b.db'}", rate=(2, 100))
+    with TestClient(app) as c:
+        assert [c.post("/sessions", json=BIRTH).status_code for _ in range(2)] == [201, 201]
+        r = c.post("/sessions", json=BIRTH)
+        assert r.status_code == 429 and int(r.headers["Retry-After"]) > 0

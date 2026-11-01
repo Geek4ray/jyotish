@@ -251,7 +251,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
                reviewers: dict[str, str] | None = None, review_checker=None,
                clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None,
-               turn_writer=None, turn_checker=None, turn_limit: float | None = None) -> FastAPI:
+               turn_writer=None, turn_checker=None, turn_limit: float | None = None,
+               payloads_held: int | None = None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
     (offline tests); it is never taken from a request. The website and the examples are
     mounted when their directories exist (a source checkout). Reviewers, clerks and the owner
@@ -262,7 +263,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     JYOTISH_READINGS_PER_HOUR and JYOTISH_READINGS_PER_DAY, else 30 and 300; a conversation's turns count
     against the same limit. `turn_writer` and `turn_checker` make a turn's writer and checker (each called with
     no argument, once per turn); by default the writer and checker backends of the environment. `turn_limit`: the
-    seconds after which a turn still queued or running is marked failed (JYOTISH_TURN_LIMIT_SECONDS, else 600)."""
+    seconds after which a turn still queued or running is marked failed (JYOTISH_TURN_LIMIT_SECONDS, else 600).
+    `payloads_held`: how many conversations' whole-chart payloads this process keeps (JYOTISH_PAYLOADS_HELD, else 16;
+    about 5 MB each); a conversation whose payload was let go has it made again, from fullchart's cache when it is
+    there. POST /sessions counts against the rate limit as a reading does."""
     from . import logs
     from .db import migrate
     logs.setup()
@@ -502,18 +506,29 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     # client's events only: `light`, `text` (a passed sentence, tags off), `done`.
     from .scoring import AREAS as _AREAS
     SESSION_DAYS = 180                            # a conversation ends this many days after its last turn (H7)
-    PAYLOADS: dict[str, Any] = {}                 # session id -> Future of its whole-chart payload, in this process
+    # session id -> Future of its whole-chart payload, in this process: the most recently used `held` only (review H5)
+    from collections import OrderedDict
+    PAYLOADS: "OrderedDict[str, Any]" = OrderedDict()
+    held = payloads_held if payloads_held is not None else int(os.environ.get("JYOTISH_PAYLOADS_HELD", 16))
+    app.state.payloads = PAYLOADS
     # The payloads have an executor of their own: a turn on the reading pool waits on it, and it never waits on the
     # pool, so a turn cannot hold a pool worker waiting for a job queued behind it (review H4).
     payload_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="payload")
+    import threading
+    payloads_lock = threading.Lock()
     app.state.payload_pool = payload_pool
 
     def session_payload(sid: str, chart, as_of):
         from .fullchart import cached_payload
         from .narrate import full_range
-        fut = PAYLOADS.get(sid)
-        if fut is None:
-            fut = PAYLOADS[sid] = payload_pool.submit(cached_payload, chart, as_of, *full_range(as_of), list(_AREAS))
+        with payloads_lock:
+            fut = PAYLOADS.get(sid)
+            if fut is None:
+                fut = PAYLOADS[sid] = payload_pool.submit(cached_payload, chart, as_of, *full_range(as_of),
+                                                          list(_AREAS))
+            PAYLOADS.move_to_end(sid)
+            while len(PAYLOADS) > max(1, held):
+                PAYLOADS.popitem(last=False)
         return fut
 
     # A turn still queued or running when the service starts was cut off by a restart, and one older than the limit
@@ -596,10 +611,16 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     @app.post("/sessions", status_code=201)
     def post_session(req: SessionRequest, request: Request, response: Response) -> dict:
         """A conversation: the chart computed (cached) and stored, the check line (rising sign, the Moon's sign and
-        nakshatra) returned before any question, the whole chart's payload made on its own executor for the turns."""
+        nakshatra) returned before any question, the whole chart's payload made on its own executor for the turns.
+        Rate-limited as a reading is (review H5): 429 with Retry-After."""
         from datetime import date as _date
         from .conversation import is_minor
         from .service import assess_birth, birth_key_of, chart_line
+        wait = limits.check(request.client.host if request.client else "unknown")
+        if wait is not None:
+            logs.event("sessions.rate_limited", logging.WARNING, retry_after=wait)
+            raise HTTPException(status_code=429, detail="too many conversations: try again later",
+                                headers={"Retry-After": str(wait)})
         birth = BirthInput(**req.model_dump(include=set(BirthInput.model_fields)))
         try:
             chart, _, chart_id = assess_birth(birth)

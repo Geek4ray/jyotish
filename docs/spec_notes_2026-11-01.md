@@ -237,3 +237,10 @@ tests/test_chat_review.py unless named otherwise.
   URL or stored hash; every client route a 404 without the secret or with a guessed one, and the reviewer's route
   still open to a reviewer; the masked paths and the creation log; the end at 180 days; forgetting, with the review
   kept; and the page's "Forget this conversation" in Playwright.
+- **H5. The payloads held are bounded, and POST /sessions is rate-limited.** The process keeps the whole-chart payloads
+  of the `payloads_held` most recently used conversations only (`JYOTISH_PAYLOADS_HELD`, 16 by default; one payload
+  of the reference chart holds about 4.7 MB, so about 75 MB at most), least recently used first out; a conversation
+  whose payload was let go has it made again on the payload executor, from fullchart's cache when it is there.
+  `POST /sessions` counts against the readings' rate limit (per client per hour, per day), 429 with Retry-After.
+  Tests: four sessions with two held keep the two most recent, and a question in the first is answered with its
+  payload made again; a third session under a limit of two an hour is a 429.
