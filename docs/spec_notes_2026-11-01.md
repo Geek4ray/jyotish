@@ -206,3 +206,8 @@ tests/test_chat_review.py unless named otherwise.
   sentence the client can see on the reference chart (every area, every direction, with the "when" lines, the fixed
   replies and the third-party line) and finds none, and a writer's markdown answer reaches the client unmarked. The
   frozen career, challenges and five-turn texts change with it.
+- **H4. A turn never blocks a pool worker on the pool.** A session's payload is made on an executor of its own
+  (`payload_pool` in `api.create_app`, one worker, shut down with the app). A turn on the reading pool waits on that
+  executor, which never waits on the pool, so a turn after a restart (no payload held in this process) can no longer
+  hold the only worker waiting for a job queued behind it. The test is the review's: two sessions made in one app,
+  then a fresh app on the same database with `workers=1`, one question in each, and both done within 120 s.

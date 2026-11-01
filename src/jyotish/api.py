@@ -293,6 +293,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     async def lifespan(_):
         yield
         pool.shutdown(wait=False, cancel_futures=True)
+        app.state.payload_pool.shutdown(wait=False, cancel_futures=True)
 
     app = FastAPI(title="Jyotish readings", lifespan=lifespan)
     app.state.engine, app.state.pool, app.state.Session = engine, pool, Session
@@ -495,18 +496,22 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     # --- the conversation (SPEC Layer 8, 2026-11-01) --------------------------------------------------------
     # POST /sessions takes the birth data once and answers with the check line; the whole-chart payload (every
-    # area, its technical sheets) is made on the pool and kept for the session's turns. POST /sessions/{id}/turns
+    # area, its technical sheets) is made on its own executor and kept for the session's turns. POST /sessions/{id}/turns
     # queues one message; its answer streams on GET /sessions/{id}/turns/{n}/events (as a reading's does), the
     # client's events only: `light`, `text` (a passed sentence, tags off), `done`.
     from .scoring import AREAS as _AREAS
     PAYLOADS: dict[str, Any] = {}                 # session id -> Future of its whole-chart payload, in this process
+    # The payloads have an executor of their own: a turn on the reading pool waits on it, and it never waits on the
+    # pool, so a turn cannot hold a pool worker waiting for a job queued behind it (review H4).
+    payload_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="payload")
+    app.state.payload_pool = payload_pool
 
     def session_payload(sid: str, chart, as_of):
         from .fullchart import cached_payload
         from .narrate import full_range
         fut = PAYLOADS.get(sid)
         if fut is None:
-            fut = PAYLOADS[sid] = pool.submit(cached_payload, chart, as_of, *full_range(as_of), list(_AREAS))
+            fut = PAYLOADS[sid] = payload_pool.submit(cached_payload, chart, as_of, *full_range(as_of), list(_AREAS))
         return fut
 
     def session_of(s, sid: str) -> SessionRow:
@@ -525,7 +530,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     @app.post("/sessions", status_code=201)
     def post_session(req: SessionRequest) -> dict:
         """A conversation: the chart computed (cached) and stored, the check line (rising sign, the Moon's sign and
-        nakshatra) returned before any question, the whole chart's payload made on the pool for the turns."""
+        nakshatra) returned before any question, the whole chart's payload made on its own executor for the turns."""
         from datetime import date as _date
         from .conversation import is_minor
         from .service import assess_birth, birth_key_of, chart_line

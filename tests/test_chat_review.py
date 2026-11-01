@@ -226,3 +226,36 @@ def test_h3_markdown_never_reaches_the_client(chart):
     doc = answer_turn(chart, "how is my career", route, as_of=AS_OF, drafter=Markdown(), checker=passes)
     assert doc["source"] == "writer" and len(doc["shown"]) >= 2
     assert not [s for s in doc["shown"] if re.search(r"\*|^\s*[-#]|`|\[", s)], doc["shown"]
+
+
+# --- H4: the service never waits on itself ---------------------------------------------------------------------------
+
+BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": 28.1989, "lon": 76.617,
+         "node": "mean", "place": "Rewari, Haryana", "as_of": AS_OF.isoformat()}
+
+
+def wait_turn(c, url, limit=120.0):
+    import time
+    t = time.monotonic()
+    while (st := c.get(url).json()["status"]) not in ("done", "failed"):
+        assert time.monotonic() - t < limit, f"{url} still {st} after {limit} s"
+        time.sleep(0.1)
+    return st
+
+
+def test_h4_a_turn_in_a_fresh_app_with_one_worker_finishes(tmp_path):
+    """Sessions made in one app; a fresh app on the same database (a restart, another process) with one worker and
+    no payload held; one question in each. Before the fix the first turn held the only worker waiting on its own
+    payload job, queued behind it on the same pool, for ever (the review reproduced it)."""
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    db = f"sqlite:///{tmp_path / 'h4.db'}"
+    with TestClient(create_app(db, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)) as c:
+        sids = [c.post("/sessions", json=BIRTH).json()["id"] for _ in range(2)]
+    fresh = create_app(db, workers=1, turn_writer=OfflineTurnWriter, turn_checker=lambda: passes)
+    with TestClient(fresh) as c:
+        urls = []
+        for sid in sids:
+            n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
+            urls.append(f"/sessions/{sid}/turns/{n}")
+        assert [wait_turn(c, u) for u in urls] == ["done", "done"]
