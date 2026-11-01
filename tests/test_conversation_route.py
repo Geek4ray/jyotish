@@ -38,10 +38,12 @@ def test_areas_tolerate_spelling_but_not_a_common_word(message, areas):
 
 
 def test_a_question_against_with_no_area_goes_to_the_weakest_areas(chart):
+    # Adverse direction first, then families against, then polarity flags, then tier (review H2). No area of the
+    # reference chart is adverse; father, reputation and siblings have the most families against (three each).
     weak = weakest_areas(chart)
-    assert weak == ["father", "children", "gains"]
-    tiers = {n: a.tier for n, a in chart.scored.areas.items()}
-    assert all(tiers[n] == "not emphasised" for n in weak)
+    assert weak == ["father", "reputation", "siblings"]
+    against = {n: sum(1 for v in a.votes.values() if (getattr(v, "vote", v) or 0) < 0) for n, a in chart.scored.areas.items()}
+    assert all(against[n] == 3 for n in weak) and max(against.values()) == 3
     assert not set(weak) & set(chart.scored.top)                   # never the strongest
     r = route_turn("what are the challanges in my life", chart)
     assert (r.areas, r.direction, r.areas_from) == (weak, "against", "weakest")

@@ -244,3 +244,20 @@ tests/test_chat_review.py unless named otherwise.
   `POST /sessions` counts against the readings' rate limit (per client per hour, per day), 429 with Retry-After.
   Tests: four sessions with two held keep the two most recent, and a question in the first is answered with its
   payload made again; a third session under a limit of two an hour is a 429.
+- **H2. "Challenges" are where the chart leans against.** `conversation.weakest_areas` ranks the areas whose overall
+  direction is adverse first, then the most families against, then the most polarity flags (delay, intensity,
+  volatility), then the lowest tier; three areas (`DEFAULT_AREAS`, also used for the top areas: a chart with fewer
+  scored top areas got fewer before), never longevity, health or synastry. On the reference chart no area is adverse,
+  and the challenges question now goes to father, reputation and siblings (three families against each, the most of
+  any area), where it went to father, children and gains (gains has three for and two against; children two and
+  two). On synthetic-3 it goes to the three adverse areas there (personality, wealth, children). For a turn routed to
+  the weakest areas the engine's answer opens with what is true of them: "On balance, your chart leans against you in
+  …", or, when none does, "No part of your chart leans against you on balance; the parts it supports least are your
+  father, your reputation and brothers, sisters and courage." Each area's first sentence gives its overall lean (H3),
+  and then the families that oppose it. The writer's prompt says to say so plainly and never call a part the chart
+  supports a challenge. The writer's material carries no tier word: the glossary's dignity glosses ("at its
+  strongest", "at its weakest") are rewritten in the material ("at its best", "least at ease"), and the test reads
+  the material of three turns for any tier word, "strongest", "weakest" or their adverbs. The arudha sentence now
+  reads "the signs that show how others see marriage" ("how brothers, sisters and courage appears" was wrong
+  grammar). The frozen challenges text, the five turns' first route and the tests that named father, children and
+  gains change with it.

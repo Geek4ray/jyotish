@@ -15,11 +15,11 @@ from jyotish.uncertainty import assess
 
 AS_OF = date(2026, 10, 21)
 MARRIAGE_TIER = "For marriage, most of the chart's indications agree, and on balance they lean favourably."
-MARRIAGE_AGAINST = ("The signs that show how marriage appears to others, Gemini, Cancer and Leo, lean unfavourably: "
+MARRIAGE_AGAINST = ("The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: "
                     "Rahu sits there, with no helpful planet beside.")
 TURNS = [
     ("what are the challanges in my life",
-     dict(areas=["father", "children", "gains"], direction="against", when=False, why=False, follow_up=False, carried=[],
+     dict(areas=["father", "reputation", "siblings"], direction="against", when=False, why=False, follow_up=False, carried=[],
           areas_from="weakest", off_limits=None, third_party=False),
      None),                                          # frozen in tests/test_engine_reading.py (CHALLENGES)
     ("and marriage?",

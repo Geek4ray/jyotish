@@ -93,7 +93,7 @@ def test_each_turn_is_stored_with_its_route_both_answers_removed_sentences_cost_
         rows = s.query(TurnRow).filter_by(session_id=session["id"]).order_by(TurnRow.n).all()
         assert [r.birth_key for r in rows] == [srow.birth_key] * 2 and srow.birth_key
         first = rows[0]
-        assert first.route["areas"] == ["father", "children", "gains"] and first.route["direction"] == "against"
+        assert first.route["areas"] == ["father", "reputation", "siblings"] and first.route["direction"] == "against"
         assert rows[1].route["areas"] == ["marriage"] and rows[1].route["carried"] == ["direction"]
         doc = first.document
         assert doc["source"] == "writer" and doc["engine"]["sentences"] and doc["shown"]

@@ -32,23 +32,30 @@ CAREER = [
     "The least favourable stretch runs from November 2028 to August 2029.",
     "Neither stretch is a prediction of when you will act.",
 ]
-CHALLENGES = [
+CHALLENGES = [            # the weakest areas, none leaning against on balance (review H2)
+    "No part of your chart leans against you on balance; the parts it supports least are your father, your "
+    "reputation and brothers, sisters and courage.",
     "This chart does not emphasise your father; on balance its indications lean favourably.",
     "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your "
     "rising sign, in Capricorn, is among the least supported of your twelve houses.",
     "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th "
     "house, in an unfriendly sign.",
     "The divisional chart for your father leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
-    "This chart does not emphasise children; on balance its indications lean favourably.",
-    "The planets that signify children lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, "
-    "in an unfriendly sign.",
-    "The divisional chart for children leans unfavourably; there Jupiter falls in Capricorn, debilitated, where it "
-    "is least at ease.",
-    "This chart does not emphasise your gains; on balance its indications lean favourably.",
-    "The planets that signify your gains lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, "
-    "in an unfriendly sign.",
-    "The divisional chart for your gains leans unfavourably; there Jupiter falls in Capricorn, debilitated, where "
-    "it is least at ease.",
+    "For your reputation, the chart's indications point different ways; on balance they lean favourably.",
+    "Taken together, the houses that govern your reputation lean unfavourably: the main one, the 10th house from "
+    "your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+    "The planets that signify your reputation lean unfavourably; the main one, the Sun, sits in Aquarius in your "
+    "10th house, in an unfriendly sign.",
+    "The signs that show how others see your reputation, Capricorn and Libra, lean unfavourably: the Moon sits "
+    "there, with no helpful planet beside.",
+    "For brothers, sisters and courage, the chart's indications point different ways; on balance they lean "
+    "favourably.",
+    "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon, which rules the "
+    "3rd house, sits in Libra in your 6th house, in a neutral sign.",
+    "The divisional chart for brothers, sisters and courage leans unfavourably; there the Sun falls in Libra, "
+    "debilitated, where it is least at ease.",
+    "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably: the Moon sits "
+    "there, with no helpful planet beside.",
 ]
 
 
@@ -64,7 +71,8 @@ def career(chart):
 
 @pytest.fixture(scope="module")
 def challenges(chart):
-    return engine_reading(chart, CHALLENGES_Q, "against", ["father", "children", "gains"], as_of=AS_OF)
+    return engine_reading(chart, CHALLENGES_Q, "against", ["father", "reputation", "siblings"], as_of=AS_OF,
+                          weakest=True)
 
 
 def test_the_career_answer_is_frozen(career):

@@ -455,3 +455,50 @@ def test_h5_post_sessions_is_rate_limited(tmp_path):
         assert [c.post("/sessions", json=BIRTH).status_code for _ in range(2)] == [201, 201]
         r = c.post("/sessions", json=BIRTH)
         assert r.status_code == 429 and int(r.headers["Retry-After"]) > 0
+
+
+# --- H2: "challenges" are where the chart leans against -------------------------------------------------------------
+
+def test_h2_the_weakest_areas_are_ranked_by_adverse_direction_first(charts):
+    from jyotish.conversation import weakest_areas
+    for name, chart in charts.items():
+        sc = chart.scored
+        weak = weakest_areas(chart)
+        assert len(weak) == 3 and not {"longevity", "health", "synastry"} & set(weak)
+        adverse = [n for n, a in sc.areas.items() if a.direction == "adverse" and n not in ("longevity", "health")]
+        # every adverse area comes before any area that is not
+        assert weak[:min(3, len(adverse))] == [w for w in weak if w in adverse][:3], name
+    weak = weakest_areas(charts["synthetic-3"])
+    assert weak == ["personality", "wealth", "children"]                     # the three adverse areas there
+    assert all(charts["synthetic-3"].scored.areas[w].direction == "adverse" for w in weak)
+
+
+def test_h2_when_no_area_leans_against_the_answer_says_so_and_gives_each_areas_lean(chart):
+    route = route_turn("what are the challanges in my life", chart)
+    doc = answer_turn(chart, "what are the challanges in my life", route, as_of=AS_OF, drafter=OfflineTurnWriter(),
+                      checker=passes)
+    engine = [s["text"] for s in doc["engine"]["sentences"]]
+    assert engine[0].startswith("No part of your chart leans against you on balance; the parts it supports least are")
+    for area in route.areas:                              # each area's overall lean beside what opposes it
+        assert any("on balance" in s and "lean favourably" in s for s in engine)
+    from jyotish.conversation import TURN_PROMPT
+    assert "never call a part the chart supports a challenge" in TURN_PROMPT
+
+
+def test_h2_an_adverse_area_is_named_as_leaning_against(charts):
+    chart = charts["synthetic-3"]
+    b = next(x for x in BIRTHS if x["name"] == "synthetic-3")
+    ans = engine_reading(chart, "q", "against", ["personality", "wealth", "children"], as_of=as_of(b), weakest=True)
+    assert ans.sentences[0].text == ("On balance, your chart leans against you in yourself and your temperament, "
+                                     "money and children.")
+
+
+def test_h2_the_writers_material_carries_no_tier_word(chart):
+    from jyotish.conversation import _material
+    from jyotish.narrate import TIER_WORDS
+    for message in ("what are the challanges in my life", "how is my career", "and marriage?"):
+        route = route_turn(message, chart)
+        engine = engine_reading(chart, message, route.direction, route.areas, as_of=AS_OF,
+                                weakest=route.areas_from == "weakest")
+        user = _material(chart, message, route, engine, [], AS_OF)[0]
+        assert not TIER_WORDS.search(user) and not re.search(r"strongest|weakest|strongly|moderately", user), message

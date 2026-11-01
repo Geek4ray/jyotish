@@ -2698,7 +2698,7 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
         ben = list(dict.fromkeys(b for p in padas for b in p.get("benefics", [])))
         hard = [o for o in occ if o not in ben]
         verb = "leans" if len(signs) == 1 else "lean"
-        where = f"The {'signs' if len(signs) > 1 else 'sign'} that {'show' if len(signs) > 1 else 'shows'} how {label} appears to others, {_and(signs)},"
+        where = f"The {'signs' if len(signs) > 1 else 'sign'} that {'show' if len(signs) > 1 else 'shows'} how others see {label}, {_and(signs)},"
         if vote < 0 and hard:
             text = (f"{where} {verb} {lean}: {_and([_the(p) for p in hard])} {'sits' if len(hard) == 1 else 'sit'} there"
                     + (f", against {_and([_the(p) for p in ben])}." if ben else ", with no helpful planet beside."))
@@ -2753,20 +2753,33 @@ def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first
 
 
 def engine_reading(chart: Chart, question: str, direction: str, areas: list[str], *, as_of: date,
-                   when: bool = False, data: dict | None = None) -> EngineAnswer:
+                   when: bool = False, data: dict | None = None, weakest: bool = False) -> EngineAnswer:
     """The engine's own answer to a turn (SPEC Layer 8): for each area, in order, the tier in plain words, how far
     it depends on the birth time, then the families leaning the way `direction` asks ("against": those against,
     the hard part only; "for": those for; "both": for, then against), each with the row of its derivation it rests
     on; with `when`, the most and least favourably scored stretches as months (the least first for "against").
     Deterministic: the same chart, question, direction, areas and date give the same text. No model, no figure.
     `data` is the whole-chart payload over these areas or more (a conversation's session keeps one for every area);
-    by default it is made, or taken from the cache, for these areas."""
+    by default it is made, or taken from the cache, for these areas. `weakest`: the areas are the ones a question
+    asking what is against went to with no area of its own (conversation.weakest_areas); the answer opens by saying
+    which lean against on balance, or that none does and these are the parts the chart supports least (review H2),
+    and each area's first sentence gives its overall lean beside what opposes it."""
     from .fullchart import cached_payload
     from .sheet import build
     if direction not in DIRECTIONS:
         raise ValueError(f"direction must be one of {DIRECTIONS}, not {direction!r}")
     data = data or cached_payload(chart, as_of, *full_range(as_of), list(areas))
     out: list[EngineSentence] = []
+    if weakest and areas:
+        labels = {a: CLIENT_AREA.get(a, a.replace("_", " ")) for a in areas}
+        adverse = [a for a in areas if (data["areas"].get(a) or {}).get("direction") == "adverse"]
+        notes = [n for a in areas if (sh := build(data, a)) and (n := _sheet_note(sh, 10, None, a))]
+        if adverse:
+            text = f"On balance, your chart leans against you in {_and([labels[a] for a in adverse])}."
+        else:
+            text = (f"No part of your chart leans against you on balance; the parts it supports least are "
+                    f"{_and([labels[a] for a in areas])}.")
+        out.append(EngineSentence(text=text, notes=notes))
     for area in areas:
         label = CLIENT_AREA.get(area, area.replace("_", " "))
         a = data["areas"].get(area) or {}

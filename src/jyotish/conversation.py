@@ -41,6 +41,7 @@ FOLLOW_MAX_WORDS = 6          # a message this short with no area or no directio
 NOT_DEFAULT = ("longevity", "health", "synastry")
 NOT_FOR_WEAKEST = NOT_DEFAULT
 TIER_RANK = {"not emphasised": 0, "weak / mixed": 1, "moderate": 2, "strong": 3}
+DEFAULT_AREAS = 3              # areas a question with none of its own goes to (as many as scoring's top areas)
 
 
 def _distance(a: str, b: str) -> int:
@@ -124,7 +125,7 @@ def top_areas(chart, n: int | None = None) -> list[str]:
     emphasis order) without longevity, health or synastry (NOT_DEFAULT), filled from the other emphasised areas by
     tier, then score."""
     sc = chart.scored
-    n = n or len(sc.top)
+    n = n or DEFAULT_AREAS
     out = [a for a in sc.top if a not in NOT_DEFAULT]
     rest = sorted((a for a, x in sc.areas.items() if x.emphasised and a not in NOT_DEFAULT and a not in out
                    and x.tier in TIER_RANK),
@@ -133,16 +134,19 @@ def top_areas(chart, n: int | None = None) -> list[str]:
 
 
 def weakest_areas(chart, n: int | None = None) -> list[str]:
-    """The chart's weakest areas for a question asking what is against with no area: lowest tier, then most
-    families against, then most polarity words; never longevity, health or synastry (NOT_FOR_WEAKEST)."""
+    """The areas a question asking what is against, with no area, goes to: "challenges" are where the chart leans
+    against (SPEC Layer 8, decided after the review of chat v1, H2), so the areas whose overall direction is adverse
+    first, then the most families against, then the most polarity flags (delay, intensity, volatility), then the
+    lowest tier; never longevity, health or synastry (NOT_FOR_WEAKEST). When none is adverse these are the areas
+    the chart supports least, and the engine's answer says so (narrate.engine_reading, `weakest`)."""
     sc = chart.scored
-    n = n or len(sc.top)
+    n = n or DEFAULT_AREAS
     rows = []
     for name, a in sc.areas.items():
         if name in NOT_FOR_WEAKEST or a.tier not in TIER_RANK:
             continue
         against = sum(1 for v in a.votes.values() if (getattr(v, "vote", v) or 0) < 0)
-        rows.append((TIER_RANK[a.tier], -against, -len(a.polarity), name))
+        rows.append((a.direction != "adverse", -against, -len(a.polarity), TIER_RANK[a.tier], name))
     return [r[-1] for r in sorted(rows)[:n]]
 
 
@@ -359,8 +363,9 @@ itself after your answer. The words strong, moderate, weak and mixed are the eng
 in any sense ("one of the weakest" and "difficult" are yours to use). Never write about death \
 or its timing, illness, or buying and selling investments. About another person (a parent, a partner, a child), \
 say only what this chart shows about the relationship, never what will happen to them. When the client asks why, \
-explain which findings the last answer rests on. Earlier turns are given as the client read them; do not repeat \
-them, build on them."""
+explain which findings the last answer rests on. When the engine's answer says that no part of the chart leans \
+against the client, say so plainly and never call a part the chart supports a challenge. Earlier turns are given \
+as the client read them; do not repeat them, build on them."""
 
 
 class TurnDraft(BaseModel):
@@ -515,7 +520,18 @@ def _material(chart, message: str, route: Route, engine, history: list[dict], as
             "earlier_turns": [{"question": h["question"], "answer": h["answer"]} for h in history],
             "engine_answer": [{"text": s.text, "tags": engine_tags(s, tags)} for s in engine.sentences],
             "areas": areas_out}
-    return json.dumps(body, indent=1, default=str), finding_data, tags, votes, chains
+    return no_tier_words(json.dumps(body, indent=1, default=str)), finding_data, tags, votes, chains
+
+
+# The engine's material to the writer carries no tier word (SPEC Layer 8, review H2, M5): the writer paraphrases its
+# material, and the tier words are refused in what it writes. The glossary's dignity glosses are the only source left.
+NO_TIER = (("at its strongest", "at its best"), ("at its weakest", "least at ease"))
+
+
+def no_tier_words(text: str) -> str:
+    for old, new in NO_TIER:
+        text = text.replace(old, new)
+    return text
 
 
 def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, checker, word_rules: str | None = None):
@@ -576,7 +592,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     # A "why" turn's engine answer is every family behind the last answer, for and against: the sheet's points it
     # rests on (SPEC Layer 8); the writer is still told the direction asked.
     engine = engine_reading(chart, message, "both" if route.why else route.direction, route.areas, as_of=as_of,
-                            when=route.when, data=data)
+                            when=route.when, data=data, weakest=route.areas_from == "weakest" and not route.why)
     mark("engine")
     doc["engine"] = engine.model_dump()
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})

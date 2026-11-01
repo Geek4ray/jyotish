@@ -67,11 +67,11 @@ def test_the_review_needs_a_reviewer(client, sid):
 def test_each_turn_is_listed_beside_the_engines_answer_and_the_sheet(client, sid, app):
     v = client.get(f"/sessions/{sid}/review", headers=AUTH).json()
     first, second = v["turns"]
-    assert first["route"]["areas"] == ["father", "children", "gains"] and first["source"] == "writer"
-    assert first["engine"]["sentences"][0]["text"] == ("This chart does not emphasise your father; on balance its "
+    assert first["route"]["areas"] == ["father", "reputation", "siblings"] and first["source"] == "writer"
+    assert first["engine"]["sentences"][1]["text"] == ("This chart does not emphasise your father; on balance its "
                                                          "indications lean favourably.")
     assert all(n["text"] for s in first["engine"]["sentences"] for n in s["notes"])      # footnotes quote the sheet
-    assert set(v["sheets"]) == {"father", "children", "gains"} and v["sheets"]["father"]["points"][0]["n"] == 1
+    assert set(v["sheets"]) == {"father", "reputation", "siblings"} and v["sheets"]["father"]["points"][0]["n"] == 1
     assert [u["target"] for u in first["units"]] == [f"answer:{i}" for i in range(len(first["units"]))]
     assert first["units"][1]["tagged"].endswith("[vote:father.house].")                # the tags stay the reviewer's
     assert first["removed"] == [] and second["source"] == "fixed" and second["route"]["off_limits"] == "death"
