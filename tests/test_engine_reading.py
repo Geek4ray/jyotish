@@ -44,11 +44,11 @@ CHALLENGES = [
     "in an unfriendly sign.",
     "The divisional chart for children (D7) leans unfavourably; there Jupiter falls in Capricorn, debilitated, where "
     "it is at its weakest.",
-    "This chart does not emphasise gains and friendships.",
-    "The planets that signify gains and friendships lean unfavourably; the main one, Jupiter, sits in Taurus in your "
-    "1st house, in an unfriendly sign.",
-    "The divisional chart for gains and friendships (D11) leans unfavourably; there Jupiter falls in Capricorn, "
-    "debilitated, where it is at its weakest.",
+    "This chart does not emphasise your gains.",
+    "The planets that signify your gains lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, "
+    "in an unfriendly sign.",
+    "The divisional chart for your gains (D11) leans unfavourably; there Jupiter falls in Capricorn, debilitated, "
+    "where it is at its weakest.",
 ]
 
 

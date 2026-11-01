@@ -261,13 +261,14 @@ engine's own answer, which says the same findings in plain words: use it as your
 Each sentence that states something about the chart ends with the tags of the findings it draws on, written \
 exactly as listed (for example [vote:career.house] or [rule:yoga.budhaditya]); the tags are taken off before the \
 client reads the answer, and each sentence is checked against those findings' data alone, so a sentence says only \
-what its findings state. A sentence that only speaks to the client ("Let's start with the hard part, since you \
+what its findings state and stands on its own: no "also", "too", "as well" or "again" leaning on another sentence. A sentence that only speaks to the client ("Let's start with the hard part, since you \
 asked about it.") carries no tag, says nothing about the chart and uses none of the verbs a claim uses (is, are, \
 has, shows, gives, means, will).
 
 When you weigh one finding against another, say so as "in the reading's view". Do not write about timing, \
 dates, years, months, periods, dashas, transits or windows: the engine adds the dates \
-itself after your answer. Do not state the strength tier (strong, moderate, weak, mixed). Never write about death \
+itself after your answer. The words strong, moderate, weak and mixed are the engine's tier words: never use them, \
+in any sense ("one of the weakest" and "difficult" are yours to use). Never write about death \
 or its timing, illness, or buying and selling investments. About another person (a parent, a partner, a child), \
 say only what this chart shows about the relationship, never what will happen to them. When the client asks why, \
 explain which findings the last answer rests on. Earlier turns are given as the client read them; do not repeat \
@@ -469,7 +470,10 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
         emit({"type": "done", "status": "done"})
         return doc | {"source": "fixed", "shown": [reply], "paragraphs": [0], "engine": None, "timeline": timeline,
                       "usage": {"wall_seconds": timeline["done"]}}
-    engine = engine_reading(chart, message, route.direction, route.areas, as_of=as_of, when=route.when, data=data)
+    # A "why" turn's engine answer is every family behind the last answer, for and against: the sheet's points it
+    # rests on (SPEC Layer 8); the writer is still told the direction asked.
+    engine = engine_reading(chart, message, "both" if route.why else route.direction, route.areas, as_of=as_of,
+                            when=route.when, data=data)
     mark("engine")
     doc["engine"] = engine.model_dump()
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})

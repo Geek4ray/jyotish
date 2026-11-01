@@ -2581,7 +2581,7 @@ CLIENT_AREA = {"personality": "yourself and your temperament", "wealth": "money"
                "mother_home": "home and your mother", "children": "children", "intellect": "learning and studies",
                "health": "health", "debts_enemies": "debts, rivals and disputes", "marriage": "marriage",
                "longevity": "long life", "father": "your father", "fortune": "fortune and faith", "career": "your career",
-               "gains": "gains and friendships", "foreign": "travel and life abroad", "spirituality": "spiritual life",
+               "gains": "your gains", "foreign": "travel and life abroad", "spirituality": "spiritual life",
                "mind": "your mind and feelings", "reputation": "your reputation", "synastry": "a match between two charts"}
 DIGNITY_PLAIN = {"exalted": "exalted, where it is at its strongest", "moolatrikona": "in its own sign",
                  "own": "in its own sign", "great friend": "in a very friendly sign", "friend": "in a friendly sign",
@@ -2709,7 +2709,9 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
         notes.append(_sheet_note(sheet, 7, f"areas.{area}.votes.kp.vote", area))
     elif fam == "panchanga" and rows:
         planets = list(dict.fromkeys(r["planet"] for r in rows))
-        text = f"The rulers of the day you were born, {_and([_the(p) for p in planets])}, lean {lean} for {label}."
+        text = (f"The rulers of the day you were born, {_and([_the(p) for p in planets])}, lean {lean} for {label}."
+                if len(planets) > 1 else
+                f"{_cap(_the(planets[0]))}, a ruler of the day you were born, leans {lean} for {label}.")
         notes.append(_sheet_note(sheet, 9, f"areas.{area}.votes.panchanga.derivation", area))
     else:
         return None
@@ -2722,16 +2724,17 @@ def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first
     if not ws:
         return []
     i = max(range(len(ws)), key=lambda k: ws[k]["score"])
-    best = EngineSentence(text=f"The stretch the chart scores most favourable for {label} runs "
-                               f"{_months(ws[i]['start'], ws[i]['end'])}.",
-                          notes=[n for n in [_sheet_note(sheet, 11, f"timing.{area}.windows.{i}", area)] if n])
-    out = [best]
-    if tm.get("avoid"):
-        av = tm["avoid"]
-        out.append(EngineSentence(text=f"The stretch it scores least favourable runs {_months(av['start'], av['end'])}.",
-                                  notes=[n for n in [_sheet_note(sheet, 11, f"timing.{area}.avoid", area)] if n]))
+    av = tm.get("avoid")
+    # The first sentence names the area; the second, "it": the least favourable first when the question asks
+    # what is against.
+    pieces = [("most", _months(ws[i]["start"], ws[i]["end"]), _sheet_note(sheet, 11, f"timing.{area}.windows.{i}", area))]
+    if av:
+        pieces.append(("least", _months(av["start"], av["end"]), _sheet_note(sheet, 11, f"timing.{area}.avoid", area)))
         if hard_first:
-            out.reverse()
+            pieces.reverse()
+    out = [EngineSentence(text=(f"The stretch the chart scores {kind} favourable for {label} runs {when}." if k == 0 else
+                                f"The stretch it scores {kind} favourable runs {when}."), notes=[n for n in [note] if n])
+           for k, (kind, when, note) in enumerate(pieces)]
     out.append(EngineSentence(text=("These are the chart's scores, and neither stretch is a prediction of when you will "
                                     "act." if len(out) > 1 else "This is the chart's score, not a prediction of when "
                                                                 "you will act."),

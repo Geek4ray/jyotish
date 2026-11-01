@@ -20,6 +20,15 @@ fields as a local run's), the seconds this script saw each first event arrive (`
 included), and `where` (the --where label, "fly" by default for a fly.dev host).
 
     .venv/bin/python scripts/live_timing.py --label fly-1 --url https://jyotish-ray.fly.dev
+
+With --turn MESSAGE (2026-11-01, SPEC Layer 8) one conversation turn is timed instead of a reading: the session's
+whole-chart payload is made first (`session_s`), then the turn answered (conversation.answer_turn on the backends
+named), and the row (`kind` "turn") has the seconds to the engine's own answer (`engine_s`), to the first sentence
+verified and to done, the removed share (sentences refused of those the writer wrote), the source of the answer the
+client read and the cost. With --url the turn is asked of a deployed service (POST /sessions, POST
+/sessions/{id}/turns, its live events polled) and the row has the times this script saw.
+
+    .venv/bin/python scripts/live_timing.py --label turn-1 --turn "what are the challanges in my life"
 """
 
 from __future__ import annotations
@@ -87,6 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-write", action="store_true", help="print the row only")
     ap.add_argument("--url", help="a deployed service's base URL: time a reading asked of it (no key read here)")
     ap.add_argument("--where", help="the row's `where` (default: fly for a fly.dev host, else the host)")
+    ap.add_argument("--turn", metavar="MESSAGE", help="time one conversation turn with this message, not a reading")
     ap.add_argument("--from-reading", type=Path, help="append the row of a reading already written (a comparison's "
                     "docs/comparison_<date>/<side>.reading.json), with no model call")
     args = ap.parse_args(argv)
@@ -101,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.url:
-        return remote(args)
+        return remote_turn(args) if args.turn else remote(args)
 
     from jyotish.envfile import load as load_env
     print("read from .env:", load_env(ROOT / ".env"))            # names only
@@ -111,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
                         ("JYOTISH_CHECKER_TEMPERATURE", args.checker_temperature)):
         if value is not None:
             os.environ[name] = str(value)
+    if args.turn:
+        return local_turn(args)
     from jyotish import logs
     from jyotish.costs import reading_cost
     from jyotish.narrate import CONFIG, ModelChecker, make_backend
@@ -151,6 +163,95 @@ def main(argv: list[str] | None = None) -> int:
 
 
 BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "node": "mean", "place": "Rewari, Haryana"}
+
+
+def turn_row(label: str, doc: dict, cost: dict, session_s: float | None) -> dict:
+    """One row of docs/live_timings.jsonl from a turn's document (conversation.answer_turn)."""
+    t = doc.get("timeline") or {}
+    w, c = doc.get("writer") or {}, doc.get("checker") or {}
+    written = len(doc.get("accepted") or []) + sum(1 for x in doc.get("removed") or [] if x.get("sentence"))
+    removed = sum(1 for x in doc.get("removed") or [] if x.get("sentence"))
+    return {"label": label, "kind": "turn", "date": date.today().isoformat(), "question": doc.get("question"),
+            "route": doc.get("route"), "writer": f"{w.get('model')} on {(w.get('backend') or {}).get('host')}",
+            "checker": f"{c.get('model')} on {(c.get('backend') or {}).get('host')}", "writer_effort": w.get("effort"),
+            "session_s": session_s,
+            "engine_s": t.get("engine"), "first_verified_s": t.get("first_verified"), "done_s": t.get("done"),
+            "removed": removed, "written": written, "removed_share": round(removed / written, 3) if written else None,
+            "source": doc.get("source"), "attempts": doc.get("attempts"), "warnings": len(doc.get("warnings") or []),
+            "cost_usd": cost["cost_usd"], "writer_calls": cost["writer_calls"], "checker_calls": cost["checker_calls"]}
+
+
+def local_turn(args) -> int:
+    """One conversation turn on the reference chart, on the environment's backends, timed (the module docstring)."""
+    from datetime import date as _date
+    from jyotish.conversation import answer_turn, route_turn
+    from jyotish.costs import reading_cost
+    from jyotish.fullchart import cached_payload
+    from jyotish.narrate import full_range
+    from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
+    from jyotish.scoring import AREAS
+    from jyotish.service import BirthInput, assess_birth
+    birth = BirthInput(**BIRTH, lat=REFERENCE_LAT, lon=REFERENCE_LON)
+    chart, _, _ = assess_birth(birth)
+    as_of = _date.fromisoformat(args.as_of)
+    t = time.perf_counter()
+    data = cached_payload(chart, as_of, *full_range(as_of), list(AREAS))
+    session_s = round(time.perf_counter() - t, 1)
+    route = route_turn(args.turn, chart)
+    from dataclasses import replace
+    from jyotish.narrate import CONFIG
+    config = replace(CONFIG, effort=args.writer_effort) if args.writer_effort else CONFIG
+    doc = answer_turn(chart, args.turn, route, as_of=as_of, data=data, config=config)
+    row = turn_row(args.label, doc, reading_cost(doc), session_s)
+    print(json.dumps(row, indent=2))
+    if not args.no_write:
+        out = ROOT / "docs" / f"live_{date.today().isoformat()}"
+        out.mkdir(parents=True, exist_ok=True)
+        (out / f"{args.label}.turn.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+        with ROWS.open("a") as f:
+            f.write(json.dumps(row) + "\n")
+    return 0
+
+
+def remote_turn(args) -> int:
+    """One conversation turn asked of a deployed service, timed as its events arrive (no key read here)."""
+    from urllib.parse import urlparse
+
+    import httpx
+    from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
+    base = args.url.rstrip("/")
+    host = urlparse(base).hostname or base
+    where = args.where or ("fly" if host.endswith(".fly.dev") else host)
+    seen: dict[str, float] = {}
+    with httpx.Client(timeout=120) as http:
+        t = time.perf_counter()
+        r = http.post(f"{base}/sessions", json=dict(BIRTH, lat=REFERENCE_LAT, lon=REFERENCE_LON, as_of=args.as_of))
+        r.raise_for_status()
+        sid = r.json()["id"]
+        seen["session_s"] = round(time.perf_counter() - t, 1)
+        started = time.perf_counter()
+        n = http.post(f"{base}/sessions/{sid}/turns", json={"message": args.turn}).json()["n"]
+        since = 0
+        while True:
+            live = http.get(f"{base}/sessions/{sid}/turns/{n}/live", params={"since": since}).json()
+            now = round(time.perf_counter() - started, 1)
+            since = live["version"]
+            for e in live["events"]:
+                if e.get("type") == "text":
+                    seen.setdefault("first_text_s", now)
+            if live["done"]:
+                break
+            time.sleep(0.5)
+        seen["done_s"] = round(time.perf_counter() - started, 1)
+        turn = http.get(f"{base}/sessions/{sid}/turns/{n}").json()
+    row = {"label": args.label, "kind": "turn", "date": date.today().isoformat(), "question": args.turn,
+           "where": where, "url": base, "session_id": sid, "status": turn.get("status"),
+           "sentences_shown": len(turn.get("answer") or []), "client_timeline": seen}
+    print(json.dumps(row, indent=2))
+    if not args.no_write:
+        with ROWS.open("a") as f:
+            f.write(json.dumps(row) + "\n")
+    return 0 if turn.get("status") == "done" else 1
 
 
 def remote(args) -> int:

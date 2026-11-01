@@ -1,0 +1,468 @@
+{
+  "question": "what are the challanges in my life",
+  "route": {
+    "areas": [
+      "father",
+      "children",
+      "gains"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "follow_up": false,
+    "carried": [],
+    "areas_from": "weakest",
+    "off_limits": null
+  },
+  "as_of": "2026-11-01",
+  "removed": [
+    {
+      "sentence": "The house that represents your father is weak, with the 9th house in Capricorn being one of the weakest of your twelve houses. [vote:father.house]",
+      "reasons": [
+        "tier language ('weak') in the answer; the engine states the tier: 'The house that represents your father is weak, with the 9th house in Capricorn being one of the weakest of your twelve houses. [vote:father.house]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The planet that represents gains and friendships, Jupiter, is placed in Taurus in the 1st house, an unfriendly sign for that function. [vote:gains.karaka]",
+      "reasons": [
+        "the checker found it unsupported: Jupiter is the planet that represents friendships (the data concerns gains only; nothing states friendships)"
+      ],
+      "attempt": 1
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "The main significator for children, Jupiter, sits in Taurus in your 1st house, an unfriendly sign for that purpose. [vote:children.karaka]",
+      "findings": [
+        "vote:children.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Jupiter is the significator (karaka) for children",
+            "supported": true,
+            "evidence": "The finding vote:children.karaka is a karaka vote whose derivation features Jupiter as the planet considered for this area."
+          },
+          {
+            "text": "Jupiter sits in Taurus",
+            "supported": true,
+            "evidence": "Derivation row: planet Jupiter, sign Taurus."
+          },
+          {
+            "text": "Jupiter is in the 1st house (the client's, from the lagna)",
+            "supported": true,
+            "evidence": "Derivation row: planet Jupiter, basis lagna, house 1."
+          },
+          {
+            "text": "Taurus is an unfriendly (enemy) sign for Jupiter",
+            "supported": true,
+            "evidence": "Derivation row: planet Jupiter, dignity 'enemy'."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for children shows Jupiter in Capricorn, a debilitated position, weakening that area. [vote:children.varga]",
+      "findings": [
+        "vote:children.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The divisional chart for children shows Jupiter in Capricorn",
+            "supported": true,
+            "evidence": "The finding's derivation lists Jupiter with varga D7 and varga_sign Capricorn; D7 is the divisional chart read for children, and the finding's area is children."
+          },
+          {
+            "text": "Jupiter in Capricorn is a debilitated position (the appositive 'a debilitated position' attaches to Jupiter's placement in Capricorn)",
+            "supported": true,
+            "evidence": "The derivation row for Jupiter gives varga_dignity_label 'debilitated' (varga_dignity -2.0) for its D7 sign Capricorn, matching the glossary's entry for 'debilitated'."
+          },
+          {
+            "text": "This debilitation weakens the children area",
+            "supported": true,
+            "evidence": "The finding is a vote with direction 'against' for the children area on the varga basis, and Jupiter's row carries a negative signed value (-1.0) for its debilitated placement; the sentence's 'weakening that area' is the generic framing of that against-direction on the varga family."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for your father also leans unfavourably, with Mars placed in Gemini, an unfriendly sign. [vote:father.varga]",
+      "findings": [
+        "vote:father.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The divisional chart used for the father (the varga component of the father vote, D12) leans unfavourably — votes against",
+            "supported": true,
+            "evidence": "The cited finding vote:father.varga is the varga vote for the father area, with direction \"against\" and verdict.varga \"against\""
+          },
+          {
+            "text": "Other components of the father reading also lean unfavourably (the \"also\")",
+            "supported": true,
+            "evidence": "The same finding's verdict lists house \"against\" and karaka \"against\" alongside varga \"against\""
+          },
+          {
+            "text": "Mars is placed in Gemini in that divisional chart (D12)",
+            "supported": true,
+            "evidence": "Derivation row for Mars: varga \"D12\", varga_sign \"Gemini\""
+          },
+          {
+            "text": "Gemini is an unfriendly sign for Mars there",
+            "supported": true,
+            "evidence": "Same row: varga_dignity_label \"enemy\" (Mars in an enemy's sign), varga_dignity -0.5"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The planet that signifies your father, the Sun, sits in Aquarius, an unfriendly sign for that role. [vote:father.karaka]",
+      "findings": [
+        "vote:father.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The Sun is the planet that signifies your father (the father's karaka)",
+            "supported": true,
+            "evidence": "The finding vote:father.karaka is a karaka vote for the father area, and its derivation evaluates the Sun as the karaka (its first derivation row, with sign, house and dignity for that evaluation)."
+          },
+          {
+            "text": "The Sun sits in Aquarius",
+            "supported": true,
+            "evidence": "Derivation row for the Sun: sign 'Aquarius' (house 10 from lagna)."
+          },
+          {
+            "text": "Aquarius is an unfriendly sign for that role (the Sun as father's significator)",
+            "supported": true,
+            "evidence": "Derivation row for the Sun: dignity 'enemy' in Aquarius, which is the Sun's unfriendly placement there; the sentence's 'for that role' attaches this to the Sun's standing as father karaka, which is how the finding reads the dignity in this karaka vote."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "In the divisional chart for gains, Jupiter is in Capricorn, a debilitated sign, reducing the strength of gains. [vote:gains.varga]",
+      "findings": [
+        "vote:gains.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The divisional chart discussed here is read for the area of gains",
+            "supported": true,
+            "evidence": "the finding is the varga-family vote for the gains area (D11 rows, verdict varga: against)"
+          },
+          {
+            "text": "Jupiter is placed in Capricorn in that divisional chart",
+            "supported": true,
+            "evidence": "derivation row: planet Jupiter, varga D11, varga_sign Capricorn"
+          },
+          {
+            "text": "Capricorn is for Jupiter a debilitated sign",
+            "supported": true,
+            "evidence": "same row: varga_dignity_label \"debilitated\", varga_dignity -2.0; glossary defines debilitated as the debilitation sign where the planet is weakest"
+          },
+          {
+            "text": "This reduces the strength of gains",
+            "supported": true,
+            "evidence": "the varga vote's direction is \"against\" in the gains area, and Jupiter's debilitation row carries the negative signed score (-1.0) contributing to it"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The planet that represents gains and friendships, Jupiter, is placed in Taurus in the 1st house, an unfriendly sign for that function. [vote:gains.karaka]",
+      "findings": [
+        "vote:gains.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Jupiter is the planet that represents gains (the karaka for gains)",
+            "supported": true,
+            "evidence": "the finding is a karaka vote for gains (vote:gains.karaka) whose derivation names Jupiter as the planet tested on that basis"
+          },
+          {
+            "text": "Jupiter is the planet that represents friendships",
+            "supported": false,
+            "evidence": "the data concerns gains only; nothing states friendships"
+          },
+          {
+            "text": "Jupiter is placed in Taurus",
+            "supported": true,
+            "evidence": "derivation: sign \"Taurus\""
+          },
+          {
+            "text": "Jupiter is placed in the 1st house",
+            "supported": true,
+            "evidence": "derivation: house 1"
+          },
+          {
+            "text": "Taurus is an unfriendly sign for that function (Jupiter as significator)",
+            "supported": true,
+            "evidence": "derivation: dignity \"enemy\""
+          }
+        ]
+      },
+      "attempt": 1
+    }
+  ],
+  "writer": {
+    "model": "openai/gpt-oss-120b",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "openai/gpt-oss-120b",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 1,
+      "input_tokens": 28611,
+      "output_tokens": 1137,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 20.837
+    },
+    "checker": {
+      "calls": 6,
+      "input_tokens": 8951,
+      "output_tokens": 4618,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 59.995
+    },
+    "wall_seconds": 32.471
+  },
+  "engine": {
+    "question": "what are the challanges in my life",
+    "direction": "against",
+    "areas": [
+      "father",
+      "children",
+      "gains"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "This chart does not emphasise your father.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "father",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your rising sign, in Capricorn, is one of the weakest of your twelve houses.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "house",
+            "text": "against — 9th Capricorn, 4.62 rupas, relative -0.97"
+          },
+          {
+            "area": "father",
+            "point": 1,
+            "item": 0,
+            "text": "9th from the lagna: Capricorn, lord Saturn, empty; Bhava Bala (house strength) 4.62 rupas (units of 60 virupas), rank 11 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for your father (D12) leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D12: Mars enemy (-0.25), Saturn friend (+0.25)"
+          },
+          {
+            "area": "father",
+            "point": 5,
+            "item": 0,
+            "text": "D12 (dwadasamsa): Sun Capricorn enemy; Moon Libra neutral; Mars Gemini enemy; Mercury Aquarius neutral; Jupiter Virgo enemy; Venus Sagittarius neutral; Saturn Taurus friend; Rahu Capricorn; Ketu Cancer."
+          }
+        ]
+      },
+      {
+        "text": "This chart does not emphasise children.",
+        "notes": [
+          {
+            "area": "children",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "children",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify children lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "children",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "children",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for children (D7) leans unfavourably; there Jupiter falls in Capricorn, debilitated, where it is at its weakest.",
+        "notes": [
+          {
+            "area": "children",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D7: Jupiter debilitated (-1.00), Sun own (+0.50)"
+          },
+          {
+            "area": "children",
+            "point": 5,
+            "item": 0,
+            "text": "D7 (saptamsa): Sun Leo own; Moon Libra neutral; Mars Virgo enemy; Mercury Aquarius neutral; Jupiter Capricorn debilitated; Venus Aquarius friend; Saturn Scorpio enemy; Rahu Libra; Ketu Aries."
+          }
+        ]
+      },
+      {
+        "text": "This chart does not emphasise gains and friendships.",
+        "notes": [
+          {
+            "area": "gains",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "gains",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify gains and friendships lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "gains",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "gains",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for gains and friendships (D11) leans unfavourably; there Jupiter falls in Capricorn, debilitated, where it is at its weakest.",
+        "notes": [
+          {
+            "area": "gains",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D11: Jupiter debilitated (-1.00), Saturn debilitated (-1.00)"
+          },
+          {
+            "area": "gains",
+            "point": 5,
+            "item": 0,
+            "text": "D11 (rudramsa): Sun Pisces friend; Moon Virgo friend; Mars Aries own; Mercury Capricorn neutral; Jupiter Capricorn debilitated; Venus Gemini friend; Saturn Aries debilitated; Rahu Scorpio; Ketu Taurus."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "writer",
+  "shown": [
+    "The planet that signifies your father, the Sun, sits in Aquarius, an unfriendly sign for that role.",
+    "The divisional chart for your father also leans unfavourably, with Mars placed in Gemini, an unfriendly sign.",
+    "The main significator for children, Jupiter, sits in Taurus in your 1st house, an unfriendly sign for that purpose.",
+    "The divisional chart for children shows Jupiter in Capricorn, a debilitated position, weakening that area.",
+    "In the divisional chart for gains, Jupiter is in Capricorn, a debilitated sign, reducing the strength of gains."
+  ],
+  "paragraphs": [
+    0
+  ],
+  "accepted": [
+    "The planet that signifies your father, the Sun, sits in Aquarius, an unfriendly sign for that role. [vote:father.karaka]",
+    "The divisional chart for your father also leans unfavourably, with Mars placed in Gemini, an unfriendly sign. [vote:father.varga]",
+    "The main significator for children, Jupiter, sits in Taurus in your 1st house, an unfriendly sign for that purpose. [vote:children.karaka]",
+    "The divisional chart for children shows Jupiter in Capricorn, a debilitated position, weakening that area. [vote:children.varga]",
+    "In the divisional chart for gains, Jupiter is in Capricorn, a debilitated sign, reducing the strength of gains. [vote:gains.varga]"
+  ],
+  "attempts": 1,
+  "timeline": {
+    "engine": 0.002,
+    "written": 20.965,
+    "first_verified": 31.202,
+    "done": 32.471
+  },
+  "word_rules": "warn"
+}

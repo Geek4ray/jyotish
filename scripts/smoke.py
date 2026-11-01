@@ -7,8 +7,10 @@
 Against a running service started with JYOTISH_MODEL_FIXTURE (a recorded narration replayed, no model
 called): /health reports a migrated database and the replay; a reading of the reference chart is
 posted and runs to done; its review page opens in Chromium (Playwright), takes the token, walks the
-three intro screens and answers the first question, and the server holds the answer. Exits 0 when
-all of that held, 1 with what did not."""
+three intro screens and answers the first question, and the server holds the answer. Then the conversation
+(SPEC Layer 8): a session of the same birth shows its check line, a question is answered on /chat.html in the
+browser with no citation on screen, and the session's review lists the turn beside the engine's own answer. Exits
+0 when all of that held, 1 with what did not."""
 
 from __future__ import annotations
 
@@ -70,6 +72,28 @@ def main(argv=None) -> int:
     view = httpx.get(f"{url}/readings/{rid}/review", headers={"Authorization": f"Bearer {args.token}"}, timeout=10).json()
     answers = [(a["step"], a["area"], a["answer"]) for a in view["answers"]]
     check(("match", "career", "agree") in answers, f"the server holds the answer: {answers}")
+
+    # The conversation: birth data once, a question answered on the page, the turn on the review.
+    birth = {k: v for k, v in BODY.items() if k not in ("question", "depth")}
+    s = httpx.post(f"{url}/sessions", json=birth, timeout=60).json()
+    check(s.get("check", {}).get("words") == "Taurus rising · Moon in Libra, Chitra", f"session check line: {s.get('check')}")
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        page.goto(f"{url}/chat.html?s={s['id']}")
+        page.wait_for_selector("#check-line:not([hidden])")
+        page.fill("#message", "what are the challanges in my life")
+        page.press("#message", "Enter")
+        page.wait_for_function("document.querySelector('#wheel').classList.contains('settled') && "
+                               "!document.querySelector('.turn .writing')", timeout=args.timeout * 1000)
+        text = page.inner_text(".turn .answer")
+        browser.close()
+    check(bool(text.strip()) and "[vote:" not in text and "[rule:" not in text, f"the chat answers in plain text: {text[:80]!r}")
+    review = httpx.get(f"{url}/sessions/{s['id']}/review", headers={"Authorization": f"Bearer {args.token}"},
+                       timeout=60).json()
+    turn = (review.get("turns") or [{}])[0]
+    check(turn.get("route", {}).get("direction") == "against" and bool((turn.get("engine") or {}).get("sentences")),
+          f"the session's review lists the turn with the engine's answer: {turn.get('route')}")
     print("smoke test passed")
     return 0
 

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "commit": "1052a92",
+  "commit": "57a33b2",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.3763,
+      "value": 0.2778,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.5469,
+      "value": 0.4348,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -788,6 +788,186 @@
       "unit": "",
       "gate": false
     },
+    "turn.turn-challenges-1.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-1.first_verified_s": {
+      "value": 31.202,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-1.removed_share": {
+      "value": 0.286,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-1.done_s": {
+      "value": 32.471,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-1.cost_usd": {
+      "value": 0.004904,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-2.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-2.first_verified_s": {
+      "value": 22.939,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-2.removed_share": {
+      "value": 0.429,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-2.done_s": {
+      "value": 39.793,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-2.cost_usd": {
+      "value": 0.005306,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-3.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-3.first_verified_s": {
+      "value": 36.108,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-3.removed_share": {
+      "value": 0.429,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-3.done_s": {
+      "value": 38.391,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-3.cost_usd": {
+      "value": 0.005673,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-1.engine_s": {
+      "value": 0.695,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-1.first_verified_s": {
+      "value": 9.839,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-1.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-1.done_s": {
+      "value": 14.541,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-1.cost_usd": {
+      "value": 0.002962,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-2.engine_s": {
+      "value": 0.724,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-2.first_verified_s": {
+      "value": 22.017,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-2.removed_share": {
+      "value": 0.625,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-2.done_s": {
+      "value": 25.493,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.turn-challenges-low-2.cost_usd": {
+      "value": 0.003505,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.median.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.median.first_verified_s": {
+      "value": 22.939,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.median.removed_share": {
+      "value": 0.429,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.median.done_s": {
+      "value": 32.471,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.median.cost_usd": {
+      "value": 0.004904,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
     "paragraph.complete": {
       "value": 4,
       "better": "higher",
@@ -948,6 +1128,6 @@
   "skips": [
     "metamorphic: tests/test_metamorphic.py:189: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
     "metamorphic: tests/test_metamorphic.py:206: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
-    "checker benchmark: tests/test_checker_bench.py:115: set JYOTISH_LIVE_NARRATION=1 to call the API"
+    "checker benchmark: tests/test_checker_bench.py:129: set JYOTISH_LIVE_NARRATION=1 to call the API"
   ]
 }

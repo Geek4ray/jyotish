@@ -16,7 +16,7 @@ wording is allowed. Keep that posture in code comments, CLI output and any UI co
 - `src/jyotish/` — the engine. `chart.analyse` builds the chart object from sidereal
   longitudes (no ephemeris needed); `chart.compute` goes from birth data via Swiss
   Ephemeris. One module per concern: `vargas`, `nakshatra`, `dignity`, `dispositors`,
-  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `client` (depth full's client's layer), `sheet` (the astrologer's technical sheet, engine-written), `page` (the reading's Markdown page), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
+  `jaimini`, `dasha`, `panchanga`, `ashtakavarga`, `shadbala`, `rules`, `transits`, `houses`, `bhava_bala`, `vimsopaka`, `argala`, `scoring`, `timing`, `narrate`, `fullchart` (the whole chart for depth full, by path), `client` (depth full's client's layer), `sheet` (the astrologer's technical sheet, engine-written), `page` (the reading's Markdown page), `conversation` (Layer 8: routing, off-limits replies, a turn's answer), `service` (the read pipeline), `api` (the web service), `db` (every table, `migrate()`, tokens), `migrations` (Alembic), `costs` (the price table), `logs` (JSON lines, no birth data), `cache`, `ephemeris`, `uncertainty`, `models` (pydantic schema).
 - `src/jyotish/reference.py` — the reference chart from the SPEC worked example, with its
   birth data (2001-03-12 10:10:25 IST, Rewari, Haryana), used with the owner's consent.
   Every feature you build must be exercised on this chart first.
@@ -325,4 +325,28 @@ an engine summary's client words; GET fills them for older readings; the lordshi
 the replay compares paragraphs; the scorecard reports the paragraph policy (`paragraph.*`, from the latest curious
 comparison). DoD 8 (a person trying the client's face) is still open. `scripts/live_timing.py --url` times a deployed service (rows marked
 `where`; docs/models.md has the Fly medians); docs/comparison_2026-10-31.md re-measures the writer.
+The conversation, chat v1 (2026-11-01; SPEC Layer 8 rev 128, docs/spec_notes_2026-11-01.md). `narrate.engine_reading`
+is the engine's own answer to a turn: no model, deterministic, plain words, no figure, each sentence's notes into the
+area's sheet (frozen on the reference chart in tests/test_engine_reading.py). `conversation.py` routes a message by
+keyword, tolerant of spelling (`route_turn`: areas, direction against/for/both, when, why, follow-ups carrying the last
+turn, the weakest areas for an "against" question with no area, never longevity, health or synastry) and refuses off
+limits before any model call with a fixed reply logged by kind (distress first, with a helpline; death; illness; a
+trade; another person; a minor beyond the general areas); `answer_turn` writes the turn: the engine's answer, then the
+writer (`TURN_PROMPT`, a warm plain voice) streamed, every sentence validated and checked as it closes and shown only
+once passed, tags off; the engine's answer is the client's only when no writer sentence passes; a "when" turn's dates
+are the engine's. `POST /sessions` (birth data once, the check line, the whole-chart payload kept), `POST
+/sessions/{id}/turns`, `GET /sessions/{id}/turns/{n}/events` (SSE, the `sse` helper shared with readings); tables
+`sessions` and `turns` (Alembic 0004; the ledger keyed by a reading's or a turn's id, `kind`), the turn's document
+holding the route, both answers, removed sentences with reasons, warnings, checks, usage and timeline; erasure removes
+them. The client's-word rules (CLIENT_WORDS, CLIENT_PLAIN, the same-sentence gloss, "I", a held paragraph's pronoun
+opener) are warnings everywhere (`client.WORD_RULES = "warn"`; "refuse" the rule before, still tested), kept on the
+reading (`Reading.word_warnings`) and the turn and logged by count; docs/word_rules_2026-11-01.md
+(`checker_bench.py --word-rules`) has what that keeps. `web/chat.html` (`js/chat.js`, `css/chat.css`, the Tatva canvas's
+look) is the conversation only, the chart wheel lighting what each sentence rests on; `/review/sessions/{id}`
+(`review-session.html`) lists the turns beside the sheet and the engine's answer, a reviewer's rewrite held to the
+turn's checks and stored as a reviews row with `turn_id` (Alembic 0005); `jyotish export-reviews` writes turns.jsonl. A
+replay (`model_fixture`) answers turns with `conversation.OfflineTurnWriter`, unchecked and said so on the review page.
+Tests: tests/test_conversation.py (the five turns), test_conversation_route.py, test_sessions.py,
+test_session_review.py, test_web_chat.py (Playwright); scripts/smoke.py asks a turn; `scripts/live_timing.py --turn`
+times one into docs/live_timings.jsonl, and the scorecard reports the turn numbers (never gated).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

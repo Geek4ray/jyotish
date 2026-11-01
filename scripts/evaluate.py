@@ -12,7 +12,8 @@ It runs, in order:
   4. the offline part of the checker benchmark (scripts/checker_bench.py: the validator alone) and
      its tests;
   5. the placement generator check (scripts/make_placements.py --check);
-  6. the synthetic validation runs (scripts/synthetic_cohort.py, scripts/validate.py): a planted and a
+  6. the live timings of readings and of conversation turns (docs/live_timings.jsonl), reported only;
+  7. the synthetic validation runs (scripts/synthetic_cohort.py, scripts/validate.py): a planted and a
      null cohort at N = 2,000 and 20,000 (--quick: 2,000 only), each written to
      docs/validation_synthetic_<mode>_<n>.md, with what was recovered against what was planted.
 Every number carries its direction (higher or lower is better, or informational) and whether it
@@ -202,6 +203,7 @@ def live_timings(card: Card):
     never gated, since each is one live run on a shared provider."""
     path = DOCS / "live_timings.jsonl"
     rows = [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
+    rows = [r for r in rows if r.get("kind") != "turn"]                 # a conversation's turns: turn_timings
     if not rows:
         card.skip("live timings", "no row in docs/live_timings.jsonl; run scripts/live_timing.py")
         return
@@ -230,6 +232,37 @@ def live_timings(card: Card):
     card.sections.append(("Live narration timings (reported, not gated)", [
         "One live reading per stack on the reference chart (docs/live_timings.jsonl; docs/models.md, \"Timing\"). "
         "Each is a single run on a shared provider, so it is reported and never gated.", ""] + lines))
+
+
+def turn_timings(card: Card):
+    """A conversation's turns (SPEC Layer 8, 2026-11-01): from the turn rows of docs/live_timings.jsonl
+    (scripts/live_timing.py --turn), per turn the engine's seconds to its own answer, the writer's first verified
+    sentence and the removed share, and their medians over the local turns. Reported, never gated: each is one live
+    run on a shared provider."""
+    import statistics
+    path = DOCS / "live_timings.jsonl"
+    rows = [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
+    turns = [r for r in rows if r.get("kind") == "turn" and not r.get("where")]
+    if not turns:
+        card.skip("turn timings", "no turn row in docs/live_timings.jsonl; run scripts/live_timing.py --turn")
+        return
+    keys = ("engine_s", "first_verified_s", "removed_share", "done_s", "cost_usd")
+    lines = []
+    for r in turns:
+        for k in keys:
+            if r.get(k) is not None:
+                card.num(f"turn.{r['label']}.{k}", r[k], "lower", gate=False)
+        lines.append(f"- {r['label']} ({r['date']}; {r['writer']}, {r['checker']}): \"{r['question']}\", engine "
+                     f"{r['engine_s']} s, first verified {r['first_verified_s']} s, done {r['done_s']} s; "
+                     f"{r['removed']} of {r['written']} sentences removed; answer from the {r['source']}; USD {r['cost_usd']}.")
+    for k in keys:
+        vals = [r[k] for r in turns if r.get(k) is not None]
+        if vals:
+            card.num(f"turn.median.{k}", statistics.median(vals), "lower", gate=False)
+    card.sections.append(("Conversation turns (reported, not gated)", [
+        "Live turns of the reference chart (docs/live_timings.jsonl, scripts/live_timing.py --turn): the engine's "
+        "seconds to its own answer, the writer's first verified sentence, and the share of the writer's sentences "
+        "removed by the checks. Each is one run on a shared provider, so it is reported and never gated.", ""] + lines))
 
 
 def paragraph_policy(card: Card):
@@ -394,7 +427,8 @@ def main(argv=None) -> int:
     ap.add_argument("--quick", action="store_true", help="synthetic runs at N = 2,000 only")
     a = ap.parse_args(argv)
     card = Card()
-    for step in (reference, crosscheck, metamorphic, checker, placements_check, live_timings, paragraph_policy):
+    for step in (reference, crosscheck, metamorphic, checker, placements_check, live_timings, turn_timings,
+                 paragraph_policy):
         t = time.time()
         step(card)
         print(f"{step.__name__}: {time.time() - t:.0f} s", flush=True)                 # progress, for a CI log

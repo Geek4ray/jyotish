@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-01 at commit `1052a92` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-01 at commit `57a33b2` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -8,7 +8,7 @@ Run 2026-11-01 at commit `1052a92` by `scripts/evaluate.py`. CI fails when any g
 
 ## Phase 0 cross-check
 
-1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 8 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
+1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 12 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
 
 ## Metamorphic tests
 
@@ -16,7 +16,7 @@ Run 2026-11-01 at commit `1052a92` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-157 rows; the validator alone: precision 1.000, recall 0.376, F1 0.547; 27 of 27 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+157 rows; the validator alone: precision 1.000, recall 0.278, F1 0.435; 23 of 23 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -39,16 +39,26 @@ One live reading per stack on the reference chart (docs/live_timings.jsonl; docs
 - compare-2026-10-31-b (2026-10-31; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com, concurrency None): instant page 0.865 s, first sentence 50.603 s, first verified 52.636 s, first area 147.799 s, done 492.992 s; USD 0.03687; 36 claims, 1 gaps.
 - Median of the 3 readings on fly: instant_s 3.296, first_sentence_s 45.03, first_verified_s 48.768, first_area_s 77.593, done_s 330.469, cost_usd 0.029619, gaps 0.
 
+## Conversation turns (reported, not gated)
+
+Live turns of the reference chart (docs/live_timings.jsonl, scripts/live_timing.py --turn): the engine's seconds to its own answer, the writer's first verified sentence, and the share of the writer's sentences removed by the checks. Each is one run on a shared provider, so it is reported and never gated.
+
+- turn-challenges-1 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.002 s, first verified 31.202 s, done 32.471 s; 2 of 7 sentences removed; answer from the writer; USD 0.004904.
+- turn-challenges-2 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.002 s, first verified 22.939 s, done 39.793 s; 3 of 7 sentences removed; answer from the writer; USD 0.005306.
+- turn-challenges-3 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.002 s, first verified 36.108 s, done 38.391 s; 3 of 7 sentences removed; answer from the writer; USD 0.005673.
+- turn-challenges-low-1 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.695 s, first verified 9.839 s, done 14.541 s; 0 of 3 sentences removed; answer from the writer; USD 0.002962.
+- turn-challenges-low-2 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.724 s, first verified 22.017 s, done 25.493 s; 5 of 8 sentences removed; answer from the writer; USD 0.003505.
+
 ## The paragraph held sentence by sentence (reported, not gated)
 
 From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run per side): 4 complete, 2 held in part, 0 none; the writer's rounds per area, mean 3.00; sentences held at each attempt: attempt 1 9, attempt 2 6, attempt 3 7; ended early with attempts unused: 0. The latest comparison at curious depth is read; a later one replaces it.
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 25 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 9 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 240 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 99 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 60 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 16 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 371 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 177 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -94,8 +104,8 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `metamorphic.seed_agreement.synthetic-3` | 1.0 |  | higher | no |
 | `metamorphic.changed_at_one_minute.synthetic-3` | 2 |  | informational | no |
 | `checker.validator.precision` | 1.0 |  | higher | no |
-| `checker.validator.recall` | 0.3763 |  | higher | no |
-| `checker.validator.f1` | 0.5469 |  | higher | no |
+| `checker.validator.recall` | 0.2778 |  | higher | no |
+| `checker.validator.f1` | 0.4348 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
 | `checker.bench_rows` | 157 |  | informational | no |
@@ -187,6 +197,36 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `live.fly_median.done_s` | 330.469 |  | lower | no |
 | `live.fly_median.cost_usd` | 0.029619 |  | lower | no |
 | `live.fly_median.gaps` | 0 |  | lower | no |
+| `turn.turn-challenges-1.engine_s` | 0.002 |  | lower | no |
+| `turn.turn-challenges-1.first_verified_s` | 31.202 |  | lower | no |
+| `turn.turn-challenges-1.removed_share` | 0.286 |  | lower | no |
+| `turn.turn-challenges-1.done_s` | 32.471 |  | lower | no |
+| `turn.turn-challenges-1.cost_usd` | 0.004904 |  | lower | no |
+| `turn.turn-challenges-2.engine_s` | 0.002 |  | lower | no |
+| `turn.turn-challenges-2.first_verified_s` | 22.939 |  | lower | no |
+| `turn.turn-challenges-2.removed_share` | 0.429 |  | lower | no |
+| `turn.turn-challenges-2.done_s` | 39.793 |  | lower | no |
+| `turn.turn-challenges-2.cost_usd` | 0.005306 |  | lower | no |
+| `turn.turn-challenges-3.engine_s` | 0.002 |  | lower | no |
+| `turn.turn-challenges-3.first_verified_s` | 36.108 |  | lower | no |
+| `turn.turn-challenges-3.removed_share` | 0.429 |  | lower | no |
+| `turn.turn-challenges-3.done_s` | 38.391 |  | lower | no |
+| `turn.turn-challenges-3.cost_usd` | 0.005673 |  | lower | no |
+| `turn.turn-challenges-low-1.engine_s` | 0.695 |  | lower | no |
+| `turn.turn-challenges-low-1.first_verified_s` | 9.839 |  | lower | no |
+| `turn.turn-challenges-low-1.removed_share` | 0.0 |  | lower | no |
+| `turn.turn-challenges-low-1.done_s` | 14.541 |  | lower | no |
+| `turn.turn-challenges-low-1.cost_usd` | 0.002962 |  | lower | no |
+| `turn.turn-challenges-low-2.engine_s` | 0.724 |  | lower | no |
+| `turn.turn-challenges-low-2.first_verified_s` | 22.017 |  | lower | no |
+| `turn.turn-challenges-low-2.removed_share` | 0.625 |  | lower | no |
+| `turn.turn-challenges-low-2.done_s` | 25.493 |  | lower | no |
+| `turn.turn-challenges-low-2.cost_usd` | 0.003505 |  | lower | no |
+| `turn.median.engine_s` | 0.002 |  | lower | no |
+| `turn.median.first_verified_s` | 22.939 |  | lower | no |
+| `turn.median.removed_share` | 0.429 |  | lower | no |
+| `turn.median.done_s` | 32.471 |  | lower | no |
+| `turn.median.cost_usd` | 0.004904 |  | lower | no |
 | `paragraph.complete` | 4 |  | higher | no |
 | `paragraph.partial` | 2 |  | lower | no |
 | `paragraph.none` | 0 |  | lower | no |
@@ -218,5 +258,5 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 
 - metamorphic: tests/test_metamorphic.py:189: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API
 - metamorphic: tests/test_metamorphic.py:206: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API
-- checker benchmark: tests/test_checker_bench.py:115: set JYOTISH_LIVE_NARRATION=1 to call the API
+- checker benchmark: tests/test_checker_bench.py:129: set JYOTISH_LIVE_NARRATION=1 to call the API
 

@@ -1,0 +1,350 @@
+{
+  "question": "what are the challanges in my life",
+  "route": {
+    "areas": [
+      "father",
+      "children",
+      "gains"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "follow_up": false,
+    "carried": [],
+    "areas_from": "weakest",
+    "off_limits": null
+  },
+  "as_of": "2026-11-01",
+  "removed": [],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "The father area shows difficulty in the house position, the main significator and the divisional chart. [vote:father.house] [vote:father.karaka] [vote:father.varga]",
+      "findings": [
+        "vote:father.house",
+        "vote:father.karaka",
+        "vote:father.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The father area shows difficulty in its house position (the house vote is against)",
+            "supported": true,
+            "evidence": "finding vote:father.house states direction: against, family: house, for the father area"
+          },
+          {
+            "text": "The father area shows difficulty in its main significator (the karaka vote is against)",
+            "supported": true,
+            "evidence": "finding vote:father.karaka states direction: against, family: karaka, for the father area"
+          },
+          {
+            "text": "The father area shows difficulty in its divisional chart (the varga vote is against)",
+            "supported": true,
+            "evidence": "finding vote:father.varga states direction: against, family: varga, for the father area"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The children area is challenged by the main significator and the divisional chart. [vote:children.karaka] [vote:children.varga]",
+      "findings": [
+        "vote:children.karaka",
+        "vote:children.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The children area is challenged (the verdict runs against it) by the karaka, the main significator",
+            "supported": true,
+            "evidence": "vote:children.karaka has direction \"against\"; its area_votes verdict also lists \"karaka\": \"against\". \"Main significator\" matches the glossary entry for \"karaka\": the planet that naturally stands for a matter."
+          },
+          {
+            "text": "The children area is challenged (the verdict runs against it) by the divisional chart (varga)",
+            "supported": true,
+            "evidence": "vote:children.varga has direction \"against\"; its area_votes verdict also lists \"varga\": \"against\". \"Divisional chart\" matches the glossary entry for \"varga\"."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The gains area faces challenges from the main significator and the divisional chart. [vote:gains.karaka] [vote:gains.varga]",
+      "findings": [
+        "vote:gains.karaka",
+        "vote:gains.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The area being read is the gains area",
+            "supported": true,
+            "evidence": "the two cited vote findings are titled vote:gains.karaka and vote:gains.varga, i.e. votes about the gains area"
+          },
+          {
+            "text": "The karaka vote on gains is against",
+            "supported": true,
+            "evidence": "vote:gains.karaka has direction \"against\" and area_votes.verdict.karaka \"against\" (also family \"karaka\", so it is the karaka/significator vote)"
+          },
+          {
+            "text": "The divisional chart (varga) vote on gains is against",
+            "supported": true,
+            "evidence": "vote:gains.varga has direction \"against\" and area_votes.verdict.varga \"against\" (also family \"varga\", so it is the divisional-chart vote)"
+          },
+          {
+            "text": "\"the main significator\" and \"the divisional chart\" are two separate things the gains area faces challenges from",
+            "supported": true,
+            "evidence": "the two cited findings are distinct votes, one karaka and one varga, each with direction \"against\""
+          }
+        ]
+      },
+      "attempt": 1
+    }
+  ],
+  "writer": {
+    "model": "openai/gpt-oss-120b",
+    "effort": "low",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "openai/gpt-oss-120b",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 1,
+      "input_tokens": 28657,
+      "output_tokens": 215,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 5.741
+    },
+    "checker": {
+      "calls": 3,
+      "input_tokens": 8477,
+      "output_tokens": 1188,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 16.797
+    },
+    "wall_seconds": 14.541
+  },
+  "engine": {
+    "question": "what are the challanges in my life",
+    "direction": "against",
+    "areas": [
+      "father",
+      "children",
+      "gains"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "This chart does not emphasise your father.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "father",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your rising sign, in Capricorn, is one of the weakest of your twelve houses.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "house",
+            "text": "against — 9th Capricorn, 4.62 rupas, relative -0.97"
+          },
+          {
+            "area": "father",
+            "point": 1,
+            "item": 0,
+            "text": "9th from the lagna: Capricorn, lord Saturn, empty; Bhava Bala (house strength) 4.62 rupas (units of 60 virupas), rank 11 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for your father (D12) leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D12: Mars enemy (-0.25), Saturn friend (+0.25)"
+          },
+          {
+            "area": "father",
+            "point": 5,
+            "item": 0,
+            "text": "D12 (dwadasamsa): Sun Capricorn enemy; Moon Libra neutral; Mars Gemini enemy; Mercury Aquarius neutral; Jupiter Virgo enemy; Venus Sagittarius neutral; Saturn Taurus friend; Rahu Capricorn; Ketu Cancer."
+          }
+        ]
+      },
+      {
+        "text": "This chart does not emphasise children.",
+        "notes": [
+          {
+            "area": "children",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "children",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify children lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "children",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "children",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for children (D7) leans unfavourably; there Jupiter falls in Capricorn, debilitated, where it is at its weakest.",
+        "notes": [
+          {
+            "area": "children",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D7: Jupiter debilitated (-1.00), Sun own (+0.50)"
+          },
+          {
+            "area": "children",
+            "point": 5,
+            "item": 0,
+            "text": "D7 (saptamsa): Sun Leo own; Moon Libra neutral; Mars Virgo enemy; Mercury Aquarius neutral; Jupiter Capricorn debilitated; Venus Aquarius friend; Saturn Scorpio enemy; Rahu Libra; Ketu Aries."
+          }
+        ]
+      },
+      {
+        "text": "This chart does not emphasise your gains.",
+        "notes": [
+          {
+            "area": "gains",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "gains",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your gains lean unfavourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "gains",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "gains",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for your gains (D11) leans unfavourably; there Jupiter falls in Capricorn, debilitated, where it is at its weakest.",
+        "notes": [
+          {
+            "area": "gains",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D11: Jupiter debilitated (-1.00), Saturn debilitated (-1.00)"
+          },
+          {
+            "area": "gains",
+            "point": 5,
+            "item": 0,
+            "text": "D11 (rudramsa): Sun Pisces friend; Moon Virgo friend; Mars Aries own; Mercury Capricorn neutral; Jupiter Capricorn debilitated; Venus Gemini friend; Saturn Aries debilitated; Rahu Scorpio; Ketu Taurus."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "writer",
+  "shown": [
+    "The father area shows difficulty in the house position, the main significator and the divisional chart.",
+    "The children area is challenged by the main significator and the divisional chart.",
+    "The gains area faces challenges from the main significator and the divisional chart."
+  ],
+  "paragraphs": [
+    0
+  ],
+  "accepted": [
+    "The father area shows difficulty in the house position, the main significator and the divisional chart. [vote:father.house] [vote:father.karaka] [vote:father.varga]",
+    "The children area is challenged by the main significator and the divisional chart. [vote:children.karaka] [vote:children.varga]",
+    "The gains area faces challenges from the main significator and the divisional chart. [vote:gains.karaka] [vote:gains.varga]"
+  ],
+  "attempts": 1,
+  "timeline": {
+    "engine": 0.695,
+    "written": 6.605,
+    "first_verified": 9.839,
+    "done": 14.541
+  },
+  "word_rules": "warn"
+}
