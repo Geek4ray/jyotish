@@ -1,4 +1,4 @@
-<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-11-01 (doc rev 126). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
+<!-- Exported from the living spec at https://claude.ai/artifact/2og4z1HiFMu5N3RLX3BVci on 2026-11-01 (doc rev 127). The doc is the source of truth; edit there and re-export. The two diagrams (architecture, roadmap) do not export; the phase table in Build phases carries the roadmap. -->
 
 # Jyotish AI Engine — Full Build Spec
 
@@ -421,6 +421,24 @@ Licensing: the Sanskrit originals are public domain; most English translations i
   "disclaimers": ["health", "longevity", "finance", "third_party"]
 }
 ```
+
+## Layer 8 — The conversation (Tatva)
+
+*Set 2026-11-01, before the build; the product plan is the doc "Tatva — Product, business and go-to-market plan".* The product is a conversation with the chart, not a reading page: a chart entered once, then questions one after another, every answer grounded in Layers 1 to 7 and checked as Layer 7 checks a reading. The reading page becomes one turn of it. Nothing in this layer computes anything new; it routes, orders and keeps.
+
+**A session.** Birth data once (the form's fields, or the first message), the chart computed and cached with its technical sheets, the check line shown (rising sign, the Moon's sign and nakshatra) before any question; a session id the client keeps, their history across sessions from v2.
+
+**A turn.** The message is read with the conversation by keyword routing, tolerant of spelling, with no model guessing intent (`not_computed.question_routing` stands): its areas; its *direction* — challenge, obstacle, problem, difficult, struggle, weakness, risk, worry mean what is against; strength, good, best mean what is for; neither means both; "when" the windows; "why" the sheet's points behind the last answer; "what about X" the area X; a bare follow-up ("and marriage?", "when?") carries the last turn's area or direction. A question asking for what is against with no area goes to the weakest areas (lowest tier, then most against votes, then polarity), never to the strongest. Off-limits before any model call, with a fixed reply, logged: death and its timing, illness or a diagnosis, a trade or an investment, another person's chart or fate, a minor's chart beyond the general reading, and a message of acute distress, which gets a helpline reply and no chart reading.
+
+**The engine answers first** (`narrate.engine_reading`): the whole answer written by the engine from its own fields, no model, deterministic, in the client's words, each sentence footnoted to the sheet, within about two seconds: one sentence on how the question was read and which areas were chosen and why; the area's tier in plain words; what is against and what is for, led by the asked direction, from the family votes in one fixed plain phrase per family (the house test, the lord test, the significator test, the divisional-chart test, the image test, the KP test, the day test) and from each fired rule (a cited rule in one sentence from its classical effect and themes with its reductions said plainly, a draft placement as a fact only); the dispositor chain's final planets; the stability in words; the windows in months with the engine's note. The engine's text must pass the client's-words test as the model's does, and a frozen expected text on the reference chart fails when a sentence changes, so wording changes are deliberate.
+
+**The writer answers beneath**, streamed and verified sentence by sentence as the live narration does, given the question, the direction, the routed findings and the accepted text of earlier turns only, never an unverified sentence; a sentence that fails is removed and the engine's answer always stands. The checks refuse wrong facts, not word choices: the tag rules, the forbidden claims, the tier words and the checker's verdict stay refusals; the vocabulary rules (CLIENT\_WORDS, CLIENT\_PLAIN, the same-sentence gloss, the pronoun opener, "I") become warnings logged, with the plain words and the phrase list asked for in the prompt instead.
+
+**Kept.** Every turn is stored with the birth key: the question, the route, both answers, every removed sentence with its reason, cost and timeline; the review page lists a session's turns so the astrologer judges each answer beside the sheet, his edits stored as a reading's are; the export includes turns; the ledger prices a turn. The scorecard reports per turn the engine's seconds to answer, the writer's first verified sentence, and the removed share, never gated.
+
+**The surface.** One conversation with the chart alive beside it: the D1 wheel with the planets the current answer cites lit as each sentence is verified, D9 and D10 a tap away; "when" a ten-year timeline drawn from the engine's timing rows that the client drags to a month and asks about; "why" the sheet as a side panel; the astrologer's review as an order from the conversation. Mobile first, installable (PWA), a native app a later decision; product analytics as consented events in our own database; the client's screens show Tatva and one line "by Shree Na Rayan"; the company's site is apart. The five screens are the design canvas "Tatva — website mockups" (2026-11-01).
+
+**Tests before the build is done:** a five-turn conversation on the reference chart ("what are the challanges in my life", "and marriage?", "when?", "why do you say that?", "will I die early?" → the fixed reply) with each route asserted and the engine answers frozen; the site driven by Playwright; the smoke test extended; `scripts/live_timing.py` timing a turn. The independent review (definition of done, item 9) follows the build, and the astrologer's first session runs on the deployed conversation, not on the old page.
 
 ## Data schema — the chart object
 
