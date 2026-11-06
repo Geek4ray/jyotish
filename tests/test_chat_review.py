@@ -484,9 +484,9 @@ def test_h2_when_no_area_leans_against_the_answer_says_so_and_gives_each_areas_l
     doc = answer_turn(chart, "what are the challanges in my life", route, as_of=AS_OF, drafter=OfflineTurnWriter(),
                       checker=passes)
     engine = [s["text"] for s in doc["engine"]["sentences"]]
-    assert engine[0].startswith("No part of your chart leans against you on balance; the parts it supports least are")
+    assert engine[0].startswith("No part of your chart works against you on balance; the parts it supports least are")
     for area in route.areas:                              # each area's overall lean beside what opposes it
-        assert any("on balance" in s and "lean favourably" in s for s in engine)
+        assert any("on balance" in s and "leans favourably" in s for s in engine)
     from jyotish.conversation import TURN_PROMPT
     assert "never call a part the chart supports a challenge" in TURN_PROMPT
 
@@ -495,7 +495,7 @@ def test_h2_an_adverse_area_is_named_as_leaning_against(charts):
     chart = charts["synthetic-3"]
     b = next(x for x in BIRTHS if x["name"] == "synthetic-3")
     ans = engine_reading(chart, "q", "against", ["personality", "wealth", "children"], as_of=as_of(b), weakest=True)
-    assert ans.sentences[0].text == ("On balance, your chart leans against you in yourself and your temperament, "
+    assert ans.sentences[0].text == ("On balance, your chart works against you in yourself and your temperament, "
                                      "money and children.")
 
 

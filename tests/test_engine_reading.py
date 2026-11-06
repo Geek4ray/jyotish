@@ -18,7 +18,7 @@ CAREER_Q = "How will my career go, and when is the best time for a job change?"
 CHALLENGES_Q = "what are the challanges in my life"
 
 CAREER = [
-    "For your career, most of the chart's indications agree, and on balance they lean favourably.",
+    "For your career, most of what the chart shows agrees, and on balance it leans favourably.",
     "Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from "
     "your rising sign, in Aquarius, is among the least supported of your twelve houses.",
     "The planets that rule the houses of your career lean favourably; Saturn, which rules the 10th house, sits in "
@@ -33,22 +33,22 @@ CAREER = [
     "Neither stretch is a prediction of when you will act.",
 ]
 CHALLENGES = [            # the weakest areas, none leaning against on balance (review H2)
-    "No part of your chart leans against you on balance; the parts it supports least are your father, your "
+    "No part of your chart works against you on balance; the parts it supports least are your father, your "
     "reputation and brothers, sisters and courage.",
-    "This chart does not emphasise your father; on balance its indications lean favourably.",
+    "This chart does not emphasise your father; on balance what it shows leans favourably.",
     "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your "
     "rising sign, in Capricorn, is among the least supported of your twelve houses.",
     "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th "
     "house, in an unfriendly sign.",
     "The divisional chart for your father leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
-    "For your reputation, the chart's indications point different ways; on balance they lean favourably.",
+    "For your reputation, what the chart shows points different ways; on balance it leans favourably.",
     "Taken together, the houses that govern your reputation lean unfavourably: the main one, the 10th house from "
     "your rising sign, in Aquarius, is among the least supported of your twelve houses.",
     "The planets that signify your reputation lean unfavourably; the main one, the Sun, sits in Aquarius in your "
     "10th house, in an unfriendly sign.",
     "The signs that show how others see your reputation, Capricorn and Libra, lean unfavourably: the Moon sits "
     "there, with no helpful planet beside.",
-    "For brothers, sisters and courage, the chart's indications point different ways; on balance they lean "
+    "For brothers, sisters and courage, what the chart shows points different ways; on balance it leans "
     "favourably.",
     "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon, which rules the "
     "3rd house, sits in Libra in your 6th house, in a neutral sign.",

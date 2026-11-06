@@ -2590,11 +2590,12 @@ DIGNITY_PLAIN = {"exalted": "exalted, where it is at its best", "moolatrikona": 
                  "own": "in its own sign", "great friend": "in a very friendly sign", "friend": "in a friendly sign",
                  "neutral": "in a neutral sign", "enemy": "in an unfriendly sign", "great enemy": "in a hostile sign",
                  "debilitated": "debilitated, where it is least at ease"}
-# The tier in plain words with the area's overall lean (its direction): no tier word reaches the client (review H3).
-TIER_SENTENCE = {"strong": "For {label}, the chart's indications agree closely, and on balance they lean {lean}.",
-                 "moderate": "For {label}, most of the chart's indications agree, and on balance they lean {lean}.",
-                 "weak / mixed": "For {label}, the chart's indications point different ways; on balance they lean {lean}.",
-                 "not emphasised": "This chart does not emphasise {label}; on balance its indications lean {lean}.",
+# The tier in plain words with the area's overall lean (its direction): no tier word reaches the client (review H3),
+# and no "indications", which the writer copied back as a verdict (2026-11-02).
+TIER_SENTENCE = {"strong": "For {label}, what the chart shows agrees closely, and on balance it leans {lean}.",
+                 "moderate": "For {label}, most of what the chart shows agrees, and on balance it leans {lean}.",
+                 "weak / mixed": "For {label}, what the chart shows points different ways; on balance it leans {lean}.",
+                 "not emphasised": "This chart does not emphasise {label}; on balance what it shows leans {lean}.",
                  "cannot be assessed": "{Label} cannot be judged from this chart.",
                  "needs two charts": "{Label} needs a second person's chart to be read."}
 
@@ -2661,35 +2662,45 @@ def _rel_phrase(r: float) -> str:
             "about average" if r == 0 else "better supported than most" if r < 0.5 else "among the best supported")
 
 
-def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet: dict) -> EngineSentence | None:
-    """One sentence for a family leaning for (+1) or against (-1) the area, with the row it rests on."""
+def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet: dict,
+                     material: bool = False) -> EngineSentence | None:
+    """One sentence for a family leaning for (+1) or against (-1) the area, with the row it rests on. With
+    `material` (the writer's material in a conversation, 2026-11-02), the same sentence says which way it leans as
+    "supports" / "works against", the words the writer is asked to use, never a verdict label."""
     vote, der = v["vote"], v.get("derivation")
     lean = "favourably" if vote > 0 else "unfavourably"
+
+    def leans(plural: bool, label_too: bool = False) -> str:
+        s = "" if plural else "s"
+        if material:
+            obj = label if label_too else "it"
+            return f"support{s} {obj}" if vote > 0 else f"work{s} against {obj}"
+        return f"lean{s} {lean}" + (f" for {label}" if label_too else "")
     rows = [r for r in der if isinstance(r, dict)] if isinstance(der, list) else []
     notes = [_row_note(sheet, fam, area)]
     dig = lambda d: f", {DIGNITY_PLAIN[d]}" if d in DIGNITY_PLAIN else ""
     if fam == "house" and rows:
         r = rows[0]
         agrees = (r["relative"] > 0) == (vote > 0) and r["relative"] != 0
-        text = (f"Taken together, the houses that govern {label} lean {lean}{': ' if agrees else ', though '}the main one, "
+        text = (f"Taken together, the houses that govern {label} {leans(True)}{': ' if agrees else ', though '}the main one, "
                 f"the {_ORD[r['house']]} house from your rising sign, in {r['sign']}, is {_rel_phrase(r['relative'])} "
                 f"of your twelve houses.")
         notes.append(_sheet_note(sheet, 1, f"houses.lagna.{r['house']}", area))
     elif fam == "lord" and rows:
         r = rows[0]
-        text = (f"The planets that rule the houses of {label} lean {lean}; {_the(r['lord'])}, which rules the {_ORD[r['house']]} house, "
+        text = (f"The planets that rule the houses of {label} {leans(True)}; {_the(r['lord'])}, which rules the {_ORD[r['house']]} house, "
                 f"sits in {r['lord_sign']} in your {_ORD[r['lord_house_from_lagna']]} house{dig(r.get('dignity'))}.")
         notes.append(_sheet_note(sheet, 2, f"planets.{r['lord']}", area))
     elif fam == "karaka" and rows:
         main = data["areas"][area].get("main_karaka")
         r = next((x for x in rows if x["planet"] == main), rows[0])
-        text = (f"The planets that signify {label} lean {lean}; the main one, {_the(r['planet'])}, sits in {r['sign']} in "
+        text = (f"The planets that signify {label} {leans(True)}; the main one, {_the(r['planet'])}, sits in {r['sign']} in "
                 f"your {_ORD[r['house']]} house{dig(r.get('dignity'))}.")
         notes.append(_sheet_note(sheet, 3, f"planets.{r['planet']}", area))
     elif fam == "varga" and rows:
         side = [x for x in rows if (x.get("score") or 0) * vote > 0] or rows
         r = max(side, key=lambda x: abs(x.get("score") or 0))
-        text = (f"The divisional chart for {label} leans {lean}; there {_the(r['planet'])} falls in "
+        text = (f"The divisional chart for {label} {leans(False)}; there {_the(r['planet'])} falls in "
                 f"{r['varga_sign']}{dig(r.get('varga_dignity_label'))}.")
         notes.append(_sheet_note(sheet, 5, f"vargas.{r['varga']}", area))
     elif fam == "arudha" and isinstance(der, dict) and der.get("padas"):
@@ -2698,24 +2709,25 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
         occ = list(dict.fromkeys(o for p in padas for o in p.get("occupants", [])))
         ben = list(dict.fromkeys(b for p in padas for b in p.get("benefics", [])))
         hard = [o for o in occ if o not in ben]
-        verb = "leans" if len(signs) == 1 else "lean"
+        verb = leans(len(signs) > 1)
         where = f"The {'signs' if len(signs) > 1 else 'sign'} that {'show' if len(signs) > 1 else 'shows'} how others see {label}, {_and(signs)},"
         if vote < 0 and hard:
-            text = (f"{where} {verb} {lean}: {_and([_the(p) for p in hard])} {'sits' if len(hard) == 1 else 'sit'} there"
-                    + (f", against {_and([_the(p) for p in ben])}." if ben else ", with no helpful planet beside."))
+            text = (f"{where} {verb}: {_and([_the(p) for p in hard])} {'sits' if len(hard) == 1 else 'sit'} there"
+                    + (f", with {_and([_the(p) for p in ben])} beside to help." if ben else ", with no helpful planet beside."))
         elif vote > 0 and ben:
-            text = f"{where} {verb} {lean}: {_and([_the(p) for p in ben])} {'sits' if len(ben) == 1 else 'sit'} there."
+            text = f"{where} {verb}: {_and([_the(p) for p in ben])} {'sits' if len(ben) == 1 else 'sit'} there."
         else:
-            text = f"{where} {verb} {lean}."
+            text = f"{where} {verb}."
         notes += [_sheet_note(sheet, 8, f"jaimini.arudhas.{p['pada']}", area) for p in padas]
     elif fam == "kp":
-        text = f"The reading of the exact start of each house leans {lean} for {label}."
+        text = (f"The reading of the exact start of each house {leans(False, True)}." if material else
+                f"The reading of the exact start of each house leans {lean} for {label}.")
         notes.append(_sheet_note(sheet, 7, f"areas.{area}.votes.kp.vote", area))
     elif fam == "panchanga" and rows:
         planets = list(dict.fromkeys(r["planet"] for r in rows))
-        text = (f"The rulers of the day you were born, {_and([_the(p) for p in planets])}, lean {lean} for {label}."
+        text = (f"The rulers of the day you were born, {_and([_the(p) for p in planets])}, {leans(True, True)}."
                 if len(planets) > 1 else
-                f"{_cap(_the(planets[0]))}, a ruler of the day you were born, leans {lean} for {label}.")
+                f"{_cap(_the(planets[0]))}, a ruler of the day you were born, {leans(False, True)}.")
         notes.append(_sheet_note(sheet, 9, f"areas.{area}.votes.panchanga.derivation", area))
     else:
         return None
@@ -2776,9 +2788,9 @@ def engine_reading(chart: Chart, question: str, direction: str, areas: list[str]
         adverse = [a for a in areas if (data["areas"].get(a) or {}).get("direction") == "adverse"]
         notes = [n for a in areas if (sh := build(data, a)) and (n := _sheet_note(sh, 10, None, a))]
         if adverse:
-            text = f"On balance, your chart leans against you in {_and([labels[a] for a in adverse])}."
+            text = f"On balance, your chart works against you in {_and([labels[a] for a in adverse])}."
         else:
-            text = (f"No part of your chart leans against you on balance; the parts it supports least are "
+            text = (f"No part of your chart works against you on balance; the parts it supports least are "
                     f"{_and([labels[a] for a in areas])}.")
         out.append(EngineSentence(text=text, notes=notes))
     for area in areas:

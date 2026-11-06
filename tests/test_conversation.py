@@ -14,7 +14,7 @@ from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
 from jyotish.uncertainty import assess
 
 AS_OF = date(2026, 10, 21)
-MARRIAGE_TIER = "For marriage, most of the chart's indications agree, and on balance they lean favourably."
+MARRIAGE_TIER = "For marriage, most of what the chart shows agrees, and on balance it leans favourably."
 MARRIAGE_AGAINST = ("The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: "
                     "Rahu sits there, with no helpful planet beside.")
 TURNS = [

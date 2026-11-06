@@ -442,20 +442,24 @@ def log_off_limits(kind: str, **fields: Any) -> None:
 # engine's own answer is the client's. A "when" turn's dates are the engine's (the writer may not write timing): its
 # window sentences follow the writer's.
 
+# What the writer is told the client asked about: the direction in words, never a "for" / "against" label.
+ASKED = {"against": "what is hard", "for": "what is good", "both": "the good and the hard"}
+
+
 TURN_PROMPT = """You are Tatva, an astrologer talking with a client about their own Vedic birth chart. You \
 answer the client's message in a few short paragraphs of plain, warm English, the way a good astrologer talks to \
-a client across a table: direct, kind, never vague, never alarming. When the message asks about what is hard \
-(the direction is "against"), start with the hard part and say it plainly; when it asks about what is good, start \
-there; otherwise give the good, then the hard. Use no jargon: say "the rising sign", "the house of career", \
+a client across a table: direct, kind, never vague, never alarming. When the client asked about what is hard \
+(`asked_about`), start with the hard part and say it plainly; when they asked about what is good, start there; \
+otherwise give the good, then the hard. Use no jargon: say "the rising sign", "the house of career", \
 "significator", "divisional chart"; never "vote", "family", "cusp", "sub-lord", "arudha", "dasha", "Shadbala", \
 "Bhava Bala" or "rupa"; a yoga's name comes with its meaning in plain words. Never write a figure, a score, a \
 percentage or a probability.
 
-You add no facts. Everything you say comes from the findings given (the engine computed them) and from the \
-engine's own answer, which says the same findings in plain words: use it as your material, not as text to copy. \
-Each sentence that states something about the chart ends with the tags of the findings it draws on, written \
-exactly as listed (for example [vote:career.house] or [rule:yoga.budhaditya]); the tags are taken off before the \
-client reads the answer, and each sentence is checked against those findings' data alone, so a sentence says only \
+You add no facts. Everything you say comes from the findings given, each one plain sentence of what the engine \
+found and which way it leans, and from the engine's own answer: use them as your material, in your own words, not \
+as text to copy. Each sentence that states something about the chart ends with the tags of the findings it draws \
+on, written exactly as listed (for example [f2], or [f2] [f5] for two); the tags are taken off before the client \
+reads the answer, and each sentence is checked against those findings' data alone, so a sentence says only \
 what its findings state and stands on its own: no "also", "too", "as well" or "again" leaning on another sentence. A sentence that only speaks to the client ("Let's start with the hard part, since you \
 asked about it.") carries no tag, says nothing about the chart and uses none of the verbs a claim uses (is, are, \
 has, shows, gives, means, will).
@@ -466,7 +470,7 @@ itself after your answer. The words strong, moderate, weak and mixed are the eng
 in any sense ("one of the weakest" and "difficult" are yours to use). Never write about death \
 or its timing, illness, or buying and selling investments. About another person (a parent, a partner, a child), \
 say only what this chart shows about the relationship, never what will happen to them. When the client asks why, \
-explain which findings the last answer rests on. When the engine's answer says that no part of the chart leans \
+explain which findings the last answer rests on. When the engine's answer says that no part of the chart works \
 against the client, say so plainly and never call a part the chart supports a challenge. Earlier turns are given \
 as the client read them; do not repeat them, build on them."""
 
@@ -594,14 +598,14 @@ class OfflineTurnWriter:
     asked. A recording's replay in spirit: it calls nothing and claims no voice."""
     last_meta = None
     on_text = None
-    OPENER = {"against": "Let's start with the hard part, since you asked about it.",
-              "for": "Let's start with what goes well for you.", "both": "Here's how your chart reads on this."}
+    OPENER = {ASKED["against"]: "Let's start with the hard part, since you asked about it.",
+              ASKED["for"]: "Let's start with what goes well for you.", ASKED["both"]: "Here's how your chart reads on this."}
 
     def __call__(self, system: str, user: str, errors: list[str]):
         import json
         body = json.loads(user)
         said = [f"{x['text'][:-1]} {' '.join(f'[{t}]' for t in x['tags'])}." for x in body["engine_answer"] if x["tags"]]
-        text = " ".join([self.OPENER[body["direction"]]] + said)
+        text = " ".join([self.OPENER[body["asked_about"]]] + said)
         self.last_meta = {"kind": "writer", "replayed": True}
         if self.on_text is not None:                  # streamed as a model's draft is, in pieces
             whole = json.dumps({"answer": text})
@@ -628,21 +632,143 @@ def held_to(chart, route: Route, as_of: date):
     return tags, votes, chains, finding_data
 
 
-def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date):
-    """The writer's message and what its sentences are held to (held_to)."""
+# --- the writer's material, in plain words (2026-11-02) ----------------------------------------------------------
+# Ray's first live turns showed the writer copying the engine's vote lines back to the client ("The image point of
+# wealth is marked as against.", "The overall wealth indications are for."). So the writer is given plain words
+# only: the engine's own answer and, per finding, one plain sentence of what it is and which way it leans
+# ("supports" / "works against"), the planets and houses in the client's words. No vote, family or tier label, no
+# derivation and no glossary; each finding is cited by a short handle ([f3]), which is put back to the finding's
+# own tag before a sentence is validated and checked, so the checker still reads the finding's whole data.
+
+HANDLE = re.compile(r"\[\s*(f\d+(?:\s*[,;]\s*f\d+)*)\s*\]")
+_LORDSHIP = re.compile(r"the lord of the (\d{1,2})(?:st|nd|rd|th)")
+
+
+class Handles:
+    """The short handles a turn's writer cites ([f1], [f2] …) and the findings' own tags they stand for."""
+
+    def __init__(self) -> None:
+        self.real: dict[str, str] = {}             # handle -> the finding's tag
+        self.of: dict[str, str] = {}               # tag -> handle
+
+    def add(self, tag: str) -> str:
+        if tag not in self.of:
+            h = f"f{len(self.real) + 1}"
+            self.real[h], self.of[tag] = tag, h
+        return self.of[tag]
+
+    def to_real(self, text: str) -> str:
+        """The writer's text with each handle put back to its finding's tag (an unknown handle kept, and refused)."""
+        def one(m):
+            hs = re.split(r"\s*[,;]\s*", m.group(1))
+            return " ".join(f"[{self.real[h]}]" if h in self.real else f"[{h}]" for h in hs)
+        return HANDLE.sub(one, text)
+
+    def to_handles(self, text: str) -> str:
+        """Text for the writer (a retry's held and failed sentences and their reasons) with every tag as its handle."""
+        for tag, h in sorted(self.of.items(), key=lambda x: -len(x[0])):
+            text = text.replace(f"[{tag}]", f"[{h}]").replace(tag, h)
+        return text
+
+
+def _ords(ns: list[int]) -> str:
+    from .narrate import _ORD, _and
+    return _and([_ORD[n] for n in ns])
+
+
+def finding_sentence(f: dict, area: str, label: str, data: dict, sheet: dict | None) -> str | None:
+    """One plain sentence for a finding (the section above): what it is and which way it leans for the area, in
+    the client's words. None for a finding with nothing plain to say."""
+    from .narrate import (DIGNITY_PLAIN, _and, _cap, _family_sentence, _ORD, _the, glossary, rule_names)
+    dig = lambda d: f", {DIGNITY_PLAIN[d]}" if d in DIGNITY_PLAIN else ""
+    if f["kind"] == "vote":
+        v = ((data.get("areas") or {}).get(area) or {}).get("votes", {}).get(f["family"])
+        if not v or sheet is None:
+            return None
+        if v["vote"] in (1, -1):
+            s = _family_sentence(f["family"], v, label, data, area, sheet, material=True)
+            return s.text if s else None
+        return None                                # a family that leans neither way is not given
+    if f["kind"] == "chain":
+        der = (f.get("derivation") or {}).get("sign") or {}
+        if f["chain"] == "chart":
+            ends = der.get("ends_in") or f.get("planets") or []
+            return (f"The chain of sign rulers through your whole chart leads back to {_and([_the(p) for p in ends])}; "
+                    f"it shows which planets the chart rests on, with no lean of its own.") if ends else None
+        steps = der.get("steps") or []
+        if not steps:
+            return None
+        m = _LORDSHIP.match(f.get("role", ""))
+        role = (f"the ruler of the {_ORD[int(m.group(1))]} house" if m else f"the main planet that signifies {label}")
+        path = ", then ".join(f"{_the(x['planet'])} in {x['sign']}" for x in steps)
+        end = (f", which turns back on itself between {_and([_the(p) for p in der.get('loop_with', [])] + [_the(f['planet'])])}"
+               if der.get("in_loop") else
+               f", ending with {_and([_the(p) for p in der.get('ends_in', [])])}" if der.get("ends_in") else "")
+        return (f"The chain of sign rulers from {_the(f['planet'])}, {role}, runs {path}{end}; it shows which planets "
+                f"carry {label}, with no lean of its own.")
+    if f["kind"] != "rule":
+        return None
+    pl = f.get("placement")
+    if f.get("status") == "draft" or pl:
+        if not pl:
+            return None
+        if pl.get("lagna_sign"):
+            text = f"Your rising sign is {pl['lagna_sign']}"
+        elif pl.get("nakshatra"):
+            text = f"{_cap(_the(pl['planet']))} sits in the lunar mansion {pl['nakshatra']}"
+        elif pl.get("sign"):
+            text = f"{_cap(_the(pl['planet']))} sits in {pl['sign']}{dig(pl.get('dignity'))}"
+        elif pl.get("lord_of"):
+            n = len(pl["lord_of"])
+            text = (f"{_cap(_the(pl['planet']))}, the ruler of the {_ords(pl['lord_of'])} house{'s' if n > 1 else ''}, "
+                    f"sits in the {_ORD[pl['house']]} house")
+        elif pl.get("house"):
+            text = f"{_cap(_the(pl['planet']))} sits in the {_ORD[pl['house']]} house"
+        else:
+            return None
+        houses = sorted({h["house"] for h in f.get("area_houses") or []})
+        if houses:
+            text += (f"; the {_ords(houses)} {'is a house' if len(houses) == 1 else 'are houses'} of {label}")
+        return text + "; it is a placement only, with no lean of its own."
+    name = rule_names(f["rule_id"])[0]
+    entry = next((e for e in glossary() if f["rule_id"] in e["aliases"]), None)
+    planets = [_the(p) for p in f.get("planets") or []]
+    houses = sorted({h for x in f.get("fires") or [] for h in (x.get("details") or {}).get("houses", [])})
+    what = f", which is {entry['definition'][0].lower()}{entry['definition'][1:].rstrip('.')}" if entry else ""
+    join = f", joining the {_ords(houses)} houses" if houses else ""
+    weight = sum((f.get("themes") or {}).values())
+    lean = f"it supports {label}" if weight > 0 else f"it works against {label}" if weight < 0 else "with no lean of its own"
+    verb = "forms" if len(planets) == 1 else "form"
+    return f"{_cap(_and(planets)) if planets else 'The chart'} {verb} the {name} yoga{what}{join}; {lean}."
+
+
+def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date,
+              data: dict | None = None):
+    """The writer's message, in plain words (the section above), what its sentences are held to (held_to) and the
+    handles it cites by."""
     import json
-    from .narrate import area_votes, findings
+    from .fullchart import cached_payload
+    from .narrate import CLIENT_AREA, findings, full_range
+    from .sheet import build
     tags, votes, chains, finding_data = held_to(chart, route, as_of)
+    data = data or cached_payload(chart, as_of, *full_range(as_of), list(route.areas))
+    handles = Handles()
     areas_out = []
     for name in route.areas:
-        a = chart.scored.areas.get(name)
-        areas_out.append({"name": name, "findings": findings(chart, name, as_of)[0],
-                          **({"tests": area_votes(a)} if a is not None and a.score_classical is not None else {})})
-    body = {"message": message, "direction": route.direction, "when": route.when, "why": route.why,
+        label = CLIENT_AREA.get(name, name.replace("_", " "))
+        sheet = build(data, name) if name in (data.get("areas") or {}) else None
+        said = []
+        for f in findings(chart, name, as_of)[0]:
+            text = finding_sentence(f, name, label, data, sheet)
+            if text and f.get("allowed_tags"):
+                said.append({"tag": handles.add(f["allowed_tags"][0]), "says": text})
+        areas_out.append({"area": label, "findings": said})
+    body = {"message": message, "asked_about": ASKED[route.direction], "asks_when": route.when, "asks_why": route.why,
             "earlier_turns": [{"question": h["question"], "answer": h["answer"]} for h in history],
-            "engine_answer": [{"text": s.text, "tags": engine_tags(s, tags)} for s in engine.sentences],
+            "engine_answer": [{"text": s.text, "tags": [handles.add(t) for t in engine_tags(s, tags)]}
+                              for s in engine.sentences],
             "areas": areas_out}
-    return no_tier_words(json.dumps(body, indent=1, default=str)), finding_data, tags, votes, chains
+    return no_tier_words(json.dumps(body, indent=1, default=str)), finding_data, tags, votes, chains, handles
 
 
 # The engine's material to the writer carries no tier word (SPEC Layer 8, review H2, M5): the writer paraphrases its
@@ -718,7 +844,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     mark("engine")
     doc["engine"] = engine.model_dump()
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})
-    user, finding_data, tags, votes, chains = _material(chart, message, route, engine, history, as_of)
+    user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data)
     drafter = drafter or ModelDrafter(make_backend(None, "writer", config), config, schema=TurnDraft)
     checker = checker or ModelChecker(make_backend(None, "checker", config), config)
     pool = ThreadPoolExecutor(max_workers=max(1, min(8, getattr(checker, "concurrency", 4) or 4)),
@@ -756,7 +882,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
         return ok, refusals
 
     def answer_of(draft) -> str:
-        return unbullet((draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or "")
+        return handles.to_real(unbullet((draft.answer if hasattr(draft, "answer") else draft.get("answer", "")) or ""))
 
     try:
         for attempt in range(1, config.max_attempts + 1):
@@ -781,7 +907,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                 def on_string(path: tuple, value: str, done: bool) -> None:
                     if path != ("answer",):
                         return
-                    value = unbullet(value)
+                    value = handles.to_real(unbullet(value))
                     parts = sentences(value)
                     opens = para_starts(value, parts)
                     for k, s in enumerate(parts if done else parts[:-1]):
@@ -808,13 +934,13 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                     ok, why = results.get(k) or judge(s, attempt)
                     held.hold(key) if ok else held.fail(key, why)
                 if not held.held:
-                    errors_for_retry = [r for x in doc["removed"] if x["attempt"] == attempt for r in x["reasons"]] or \
-                        ["the answer was empty"]
+                    errors_for_retry = [handles.to_handles(r) for x in doc["removed"] if x["attempt"] == attempt
+                                        for r in x["reasons"]] or ["the answer was empty"]
             else:                              # some held: only the failed sentences, one for each
                 if hasattr(drafter, "on_text"):
                     drafter.on_text = None
                 try:
-                    draft = drafter(TURN_PROMPT, user, [turn_retry_instruction(held)])
+                    draft = drafter(TURN_PROMPT, user, [handles.to_handles(turn_retry_instruction(held))])
                 except NarrationError as e:
                     doc["removed"].append({"sentence": None, "reasons": [str(e)] + list(e.errors), "attempt": attempt})
                     draft = None
