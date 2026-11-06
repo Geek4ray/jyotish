@@ -1,0 +1,442 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "Most of what the chart shows agrees, and on balance it leans favourably.",
+      "reasons": [
+        "untagged claim: 'Most of what the chart shows agrees, and on balance it leans favourably.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Your main significator for marriage, Venus, is exalted in Pisces in the house of gains, which is a very strong placement [vote:marriage.karaka].",
+      "reasons": [
+        "tier language ('strong') in the answer; the engine states the tier: 'Your main significator for marriage, Venus, is exalted in Pisces in the house of gains, which is a very strong placement [vote:marriage.karaka].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The least favourable stretch, as the chart reads it, runs from August 2029 to October 2029.",
+      "reasons": [
+        "timing language ('August') in 'The least favourable stretch, as the chart reads it, runs from August 2029 to October 2029.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The most favourable stretch runs from January 2030 to October 2031.",
+      "reasons": [
+        "timing language ('January') in 'The most favourable stretch runs from January 2030 to October 2031.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Neither stretch is a prediction of when you will act.",
+      "reasons": [
+        "untagged claim: 'Neither stretch is a prediction of when you will act.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+      "reasons": [
+        "untagged claim: 'For marriage, most of what the chart shows agrees, and on balance it leans favourably.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The main planet that signifies marriage, Venus, sits exalted in Pisces in the house of gains, where it is at its best [vote:marriage.karaka].",
+      "reasons": [
+        "the checker found it unsupported: Venus is in the house of gains (Venus's house is the 11th, but the finding's area_houses lists the 11th only in the words 'the 11th, a marriage house'; 'the house of gains' is not among the area_houses words, so by the rule for houses called by their area this is unsupported)",
+        "the checker found it unsupported: It is at its best there (Ambiguous: if 'where it is at its best' attaches to Pisces, it matches the glossary ('exalted: the sign where the texts hold a planet at its strongest'); if it attaches to 'the house of gains', the data states no such thing. Ambiguity between a supported and an unsupported reading makes it unsupported)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The least favourable stretch for marriage, as the chart reads it, is one span.",
+      "reasons": [
+        "untagged claim: 'The least favourable stretch for marriage, as the chart reads it, is one span.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The most favourable stretch for marriage, as the chart reads it, is another span.",
+      "reasons": [
+        "untagged claim: 'The most favourable stretch for marriage, as the chart reads it, is another span.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Neither stretch tells you when you will act.",
+      "reasons": [
+        "untagged claim: 'Neither stretch tells you when you will act.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+      "reasons": [
+        "untagged claim: 'For marriage, most of what the chart shows agrees, and on balance it leans favourably.'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The main planet that signifies marriage, Venus, sits exalted in Pisces in your 11th house, where it is at its best [vote:marriage.karaka].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The main significator for marriage, Venus, sits exalted in Pisces in your 11th house, and the divisional chart for marriage supports it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+      "reasons": [
+        "timing language ('August') in 'The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The most favourable stretch for marriage, as the chart reads it, runs from January 2030 to October 2031.",
+      "reasons": [
+        "timing language ('January') in 'The most favourable stretch for marriage, as the chart reads it, runs from January 2030 to October 2031.'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Neither stretch tells you when you will act.",
+      "reasons": [
+        "untagged claim: 'Neither stretch tells you when you will act.'"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [
+    {
+      "sentence": "Your main significator for marriage, Venus, is exalted in Pisces in the house of gains, which is a very strong placement [vote:marriage.karaka].",
+      "warning": "engine vocabulary ('strong') in the client's text: say it in plain words: 'Your main significator for marriage, Venus, is exalted in Pisces in the house of gains, which is a very strong placement [vote:marriage.karaka].'",
+      "attempt": 1
+    }
+  ],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for marriage also supports it [vote:marriage.varga].",
+      "findings": [
+        "vote:marriage.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chart in question is a divisional chart (varga)",
+            "supported": true,
+            "evidence": "The finding is a vote with family \"varga\", and its derivation rows are for varga \"D9\"; the glossary defines \"varga\" as \"A divisional chart\"."
+          },
+          {
+            "text": "It is the divisional chart read for marriage",
+            "supported": true,
+            "evidence": "The derivation rows are all varga \"D9\", and the glossary defines \"navamsa\" as \"The ninth-part divisional chart, read for marriage and the strength of planets\"; the finding_id \"vote:marriage.varga\" places it in the marriage area."
+          },
+          {
+            "text": "This divisional chart supports the matter at issue (the vote is for)",
+            "supported": true,
+            "evidence": "The finding's area_votes verdict gives \"varga\": \"for\"."
+          },
+          {
+            "text": "Other factors besides the divisional chart also support it (\"also\")",
+            "supported": true,
+            "evidence": "The area_votes verdict shows \"house\": \"for\", \"lord\": \"for\", \"karaka\": \"for\", \"kp\": \"for\", and \"panchanga\": \"for\" — six votes for and only one (\"arudha\") against."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "In the reading's view, a point that works against you is that the signs which show how others see marriage lean unfavourably: Rahu sits there alone [vote:marriage.arudha].",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "a point that works against you",
+            "supported": true,
+            "evidence": "the weighing: the finding vote:marriage.arudha has direction \"against\" (\"the vote is against\"), and this is the reading's weighing of which side the vote falls on"
+          },
+          {
+            "text": "the signs which show how others see marriage lean unfavourably",
+            "supported": true,
+            "evidence": "the finding's derivation: \"more malefics than benefics occupy UL, UL2, A7: the vote is against\"; the glossary's \"arudha\" entry (\"read for how its matters appear to the world\") and \"Upapada\" entry (\"read for marriage\") support the description of these signs as showing how others see marriage, and the direction \"against\" supports \"lean unfavourably\""
+          },
+          {
+            "text": "Rahu sits there alone (in the marriage-signs)",
+            "supported": true,
+            "evidence": "UL's occupants are [\"Rahu\"] with no benefics, and UL2 and A7 have no occupants at all — so across the signs the derivation rests on, Rahu is the only planet present; both natural readings of \"alone\" (sole occupant of its sign, and the only occupant among these signs) are stated by the data"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The planets ruling the houses of marriage are also supportive, with Mars ruling the house of partnership and sitting in its own sign in that same house [vote:marriage.lord].",
+      "findings": [
+        "vote:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The planets ruling the houses of marriage are also supportive (the lord vote is for)",
+            "supported": true,
+            "evidence": "the finding's verdict lists lord: \"for\" (area_votes.verdict.lord = for); the generic framing is supported when the vote's direction says so"
+          },
+          {
+            "text": "Mars rules the house of partnership",
+            "supported": true,
+            "evidence": "the derivation rows for basis lagna, house 7 list lord \"Mars\"; the glossary defines the 7th house as \"marriage, partners, partnerships and travel\", so the 7th is the house of partnership"
+          },
+          {
+            "text": "Mars sits in its own sign",
+            "supported": true,
+            "evidence": "the house-7 derivation rows (basis lagna and basis moon) give dignity \"own\" and lord_sign \"Scorpio\", which is the house's own sign"
+          },
+          {
+            "text": "Mars sits in that same house (the 7th / the house it rules)",
+            "supported": true,
+            "evidence": "the derivation rows give lord_house_from_lagna 7 with lord_sign Scorpio, matching the 7th house's sign Scorpio — i.e., Mars is placed in the 7th itself"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The main planet that signifies marriage, Venus, sits exalted in Pisces in the house of gains, where it is at its best [vote:marriage.karaka].",
+      "findings": [
+        "vote:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is the main planet that signifies marriage (the karaka for marriage)",
+            "supported": true,
+            "evidence": "The cited finding vote:marriage.karaka is a karaka vote with direction 'for', and its derivation lists Venus as the candidate (glossary 'karaka': 'Venus for partnership')"
+          },
+          {
+            "text": "Venus sits (is placed) in Pisces",
+            "supported": true,
+            "evidence": "Derivation: Venus, basis lagna, sign 'Pisces'"
+          },
+          {
+            "text": "Venus is exalted",
+            "supported": true,
+            "evidence": "Derivation: Venus, dignity 'exalted'; glossary 'exalted' matches"
+          },
+          {
+            "text": "Venus is in the house of gains",
+            "supported": false,
+            "evidence": "Venus's house is the 11th, but the finding's area_houses lists the 11th only in the words 'the 11th, a marriage house'; 'the house of gains' is not among the area_houses words, so by the rule for houses called by their area this is unsupported"
+          },
+          {
+            "text": "It is at its best there",
+            "supported": false,
+            "evidence": "Ambiguous: if 'where it is at its best' attaches to Pisces, it matches the glossary ('exalted: the sign where the texts hold a planet at its strongest'); if it attaches to 'the house of gains', the data states no such thing. Ambiguity between a supported and an unsupported reading makes it unsupported"
+          }
+        ]
+      },
+      "attempt": 2
+    }
+  ],
+  "writer": {
+    "model": "deepseek-ai/DeepSeek-V3.2",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "deepseek-ai/DeepSeek-V3.2",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 2708,
+      "output_tokens": 441,
+      "cache_read_input_tokens": 5952,
+      "cache_creation_input_tokens": 0,
+      "seconds": 23.851
+    },
+    "checker": {
+      "calls": 4,
+      "input_tokens": 6503,
+      "output_tokens": 4817,
+      "cache_read_input_tokens": 1536,
+      "cache_creation_input_tokens": 0,
+      "seconds": 41.455
+    },
+    "wall_seconds": 51.036
+  },
+  "kinds": [
+    "when"
+  ],
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+    "The planets ruling the houses of marriage are also supportive, with Mars ruling the house of partnership and sitting in its own sign in that same house.",
+    "The divisional chart for marriage also supports it.",
+    "In the reading's view, a point that works against you is that the signs which show how others see marriage lean unfavourably: Rahu sits there alone.",
+    "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+    "The most favourable stretch runs from January 2030 to October 2031.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    4
+  ],
+  "accepted": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+    "The planets ruling the houses of marriage are also supportive, with Mars ruling the house of partnership and sitting in its own sign in that same house [vote:marriage.lord].",
+    "The divisional chart for marriage also supports it [vote:marriage.varga].",
+    "In the reading's view, a point that works against you is that the signs which show how others see marriage lean unfavourably: Rahu sits there alone [vote:marriage.arudha]."
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 2.415,
+    "written": 8.27,
+    "done": 51.036
+  },
+  "word_rules": "warn"
+}

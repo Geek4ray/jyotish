@@ -33,6 +33,14 @@ docs/live_<date>/<label>-<n>.turn.json. With --url the turns are asked of a depl
 
     .venv/bin/python scripts/live_timing.py --label conversation-1 --turn --as-of 2026-11-01
     .venv/bin/python scripts/live_timing.py --label turn-1 --turn "what are the challanges in my life"
+
+Since 2026-11-02 the default conversation is seven turns (SEVEN_TURNS: the five, then Ray's "how much money will i
+earn in my life, will i be rich" and "whan and how"); --writer names the writer's backend for the run ("anthropic"
+with --writer-model for a Claude model, the writer role only), and --out the directory the turns' records go to
+(scripts/compare_writers.py, the writer bake-off).
+
+    .venv/bin/python scripts/live_timing.py --label haiku --turn --writer anthropic --writer-model claude-haiku-5-5 \
+        --out docs/writers_2026-11-02
 """
 
 from __future__ import annotations
@@ -95,13 +103,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--checker-effort", help="the checker's effort (JYOTISH_CHECKER_EFFORT)")
     ap.add_argument("--checker-temperature", type=float, help="the checker's temperature (JYOTISH_CHECKER_TEMPERATURE)")
     ap.add_argument("--writer-effort", help="the writer's effort")
+    ap.add_argument("--writer-model", help="the writer's model on the anthropic backend (default CONFIG.model)")
+    ap.add_argument("--out", type=Path, help="where a conversation's turn records go (default docs/live_<date>)")
     ap.add_argument("--depth", default="astrologer", choices=("astrologer", "curious", "full"))
     ap.add_argument("--as-of", default="2026-10-26")
     ap.add_argument("--no-write", action="store_true", help="print the row only")
     ap.add_argument("--url", help="a deployed service's base URL: time a reading asked of it (no key read here)")
     ap.add_argument("--where", help="the row's `where` (default: fly for a fly.dev host, else the host)")
     ap.add_argument("--turn", metavar="MESSAGE", nargs="*", default=None,
-                    help="time a conversation, not a reading: the five-turn conversation (FIVE_TURNS) with no message, "
+                    help="time a conversation, not a reading: the seven-turn conversation (SEVEN_TURNS) with no message, "
                          "else these messages in order")
     ap.add_argument("--from-reading", type=Path, help="append the row of a reading already written (a comparison's "
                     "docs/comparison_<date>/<side>.reading.json), with no model call")
@@ -171,6 +181,8 @@ def main(argv: list[str] | None = None) -> int:
 BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "node": "mean", "place": "Rewari, Haryana"}
 # The five-turn conversation of SPEC Layer 8's tests (tests/test_conversation.py), timed live by default (review M6).
 FIVE_TURNS = ("what are the challanges in my life", "and marriage?", "when?", "why do you say that?", "will I die early?")
+# Ray's first live turns (2026-11-02) after them: the conversation of tests/test_conversation.py, seven turns.
+SEVEN_TURNS = FIVE_TURNS + ("how much money will i earn in my life, will i be rich", "whan and how")
 
 
 def turn_row(label: str, doc: dict, cost: dict, session_s: float | None, n: int | None = None,
@@ -211,7 +223,9 @@ def local_turn(args) -> int:
     from dataclasses import replace
     from jyotish.narrate import CONFIG
     config = replace(CONFIG, effort=args.writer_effort) if args.writer_effort else CONFIG
-    messages = args.turn or FIVE_TURNS
+    if getattr(args, "writer_model", None):
+        config = replace(config, model=args.writer_model)
+    messages = args.turn or SEVEN_TURNS
     whole = len(messages) > 1
     last, history = None, []
     for n, message in enumerate(messages, 1):
@@ -222,7 +236,7 @@ def local_turn(args) -> int:
                        args.label if whole else None)
         print(json.dumps(row, indent=2))
         if not args.no_write:
-            out = ROOT / "docs" / f"live_{date.today().isoformat()}"
+            out = getattr(args, "out", None) or ROOT / "docs" / f"live_{date.today().isoformat()}"
             out.mkdir(parents=True, exist_ok=True)
             (out / f"{label}.turn.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
             with ROWS.open("a") as f:
@@ -242,7 +256,7 @@ def remote_turn(args) -> int:
     base = args.url.rstrip("/")
     host = urlparse(base).hostname or base
     where = args.where or ("fly" if host.endswith(".fly.dev") else host)
-    messages = args.turn or FIVE_TURNS
+    messages = args.turn or SEVEN_TURNS
     whole = len(messages) > 1
     ok = True
     with httpx.Client(timeout=120) as http:              # the client keeps the conversation's cookie (review H7)

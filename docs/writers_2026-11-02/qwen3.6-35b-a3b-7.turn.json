@@ -1,0 +1,681 @@
+{
+  "question": "whan and how",
+  "route": {
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "when": true,
+    "why": false,
+    "how": true,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "Let us begin with what supports your financial life, and then look at what pulls against it.",
+      "reasons": [
+        "untagged claim: 'Let us begin with what supports your financial life, and then look at what pulls against it.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The hard part is how others perceive your finances, because the signs that show how people view your wealth lean unfavourably while the Moon sits there without a helpful planet beside it. [vote:wealth.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The hard part is how others perceive it, because the signs that show how others see money lean unfavourably while the Moon sits there without a helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "You can read that sign placement as a difficult boundary that asks for patience when people judge your resources.",
+      "reasons": [
+        "untagged claim: 'You can read that sign placement as a difficult boundary that asks for patience when people judge your resources.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "This is how your chart shapes your financial life, mapping out both the steady support and the careful boundaries.",
+      "reasons": [
+        "untagged claim: 'This is how your chart shapes your financial life, mapping out both the steady support and the careful boundaries.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The reading presents the favourable foundations of your finances first, before examining the signs that show how others view your wealth. [vote:wealth.house] [vote:wealth.arudha]",
+      "reasons": [
+        "the checker found it unsupported: The wealth-house finding is presented first, before the arudha finding. (No fact, finding or field states an order of presentation; the sentence asserts a sequence the data does not carry.)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The signs that show how others see money lean unfavourably, with the Moon sitting there without a helpful planet beside it. [vote:wealth.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The signs that show how others see your reputation lean unfavourably, with the Moon sitting in Libra without a helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The chart shapes your financial life by pairing the steady support of your money rooms with the careful boundaries of public perception. [vote:wealth.house] [vote:wealth.arudha]",
+      "reasons": [
+        "the checker found it unsupported: That support is 'steady' (The data states only the direction 'for' (with basis 'lagna, moon, sun 3:2:1'). Nothing characterizes the support as steady; 'steady' is an added detail.)",
+        "the checker found it unsupported: Public perception sets careful boundaries — i.e., the arudha vote on wealth is against, in the character of careful boundaries (vote:wealth.arudha direction is 'against' (more malefics than benefics occupy A2 and A11), so the verdict itself is supported; but 'careful boundaries' is a softening, positive characterization the data does not state — the data says only that the vote is against. Ambiguous at best between the supported 'against' verdict and the unsupported 'careful boundaries' gloss.)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The signs showing how others see your wealth, Libra and Cancer, lean unfavourably because the Moon sits there without a helpful planet beside it. [vote:wealth.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The hard part is how others perceive it, because the signs that show how others see money lean unfavourably while the Moon sits there without a helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "The stars that rule those rooms lean favourably, as Mercury sits in Aquarius in your tenth house where it holds a neutral position. [vote:wealth.lord]",
+      "findings": [
+        "vote:wealth.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The lords of those rooms (the wealth houses) lean favourably — the reading's vote on the lords is for",
+            "supported": true,
+            "evidence": "vote:wealth.lord direction 'for' and area_votes verdict 'lord': for"
+          },
+          {
+            "text": "Mercury sits in Aquarius",
+            "supported": true,
+            "evidence": "derivation rows with lord 'Mercury' give lord_sign 'Aquarius' (e.g. lagna house 2)"
+          },
+          {
+            "text": "Mercury is in the tenth house (from the lagna)",
+            "supported": true,
+            "evidence": "derivation rows with lord 'Mercury' give lord_house_from_lagna 10 (lagna houses 2, 5; moon house 9; sun house 5)"
+          },
+          {
+            "text": "Mercury holds a neutral position in that placement",
+            "supported": true,
+            "evidence": "those same rows give dignity 'neutral' for Mercury in Aquarius"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The rulers of your birth day lean favourably for money, with both Mars and the Moon backing you. [vote:wealth.panchanga]",
+      "findings": [
+        "vote:wealth.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There are identifiable rulers of the birth day (the panchanga limbs of the day at birth)",
+            "supported": true,
+            "evidence": "finding is family \"panchanga\" and its derivation assigns ruler roles: Mars over tithi and nakshatra, Moon over vara"
+          },
+          {
+            "text": "The rulers lean favourably (the vote is for)",
+            "supported": true,
+            "evidence": "finding has direction \"for\" and area_votes.verdict.panchanga is \"for\""
+          },
+          {
+            "text": "The favourable lean is for money (the wealth area)",
+            "supported": true,
+            "evidence": "finding_id \"vote:wealth.panchanga\" and the panchanga verdict is \"for\" in the wealth vote"
+          },
+          {
+            "text": "Mars is one of the rulers backing you",
+            "supported": true,
+            "evidence": "derivation lists Mars with roles tithi and nakshatra"
+          },
+          {
+            "text": "The Moon is one of the rulers backing you",
+            "supported": true,
+            "evidence": "derivation lists Moon with role vara"
+          },
+          {
+            "text": "Both Mars and the Moon (both rulers named) are on the favourable side",
+            "supported": true,
+            "evidence": "the vote is direction \"for\" and both Mars and Moon appear in its derivation"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The stars that signify wealth lean favourably, placing Jupiter in Taurus inside your first house on a sign that does not fully embrace it. [vote:wealth.karaka]",
+      "findings": [
+        "vote:wealth.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The significators of wealth lean favourably (the karaka vote for wealth is 'for')",
+            "supported": true,
+            "evidence": "The vote finding has family 'karaka', direction 'for', and its area_votes verdict for 'karaka' is 'for'."
+          },
+          {
+            "text": "Jupiter is in Taurus",
+            "supported": true,
+            "evidence": "The derivation's Jupiter row gives sign 'Taurus'."
+          },
+          {
+            "text": "Jupiter is in the first house (the lagna)",
+            "supported": true,
+            "evidence": "The derivation's Jupiter row gives house 1 on basis 'lagna'."
+          },
+          {
+            "text": "The sign (Taurus) does not fully embrace Jupiter — it is not a sign where Jupiter is comfortable, i.e. an enemy sign",
+            "supported": true,
+            "evidence": "The derivation's Jupiter row gives dignity 'enemy' for Jupiter in Taurus; an enemy sign is one that does not embrace the planet, matching the sentence's paraphrase."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "In the reading's view, these placements combine to lean favourably for money, even though one area pulls against it. [vote:wealth.house] [vote:wealth.lord] [vote:wealth.karaka] [vote:wealth.panchanga] [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.house",
+        "vote:wealth.lord",
+        "vote:wealth.karaka",
+        "vote:wealth.arudha",
+        "vote:wealth.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "In the reading's view, the cited placements combine to lean favourably for money",
+            "supported": true,
+            "evidence": "the weighing — the reading's overall call, built on the cited wealth votes (house: for, lord: for, karaka: for, panchanga: for; 4 for vs 1 against)"
+          },
+          {
+            "text": "one area pulls against money",
+            "supported": true,
+            "evidence": "vote:wealth.arudha carries direction 'against' (the arudha vote is against)"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The rooms that govern your finances lean favourably, with your main money room resting in Gemini and carrying more support than most of your other rooms. [vote:wealth.house]",
+      "findings": [
+        "vote:wealth.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The rooms that govern your finances lean favourably",
+            "supported": true,
+            "evidence": "The finding's direction is \"for\" and its verdict for \"house\" is \"for\" (4 for, 1 against) — the vote on the wealth houses is in favour."
+          },
+          {
+            "text": "Your main money room (the 2nd house) rests in Gemini",
+            "supported": true,
+            "evidence": "The lagna-basis row gives house 2 in sign Gemini (bhava_bala_rupas 8.93); the glossary defines the 2nd house as \"wealth, family, speech and food\" and the area_houses call it \"a wealth house\". The ordinary reading takes the house from the lagna, and that row states Gemini."
+          },
+          {
+            "text": "That main money room carries more support than most of your other rooms",
+            "supported": true,
+            "evidence": "The lagna house-2 row has relative 0.48 (bhava_bala_rupas 8.93), which exceeds most other rows in the derivation — higher than 10 of the 14 other rows (it trails only lagna house 5 at 0.51 and the 0.49 rows, with two rows tied at 0.48)."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The reading presents the favourable foundations of your finances first, before examining the signs that show how others view your wealth. [vote:wealth.house] [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.house",
+        "vote:wealth.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading contains a favourable finding about the foundations of your finances (the wealth-house vote is for).",
+            "supported": true,
+            "evidence": "vote:wealth.house has direction \"for\" in the wealth area, and its area_houses call houses 2, 11, 5 and 9 (from lagna, Moon and Sun) \"a wealth house\"."
+          },
+          {
+            "text": "The wealth-house finding is presented first, before the arudha finding.",
+            "supported": false,
+            "evidence": "No fact, finding or field states an order of presentation; the sentence asserts a sequence the data does not carry."
+          },
+          {
+            "text": "The reading examines signs that show how others view your wealth (an arudha finding on the wealth area exists).",
+            "supported": true,
+            "evidence": "vote:wealth.arudha is a wealth-area arudha finding, and the glossary defines arudha as \"read for how its matters appear to the world\"."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The public view of your wealth leans unfavourably because the signs marking that perception, Libra and Cancer, pull against it while the Moon rests there without a helpful planet nearby. [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The public view of your wealth leans unfavourably",
+            "supported": true,
+            "evidence": "The cited finding is the arudha vote for the wealth area, with direction \"against\" and verdict arudha: \"against\"; the glossary defines the arudha as read \"for how its matters appear to the world,\" so an unfavourable arudha vote is the public view leaning against."
+          },
+          {
+            "text": "The signs marking that perception are Libra and Cancer",
+            "supported": true,
+            "evidence": "The derivation rests on A2 and A11; A2 is in Libra and A11 is in Cancer. A11's relevance to wealth is also grounded: the finding's area_houses lists house 3 (where A11 sits) as \"the 2nd's Bhavat Bhavam.\""
+          },
+          {
+            "text": "Those signs pull against the wealth view (they are the seats of the vote against)",
+            "supported": true,
+            "evidence": "The derivation's \"why\" reads \"the vote is against\" and rests on A2 and A11 — the Libra and Cancer padas. This is the reading's framing of that vote, and the direction says \"against.\""
+          },
+          {
+            "text": "The Moon rests there (in one of these perception signs)",
+            "supported": true,
+            "evidence": "A2 (Libra) lists \"Moon\" among its occupants. Note on scope: the sentence's \"there\" follows the plural \"Libra and Cancer,\" but the natural reading — the Moon sits in the signs marking the perception — is satisfied by the Moon in Libra; the data does not place the Moon in Cancer (A11 is empty), so only a stricter reading of \"there\" as both signs would fail."
+          },
+          {
+            "text": "The Moon sits without a helpful (benefic) planet nearby",
+            "supported": true,
+            "evidence": "A2's benefics list is empty; the glossary defines a benefic as \"a planet counted as naturally favourable,\" matching \"helpful planet.\" A11 is likewise empty of benefics, so this holds on either reading of \"there.\""
+          },
+          {
+            "text": "The unfavourable lean is because of this — the occupancy picture in these signs",
+            "supported": true,
+            "evidence": "The derivation's stated reason is \"more malefics than benefics occupy A2, A11: the vote is against,\" which is what the sentence's because-clause recasts (Moon present, no benefics)."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chart shapes your financial life by pairing the steady support of your money rooms with the careful boundaries of public perception. [vote:wealth.house] [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.house",
+        "vote:wealth.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chart shapes the client's financial life (the reading concerns wealth matters)",
+            "supported": true,
+            "evidence": "Both cited findings are wealth votes for this chart (vote:wealth.house, family 'house', and vote:wealth.arudha, family 'arudha', both in a wealth reading)."
+          },
+          {
+            "text": "The client's money rooms give steady support — i.e., the house vote on wealth is for",
+            "supported": true,
+            "evidence": "vote:wealth.house direction is 'for'; its area_houses call houses 2 and 11 (from lagna, Moon and Sun) 'a wealth house'. The 'for' direction supports 'support' and the area_houses wording supports 'money rooms'."
+          },
+          {
+            "text": "That support is 'steady'",
+            "supported": false,
+            "evidence": "The data states only the direction 'for' (with basis 'lagna, moon, sun 3:2:1'). Nothing characterizes the support as steady; 'steady' is an added detail."
+          },
+          {
+            "text": "Public perception sets careful boundaries — i.e., the arudha vote on wealth is against, in the character of careful boundaries",
+            "supported": false,
+            "evidence": "vote:wealth.arudha direction is 'against' (more malefics than benefics occupy A2 and A11), so the verdict itself is supported; but 'careful boundaries' is a softening, positive characterization the data does not state — the data says only that the vote is against. Ambiguous at best between the supported 'against' verdict and the unsupported 'careful boundaries' gloss."
+          },
+          {
+            "text": "The arudha concerns public perception — how the client's wealth matters appear to the world",
+            "supported": true,
+            "evidence": "vote:wealth.arudha's glossary: 'arudha: ... read for how its matters appear to the world.'"
+          },
+          {
+            "text": "The chart pairs the house support with the arudha restriction (the two operate together in shaping finances)",
+            "supported": true,
+            "evidence": "Both cited findings exist in the data with the stated directions (house 'for', arudha 'against'), so the sentence's combination of the two is grounded in what is cited."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The favourable foundations of your finances rest on the rooms that govern them, alongside signs showing how others view your wealth leaning unfavourably. [vote:wealth.house] [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.house",
+        "vote:wealth.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Your finances have favourable foundations (a favourable verdict on the house side of wealth)",
+            "supported": true,
+            "evidence": "vote:wealth.house has direction \"for\" (house family), and its area_votes verdict lists \"house\": \"for\""
+          },
+          {
+            "text": "Those favourable foundations rest on the houses/rooms that govern wealth",
+            "supported": true,
+            "evidence": "vote:wealth.house area_houses names houses in wealth terms: \"the 2nd, a wealth house\", \"the 11th, a wealth house\", \"the 5th, a wealth house\", \"the 9th, a wealth house\" (and the 3rd as the 2nd's Bhavat Bhavam), with the house vote direction \"for\""
+          },
+          {
+            "text": "There are signs showing how others view your wealth (an image-point/arudha reading of wealth)",
+            "supported": true,
+            "evidence": "vote:wealth.arudha cites padas A2 (sign Libra) and A11 (sign Cancer); its glossary defines \"arudha\" as \"read for how its matters appear to the world\", and A2/A11 are the image points of the wealth houses (2nd and 11th)"
+          },
+          {
+            "text": "That showing of how others view your wealth leans unfavourably (the arudha vote is against)",
+            "supported": true,
+            "evidence": "vote:wealth.arudha has direction \"against\", with \"why\": \"more malefics than benefics occupy A2, A11: the vote is against\""
+          }
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "Your financial life shows the rooms that govern money leaning favourably alongside the signs showing how others view your wealth leaning unfavourably. [vote:wealth.house] [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.house",
+        "vote:wealth.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Your financial life (the wealth area of the chart) is being read",
+            "supported": true,
+            "evidence": "The reading is over the wealth area; both cited findings are wealth votes for this chart"
+          },
+          {
+            "text": "The houses that govern money lean favourably",
+            "supported": true,
+            "evidence": "vote:wealth.house — kind: vote, family: house, direction: \"for\"; generic framing of the house vote's direction"
+          },
+          {
+            "text": "These money-governing rooms are houses",
+            "supported": true,
+            "evidence": "vote:wealth.house area_houses repeatedly label the 2nd, 5th, 9th and 11th (and their derivations) as \"a wealth house\""
+          },
+          {
+            "text": "The signs showing how others view your wealth (the arudha/image points) lean unfavourably",
+            "supported": true,
+            "evidence": "vote:wealth.arudha — kind: vote, family: arudha, direction: \"against\"; the derivation's why says \"the vote is against\""
+          },
+          {
+            "text": "An arudha is read for how its matters appear to the world / how others view them",
+            "supported": true,
+            "evidence": "The glossary entry for \"arudha\" in both findings: \"the sign as far from the house's lord as the lord is from the house, read for how its matters appear to the world\" — matches \"how others view your wealth\""
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "Qwen/Qwen3.6-35B-A3B",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 10703,
+      "output_tokens": 13851,
+      "cache_read_input_tokens": 2096,
+      "cache_creation_input_tokens": 0,
+      "seconds": 172.297
+    },
+    "checker": {
+      "calls": 10,
+      "input_tokens": 28164,
+      "output_tokens": 11968,
+      "cache_read_input_tokens": 2688,
+      "cache_creation_input_tokens": 0,
+      "seconds": 94.751
+    },
+    "wall_seconds": 236.92
+  },
+  "kinds": [
+    "when",
+    "why"
+  ],
+  "engine": {
+    "question": "whan and how",
+    "direction": "both",
+    "areas": [
+      "wealth"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+        "notes": []
+      },
+      {
+        "text": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "text": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The rulers of the day you were born, Mars and the Moon, lean favourably for money.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "wealth",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 2nd from the moon; 3rd from the sun."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch runs from November 2028 to October 2029.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+    "The favourable foundations of your finances rest on the rooms that govern them, alongside signs showing how others view your wealth leaning unfavourably.",
+    "The rooms that govern your finances lean favourably, with your main money room resting in Gemini and carrying more support than most of your other rooms.",
+    "The stars that rule those rooms lean favourably, as Mercury sits in Aquarius in your tenth house where it holds a neutral position.",
+    "The stars that signify wealth lean favourably, placing Jupiter in Taurus inside your first house on a sign that does not fully embrace it.",
+    "The rulers of your birth day lean favourably for money, with both Mars and the Moon backing you.",
+    "In the reading's view, these placements combine to lean favourably for money, even though one area pulls against it.",
+    "The public view of your wealth leans unfavourably because the signs marking that perception, Libra and Cancer, pull against it while the Moon rests there without a helpful planet nearby.",
+    "Your financial life shows the rooms that govern money leaning favourably alongside the signs showing how others view your wealth leaning unfavourably.",
+    "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+    "The least favourable stretch runs from November 2028 to October 2029.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "accepted": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+    "The favourable foundations of your finances rest on the rooms that govern them, alongside signs showing how others view your wealth leaning unfavourably. [vote:wealth.house] [vote:wealth.arudha]",
+    "The rooms that govern your finances lean favourably, with your main money room resting in Gemini and carrying more support than most of your other rooms. [vote:wealth.house]",
+    "The stars that rule those rooms lean favourably, as Mercury sits in Aquarius in your tenth house where it holds a neutral position. [vote:wealth.lord]",
+    "The stars that signify wealth lean favourably, placing Jupiter in Taurus inside your first house on a sign that does not fully embrace it. [vote:wealth.karaka]",
+    "The rulers of your birth day lean favourably for money, with both Mars and the Moon backing you. [vote:wealth.panchanga]",
+    "In the reading's view, these placements combine to lean favourably for money, even though one area pulls against it. [vote:wealth.house] [vote:wealth.lord] [vote:wealth.karaka] [vote:wealth.panchanga] [vote:wealth.arudha]",
+    "The public view of your wealth leans unfavourably because the signs marking that perception, Libra and Cancer, pull against it while the Moon rests there without a helpful planet nearby. [vote:wealth.arudha]",
+    "Your financial life shows the rooms that govern money leaning favourably alongside the signs showing how others view your wealth leaning unfavourably. [vote:wealth.house] [vote:wealth.arudha]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 73.601,
+    "written": 76.936,
+    "done": 236.92
+  },
+  "word_rules": "warn"
+}

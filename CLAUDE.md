@@ -370,4 +370,17 @@ logged in `erasures`, a reviewed turn's judgement kept). A minor's defaults are 
 (`live.HeldParagraph`) and retries its failed sentences alone; `narrate.sentences` splits "[tag]Capital"; turn
 sentences are benchmark rows (`where: "answer"`); `scripts/live_timing.py --turn` times the five-turn conversation;
 "why?" after a fixed reply explains it (`WHY_REPLIES`); the writer gets the last three turns (`history_of`).
+After Ray's first live turns (2026-11-02, docs/spec_notes_2026-11-02.md; tests in tests/test_chat_plain.py and
+tests/test_compare_writers.py): the turn's writer is given plain words only (`conversation._material`: the engine's
+answer and one sentence per finding, `finding_sentence`, cited by handles `[f3]` put back to the findings' tags by
+`Handles`; no vote, family or tier label); `client.NEVER_SHOW` refuses engine words in a turn (vote, family, KP,
+analysis, D-codes, score, "marked as", "indications are", a bare "is for", arudha, dasha, cusp, sub-lord, Shadbala,
+Bhava Bala; benchmark rows `client_words`, 182 rows); "when", "why" and "how" are read with spelling tolerance
+(`asks_when`, `asks_why`, `asks_how`, `Route.how`) and a carried-area follow-up repeats nothing (`restates`,
+engine_reading's `said_before`); the question's kinds (`kinds_of`: amount, yes_no, when, why) open the engine's answer
+(`narrate.OPENING`) and the writer's (`opens_on`, else the engine's lines, `doc.opened_by`); the conversation test is
+seven turns. `scripts/compare_writers.py` is the writer bake-off (docs/writers_2026-11-02.md; live_timing.py --turn
+takes --writer, --writer-model, --out; Haiku 5.5 is sent no refusal fallback, `narrate.NO_FALLBACK`): gpt-oss-120b,
+Qwen3.6-35B-A3B and DeepSeek-V3.2 ran; Kimi-K2.6, GLM-5.3, Haiku and Sonnet wait for credit (DeepInfra 402, Anthropic
+400), and the choice is Ray's.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

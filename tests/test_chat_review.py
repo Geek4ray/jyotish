@@ -812,7 +812,9 @@ def test_m6_live_timing_turn_runs_the_five_turn_conversation(monkeypatch, capsys
     assert lt.main(["--label", "five", "--turn", "--no-write", "--as-of", AS_OF.isoformat()]) == 0
     out = capsys.readouterr().out
     rows = [json.loads(x) for x in re.findall(r"^\{\n.*?^\}", out, re.S | re.M)]
-    assert [r["question"] for r in rows] == list(lt.FIVE_TURNS) and [r["turn"] for r in rows] == [1, 2, 3, 4, 5]
+    # The default is the seven-turn conversation since 2026-11-02 (the five, then Ray's two questions).
+    assert [r["question"] for r in rows] == list(lt.SEVEN_TURNS) and [r["turn"] for r in rows] == [1, 2, 3, 4, 5, 6, 7]
+    assert lt.SEVEN_TURNS[:5] == lt.FIVE_TURNS and [r["route"]["areas"] for r in rows[5:]] == [["wealth"], ["wealth"]]
     assert {r["conversation"] for r in rows} == {"five"} and rows[0]["session_s"] is not None
     assert [r["route"]["areas"] for r in rows[:4]] == [["father", "reputation", "siblings"], ["marriage"],
                                                        ["marriage"], ["marriage"]]

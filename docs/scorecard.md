@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-01 at commit `ec3dd10` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-06 at commit `ead9e6c` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -8,7 +8,7 @@ Run 2026-11-01 at commit `ec3dd10` by `scripts/evaluate.py`. CI fails when any g
 
 ## Phase 0 cross-check
 
-1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 9 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
+1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 8 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
 
 ## Metamorphic tests
 
@@ -16,7 +16,7 @@ Run 2026-11-01 at commit `ec3dd10` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-177 rows; the validator alone: precision 1.000, recall 0.274, F1 0.430; 27 of 27 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 20 rows from the live turns of 2026-11-01): the validator alone refuses 4 of 16 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+182 rows; the validator alone: precision 1.000, recall 0.330, F1 0.497; 33 of 33 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 25 rows from the live turns of 2026-11-01 and Ray's of 2026-11-02): the validator alone refuses 12 of 22 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -52,6 +52,24 @@ Live turns of the reference chart (docs/live_timings.jsonl, scripts/live_timing.
 - conversation-1-2 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.001 s, first verified 34.844 s, done 170.192 s; 8 of 15 sentences removed; answer from the writer; USD 0.009581.
 - conversation-1-3 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.001 s, first verified 102.754 s, done 102.755 s; 5 of 6 sentences removed; answer from the writer; USD 0.00334.
 - conversation-1-4 (2026-11-01; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.001 s, first verified 34.141 s, done 158.833 s; 6 of 14 sentences removed; answer from the writer; USD 0.010349.
+- gpt-oss-120b-1 (2026-11-06; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.003 s, first verified 85.066 s, done 271.475 s; 11 of 18 sentences removed; answer from the writer; USD 0.011311.
+- gpt-oss-120b-2 (2026-11-06; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.001 s, first verified 62.181 s, done 139.355 s; 3 of 8 sentences removed; answer from the writer; USD 0.004934.
+- gpt-oss-120b-3 (2026-11-06; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.001 s, first verified 33.851 s, done 80.21 s; 3 of 4 sentences removed; answer from the writer; USD 0.000597.
+- gpt-oss-120b-4 (2026-11-06; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.001 s, first verified 128.837 s, done 128.837 s; 3 of 4 sentences removed; answer from the writer; USD 0.002501.
+- gpt-oss-120b-6 (2026-11-06; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.001 s, first verified 34.198 s, done 94.994 s; 1 of 7 sentences removed; answer from the writer; USD 0.00696.
+- gpt-oss-120b-7 (2026-11-06; openai/gpt-oss-120b on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.001 s, first verified 58.692 s, done 262.863 s; 12 of 18 sentences removed; answer from the writer; USD 0.009721.
+- qwen3.6-35b-a3b-1 (2026-11-06; Qwen/Qwen3.6-35B-A3B on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.004 s, first verified 99.724 s, done 295.824 s; 13 of 21 sentences removed; answer from the writer; USD 0.035396.
+- qwen3.6-35b-a3b-2 (2026-11-06; Qwen/Qwen3.6-35B-A3B on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.001 s, first verified 109.544 s, done 348.218 s; 10 of 17 sentences removed; answer from the writer; USD 0.033941.
+- qwen3.6-35b-a3b-3 (2026-11-06; Qwen/Qwen3.6-35B-A3B on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.002 s, first verified 77.87 s, done 154.473 s; 1 of 4 sentences removed; answer from the writer; USD 0.012017.
+- qwen3.6-35b-a3b-4 (2026-11-06; Qwen/Qwen3.6-35B-A3B on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.002 s, first verified 103.595 s, done 233.194 s; 9 of 11 sentences removed; answer from the writer; USD 0.027852.
+- qwen3.6-35b-a3b-6 (2026-11-06; Qwen/Qwen3.6-35B-A3B on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 60.999 s, done 151.973 s; 4 of 14 sentences removed; answer from the writer; USD 0.019509.
+- qwen3.6-35b-a3b-7 (2026-11-06; Qwen/Qwen3.6-35B-A3B on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 73.601 s, done 236.92 s; 8 of 17 sentences removed; answer from the writer; USD 0.024728.
+- deepseek-v3.2-1 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.005 s, first verified 28.996 s, done 89.046 s; 17 of 25 sentences removed; answer from the writer; USD 0.015485.
+- deepseek-v3.2-2 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.002 s, first verified 26.681 s, done 50.541 s; 5 of 7 sentences removed; answer from the writer; USD 0.005305.
+- deepseek-v3.2-3 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.002 s, first verified 2.415 s, done 51.036 s; 15 of 19 sentences removed; answer from the writer; USD 0.005075.
+- deepseek-v3.2-4 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.002 s, first verified 25.65 s, done 28.649 s; 4 of 7 sentences removed; answer from the writer; USD 0.006195.
+- deepseek-v3.2-6 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 18.161 s, done 57.663 s; 5 of 11 sentences removed; answer from the writer; USD 0.010055.
+- deepseek-v3.2-7 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 3.162 s, done 55.704 s; 17 of 21 sentences removed; answer from the writer; USD 0.005261.
 
 ## The paragraph held sentence by sentence (reported, not gated)
 
@@ -59,10 +77,10 @@ From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run p
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 40 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 17 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 304 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 97 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 25 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 9 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 253 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 104 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -108,13 +126,13 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `metamorphic.seed_agreement.synthetic-3` | 1.0 |  | higher | no |
 | `metamorphic.changed_at_one_minute.synthetic-3` | 2 |  | informational | no |
 | `checker.validator.precision` | 1.0 |  | higher | no |
-| `checker.validator.recall` | 0.2736 |  | higher | no |
-| `checker.validator.f1` | 0.4296 |  | higher | no |
+| `checker.validator.recall` | 0.3304 |  | higher | no |
+| `checker.validator.f1` | 0.4966 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
-| `checker.bench_rows` | 177 |  | informational | no |
-| `checker.answer.rows` | 20 |  | informational | no |
-| `checker.answer.validator_recall` | 0.25 |  | higher | no |
+| `checker.bench_rows` | 182 |  | informational | no |
+| `checker.answer.rows` | 25 |  | informational | no |
+| `checker.answer.validator_recall` | 0.5455 |  | higher | no |
 | `checker.answer.validator_false_rejects` | 0 |  | lower | no |
 | `checker.tests_failed` | 0 |  | lower | yes |
 | `checker.live.precision` | 1.0 |  | informational | no |
@@ -249,11 +267,101 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `turn.conversation-1-4.removed_share` | 0.429 |  | lower | no |
 | `turn.conversation-1-4.done_s` | 158.833 |  | lower | no |
 | `turn.conversation-1-4.cost_usd` | 0.010349 |  | lower | no |
+| `turn.gpt-oss-120b-1.engine_s` | 0.003 |  | lower | no |
+| `turn.gpt-oss-120b-1.first_verified_s` | 85.066 |  | lower | no |
+| `turn.gpt-oss-120b-1.removed_share` | 0.611 |  | lower | no |
+| `turn.gpt-oss-120b-1.done_s` | 271.475 |  | lower | no |
+| `turn.gpt-oss-120b-1.cost_usd` | 0.011311 |  | lower | no |
+| `turn.gpt-oss-120b-2.engine_s` | 0.001 |  | lower | no |
+| `turn.gpt-oss-120b-2.first_verified_s` | 62.181 |  | lower | no |
+| `turn.gpt-oss-120b-2.removed_share` | 0.375 |  | lower | no |
+| `turn.gpt-oss-120b-2.done_s` | 139.355 |  | lower | no |
+| `turn.gpt-oss-120b-2.cost_usd` | 0.004934 |  | lower | no |
+| `turn.gpt-oss-120b-3.engine_s` | 0.001 |  | lower | no |
+| `turn.gpt-oss-120b-3.first_verified_s` | 33.851 |  | lower | no |
+| `turn.gpt-oss-120b-3.removed_share` | 0.75 |  | lower | no |
+| `turn.gpt-oss-120b-3.done_s` | 80.21 |  | lower | no |
+| `turn.gpt-oss-120b-3.cost_usd` | 0.000597 |  | lower | no |
+| `turn.gpt-oss-120b-4.engine_s` | 0.001 |  | lower | no |
+| `turn.gpt-oss-120b-4.first_verified_s` | 128.837 |  | lower | no |
+| `turn.gpt-oss-120b-4.removed_share` | 0.75 |  | lower | no |
+| `turn.gpt-oss-120b-4.done_s` | 128.837 |  | lower | no |
+| `turn.gpt-oss-120b-4.cost_usd` | 0.002501 |  | lower | no |
+| `turn.gpt-oss-120b-6.engine_s` | 0.001 |  | lower | no |
+| `turn.gpt-oss-120b-6.first_verified_s` | 34.198 |  | lower | no |
+| `turn.gpt-oss-120b-6.removed_share` | 0.143 |  | lower | no |
+| `turn.gpt-oss-120b-6.done_s` | 94.994 |  | lower | no |
+| `turn.gpt-oss-120b-6.cost_usd` | 0.00696 |  | lower | no |
+| `turn.gpt-oss-120b-7.engine_s` | 0.001 |  | lower | no |
+| `turn.gpt-oss-120b-7.first_verified_s` | 58.692 |  | lower | no |
+| `turn.gpt-oss-120b-7.removed_share` | 0.667 |  | lower | no |
+| `turn.gpt-oss-120b-7.done_s` | 262.863 |  | lower | no |
+| `turn.gpt-oss-120b-7.cost_usd` | 0.009721 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-1.engine_s` | 0.004 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-1.first_verified_s` | 99.724 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-1.removed_share` | 0.619 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-1.done_s` | 295.824 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-1.cost_usd` | 0.035396 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-2.engine_s` | 0.001 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-2.first_verified_s` | 109.544 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-2.removed_share` | 0.588 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-2.done_s` | 348.218 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-2.cost_usd` | 0.033941 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-3.engine_s` | 0.002 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-3.first_verified_s` | 77.87 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-3.removed_share` | 0.25 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-3.done_s` | 154.473 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-3.cost_usd` | 0.012017 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-4.engine_s` | 0.002 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-4.first_verified_s` | 103.595 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-4.removed_share` | 0.818 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-4.done_s` | 233.194 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-4.cost_usd` | 0.027852 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-6.engine_s` | 0.002 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-6.first_verified_s` | 60.999 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-6.removed_share` | 0.286 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-6.done_s` | 151.973 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-6.cost_usd` | 0.019509 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-7.engine_s` | 0.002 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-7.first_verified_s` | 73.601 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-7.removed_share` | 0.471 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-7.done_s` | 236.92 |  | lower | no |
+| `turn.qwen3.6-35b-a3b-7.cost_usd` | 0.024728 |  | lower | no |
+| `turn.deepseek-v3.2-1.engine_s` | 0.005 |  | lower | no |
+| `turn.deepseek-v3.2-1.first_verified_s` | 28.996 |  | lower | no |
+| `turn.deepseek-v3.2-1.removed_share` | 0.68 |  | lower | no |
+| `turn.deepseek-v3.2-1.done_s` | 89.046 |  | lower | no |
+| `turn.deepseek-v3.2-1.cost_usd` | 0.015485 |  | lower | no |
+| `turn.deepseek-v3.2-2.engine_s` | 0.002 |  | lower | no |
+| `turn.deepseek-v3.2-2.first_verified_s` | 26.681 |  | lower | no |
+| `turn.deepseek-v3.2-2.removed_share` | 0.714 |  | lower | no |
+| `turn.deepseek-v3.2-2.done_s` | 50.541 |  | lower | no |
+| `turn.deepseek-v3.2-2.cost_usd` | 0.005305 |  | lower | no |
+| `turn.deepseek-v3.2-3.engine_s` | 0.002 |  | lower | no |
+| `turn.deepseek-v3.2-3.first_verified_s` | 2.415 |  | lower | no |
+| `turn.deepseek-v3.2-3.removed_share` | 0.789 |  | lower | no |
+| `turn.deepseek-v3.2-3.done_s` | 51.036 |  | lower | no |
+| `turn.deepseek-v3.2-3.cost_usd` | 0.005075 |  | lower | no |
+| `turn.deepseek-v3.2-4.engine_s` | 0.002 |  | lower | no |
+| `turn.deepseek-v3.2-4.first_verified_s` | 25.65 |  | lower | no |
+| `turn.deepseek-v3.2-4.removed_share` | 0.571 |  | lower | no |
+| `turn.deepseek-v3.2-4.done_s` | 28.649 |  | lower | no |
+| `turn.deepseek-v3.2-4.cost_usd` | 0.006195 |  | lower | no |
+| `turn.deepseek-v3.2-6.engine_s` | 0.002 |  | lower | no |
+| `turn.deepseek-v3.2-6.first_verified_s` | 18.161 |  | lower | no |
+| `turn.deepseek-v3.2-6.removed_share` | 0.455 |  | lower | no |
+| `turn.deepseek-v3.2-6.done_s` | 57.663 |  | lower | no |
+| `turn.deepseek-v3.2-6.cost_usd` | 0.010055 |  | lower | no |
+| `turn.deepseek-v3.2-7.engine_s` | 0.002 |  | lower | no |
+| `turn.deepseek-v3.2-7.first_verified_s` | 3.162 |  | lower | no |
+| `turn.deepseek-v3.2-7.removed_share` | 0.81 |  | lower | no |
+| `turn.deepseek-v3.2-7.done_s` | 55.704 |  | lower | no |
+| `turn.deepseek-v3.2-7.cost_usd` | 0.005261 |  | lower | no |
 | `turn.median.engine_s` | 0.002 |  | lower | no |
-| `turn.median.first_verified_s` | 34.141 |  | lower | no |
-| `turn.median.removed_share` | 0.429 |  | lower | no |
-| `turn.median.done_s` | 39.793 |  | lower | no |
-| `turn.median.cost_usd` | 0.005306 |  | lower | no |
+| `turn.median.first_verified_s` | 34.844 |  | lower | no |
+| `turn.median.removed_share` | 0.571 |  | lower | no |
+| `turn.median.done_s` | 102.755 |  | lower | no |
+| `turn.median.cost_usd` | 0.00696 |  | lower | no |
 | `paragraph.complete` | 4 |  | higher | no |
 | `paragraph.partial` | 2 |  | lower | no |
 | `paragraph.none` | 0 |  | lower | no |

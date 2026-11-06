@@ -13,7 +13,10 @@ from typing import Any
 
 # input, output, cache read, cache write (5-minute, 1.25 x input)
 PRICES = {"claude-opus-5-5": (4.00, 20.00, 0.20, 5.00), "claude-fable-5-1": (10.00, 50.00, 0.25, 12.50),
-          "claude-opus-5": (5.00, 25.00, 0.50, 6.25), "claude-sonnet-5-5": (2.00, 10.00, 0.20, 2.50)}
+          "claude-opus-5": (5.00, 25.00, 0.50, 6.25), "claude-sonnet-5-5": (2.00, 10.00, 0.20, 2.50),
+          # Haiku 5.5 (the writer bake-off, 2026-11-02): its price for a prompt of 100K tokens or fewer, which every
+          # turn is ($0.50 / $2.50 above); its list gives no cache-read price, so cached tokens are priced at input.
+          "claude-haiku-5-5": (0.10, 0.50, 0.10, 0.125)}
 # (host, model) -> input, output, cache read, cache write. A provider that lists no cached price is
 # priced at its input price for cached tokens (what it bills when it does not discount them).
 OPEN_PRICES = {
@@ -22,6 +25,11 @@ OPEN_PRICES = {
     ("api.deepinfra.com", "zai-org/GLM-4.7"): (0.40, 1.75, 0.08, 0.0),
     ("api.deepinfra.com", "Qwen/Qwen3.6-35B-A3B"): (0.10, 0.95, 0.10, 0.0),
     ("api.deepinfra.com", "zai-org/GLM-5.3-Flash"): (0.15, 0.50, 0.03, 0.0),     # read 2026-10-26, its model page
+    # The writer bake-off's candidates (docs/writers_2026-11-02.md), read 2026-11-06 from the pricing DeepInfra's
+    # /v1/openai/models listing gives each model.
+    ("api.deepinfra.com", "deepseek-ai/DeepSeek-V3.2"): (0.26, 0.38, 0.13, 0.0),
+    ("api.deepinfra.com", "moonshotai/Kimi-K2.6"): (0.75, 3.50, 0.15, 0.0),
+    ("api.deepinfra.com", "zai-org/GLM-5.3"): (0.90, 4.00, 0.20, 0.0),
     # The fast providers (2026-10-26, docs/models.md): Cerebras lists no cached price and charges no fee for
     # its prompt cache, so cached tokens are priced at input; Groq's cached input is half its input.
     ("api.cerebras.ai", "gpt-oss-120b"): (0.35, 0.75, 0.35, 0.0),

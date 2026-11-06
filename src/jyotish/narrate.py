@@ -1494,6 +1494,11 @@ class Backend:
     concurrency: int | None = None      # calls in flight at once by default; None: the config's
 
 
+# Claude models with no server-side refusal fallback: the request carries neither `fallbacks` nor its beta (Claude
+# Haiku 5.5, per Anthropic's model notes read 2026-11-06; the writer bake-off of 2026-11-02 runs it as a writer).
+NO_FALLBACK = frozenset({"claude-haiku-5-5"})
+
+
 class AnthropicBackend(Backend):
     """The Messages API with structured output (`output_format`), effort, adaptive thinking, the
     server-side refusal fallback and a stream above STREAM_ABOVE tokens, as the engine has called it
@@ -1519,6 +1524,9 @@ class AnthropicBackend(Backend):
         cfg = self.config
         kwargs = dict(model=self.model, max_tokens=max_tokens, betas=list(cfg.betas), fallbacks=cfg.fallbacks,
                       output_config={"effort": effort}, system=system, messages=messages, output_format=schema)
+        if self.model in NO_FALLBACK:                 # a model with no server-side refusal fallback
+            kwargs.pop("fallbacks")
+            kwargs["betas"] = [b for b in kwargs["betas"] if not b.startswith("server-side-fallback")]
         if thinking:
             kwargs["thinking"] = {"type": thinking, "display": cfg.thinking_display}
         return kwargs

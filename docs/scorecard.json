@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-01",
-  "commit": "ec3dd10",
+  "date": "2026-11-06",
+  "commit": "ead9e6c",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.2736,
+      "value": 0.3304,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.4296,
+      "value": 0.4966,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,19 +255,19 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 177,
+      "value": 182,
       "better": null,
       "unit": "",
       "gate": false
     },
     "checker.answer.rows": {
-      "value": 20,
+      "value": 25,
       "better": null,
       "unit": "",
       "gate": false
     },
     "checker.answer.validator_recall": {
-      "value": 0.25,
+      "value": 0.5455,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -1076,6 +1076,546 @@
       "unit": "",
       "gate": false
     },
+    "turn.gpt-oss-120b-1.engine_s": {
+      "value": 0.003,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-1.first_verified_s": {
+      "value": 85.066,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-1.removed_share": {
+      "value": 0.611,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-1.done_s": {
+      "value": 271.475,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-1.cost_usd": {
+      "value": 0.011311,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-2.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-2.first_verified_s": {
+      "value": 62.181,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-2.removed_share": {
+      "value": 0.375,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-2.done_s": {
+      "value": 139.355,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-2.cost_usd": {
+      "value": 0.004934,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-3.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-3.first_verified_s": {
+      "value": 33.851,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-3.removed_share": {
+      "value": 0.75,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-3.done_s": {
+      "value": 80.21,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-3.cost_usd": {
+      "value": 0.000597,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-4.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-4.first_verified_s": {
+      "value": 128.837,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-4.removed_share": {
+      "value": 0.75,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-4.done_s": {
+      "value": 128.837,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-4.cost_usd": {
+      "value": 0.002501,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-6.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-6.first_verified_s": {
+      "value": 34.198,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-6.removed_share": {
+      "value": 0.143,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-6.done_s": {
+      "value": 94.994,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-6.cost_usd": {
+      "value": 0.00696,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-7.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-7.first_verified_s": {
+      "value": 58.692,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-7.removed_share": {
+      "value": 0.667,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-7.done_s": {
+      "value": 262.863,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.gpt-oss-120b-7.cost_usd": {
+      "value": 0.009721,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-1.engine_s": {
+      "value": 0.004,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-1.first_verified_s": {
+      "value": 99.724,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-1.removed_share": {
+      "value": 0.619,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-1.done_s": {
+      "value": 295.824,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-1.cost_usd": {
+      "value": 0.035396,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-2.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-2.first_verified_s": {
+      "value": 109.544,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-2.removed_share": {
+      "value": 0.588,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-2.done_s": {
+      "value": 348.218,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-2.cost_usd": {
+      "value": 0.033941,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-3.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-3.first_verified_s": {
+      "value": 77.87,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-3.removed_share": {
+      "value": 0.25,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-3.done_s": {
+      "value": 154.473,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-3.cost_usd": {
+      "value": 0.012017,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-4.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-4.first_verified_s": {
+      "value": 103.595,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-4.removed_share": {
+      "value": 0.818,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-4.done_s": {
+      "value": 233.194,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-4.cost_usd": {
+      "value": 0.027852,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-6.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-6.first_verified_s": {
+      "value": 60.999,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-6.removed_share": {
+      "value": 0.286,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-6.done_s": {
+      "value": 151.973,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-6.cost_usd": {
+      "value": 0.019509,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-7.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-7.first_verified_s": {
+      "value": 73.601,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-7.removed_share": {
+      "value": 0.471,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-7.done_s": {
+      "value": 236.92,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.qwen3.6-35b-a3b-7.cost_usd": {
+      "value": 0.024728,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-1.engine_s": {
+      "value": 0.005,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-1.first_verified_s": {
+      "value": 28.996,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-1.removed_share": {
+      "value": 0.68,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-1.done_s": {
+      "value": 89.046,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-1.cost_usd": {
+      "value": 0.015485,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-2.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-2.first_verified_s": {
+      "value": 26.681,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-2.removed_share": {
+      "value": 0.714,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-2.done_s": {
+      "value": 50.541,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-2.cost_usd": {
+      "value": 0.005305,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-3.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-3.first_verified_s": {
+      "value": 2.415,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-3.removed_share": {
+      "value": 0.789,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-3.done_s": {
+      "value": 51.036,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-3.cost_usd": {
+      "value": 0.005075,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-4.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-4.first_verified_s": {
+      "value": 25.65,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-4.removed_share": {
+      "value": 0.571,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-4.done_s": {
+      "value": 28.649,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-4.cost_usd": {
+      "value": 0.006195,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-6.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-6.first_verified_s": {
+      "value": 18.161,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-6.removed_share": {
+      "value": 0.455,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-6.done_s": {
+      "value": 57.663,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-6.cost_usd": {
+      "value": 0.010055,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-7.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-7.first_verified_s": {
+      "value": 3.162,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-7.removed_share": {
+      "value": 0.81,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-7.done_s": {
+      "value": 55.704,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.deepseek-v3.2-7.cost_usd": {
+      "value": 0.005261,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
     "turn.median.engine_s": {
       "value": 0.002,
       "better": "lower",
@@ -1083,25 +1623,25 @@
       "gate": false
     },
     "turn.median.first_verified_s": {
-      "value": 34.141,
+      "value": 34.844,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.removed_share": {
-      "value": 0.429,
+      "value": 0.571,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.done_s": {
-      "value": 39.793,
+      "value": 102.755,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.cost_usd": {
-      "value": 0.005306,
+      "value": 0.00696,
       "better": "lower",
       "unit": "",
       "gate": false

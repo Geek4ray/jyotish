@@ -1,0 +1,283 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "The hard part is how others perceive your marriage, as the signs that show this perception lean unfavourably with Rahu sitting there without a helpful planet beside it. [vote:marriage.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The hard part is how others perceive your marriage, as the signs showing it lean unfavourably with Rahu sitting there without a helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "In the reading's view, the rest of the chart leans favourably toward marriage, because the houses that govern your partnership are backed by their rulers, the main star that stands for love sits in a place where it shines, the divisional chart places a planet in its own sign, and the reading of the exact start of your partnership room carries support. [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.kp] [vote:marriage.panchanga]",
+      "findings": [
+        "vote:marriage.house",
+        "vote:marriage.lord",
+        "vote:marriage.karaka",
+        "vote:marriage.varga",
+        "vote:marriage.kp",
+        "vote:marriage.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The rest of the chart leans favourably toward marriage",
+            "supported": true,
+            "evidence": "All cited findings carry direction \"for\", and the verdict is 6 for against 1 (only arudha against), so the overall chart direction favours marriage"
+          },
+          {
+            "text": "The houses that govern your partnership are backed by their rulers (the marriage houses' lords support marriage)",
+            "supported": true,
+            "evidence": "vote:marriage.house (house family, direction \"for\", the 7th, 2nd, 11th, 8th etc. called \"a marriage house\") and vote:marriage.lord (lord family, direction \"for\", verdict \"lord\": \"for\")"
+          },
+          {
+            "text": "The main star that stands for love (Venus, the karaka for partnership) sits in a place where it shines (is exalted)",
+            "supported": true,
+            "evidence": "vote:marriage.karaka: Venus in Pisces, dignity \"exalted\", glossary \"karaka\" = \"Venus for partnership\", glossary \"exalted\" = \"the sign where the texts hold a planet at its strongest\""
+          },
+          {
+            "text": "The divisional chart places a planet in its own sign (a planet occupies its own sign in the D9)",
+            "supported": true,
+            "evidence": "vote:marriage.varga: Saturn, varga D9, varga_sign Capricorn, varga_dignity_label \"own\""
+          },
+          {
+            "text": "The reading of the exact start of your partnership room carries support (the KP reading of the 7th cusp favours marriage)",
+            "supported": true,
+            "evidence": "vote:marriage.kp: family \"kp\", direction \"for\", glossary \"cusp\" = \"the starting degree of a house\", glossary \"7th house\" = \"marriage, partners, partnerships\""
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The hard part is how other people view your marriage, because the signs that mark that public image pull against it, with Rahu sitting there without a helpful planet nearby. [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The hard (problematic) part is how other people view the marriage — its public image",
+            "supported": true,
+            "evidence": "the finding is family 'arudha' with direction 'against'; the glossary defines arudha as 'read for how its matters appear to the world' and Upapada as 'read for marriage'"
+          },
+          {
+            "text": "The signs that mark that public image (the pada positions) pull against the marriage",
+            "supported": true,
+            "evidence": "the arudha verdict is 'against' (derivation.why: 'the vote is against')"
+          },
+          {
+            "text": "Rahu sits in one of those signs",
+            "supported": true,
+            "evidence": "pada UL (sign Gemini) has occupants ['Rahu']"
+          },
+          {
+            "text": "There is no helpful planet (benefic) with or near Rahu in those signs",
+            "supported": true,
+            "evidence": "UL lists benefics: [], and UL2 and A7 have no occupants at all, so no benefic occupies any of the padas; the derivation counts more malefics than benefics"
+          }
+        ]
+      },
+      "attempt": 2
+    }
+  ],
+  "writer": {
+    "model": "Qwen/Qwen3.6-35B-A3B",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 2,
+      "input_tokens": 5295,
+      "output_tokens": 9305,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 134.5
+    },
+    "checker": {
+      "calls": 2,
+      "input_tokens": 9780,
+      "output_tokens": 2316,
+      "cache_read_input_tokens": 768,
+      "cache_creation_input_tokens": 0,
+      "seconds": 20.162
+    },
+    "wall_seconds": 154.473
+  },
+  "kinds": [
+    "when"
+  ],
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+    "The hard part is how other people view your marriage, because the signs that mark that public image pull against it, with Rahu sitting there without a helpful planet nearby.",
+    "In the reading's view, the rest of the chart leans favourably toward marriage, because the houses that govern your partnership are backed by their rulers, the main star that stands for love sits in a place where it shines, the divisional chart places a planet in its own sign, and the reading of the exact start of your partnership room carries support.",
+    "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+    "The most favourable stretch runs from January 2030 to October 2031.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    3
+  ],
+  "accepted": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+    "The hard part is how other people view your marriage, because the signs that mark that public image pull against it, with Rahu sitting there without a helpful planet nearby. [vote:marriage.arudha]",
+    "In the reading's view, the rest of the chart leans favourably toward marriage, because the houses that govern your partnership are backed by their rulers, the main star that stands for love sits in a place where it shines, the divisional chart places a planet in its own sign, and the reading of the exact start of your partnership room carries support. [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.kp] [vote:marriage.panchanga]"
+  ],
+  "attempts": 2,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 77.87,
+    "written": 80.619,
+    "done": 154.473
+  },
+  "word_rules": "warn"
+}

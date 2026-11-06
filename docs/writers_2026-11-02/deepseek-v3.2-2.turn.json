@@ -1,0 +1,293 @@
+{
+  "question": "and marriage?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "direction"
+    ],
+    "areas_from": "named",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "A chart cannot promise marriage will happen, but on balance yours leans favourably towards it.",
+      "reasons": [
+        "untagged claim: 'A chart cannot promise marriage will happen, but on balance yours leans favourably towards it.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The main significator for marriage, Venus, is exalted in your house of fulfilment, and the divisional chart for marriage also supports it.",
+      "reasons": [
+        "untagged claim: 'The main significator for marriage, Venus, is exalted in your house of fulfilment, and the divisional chart for marriage also supports it.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "A chart cannot promise marriage will happen, but on balance yours leans favourably towards it.",
+      "reasons": [
+        "untagged claim: 'A chart cannot promise marriage will happen, but on balance yours leans favourably towards it.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The main significator for marriage, Venus, sits exalted in Pisces in your house of fulfilment, and the divisional chart for marriage supports it. [vote:marriage.karaka] [vote:marriage.varga]",
+      "reasons": [
+        "the checker found it unsupported: Venus sits in your house of fulfilment (the 11th, called the house of fulfilment) (the data's area_houses names this house only as \"the 11th, a marriage house\" (basis lagna, house 11); it does not list it as \"the house of fulfilment\" in those words, so the area-named label is unsupported even though Venus's placement in the 11th house from the lagna is stated.)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "A chart cannot promise marriage will happen, but on balance yours leans favourably towards it.",
+      "reasons": [
+        "untagged claim: 'A chart cannot promise marriage will happen, but on balance yours leans favourably towards it.'"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "The signs that represent how others see marriage, however, are among the least supported, which may reflect external perceptions or pressures around partnership that don't align with your personal chart's promise. [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha]",
+      "findings": [
+        "vote:marriage.karaka",
+        "vote:marriage.varga",
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chart has signs that represent how others see marriage (the sentence's subject is the arudha signs — UL, UL2, A7)",
+            "supported": true,
+            "evidence": "The cited finding vote:marriage.arudha is family 'arudha', and the glossary defines arudha as 'the image point of a house... read for how its matters appear to the world'; A7 is 'read for partners as they appear' and the Upapada is 'read for marriage'"
+          },
+          {
+            "text": "Those arudha signs are among the least supported areas for marriage in this reading (the arudha vote is against)",
+            "supported": true,
+            "evidence": "vote:marriage.arudha has direction 'against' (derivation 'the vote is against'), and in area_votes the arudha is the only one of the seven areas voting 'against' — the other six (house, lord, karaka, varga, kp, panchanga) vote 'for', so it is indeed the least supported"
+          },
+          {
+            "text": "By contrast, the rest of the marriage reading is well supported (carried by 'however' and 'among the least supported')",
+            "supported": true,
+            "evidence": "Each cited finding's area_votes shows the same tally: 6 areas 'for' and 1 ('arudha') 'against'"
+          },
+          {
+            "text": "The lack of support in these signs may reflect external perceptions or pressures around partnership",
+            "supported": true,
+            "evidence": "A hedged ('may reflect') interpretive reading; it is grounded in the arudha's own meaning in the glossary ('read for how its matters appear to the world' — i.e., external perception of the partnership). The disjunct 'pressures' on its own is not stated anywhere in the data, but under the 'may reflect' hedge the supported disjunct (external perceptions) carries the clause"
+          },
+          {
+            "text": "These external perceptions/pressures don't align with the personal chart's promise of marriage",
+            "supported": true,
+            "evidence": "The cited findings together state exactly this mismatch: the arudha vote is 'against' (the external image) while the chart's own marriage areas vote 'for' — 6 of 7 areas, including karaka (Venus exalted) and varga, support marriage, so the arudha's 'against' does not align with the chart's promise"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The main significator for marriage, Venus, sits exalted in Pisces in your house of fulfilment, and the divisional chart for marriage supports it. [vote:marriage.karaka] [vote:marriage.varga]",
+      "findings": [
+        "vote:marriage.karaka",
+        "vote:marriage.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is the main significator for marriage",
+            "supported": true,
+            "evidence": "the karaka finding lists Venus as its derivation planet for the marriage area, tops the derivation with the highest Shadbala ratio (1.33), its karaka verdict is \"for\", and the glossary entry for karaka names \"Venus for partnership\"."
+          },
+          {
+            "text": "Venus is exalted",
+            "supported": true,
+            "evidence": "the karaka finding's Venus row gives dignity \"exalted\", and the glossary entry for exalted matches the ordinary meaning."
+          },
+          {
+            "text": "Venus is in Pisces",
+            "supported": true,
+            "evidence": "the karaka finding's Venus row gives sign \"Pisces\"."
+          },
+          {
+            "text": "Venus sits in your house of fulfilment (the 11th, called the house of fulfilment)",
+            "supported": false,
+            "evidence": "the data's area_houses names this house only as \"the 11th, a marriage house\" (basis lagna, house 11); it does not list it as \"the house of fulfilment\" in those words, so the area-named label is unsupported even though Venus's placement in the 11th house from the lagna is stated."
+          },
+          {
+            "text": "The divisional chart for marriage (the D9/navamsa) supports it",
+            "supported": true,
+            "evidence": "the varga finding is for the marriage area (direction \"for\", varga verdict \"for\"), and its glossary defines the varga as a divisional chart and the navamsa as read for marriage."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The main significator for marriage, Venus, sits exalted in Pisces in your 11th house, and the divisional chart for marriage supports it. [vote:marriage.karaka] [vote:marriage.varga]",
+      "findings": [
+        "vote:marriage.karaka",
+        "vote:marriage.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is the main significator (karaka) for marriage",
+            "supported": true,
+            "evidence": "the karaka finding lists Venus first among its derivation with the highest shadbala, and its glossary names Venus as the significator for partnership"
+          },
+          {
+            "text": "Venus is exalted",
+            "supported": true,
+            "evidence": "the karaka finding's Venus row has dignity 'exalted', matching the glossary entry for 'exalted'"
+          },
+          {
+            "text": "Venus is in Pisces",
+            "supported": true,
+            "evidence": "the karaka finding's Venus row gives sign 'Pisces'"
+          },
+          {
+            "text": "Venus is in the 11th house",
+            "supported": true,
+            "evidence": "the karaka finding's Venus row gives house 11 (basis lagna)"
+          },
+          {
+            "text": "the divisional chart for marriage supports it",
+            "supported": true,
+            "evidence": "the varga finding (D9, the navamsa, which its glossary says is read for marriage) has direction 'for', and its Venus row shows Venus's D9 dignity agreeing with the D1 exaltation"
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "deepseek-ai/DeepSeek-V3.2",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "deepseek-ai/DeepSeek-V3.2",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 2014,
+      "output_tokens": 236,
+      "cache_read_input_tokens": 4992,
+      "cache_creation_input_tokens": 0,
+      "seconds": 12.238
+    },
+    "checker": {
+      "calls": 3,
+      "input_tokens": 8174,
+      "output_tokens": 5565,
+      "cache_read_input_tokens": 1152,
+      "cache_creation_input_tokens": 0,
+      "seconds": 38.405
+    },
+    "wall_seconds": 50.541
+  },
+  "kinds": [],
+  "engine": {
+    "question": "and marriage?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": null,
+  "source": "writer",
+  "shown": [
+    "The main significator for marriage, Venus, sits exalted in Pisces in your 11th house, and the divisional chart for marriage supports it.",
+    "The signs that represent how others see marriage, however, are among the least supported, which may reflect external perceptions or pressures around partnership that don't align with your personal chart's promise."
+  ],
+  "paragraphs": [
+    0
+  ],
+  "accepted": [
+    "The main significator for marriage, Venus, sits exalted in Pisces in your 11th house, and the divisional chart for marriage supports it. [vote:marriage.karaka] [vote:marriage.varga]",
+    "The signs that represent how others see marriage, however, are among the least supported, which may reflect external perceptions or pressures around partnership that don't align with your personal chart's promise. [vote:marriage.karaka] [vote:marriage.varga] [vote:marriage.arudha]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "written": 5.686,
+    "first_verified": 26.681,
+    "done": 50.541
+  },
+  "word_rules": "warn"
+}

@@ -1,0 +1,220 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "The least favourable stretch for marriage runs from August 2029 to October 2029. [vote:marriage.arudha]",
+      "reasons": [
+        "timing language ('August') in 'The least favourable stretch for marriage runs from August\\u202f2029 to October\\u202f2029. [vote:marriage.arudha]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The least favourable stretch for marriage runs from the early part of 2029 to the later part of 2029. [vote:marriage.arudha]",
+      "reasons": [
+        "timing language ('2029') in 'The least favourable stretch for marriage runs from the early part of\\u202f2029 to the later part of\\u202f2029. [vote:marriage.arudha]'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The signs that show how others see marriage—Gemini, Cancer and Leo—work against it, with Rahu placed there without any supportive planet. [vote:marriage.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The signs that show how others see marriage—Gemini, Cancer, and Leo—work against it; Rahu sits in Gemini with no helpful planet beside.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "A chart gives no exact date for an event; it only shows stretches that are more or less favourable for marriage.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    }
+  ],
+  "writer": {
+    "model": "openai/gpt-oss-120b",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "openai/gpt-oss-120b",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 7606,
+      "output_tokens": 1859,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 80.158
+    },
+    "checker": {
+      "calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 0
+    },
+    "wall_seconds": 80.21
+  },
+  "kinds": [
+    "when"
+  ],
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no exact date for an event; it only shows stretches that are more or less favourable for marriage.",
+    "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+    "The most favourable stretch runs from January 2030 to October 2031.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    1
+  ],
+  "accepted": [
+    "A chart gives no exact date for an event; it only shows stretches that are more or less favourable for marriage."
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.001,
+    "first_verified": 33.851,
+    "written": 34.521,
+    "done": 80.21
+  },
+  "word_rules": "warn"
+}
