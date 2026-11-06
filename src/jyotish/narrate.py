@@ -2766,7 +2766,8 @@ def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first
 
 
 def engine_reading(chart: Chart, question: str, direction: str, areas: list[str], *, as_of: date,
-                   when: bool = False, data: dict | None = None, weakest: bool = False) -> EngineAnswer:
+                   when: bool = False, data: dict | None = None, weakest: bool = False,
+                   said_before: list[str] | None = None) -> EngineAnswer:
     """The engine's own answer to a turn (SPEC Layer 8): for each area, in order, the tier in plain words, how far
     it depends on the birth time, then the families leaning the way `direction` asks ("against": those against,
     the hard part only; "for": those for; "both": for, then against), each with the row of its derivation it rests
@@ -2776,7 +2777,9 @@ def engine_reading(chart: Chart, question: str, direction: str, areas: list[str]
     by default it is made, or taken from the cache, for these areas. `weakest`: the areas are the ones a question
     asking what is against went to with no area of its own (conversation.weakest_areas); the answer opens by saying
     which lean against on balance, or that none does and these are the parts the chart supports least (review H2),
-    and each area's first sentence gives its overall lean beside what opposes it."""
+    and each area's first sentence gives its overall lean beside what opposes it. `said_before`: the earlier answers of a
+    follow-up, as the client read them; a sentence one of them already holds is left out (2026-11-02: a follow-up
+    says what the chart adds, never the last answer again)."""
     from .fullchart import cached_payload
     from .sheet import build
     if direction not in DIRECTIONS:
@@ -2823,6 +2826,8 @@ def engine_reading(chart: Chart, question: str, direction: str, areas: list[str]
                                       notes=[n for n in [_sheet_note(sheet, 10, None, area)] if n]))
         if when:
             out += _window_sentences(area, label, data, sheet, hard_first=direction == "against")
+    if said_before:
+        out = [s for s in out if not any(s.text in x for x in said_before)]
     return EngineAnswer(question=question, direction=direction, areas=list(areas), when=when, sentences=out)
 
 

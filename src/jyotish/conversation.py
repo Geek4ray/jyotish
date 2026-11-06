@@ -44,6 +44,51 @@ AGAINST_HI = re.compile(r"समस्या|परेशानी|दिक्�
 FOR_HI = re.compile(r"अच्छा|अच्छी|शुभ|ताकत|ताक़त")
 WHEN = re.compile(r"\bwhen\b|\bwhich year\b|\bwhat year\b|\btiming\b|\bhow soon\b|\bkab\b|\bkis saal\b|कब", re.I)
 WHY = re.compile(r"\bwhy\b|\bhow come\b|\bwhat makes you say\b|\bkyun\b|\bkyon\b|\bkyu\b|क्यों|क्यूं", re.I)
+# "When", "why" and "how" read with the spelling tolerance area words have (2026-11-02: "whan and how" was not read
+# as "when"): the listed forms, and a word one letter from "when" or "why" with its first letter, except the common
+# words that are (NOT_WHEN, NOT_WHY: "went" is not "when", "who" not "why"). "How" has too many common neighbours
+# (hot, hop, hoe) for a letter's tolerance, so only its listed forms count. Hinglish: kab, kyun, kaise.
+WHEN_WORDS = ("when", "whan", "wen", "whn", "whne", "wehn", "kab")
+WHY_WORDS = ("why", "wy", "whi", "whyy", "kyun", "kyon", "kyu", "kyoon", "kiyon", "kiyun")
+HOW_WORDS = ("how", "hw", "hiw", "hpw", "kaise", "kese", "kaisey", "kaisay", "kayse", "kasie")
+NOT_WHEN = frozenset({"went", "wend", "whet", "whew", "whey", "whee", "wren", "then", "hen"})
+NOT_WHY = frozenset({"who", "way", "wry", "wht", "wha", "whom", "whys"})
+# "How" asks what in the chart does it (answered as "why" is) where it stands alone or closes a clause ("whan and
+# how", "but how?", "paisa kaise aayega"), or in a short follow-up; never in "how is", "how much", "how soon" (the
+# timing), "how about" (an area) or "how come" (a why already).
+HOW_NOT_BEFORE = frozenset({"is", "are", "am", "was", "were", "about", "much", "many", "soon", "long", "far", "old",
+                            "often", "come", "likely", "good", "bad", "strong", "weak", "my", "the"})
+
+
+def _one_off(token: str, form: str, not_typos: frozenset) -> bool:
+    return (len(token) >= 2 and token[0] == form[0] and token not in not_typos and _distance(token, form) <= 1)
+
+
+def asks_when(message: str) -> bool:
+    toks = tokens(message)
+    return bool(WHEN.search(normalise(message))) or any(t in WHEN_WORDS or _one_off(t, "when", NOT_WHEN) for t in toks)
+
+
+def asks_why(message: str) -> bool:
+    toks = tokens(message)
+    return bool(WHY.search(normalise(message))) or any(t in WHY_WORDS or _one_off(t, "why", NOT_WHY) for t in toks)
+
+
+def asks_how(message: str, short_follow_up: bool = False) -> bool:
+    """Whether a message asks how (the comment above): a listed form of "how" not before one of HOW_NOT_BEFORE, that
+    closes a clause, or anywhere in a short follow-up; "kaise" and its spellings always."""
+    toks = tokens(message)
+    for i, t in enumerate(toks):
+        if t in HOW_WORDS[4:]:                    # kaise and its spellings
+            return True
+        if t in HOW_WORDS:
+            nxt = toks[i + 1] if i + 1 < len(toks) else None
+            if nxt in HOW_NOT_BEFORE:
+                continue
+            closes = re.search(rf"\b{t}\b\s*(?:[?.!,;]|$|and\b|so\b|exactly\b|then\b)", normalise(message))
+            if closes or short_follow_up:
+                return True
+    return False
 FOLLOW_OPENER = re.compile(r"^\s*(?:and|but|also|so|what about|how about|and what about|aur)\b", re.I)
 FOLLOW_MAX_WORDS = 6          # a message this short with neither an area nor a direction of its own is a follow-up
                               # (SPEC Layer 8, review M3: "what are my strengths" is a question of its own)
@@ -354,6 +399,7 @@ class Route(BaseModel):
     direction: str = "both"
     when: bool = False
     why: bool = False
+    how: bool = False                                      # "how": what in the chart does it, answered as "why" is
     follow_up: bool = False
     carried: list[str] = Field(default_factory=list)       # "areas", "direction", "when"
     areas_from: str = "named"                              # named | carried | weakest | top
@@ -372,12 +418,13 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     if off_limits(message) == "distress":         # before a follow-up can carry anything (review C2)
         return Route(areas=[], direction="both", off_limits="distress")
     named, direction = areas_of(message), direction_of(message)
-    when, why = bool(WHEN.search(message)), bool(WHY.search(message))
-    if refused and why and not named and len(tokens(message)) <= FOLLOW_MAX_WORDS:
-        return Route(areas=[], direction="both", why=True, follow_up=True, explains=refused)
     short = len(tokens(message)) <= FOLLOW_MAX_WORDS
+    when, why = asks_when(message), asks_why(message)
+    how = asks_how(message, short_follow_up=short and not named and direction is None)
+    if refused and (why or how) and not named and short:
+        return Route(areas=[], direction="both", why=True, how=how, follow_up=True, explains=refused)
     follow = bool(last and not last.off_limits and last.areas and
-                  (FOLLOW_OPENER.search(message) or why or (short and not named and direction is None)))
+                  (FOLLOW_OPENER.search(message) or why or how or (short and not named and direction is None)))
     carried: list[str] = []
     if named:
         areas, areas_from = named, "named"
@@ -394,7 +441,7 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     direction = direction or "both"
     assert direction in DIRECTIONS
     kind = off_limits(message, minor=minor, areas=areas)
-    return Route(areas=areas, direction=direction, when=when, why=why, follow_up=follow, carried=carried,
+    return Route(areas=areas, direction=direction, when=when, why=why, how=how, follow_up=follow, carried=carried,
                  areas_from=areas_from, off_limits=kind, third_party=bool(THIRD_PARTY.search(normalise(message))))
 
 
@@ -469,10 +516,14 @@ dates, years, months, periods, dashas, transits or windows: the engine adds the 
 itself after your answer. The words strong, moderate, weak and mixed are the engine's tier words: never use them, \
 in any sense ("one of the weakest" and "difficult" are yours to use). Never write about death \
 or its timing, illness, or buying and selling investments. About another person (a parent, a partner, a child), \
-say only what this chart shows about the relationship, never what will happen to them. When the client asks why, \
-explain which findings the last answer rests on. When the engine's answer says that no part of the chart works \
+say only what this chart shows about the relationship, never what will happen to them. When the client asks why \
+or how (`asks_why`, `asks_how`), explain what in the chart does it: which planets and houses carry it and how they \
+are placed, in plain words, from the findings. When they ask when (`asks_when`), the engine gives the stretches \
+after your answer: write no date or period yourself. When the engine's answer says that no part of the chart works \
 against the client, say so plainly and never call a part the chart supports a challenge. Earlier turns are given \
-as the client read them; do not repeat them, build on them."""
+as the client read them. A follow-up asks for what the chart can add: never say again a sentence an earlier turn \
+said, in any words (a sentence that does is refused); say what is new, the reason or what in the chart does it, \
+and when there is nothing new to add, say so in one sentence."""
 
 
 class TurnDraft(BaseModel):
@@ -742,6 +793,23 @@ def finding_sentence(f: dict, area: str, label: str, data: dict, sheet: dict | N
     return f"{_cap(_and(planets)) if planets else 'The chart'} {verb} the {name} yoga{what}{join}; {lean}."
 
 
+def restates(sentence: str, earlier: list[str]) -> str | None:
+    """The sentence of an earlier answer (`earlier`, the answers as the client read them) this one restates in other
+    words, by the measure a held paragraph uses (live.HeldParagraph.repeats: most of its content words are that
+    sentence's); None when it says something new."""
+    from .live import _COMMON, REPEAT_SHARE
+    from .narrate import HYPHENS, TAG, sentences
+    words = lambda x: set(re.findall(r"[a-z0-9]{4,}", TAG.sub("", x).translate(HYPHENS).lower())) - _COMMON
+    mine = words(sentence)
+    if len(mine) < 4:
+        return None
+    for answer in earlier:
+        for old in sentences(answer):
+            if len(mine & words(old)) >= REPEAT_SHARE * len(mine):
+                return old
+    return None
+
+
 def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date,
               data: dict | None = None):
     """The writer's message, in plain words (the section above), what its sentences are held to (held_to) and the
@@ -764,6 +832,7 @@ def _material(chart, message: str, route: Route, engine, history: list[dict], as
                 said.append({"tag": handles.add(f["allowed_tags"][0]), "says": text})
         areas_out.append({"area": label, "findings": said})
     body = {"message": message, "asked_about": ASKED[route.direction], "asks_when": route.when, "asks_why": route.why,
+            "asks_how": route.how,
             "earlier_turns": [{"question": h["question"], "answer": h["answer"]} for h in history],
             "engine_answer": [{"text": s.text, "tags": [handles.add(t) for t in engine_tags(s, tags)]}
                               for s in engine.sentences],
@@ -842,8 +911,14 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                       "usage": {"wall_seconds": timeline["done"]}}
     # A "why" turn's engine answer is every family behind the last answer, for and against: the sheet's points it
     # rests on (SPEC Layer 8); the writer is still told the direction asked.
-    engine = engine_reading(chart, message, "both" if route.why else route.direction, route.areas, as_of=as_of,
-                            when=route.when, data=data, weakest=route.areas_from == "weakest" and not route.why)
+    reason = route.why or route.how
+    # A follow-up that adds nothing new of its own (its areas carried from the last turn: "whan and how", "why?")
+    # does not repeat the last answers (2026-11-02): the engine leaves out what they already said, and a writer's
+    # sentence restating one is refused. A follow-up naming an area ("and marriage?") is new by its area.
+    said = [h["answer"] for h in history] if route.follow_up and "areas" in route.carried else []
+    engine = engine_reading(chart, message, "both" if reason else route.direction, route.areas, as_of=as_of,
+                            when=route.when, data=data, weakest=route.areas_from == "weakest" and not reason,
+                            said_before=said)
     mark("engine")
     doc["engine"] = engine.model_dump()
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})
@@ -875,6 +950,11 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
             emit({"type": "light", "stage": "sentence", **f})
 
     def judge(s: str, attempt: int) -> tuple[bool, list[str]]:
+        if (i := restates(s, said)) is not None:     # a follow-up says what the chart adds (2026-11-02)
+            why = [f"it restates a sentence an earlier answer gave the client ({i!r}): say what the chart adds "
+                   f"instead (the reason, what in the chart does it)"]
+            doc["removed"].append({"sentence": s, "reasons": why, "attempt": attempt})
+            return False, why
         ok, refusals, warnings, record = check_sentence(s, tags, votes, chains, finding_data, checker, word_rules)
         if record is not None:
             doc["checks"].append({k: v for k, v in record.items() if k != "meta"} | {"attempt": attempt})
@@ -934,7 +1014,9 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                 for key, s in held.place(text):
                     k = int(key) - 1
                     opens_para[key] = starts.get(k, k == 0)
-                    ok, why = results.get(k) or judge(s, attempt)
+                    # A verdict is reused only for the sentence it was given (a draft whose final text differs from
+                    # its stream is judged again).
+                    ok, why = results[k] if k in results and texts.get(k) == s else judge(s, attempt)
                     held.hold(key) if ok else held.fail(key, why)
                 if not held.held:
                     errors_for_retry = [handles.to_handles(r) for x in doc["removed"] if x["attempt"] == attempt

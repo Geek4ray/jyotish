@@ -72,7 +72,8 @@ def test_1_the_writers_material_carries_no_label_on_any_area_or_direction(charts
 def test_1_the_material_is_the_engines_answer_and_one_plain_sentence_per_finding(chart):
     user, finding_data, tags, votes, chains, handles = material(chart, MONEY, route_turn(MONEY, chart))
     body = json.loads(user)
-    assert set(body) == {"message", "asked_about", "asks_when", "asks_why", "earlier_turns", "engine_answer", "areas"}
+    assert set(body) == {"message", "asked_about", "asks_when", "asks_why", "asks_how", "earlier_turns",
+                         "engine_answer", "areas"}
     assert body["asked_about"] == "the good and the hard"
     (area,) = body["areas"]
     assert area["area"] == "money" and all(set(f) == {"tag", "says"} for f in area["findings"])
@@ -241,3 +242,74 @@ def test_2_the_sentences_of_rays_screen_are_benchmark_rows_the_validator_refuses
         assert (r["where"], r["category"], r["label"]) == ("answer", "client_words", "reject")
         assert any(e.startswith("never shown to the client") for e in bench.validator_errors(r)), rid
     assert [r["sentence"] for r in rows.values() if r["id"] in ids[:2]] == [RAY[0], RAY[1]]
+
+
+# --- 3. "when", "why" and "how", read with the spelling tolerance area words have -------------------------------------
+
+@pytest.mark.parametrize("message,when,why,how", [
+    ("whan and how", True, False, True), ("wen will i marry", True, False, False), ("whne?", True, False, False),
+    ("kab hogi shaadi", True, False, False), ("when?", True, False, False), ("wy?", False, True, False),
+    ("kyun", False, True, False), ("kyon?", False, True, False), ("but how?", False, False, True),
+    ("paisa kaise aayega", False, False, True), ("how?", False, False, True), ("when and why", True, True, False),
+    # never read as one: common words a letter away, and "how" asking how something is
+    ("i went to school", False, False, False), ("who am i", False, False, False), ("how is my career", False, False, False),
+    (MONEY, False, False, False), ("how about marriage", False, False, False), ("then what", False, False, False),
+    ("how soon will i marry", True, False, False), ("how come?", False, True, False)])
+def test_3_when_why_and_how_are_read_with_spelling_tolerance(chart, message, when, why, how):
+    last = route_turn(MONEY, chart)
+    route = route_turn(message, chart, last)
+    assert (route.when, route.why, route.how) == (when, why, how), route
+
+
+def answered(chart, writer_cls=None, messages=(MONEY, "whan and how")):
+    from jyotish.conversation import answer_turn
+    out, last, history = [], None, []
+    for m in messages:
+        route = route_turn(m, chart, last)
+        doc = answer_turn(chart, m, route, as_of=AS_OF, history=list(history),
+                          drafter=(writer_cls or OfflineTurnWriter)(), checker=passes)
+        out.append((route, doc))
+        history.append({"question": m, "answer": " ".join(doc["shown"])})
+        last = route
+    return out
+
+
+def test_3_whan_and_how_after_the_money_question_gives_the_stretches_and_restates_nothing(chart):
+    from jyotish.conversation import restates
+    from jyotish.narrate import sentences
+    (r1, first), (r2, second) = answered(chart)
+    assert r2.areas == ["wealth"] and r2.follow_up and "areas" in r2.carried and r2.when and r2.how
+    assert any("favourable stretch for money" in s for s in second["shown"])
+    assert second["shown"][-1] == "Neither stretch is a prediction of when you will act."
+    said = [x for s in first["shown"] for x in sentences(s)]
+    for s in second["shown"]:
+        if s in OfflineTurnWriter.OPENER.values():          # the offline stub's opener, not the chart
+            continue
+        assert s not in said and restates(s, [" ".join(first["shown"])]) is None, s
+    assert not any(e["text"] in " ".join(first["shown"]) for e in second["engine"]["sentences"])
+
+
+class Repeats(OfflineTurnWriter):
+    """On a follow-up, writes again the first sentence the client read on the last turn, then the engine's."""
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        body = json.loads(user)
+        draft = super().__call__(system, user, errors)
+        if body["earlier_turns"] and not errors:
+            from jyotish.narrate import sentences
+            area = next(f for a in body["areas"] for f in a["findings"] if "houses that govern" in f["says"])
+            old = sentences(body["earlier_turns"][-1]["answer"])[1]
+            return TurnDraft(answer=f"{old[:-1]} [{area['tag']}]. " + draft.answer)
+        return draft
+
+
+def test_3_a_writers_sentence_that_restates_the_last_answer_is_refused_and_retried(chart):
+    (_, first), (_, second) = answered(chart, Repeats)
+    assert any(any("restates a sentence an earlier answer gave" in r for r in x["reasons"]) for x in second["removed"])
+    assert not (set(second["shown"]) & set(first["shown"])) - set(OfflineTurnWriter.OPENER.values())
+
+
+def test_3_a_follow_up_naming_an_area_is_new_by_its_area(chart):
+    (_, first), (r2, second) = answered(chart, messages=("how is my career", "and marriage?"))
+    assert r2.areas == ["marriage"] and "areas" not in r2.carried
+    assert not any("restates" in r for x in second["removed"] for r in x["reasons"])

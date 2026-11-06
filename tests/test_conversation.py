@@ -19,24 +19,24 @@ MARRIAGE_AGAINST = ("The signs that show how others see marriage, Gemini, Cancer
                     "Rahu sits there, with no helpful planet beside.")
 TURNS = [
     ("what are the challanges in my life",
-     dict(areas=["father", "reputation", "siblings"], direction="against", when=False, why=False, follow_up=False, carried=[],
+     dict(areas=["father", "reputation", "siblings"], direction="against", when=False, why=False, how=False, follow_up=False, carried=[],
           areas_from="weakest", off_limits=None, third_party=False, explains=None),
      None),                                          # frozen in tests/test_engine_reading.py (CHALLENGES)
     ("and marriage?",
-     dict(areas=["marriage"], direction="against", when=False, why=False, follow_up=True, carried=["direction"],
+     dict(areas=["marriage"], direction="against", when=False, why=False, how=False, follow_up=True, carried=["direction"],
           areas_from="named", off_limits=None, third_party=False, explains=None),
      [MARRIAGE_TIER, MARRIAGE_AGAINST]),
     ("when?",
-     dict(areas=["marriage"], direction="against", when=True, why=False, follow_up=True, carried=["areas", "direction"],
+     dict(areas=["marriage"], direction="against", when=True, why=False, how=False, follow_up=True, carried=["areas", "direction"],
           areas_from="carried", off_limits=None, third_party=False, explains=None),
-     [MARRIAGE_TIER, MARRIAGE_AGAINST,
+     [MARRIAGE_TIER,                                 # the hard part was said in the last turn: left out (2026-11-02)
       "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
       "The most favourable stretch runs from January 2030 to October 2031.",
       "Neither stretch is a prediction of when you will act."]),
     ("why do you say that?",
-     dict(areas=["marriage"], direction="against", when=False, why=True, follow_up=True, carried=["areas", "direction"],
+     dict(areas=["marriage"], direction="against", when=False, why=True, how=False, follow_up=True, carried=["areas", "direction"],
           areas_from="carried", off_limits=None, third_party=False, explains=None),
-     [MARRIAGE_TIER,
+     [                                               # what the last turns said is left out (2026-11-02)
       "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your "
       "rising sign, in Scorpio, is less supported than most of your twelve houses.",
       "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in "
@@ -45,10 +45,9 @@ TURNS = [
       "exalted, where it is at its best.",
       "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
       "The reading of the exact start of each house leans favourably for marriage.",
-      "Mars, a ruler of the day you were born, leans favourably for marriage.",
-      MARRIAGE_AGAINST]),
+      "Mars, a ruler of the day you were born, leans favourably for marriage."]),
     ("will I die early?",
-     dict(areas=["marriage"], direction="against", when=False, why=False, follow_up=True, carried=["areas", "direction"],
+     dict(areas=["marriage"], direction="against", when=False, why=False, how=False, follow_up=True, carried=["areas", "direction"],
           areas_from="carried", off_limits="death", third_party=False, explains=None),
      None),
 ]
