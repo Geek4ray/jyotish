@@ -176,6 +176,48 @@ WORD_RULES = "warn"
 # client's screen; the astrologer reads them on the sheet. D9 and D10 stay English aliases for a reading.
 CONVERSATION_WORDS = re.compile(r"\bD\d{1,2}\b|\bscor(?:e|es|ed|ing)\b|\bkrishnamurti\b|\bKP\b|"
                                 r"\b(?:strong|moderate|weak|mixed)(?:ly)?\b", re.I)
+# What the conversation never shows (2026-11-02, Ray's first live turns: "The image point of wealth is marked as
+# against.", "The overall wealth indications are for.", "(arudha)"): refusals, not warnings, in a turn's answer only,
+# each with the plain words to use instead; a refused sentence is retried alone. "family" is refused as the engine's
+# word ("the house family", "families") and kept in the client's own sense (your family, family life, money and
+# family). A bare verdict is "is for", "are against" and their kin closing a clause. The softer rules (a gloss, "I",
+# a pronoun opener, CLIENT_PLAIN, the rest of CLIENT_WORDS) stay warnings.
+NEVER_SHOW = (
+    (r"\bvot(?:e|es|ed|ing)\b", "say which way that part of the chart leans, in plain words"),
+    (r"\bfamilies\b|(?<!\byour )(?<!\bmy )(?<!\bhis )(?<!\bher )(?<!\btheir )(?<!\bour )(?<!\bof )(?<!\band )"
+     r"\bfamily\b(?! life\b)(?! members?\b)(?! home\b)(?! ties\b)(?! and\b)",
+     "say the part of the chart itself (the houses of money, the planets that rule them), not a family"),
+    (r"\bKP\b|(?i:\bkrishnamurti\b)", "say 'the reading of the exact start of each house'"),
+    (r"\banalys[ie]s\b", "say what the chart shows"),
+    (r"\bD\d{1,2}\b", "say 'the divisional chart for' the area"),
+    (r"\bscor(?:e|es|ed|ing)\b", "say how well supported it is, in words"),
+    (r"\bmarked as\b", "say what it shows and which way it leans"),
+    (r"\bindications? (?:are|is|lean|leans|point|points|agree)\b", "say what the chart shows"),
+    (r"\b(?:is|are|was|were|leans?|counts?|stands?) (?:for|against)(?=\s*(?:[.,;:!?)]|$))",
+     "say what it supports or works against, not a verdict"),
+    (r"\barudhas?\b", "say 'how others see' the area"),
+    (r"\b(?:maha|antar|pratyantar)?dashas?\b", "say 'a period of your life'"),
+    (r"\bcusps?\b", "say 'the start of the house'"),
+    (r"\bsub-?lords?\b", "say what the start of the house shows"),
+    (r"\bshadbala\b", "say how much strength a planet has, in words"),
+    (r"\bbhava bala\b", "say how well supported the house is, in words"),
+)
+_NEVER = [(re.compile(rx, re.I if "KP" not in rx and "D\\d" not in rx else 0), hint) for rx, hint in NEVER_SHOW]
+
+
+def never_show(text: str | None) -> list[str]:
+    """The conversation's refusals for the client's words (NEVER_SHOW): each word or phrase found, with what to say
+    instead."""
+    from .narrate import HYPHENS, TAG, TRADITION, sentences
+    out = []
+    for s in sentences(text or ""):
+        bare = TRADITION.sub("", TAG.sub("", s)).translate(HYPHENS)
+        for rx, hint in _NEVER:
+            if (m := rx.search(bare)):
+                out.append(f"never shown to the client ({m.group(0).strip()!r}): {hint}: {s!r}")
+    return out
+
+
 # Markdown a writer may send: never shown as marks (review H3).
 MARKDOWN = re.compile(r"\*\*|__|`|^\s*#{1,6}\s+|^\s*[-*•]\s+|(?<!\w)\*(?=\S)|(?<=\S)\*(?!\w)", re.M)
 

@@ -37,7 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from jyotish.client import client_errors, client_warnings  # noqa: E402
+from jyotish.client import client_errors, client_warnings, never_show  # noqa: E402
 from jyotish.narrate import (TAG, TIER_WORDS, _check_payload, _summary_checks, findings, offered_chains,  # noqa: E402
                              offered_votes, sentences, validate, validate_summary)
 
@@ -281,7 +281,7 @@ def build() -> list[dict]:
         row["tags"] = _tags(row["sentence"])
         row["validator"] = inputs(row["where"], row["area"] or "career", row["finding_id"])
         row["facts"] = facts(row["where"], row["sentence"], row["finding_id"])
-    return out + comparison_rows() + answer_rows()
+    return out + comparison_rows() + answer_rows() + never_show_rows()
 
 
 # --- a conversation turn's sentences (SPEC Layer 8, review M5) --------------------------------------------------
@@ -361,9 +361,10 @@ def answer_rows() -> list[dict]:
         ("live-ans-children-varga", "In the children’s divisional chart Jupiter falls in Capricorn, a debilitated sign",
          "accept", "accepted", "lost live to the splitter; split now: Jupiter in Capricorn in the D7, debilitated "
          "(varga row): read"),
-        ("live-ans-father-d12", "In the divisional chart for your father (D12), Mars falls in Gemini", "accept",
-         "accepted", "Mars in Gemini in the D12, enemy (varga row): read; true, and its D-code is a word warning "
-         "(client.CONVERSATION_WORDS), never a refusal"),
+        ("live-ans-father-d12", "In the divisional chart for your father (D12), Mars falls in Gemini", "reject",
+         "client_words", "Mars in Gemini in the D12, enemy (varga row): true, and its D-code was a word warning "
+         "(client.CONVERSATION_WORDS) until 2026-11-02, when a D-code became one of what the conversation never "
+         "shows (client.NEVER_SHOW): a wording reject"),
     ]
     out = []
     for rid, prefix, label, cat, why in rows:
@@ -377,6 +378,47 @@ def answer_rows() -> list[dict]:
             row["audit"] = why
             if (warn := client_warnings(sentence, conversation=True)):
                 row["warnings"] = warn
+        checks = _summary_checks(sentence, finding_data)
+        row["facts"] = checks[0][2] if checks else json.dumps({"findings": []})
+        out.append(row)
+    return out
+
+
+NEVER_SHOW_AS_OF = "2026-11-02"
+
+
+def never_show_rows() -> list[dict]:
+    """What the conversation never shows (client.NEVER_SHOW, 2026-11-02), as rows `where: "answer"`, category
+    `client_words`: the sentences of Ray's first live turns as he quoted them from his screen ("how much money will i
+    earn in my life, will i be rich"; the client's screen shows no tags, so each row carries the tag of the finding it
+    restates), and the two engine-word sentences the live five-turn conversation of 2026-11-01 showed under the
+    warning rule (docs/live_2026-11-01/conversation-1-2 and -4), verbatim with their tags."""
+    from jyotish.conversation import Route, held_to
+    r, chart, _ = reading_chart()
+    as_of = date.fromisoformat(NEVER_SHOW_AS_OF)
+    ray = "Ray's first live turn, 2026-11-02 (the money question), quoted from his screen"
+    rows = [
+        ("live-ans-ray-image-point-marked", "wealth", "The image point of wealth is marked as against. [vote:wealth.arudha]",
+         f"{ray}: the vote line copied, 'marked as against'"),
+        ("live-ans-ray-indications-are-for", "wealth", "The overall wealth indications are for. [vote:wealth.house]",
+         f"{ray}: the tier copied as a verdict, 'indications are for'"),
+        ("live-ans-ray-arudha", "wealth", "The image point of wealth (arudha) falls in Libra and Cancer. [vote:wealth.arudha]",
+         f"{ray}: the word '(arudha)' as he saw it; the rest of its sentence is not quoted, so the row's sentence is "
+         "built around it from the arudha finding"),
+        ("live-ans-house-family-is-for", "marriage", "The marriage house family is for. [vote:marriage.house]",
+         "live five-turn conversation of 2026-11-01 (conversation-1-2), shown under the warning rule"),
+        ("live-ans-kp-analysis", "marriage",
+         "The KP analysis of the seventh house gives a favourable outcome for marriage. [vote:marriage.kp]",
+         "live five-turn conversation of 2026-11-01 (conversation-1-4), shown under the warning rule"),
+    ]
+    out = []
+    for rid, area, sentence, why in rows:
+        tags, votes, chains, finding_data = held_to(chart, Route(areas=[area]), as_of)
+        row = {"id": rid, "where": "answer", "area": area, "finding_id": None, "section": None, "sentence": sentence,
+               "label": "reject", "category": "client_words", "origin": f"{why}; refused by client.NEVER_SHOW",
+               "tags": _tags(sentence),
+               "validator": {"allowed": sorted(tags), "offered_votes": {k: sorted(v) for k, v in votes.items()},
+                             "chains": chains, "family_rule": False}}
         checks = _summary_checks(sentence, finding_data)
         row["facts"] = checks[0][2] if checks else json.dumps({"findings": []})
         out.append(row)
@@ -722,7 +764,7 @@ def validator_errors(row: dict) -> list[str]:
         return errs
     if row["where"] == "answer":                         # a conversation turn's sentence (review M5)
         return validate_summary(row["sentence"], allowed, offered_votes=ov, where="answer", family_rule=False,
-                                chains=v["chains"]) + client_errors(row["sentence"])
+                                chains=v["chains"]) + client_errors(row["sentence"]) + never_show(row["sentence"])
     where = f"{row['area']} paragraph" if row["where"] == "paragraph" else "summary"
     # `standalone`: a held paragraph's sentence written on a retry, read alone (review Q3, Q11).
     return validate_summary(row["sentence"], allowed, offered_votes=ov, where=where, family_rule=v["family_rule"],

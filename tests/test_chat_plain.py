@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from jyotish.conversation import Route, _material, route_turn
+from jyotish.conversation import OfflineTurnWriter, Route, _material, route_turn
 from jyotish.narrate import engine_reading
 from jyotish.scoring import AREAS
 from jyotish.uncertainty import assess
@@ -120,3 +120,124 @@ def test_1_a_turn_cites_handles_and_is_checked_against_the_real_findings(chart):
     assert all("[f" not in s for s in doc["accepted"]) and any("[vote:wealth.house]" in s for s in doc["accepted"])
     assert any('"family": "house"' in d for d in seen)         # the checker reads the finding's whole data
     assert not any("[" in s for s in doc["shown"])
+
+
+# --- 2. what the conversation never shows, as refusals -------------------------------------------------------------
+
+def passes(sentence, data):
+    from jyotish.narrate import CheckResult, Proposition
+    return CheckResult(propositions=[Proposition(text=sentence, supported=True, evidence="stub")])
+
+
+def judged(chart, sentence, areas=("wealth",)):
+    from jyotish.conversation import check_sentence, held_to
+    tags, votes, chains, finding_data = held_to(chart, Route(areas=list(areas)), AS_OF)
+    return check_sentence(sentence, tags, votes, chains, finding_data, passes)
+
+
+RAY = ["The image point of wealth is marked as against. [vote:wealth.arudha]",
+       "The overall wealth indications are for. [vote:wealth.house]",
+       "The image point of wealth (arudha) falls in Libra and Cancer. [vote:wealth.arudha]"]
+NEVER = ["The KP analysis of the second house favours money. [vote:wealth.kp]",
+         "The Krishnamurti reading of the second house favours money. [vote:wealth.kp]",
+         "The houses of money vote favourably. [vote:wealth.house]",
+         "The house family leans favourably for money. [vote:wealth.house]",
+         "Both families agree on money. [vote:wealth.house]",
+         "In the D2, Venus is placed well. [vote:wealth.varga]",
+         "The houses of money score well. [vote:wealth.house]",
+         "Your Jupiter dasha favours money. [vote:wealth.karaka]",
+         "The cusp of the second house favours money. [vote:wealth.kp]",
+         "The sub-lord of the second house favours money. [vote:wealth.kp]",
+         "Mercury's Shadbala favours money. [vote:wealth.lord]",
+         "The Bhava Bala of the second house favours money. [vote:wealth.house]",
+         "The planets that signify money are against. [vote:wealth.karaka]",
+         "The houses of money count for, on balance. [vote:wealth.house]"]
+
+
+@pytest.mark.parametrize("sentence", RAY + NEVER)
+def test_2_the_never_show_list_refuses_each_word_with_what_to_say_instead(chart, sentence):
+    ok, refusals, warnings, _ = judged(chart, sentence)
+    assert not ok and any(r.startswith("never shown to the client") and ": say " in r for r in refusals), refusals
+    assert warnings == []                                  # a refused sentence's word warnings are not kept
+
+
+@pytest.mark.parametrize("sentence", [
+    "Your family and your money are both matters of the 2nd house. [vote:wealth.house]",
+    "The house of money and family sits in Gemini. [vote:wealth.house]",
+    "Family life is one of the things the 2nd house governs. [vote:wealth.house]",
+    "Jupiter sits in Taurus, a sign of Scorpio's opposite. [vote:wealth.karaka]",
+    "Taken together, the houses that govern money support it. [vote:wealth.house]",
+    "The signs that show how others see money work against it. [vote:wealth.arudha]",
+    "This part of the reading is for you to keep in mind. [vote:wealth.house]"])
+def test_2_ordinary_words_are_not_refused(chart, sentence):
+    from jyotish.client import never_show
+    assert never_show(sentence) == [], sentence
+
+
+def test_2_the_softer_rules_stay_warnings(chart):
+    for sentence in ("I see Jupiter in Taurus, in an unfriendly sign. [vote:wealth.karaka]",
+                     "Venus sits in Revati, a nakshatra of Mercury. [vote:wealth.karaka]",
+                     "Its 2nd house sits in Gemini. [vote:wealth.house]"):
+        from jyotish.client import never_show
+        assert never_show(sentence) == [], sentence
+    ok, refusals, warnings, _ = judged(chart, "I see Jupiter in Taurus, in an unfriendly sign. [vote:wealth.karaka]")
+    assert ok and refusals == [] and any("never says 'I'" in w for w in warnings)
+
+
+class OneMarked(OfflineTurnWriter):
+    """Writes three tagged sentences, the second a vote line copied ("marked as"); asked again, rewrites that one."""
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        from jyotish.narrate import RETRY_HEAD
+        self.calls.append(errors)
+        said = [x for x in json.loads(user)["engine_answer"] if x["tags"]][:3]
+        self.last_meta = {"kind": "writer", "replayed": True}
+        if errors and errors[0].startswith(RETRY_HEAD):
+            return TurnDraft(answer=f"{said[1]['text'][:-1]} [{said[1]['tags'][0]}].")
+        out = [f"{x['text'][:-1]} [{x['tags'][0]}]." for x in said]
+        out[1] = f"The planets that rule the houses of money are marked as for [{said[1]['tags'][0]}]."
+        return TurnDraft(answer=" ".join(out))
+
+
+def test_2_a_refused_sentence_is_retried_alone_and_never_shown(chart):
+    from jyotish.conversation import OfflineTurnWriter, answer_turn  # noqa: F401
+    from jyotish.narrate import RETRY_HEAD
+    writer = OneMarked()
+    route = route_turn(MONEY, chart)
+    doc = answer_turn(chart, MONEY, route, as_of=AS_OF, drafter=writer, checker=passes)
+    assert len(writer.calls) == 2 and writer.calls[1][0].startswith(RETRY_HEAD)
+    retry = writer.calls[1][0]
+    assert "- sentence 2 (" in retry and "never shown to the client ('marked as')" in retry and "[vote:" not in retry
+    assert any("marked as" in x["sentence"] for x in doc["removed"])
+    assert len(doc["shown"]) == 3 and not any("marked" in s for s in doc["shown"])
+
+
+def test_2_every_engine_sentence_the_client_can_see_passes_the_never_show_list(charts):
+    from jyotish.client import never_show
+    for b in BIRTHS:
+        chart, when = charts[b["name"]], as_of(b)
+        for area in AREAS:
+            if area == "synastry":
+                continue
+            for direction in ("against", "for", "both"):
+                ans = engine_reading(chart, "q", direction, [area], as_of=when, when=True)
+                for s in ans.sentences:
+                    assert never_show(s.text) == [], (b["name"], area, s.text)
+
+
+def test_2_the_sentences_of_rays_screen_are_benchmark_rows_the_validator_refuses():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("checker_bench", ROOT / "scripts" / "checker_bench.py")
+    bench = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(bench)
+    rows = {r["id"]: r for r in bench.load()}
+    ids = ["live-ans-ray-image-point-marked", "live-ans-ray-indications-are-for", "live-ans-ray-arudha",
+           "live-ans-house-family-is-for", "live-ans-kp-analysis"]
+    for rid in ids:
+        r = rows[rid]
+        assert (r["where"], r["category"], r["label"]) == ("answer", "client_words", "reject")
+        assert any(e.startswith("never shown to the client") for e in bench.validator_errors(r)), rid
+    assert [r["sentence"] for r in rows.values() if r["id"] in ids[:2]] == [RAY[0], RAY[1]]

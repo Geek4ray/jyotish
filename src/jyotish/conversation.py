@@ -784,7 +784,8 @@ def no_tier_words(text: str) -> str:
 
 def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, checker, word_rules: str | None = None):
     """(passed, refusals, warnings, check record) for one sentence of a turn's answer: the validator's refusals
-    (tags, forbidden claims, tier words, an unmarked weighing), then the checker against the findings it cites.
+    (tags, forbidden claims, tier words, an unmarked weighing) and what the conversation never shows
+    (client.NEVER_SHOW), then the checker against the findings it cites.
     The client's-word rules (CLIENT_WORDS, CLIENT_PLAIN, the same-sentence gloss, "I"; client.client_warnings) are
     warnings under `word_rules` "warn" (client.WORD_RULES, SPEC Layer 8) and refusals under "refuse"."""
     from . import client
@@ -792,7 +793,9 @@ def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, c
     word_rules = word_rules or client.WORD_RULES
     refusals = validate_summary(sentence, tags, offered_votes=votes, where="answer", family_rule=False, chains=chains)
     refusals += client.client_errors(sentence, word_rules=word_rules)
-    warnings = client.client_warnings(sentence, conversation=True) if word_rules != "refuse" else []
+    never = client.never_show(sentence)                 # refusals in a turn, whatever word_rules says (2026-11-02)
+    refusals += never
+    warnings = client.client_warnings(sentence, conversation=True) if word_rules != "refuse" and not never else []
     if refusals:
         return False, refusals, warnings, None
     (s, ids, data), = _summary_checks(sentence, finding_data)
