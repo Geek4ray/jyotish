@@ -445,6 +445,73 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
                  areas_from=areas_from, off_limits=kind, third_party=bool(THIRD_PARTY.search(normalise(message))))
 
 
+# --- the question as asked (2026-11-02) ---------------------------------------------------------------------------
+# A turn's answer opens on the question's own words: "how much" or "will I be rich" (an amount), a yes-or-no
+# question, "when", "why" or "how". The kinds are read from the message by keyword, as the route is; an amount
+# question is also yes-or-no in form, and its line says both. The engine's answer opens with one fixed line per kind
+# (narrate.OPENING); the writer is asked to open the same way in its own words, an untagged sentence that names
+# nothing of this chart (`opens_on`), and where its first sentence does not, the engine's lines open the answer.
+AMOUNT = re.compile(r"\bhow (?:much|many)\b|\bhow rich\b|\b(?:be|become|get|getting) (?:rich|wealthy|a millionaire|"
+                    r"a crorepati|a billionaire)\b|\bkitn[aeiy]\b|\bcrores?\b|\blakhs?\b|\bmillions?\b|\bnet worth\b|"
+                    r"\bamount\b")
+YES_NO = re.compile(r"\b(?:will|shall|would|can|could|am|do|should) i\b|\bwill (?:my|there|it)\b|\b(?:is|are) there\b|"
+                    r"^kya\b|\b(?:hoga|hogi|honge|milega|milegi)\s*\??$")
+NEG = r"(?:\b(?:no|not|never|without|cannot|none)\b|n't\b)"
+OPENS_ON = {"amount": re.compile(rf"{NEG}[^.]{{0,60}}\b(?:amount|figure|number|sum)\b|"
+                                 rf"\b(?:amount|figure|number|sum)\b[^.]{{0,40}}{NEG}"),
+            "yes_no": re.compile(rf"\byes(?:-| or )no\b|{NEG} [^.]{{0,30}}\b(?:promise|yes)\b"),
+            "when": re.compile(rf"{NEG}[^.]{{0,40}}\b(?:date|day)s?\b")}
+_CHART_WORDS = re.compile(r"\b(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Aries|Taurus|Gemini|Cancer|Leo|"
+                          r"Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces|yoga|house|houses|\d)\b")
+
+
+# The engine's stretch sentences (narrate._window_sentences), apart from the "when" opening line that names them.
+STRETCH = re.compile(r"^(?:The (?:most|least) favourable stretch|Neither stretch|This stretch)")
+
+
+def validate_opening(sentence: str) -> list[str]:
+    """What refuses an opening sentence (opens_on): the validator's refusals but the untagged claim (it states
+    nothing of this chart) and the word "date" or "day" (it says a chart gives none), and what the conversation never
+    shows; no checker, which has no finding to read it against."""
+    from . import client
+    from .narrate import validate_summary
+    errs = [e for e in validate_summary(sentence, set(), where="answer", family_rule=False)
+            if not e.startswith("untagged claim") and not re.match(r"timing language \('(?:date|dates|day)'\)", e)]
+    return errs + client.never_show(sentence)
+
+
+def _opening_line(text: str) -> bool:
+    from .narrate import OPENING
+    return any(text.startswith(v.split("{")[0]) for v in OPENING.values())
+
+
+def kinds_of(message: str, route: Route) -> list[str]:
+    """The question's kinds (the comment above), in narrate.OPENING's order; an amount question is not also asked
+    yes or no, its line saying both."""
+    text = normalise(message)
+    out = []
+    if AMOUNT.search(text):
+        out.append("amount")
+    elif YES_NO.search(text):
+        out.append("yes_no")
+    if route.when:
+        out.append("when")
+    if route.why or route.how:
+        out.append("why")
+    return out
+
+
+def opens_on(sentence: str, kinds: list[str]) -> bool:
+    """Whether a sentence opens on the question as asked: it says, for each kind that asks it (amount, yes or no,
+    when), what a chart cannot give, carries no tag and names nothing of this chart."""
+    from .narrate import TAG
+    need = [k for k in kinds if k in OPENS_ON]
+    if not need or TAG.search(sentence) or _CHART_WORDS.search(sentence):
+        return False
+    low = normalise(sentence)
+    return all(OPENS_ON[k].search(low) for k in need)
+
+
 def fixed_reply(kind: str) -> str:
     return REPLIES[kind]
 
@@ -501,6 +568,13 @@ otherwise give the good, then the hard. Use no jargon: say "the rising sign", "t
 "significator", "divisional chart"; never "vote", "family", "cusp", "sub-lord", "arudha", "dasha", "Shadbala", \
 "Bhava Bala" or "rupa"; a yoga's name comes with its meaning in plain words. Never write a figure, a score, a \
 percentage or a probability.
+
+Answer the question as the client asked it, in your first sentence (`question_kinds`, and the engine's lines \
+marked `opens`): for "how much" or "will I be rich" (an amount), say that a chart gives no amount and makes no \
+promise, then what it shows; for a yes-or-no question, that a chart cannot say yes or no, then which way it leans; \
+for "when", that a chart gives no date, the stretches following your answer; for "why" or "how", go straight to \
+what in the chart does it. That first sentence carries no tag and names nothing of this chart: no planet, sign, \
+house or number.
 
 You add no facts. Everything you say comes from the findings given, each one plain sentence of what the engine \
 found and which way it leans, and from the engine's own answer: use them as your material, in your own words, not \
@@ -656,7 +730,8 @@ class OfflineTurnWriter:
         import json
         body = json.loads(user)
         said = [f"{x['text'][:-1]} {' '.join(f'[{t}]' for t in x['tags'])}." for x in body["engine_answer"] if x["tags"]]
-        text = " ".join([self.OPENER[body["asked_about"]]] + said)
+        opens = [x["text"] for x in body["engine_answer"] if x.get("opens") and not x["text"].startswith("Here is")]
+        text = " ".join((opens or [self.OPENER[body["asked_about"]]]) + said)
         self.last_meta = {"kind": "writer", "replayed": True}
         if self.on_text is not None:                  # streamed as a model's draft is, in pieces
             whole = json.dumps({"answer": text})
@@ -811,7 +886,7 @@ def restates(sentence: str, earlier: list[str]) -> str | None:
 
 
 def _material(chart, message: str, route: Route, engine, history: list[dict], as_of: date,
-              data: dict | None = None):
+              data: dict | None = None, kinds: list[str] | None = None):
     """The writer's message, in plain words (the section above), what its sentences are held to (held_to) and the
     handles it cites by."""
     import json
@@ -832,10 +907,10 @@ def _material(chart, message: str, route: Route, engine, history: list[dict], as
                 said.append({"tag": handles.add(f["allowed_tags"][0]), "says": text})
         areas_out.append({"area": label, "findings": said})
     body = {"message": message, "asked_about": ASKED[route.direction], "asks_when": route.when, "asks_why": route.why,
-            "asks_how": route.how,
+            "asks_how": route.how, "question_kinds": list(kinds or []),
             "earlier_turns": [{"question": h["question"], "answer": h["answer"]} for h in history],
             "engine_answer": [{"text": s.text, "tags": [handles.add(t) for t in engine_tags(s, tags)]}
-                              for s in engine.sentences],
+                              | ({"opens": True} if _opening_line(s.text) else {}) for s in engine.sentences],
             "areas": areas_out}
     return no_tier_words(json.dumps(body, indent=1, default=str)), finding_data, tags, votes, chains, handles
 
@@ -916,13 +991,16 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     # does not repeat the last answers (2026-11-02): the engine leaves out what they already said, and a writer's
     # sentence restating one is refused. A follow-up naming an area ("and marriage?") is new by its area.
     said = [h["answer"] for h in history] if route.follow_up and "areas" in route.carried else []
+    kinds = kinds_of(message, route)
+    doc["kinds"] = kinds
     engine = engine_reading(chart, message, "both" if reason else route.direction, route.areas, as_of=as_of,
                             when=route.when, data=data, weakest=route.areas_from == "weakest" and not reason,
-                            said_before=said)
+                            said_before=said, kinds=kinds)
     mark("engine")
     doc["engine"] = engine.model_dump()
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})
-    user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data)
+    user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data,
+                                                                 kinds)
     drafter = drafter or ModelDrafter(make_backend(None, "writer", config), config, schema=TurnDraft)
     checker = checker or ModelChecker(make_backend(None, "checker", config), config)
     pool = ThreadPoolExecutor(max_workers=max(1, min(8, getattr(checker, "concurrency", 4) or 4)),
@@ -949,7 +1027,13 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
         if f["planets"] or f["houses"]:
             emit({"type": "light", "stage": "sentence", **f})
 
-    def judge(s: str, attempt: int) -> tuple[bool, list[str]]:
+    def judge(s: str, attempt: int, first: bool = False) -> tuple[bool, list[str]]:
+        if first and opens_on(s, kinds):           # the question as asked: says what a chart cannot give (fix 4)
+            refusals = [e for e in validate_opening(s)]
+            doc["checks"].append({"sentence": s, "opening": True, "refusals": refusals, "attempt": attempt})
+            if refusals:
+                doc["removed"].append({"sentence": s, "reasons": refusals, "attempt": attempt})
+            return not refusals, refusals
         if (i := restates(s, said)) is not None:     # a follow-up says what the chart adds (2026-11-02)
             why = [f"it restates a sentence an earlier answer gave the client ({i!r}): say what the chart adds "
                    f"instead (the reason, what in the chart does it)"]
@@ -978,7 +1062,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                 order = _Order(lambda text, k: show(text, texts.get(k, ""), starts.get(k, False)))
 
                 def run(k: int, s: str, attempt=attempt) -> tuple[bool, list[str]]:
-                    ok, why = judge(s, attempt)
+                    ok, why = judge(s, attempt, first=k == 0)
                     order.settle(k, ok, shown_text(s))
                     return ok, why
 
@@ -1016,7 +1100,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                     opens_para[key] = starts.get(k, k == 0)
                     # A verdict is reused only for the sentence it was given (a draft whose final text differs from
                     # its stream is judged again).
-                    ok, why = results[k] if k in results and texts.get(k) == s else judge(s, attempt)
+                    ok, why = results[k] if k in results and texts.get(k) == s else judge(s, attempt, first=k == 0)
                     held.hold(key) if ok else held.fail(key, why)
                 if not held.held:
                     errors_for_retry = [handles.to_handles(r) for x in doc["removed"] if x["attempt"] == attempt
@@ -1041,7 +1125,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
                         doc["removed"].append({"sentence": s, "reasons": why, "attempt": attempt})
                         held.fail(key, why)
                         continue
-                    ok, why = pool.submit(judge, s, attempt).result()
+                    ok, why = pool.submit(judge, s, attempt, base == "1").result()
                     if ok:
                         held.hold(key)
                         show(shown_text(s), s, opens_para.get(key, False))
@@ -1068,15 +1152,30 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
         area = None
         for s in engine.sentences:             # a paragraph per area, and one for the stretches
             here = next((n["area"] for n in s.notes), area)
-            timing = "stretch" in s.text
-            add(s.text, here != area or (timing and not any("stretch" in x for x in shown)))
+            timing = bool(STRETCH.match(s.text))
+            add(s.text, here != area or (timing and not any(STRETCH.match(x) for x in shown)))
             area = here
     elif route.when:
         first = True
         for s in engine.sentences:             # the dates are the engine's: its window sentences follow, in their paragraph
-            if "stretch" in s.text:
+            if STRETCH.match(s.text):
                 add(s.text, first)
                 first = False
+    # The question as asked (fix 4): where the writer's first sentence does not say what a chart cannot give, the
+    # engine's opening lines open the answer, a paragraph of their own (the page redraws the stored answer when done).
+    from .narrate import OPENING
+    heads = [OPENING[k].split("{")[0] for k in OPENS_ON if k in kinds]
+    opening = [s.text for s in engine.sentences if any(s.text.startswith(h) for h in heads)]
+    doc["opened_by"] = None
+    if opening and source == "writer":
+        if accepted and opens_on(accepted[0], kinds):
+            doc["opened_by"] = "writer"
+        else:
+            doc["opened_by"] = "engine"
+            shown[:0] = opening
+            paras = [0] + [i + len(opening) for i in paras]
+    elif opening:
+        doc["opened_by"] = "engine"
     if route.third_party:
         add(THIRD_PARTY_LINE, True)
     for s in (engine.sentences if source == "engine" else []):

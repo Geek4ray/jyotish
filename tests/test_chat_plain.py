@@ -71,9 +71,10 @@ def test_1_the_writers_material_carries_no_label_on_any_area_or_direction(charts
 
 def test_1_the_material_is_the_engines_answer_and_one_plain_sentence_per_finding(chart):
     user, finding_data, tags, votes, chains, handles = material(chart, MONEY, route_turn(MONEY, chart))
+    assert json.loads(user)["question_kinds"] == []        # material() gives no kinds; answer_turn does
     body = json.loads(user)
-    assert set(body) == {"message", "asked_about", "asks_when", "asks_why", "asks_how", "earlier_turns",
-                         "engine_answer", "areas"}
+    assert set(body) == {"message", "asked_about", "asks_when", "asks_why", "asks_how", "question_kinds",
+                         "earlier_turns", "engine_answer", "areas"}
     assert body["asked_about"] == "the good and the hard"
     (area,) = body["areas"]
     assert area["area"] == "money" and all(set(f) == {"tag", "says"} for f in area["findings"])
@@ -213,7 +214,8 @@ def test_2_a_refused_sentence_is_retried_alone_and_never_shown(chart):
     retry = writer.calls[1][0]
     assert "- sentence 2 (" in retry and "never shown to the client ('marked as')" in retry and "[vote:" not in retry
     assert any("marked as" in x["sentence"] for x in doc["removed"])
-    assert len(doc["shown"]) == 3 and not any("marked" in s for s in doc["shown"])
+    assert doc["opened_by"] == "engine"                   # it did not open on the question (fix 4)
+    assert len(doc["shown"]) == 4 and not any("marked" in s for s in doc["shown"])
 
 
 def test_2_every_engine_sentence_the_client_can_see_passes_the_never_show_list(charts):
@@ -313,3 +315,94 @@ def test_3_a_follow_up_naming_an_area_is_new_by_its_area(chart):
     (_, first), (r2, second) = answered(chart, messages=("how is my career", "and marriage?"))
     assert r2.areas == ["marriage"] and "areas" not in r2.carried
     assert not any("restates" in r for x in second["removed"] for r in x["reasons"])
+
+
+# --- 4. the question answered as asked -----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("message,kinds", [
+    (MONEY, ["amount"]), ("will i be rich", ["amount"]), ("kitna paisa milega", ["amount"]),
+    ("will i marry", ["yes_no"]), ("kya meri shaadi hogi", ["yes_no"]), ("when will i marry", ["yes_no", "when"]),
+    ("whan and how", ["when", "why"]), ("why?", ["why"]), ("what are the challanges in my life", []),
+    ("how is my career", []), ("tell me about my marriage", [])])
+def test_4_the_questions_kinds_are_read_from_its_words(chart, message, kinds):
+    from jyotish.conversation import kinds_of
+    assert kinds_of(message, route_turn(message, chart, route_turn(MONEY, chart))) == kinds
+
+
+@pytest.mark.parametrize("sentence,kinds,ok", [
+    ("No chart can put a figure on what you will earn, and it makes no promise of riches.", ["amount"], True),
+    ("Your chart can't give an amount, but it can show how well money is supported.", ["amount"], True),
+    ("A chart cannot say yes or no to that.", ["yes_no"], True),
+    ("A chart gives no date for any event.", ["when"], True),
+    ("No chart names a date, and none gives an amount.", ["amount", "when"], True),
+    ("Your money looks good.", ["amount"], False),                                   # does not say it
+    ("Jupiter gives no amount of money.", ["amount"], False),                         # names the chart
+    ("No chart can give an amount [vote:wealth.house].", ["amount"], False),          # a tag
+    ("Here is why.", ["why"], False)])                                               # "why" needs no opening
+def test_4_an_opening_says_what_a_chart_cannot_give_and_names_nothing_of_this_chart(sentence, kinds, ok):
+    from jyotish.conversation import opens_on
+    assert opens_on(sentence, kinds) is ok
+
+
+def test_4_the_engines_answer_opens_with_one_fixed_line_per_kind(charts):
+    from jyotish.narrate import OPENING
+    chart = charts["reference"]
+    ans = engine_reading(chart, MONEY, "both", ["wealth"], as_of=AS_OF, kinds=["amount"])
+    assert ans.sentences[0].text == OPENING["amount"].format(label="money")
+    ans = engine_reading(chart, "q", "both", ["marriage"], as_of=AS_OF, when=True, kinds=["yes_no", "when", "why"])
+    assert [s.text for s in ans.sentences[:3]] == [OPENING["yes_no"].format(label="marriage"),
+                                                   OPENING["when"].format(label="marriage"), OPENING["why"]]
+    # no "when" line where no stretch follows (long life and health have none, review C1)
+    ans = engine_reading(chart, "q", "both", ["health"], as_of=AS_OF, when=True, kinds=["when"])
+    assert not any(s.text.startswith("A chart gives no date") for s in ans.sentences)
+    from jyotish.client import client_warnings, never_show
+    assert all(not never_show(v) and not client_warnings(v.format(label="money")) for v in OPENING.values())
+
+
+class Unasked(OfflineTurnWriter):
+    """Never opens on the question: the engine's sentences only, with their tags."""
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        body = json.loads(user)
+        self.last_meta = {"kind": "writer", "replayed": True}
+        return TurnDraft(answer=" ".join(f"{x['text'][:-1]} [{x['tags'][0]}]." for x in body["engine_answer"]
+                                         if x["tags"]))
+
+
+class Opens(OfflineTurnWriter):
+    """Opens in its own words, a sentence with a claim verb and no tag, then the engine's sentences."""
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        body = json.loads(user)
+        self.last_meta = {"kind": "writer", "replayed": True}
+        rest = " ".join(f"{x['text'][:-1]} [{x['tags'][0]}]." for x in body["engine_answer"] if x["tags"])
+        return TurnDraft(answer="No chart can put a figure on what you will earn, and it makes no promise of riches. "
+                         + rest)
+
+
+def test_4_where_the_writer_does_not_open_on_the_question_the_engines_line_does(chart):
+    from jyotish.conversation import answer_turn
+    from jyotish.narrate import OPENING
+    doc = answer_turn(chart, MONEY, route_turn(MONEY, chart), as_of=AS_OF, drafter=Unasked(), checker=passes)
+    assert doc["source"] == "writer" and doc["opened_by"] == "engine"
+    assert doc["shown"][0] == OPENING["amount"].format(label="money") and doc["paragraphs"][:2] == [0, 1]
+
+
+def test_4_the_writers_own_opening_stands_unchecked_by_the_checker(chart):
+    from jyotish.conversation import answer_turn
+    asked = []
+
+    def checker(sentence, data):
+        asked.append(sentence)
+        return passes(sentence, data)
+    doc = answer_turn(chart, MONEY, route_turn(MONEY, chart), as_of=AS_OF, drafter=Opens(), checker=checker)
+    assert doc["opened_by"] == "writer" and doc["shown"][0].startswith("No chart can put a figure")
+    assert not any(s.startswith("No chart") for s in asked)
+    assert any(c.get("opening") for c in doc["checks"])
+
+
+def test_4_an_opening_is_still_held_to_the_forbidden_words():
+    from jyotish.conversation import validate_opening
+    assert validate_opening("A chart gives no date for an event.") == []
+    assert any("confidence" in e for e in validate_opening("No chart can guarantee an amount."))
+    assert any(e.startswith("never shown") for e in validate_opening("No score gives an amount."))

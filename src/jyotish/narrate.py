@@ -2765,9 +2765,21 @@ def _window_sentences(area: str, label: str, data: dict, sheet: dict, hard_first
     return out
 
 
+# The engine's answer opens on the question as asked (2026-11-02, Ray's "how much money will i earn in my life, will
+# i be rich"): one fixed line per question kind (conversation.kinds_of), in this order, a "when" line only where the
+# stretches follow it. No figure, no promise; the label is the areas' in the client's words.
+OPENING = {"amount": "A chart gives no amount and makes no promise; what it shows is how well it supports {label}.",
+           "yes_no": "A chart cannot answer yes or no; what it shows is which way it leans for {label}.",
+           "when": ("A chart gives no date for an event; what it shows are the stretches it reads as more and less "
+                    "favourable for {label}."),
+           "why": "Here is what in your chart lies behind it."}
+# A "why" or "how" follow-up whose reasons the earlier answers all gave: said so, never the reasons again.
+OPENING_SAID = "What lies behind it is what the answer before set out; the chart has no further reason to add."
+
+
 def engine_reading(chart: Chart, question: str, direction: str, areas: list[str], *, as_of: date,
                    when: bool = False, data: dict | None = None, weakest: bool = False,
-                   said_before: list[str] | None = None) -> EngineAnswer:
+                   said_before: list[str] | None = None, kinds: list[str] | None = None) -> EngineAnswer:
     """The engine's own answer to a turn (SPEC Layer 8): for each area, in order, the tier in plain words, how far
     it depends on the birth time, then the families leaning the way `direction` asks ("against": those against,
     the hard part only; "for": those for; "both": for, then against), each with the row of its derivation it rests
@@ -2779,7 +2791,8 @@ def engine_reading(chart: Chart, question: str, direction: str, areas: list[str]
     which lean against on balance, or that none does and these are the parts the chart supports least (review H2),
     and each area's first sentence gives its overall lean beside what opposes it. `said_before`: the earlier answers of a
     follow-up, as the client read them; a sentence one of them already holds is left out (2026-11-02: a follow-up
-    says what the chart adds, never the last answer again)."""
+    says what the chart adds, never the last answer again). `kinds`: the question's kinds (amount, yes_no, when,
+    why), each opening the answer with its OPENING line."""
     from .fullchart import cached_payload
     from .sheet import build
     if direction not in DIRECTIONS:
@@ -2826,8 +2839,18 @@ def engine_reading(chart: Chart, question: str, direction: str, areas: list[str]
                                       notes=[n for n in [_sheet_note(sheet, 10, None, area)] if n]))
         if when:
             out += _window_sentences(area, label, data, sheet, hard_first=direction == "against")
+    if kinds:
+        label = _and([CLIENT_AREA.get(a, a.replace("_", " ")) for a in areas]) if areas else "this part of your life"
+        timed = any("stretch" in s.text for s in out)
+        out = [EngineSentence(text=OPENING[k].format(label=label), notes=[]) for k in OPENING
+               if k in kinds and (k != "when" or timed)] + out
     if said_before:
-        out = [s for s in out if not any(s.text in x for x in said_before)]
+        # The caveat closing the stretches goes with every set of dates, said before or not.
+        caveat = ("Neither stretch is", "This stretch is not")
+        out = [s for s in out if s.text.startswith(caveat) or not any(s.text in x for x in said_before)]
+        why = OPENING["why"]
+        if kinds and "why" in kinds and not any(n.get("row") for s in out for n in s.notes):
+            out = [EngineSentence(text=OPENING_SAID, notes=[]) if s.text == why else s for s in out]
     return EngineAnswer(question=question, direction=direction, areas=list(areas), when=when, sentences=out)
 
 
