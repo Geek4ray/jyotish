@@ -1,0 +1,280 @@
+{
+  "question": "why do you say that?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": true,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": null,
+      "reasons": [
+        "no structured output in the response",
+        "max_tokens"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": null,
+      "reasons": [
+        "no structured output in the response",
+        "max_tokens"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": null,
+      "reasons": [
+        "no structured output in the response",
+        "max_tokens"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [],
+  "writer": {
+    "model": "moonshotai/Kimi-K2.6",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "moonshotai/Kimi-K2.6",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 2750,
+      "output_tokens": 48000,
+      "cache_read_input_tokens": 5152,
+      "cache_creation_input_tokens": 0,
+      "seconds": 1923.192
+    },
+    "checker": {
+      "calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 0
+    },
+    "wall_seconds": 1923.264
+  },
+  "kinds": [
+    "why"
+  ],
+  "engine": {
+    "question": "why do you say that?",
+    "direction": "both",
+    "areas": [
+      "marriage"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "house",
+            "text": "for — 7th Scorpio, 7.37 rupas, relative -0.04"
+          },
+          {
+            "area": "marriage",
+            "point": 1,
+            "item": 0,
+            "text": "7th from the lagna: Scorpio, lord Mars, occupied by Mars; Bhava Bala (house strength) 7.37 rupas (units of 60 virupas), rank 8 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in your 7th house, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mars, 7th lord, own, ratio 1.30"
+          },
+          {
+            "area": "marriage",
+            "point": 2,
+            "item": 0,
+            "text": "Mars — lord of the 7th from the lagna, 7th from the Moon, 2nd from the Moon: Scorpio 18°37′11″ in the 7th; own; Shadbala (sixfold strength) ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha (age-state by degree) Kumara; marana karaka sthana (a placement in which a planet cannot give its good results); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, exalted, where it is at its best.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Venus in the 11th, exalted, ratio 1.33"
+          },
+          {
+            "area": "marriage",
+            "point": 3,
+            "item": 0,
+            "text": "Venus — main karaka (significator): Pisces 23°39′19″ in the 11th; exalted; Shadbala ratio 1.33 (7.32 of 5.50 rupas); Baladi avastha Kumara; retrograde; lagna lord."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "varga",
+            "text": "for — D9: Saturn own (+0.50), Mars friend (+0.25)"
+          },
+          {
+            "area": "marriage",
+            "point": 5,
+            "item": 0,
+            "text": "D9 (navamsa): Sun Gemini neutral; Moon Libra neutral; Mars Sagittarius friend; Mercury Libra friend; Jupiter Aries friend; Venus Aquarius friend; Saturn Capricorn own; Rahu Pisces; Ketu Virgo."
+          }
+        ]
+      },
+      {
+        "text": "The reading of the exact start of each house leans favourably for marriage.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "kp",
+            "text": "for — cusp 7, star lord Mars: for"
+          },
+          {
+            "area": "marriage",
+            "point": 7,
+            "item": 3,
+            "text": "KP verdict: for."
+          }
+        ]
+      },
+      {
+        "text": "Mars, a ruler of the day you were born, leans favourably for marriage.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra)"
+          },
+          {
+            "area": "marriage",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 7th from the lagna; 7th from the moon; 2nd from the moon."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": null,
+  "source": "engine",
+  "shown": [
+    "Here is what in your chart lies behind it.",
+    "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+    "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses.",
+    "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in your 7th house, in its own sign.",
+    "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, exalted, where it is at its best.",
+    "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
+    "The reading of the exact start of each house leans favourably for marriage.",
+    "Mars, a ruler of the day you were born, leans favourably for marriage.",
+    "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside."
+  ],
+  "paragraphs": [
+    1
+  ],
+  "accepted": [],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.006,
+    "written": 654.104,
+    "done": 1923.264
+  },
+  "word_rules": "warn"
+}

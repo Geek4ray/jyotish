@@ -1,6 +1,4 @@
 {
- "kimi-k2.6": "BackendFatal: api.deepinfra.com cannot serve moonshotai/Kimi-K2.6: the account has no balance (HTTP 402: {\"error\":{\"message\":\"You need positive balance to do inference. Please add balance manually or setup top-up\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":null}})",
- "glm-5.3": "BackendFatal: api.deepinfra.com cannot serve zai-org/GLM-5.3: the account has no balance (HTTP 402: {\"error\":{\"message\":\"You need positive balance to do inference. Please add balance manually or setup top-up\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":null}})",
  "claude-haiku-5-5": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cgn2fUwTFz9LFZRa6XB9C'}",
  "claude-sonnet-5-5": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cgn2fbLvDwnoniY1fiFgg'}"
 }

@@ -1,0 +1,693 @@
+{
+  "question": "what are the challanges in my life",
+  "route": {
+    "areas": [
+      "father",
+      "reputation",
+      "siblings"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "how": false,
+    "follow_up": false,
+    "carried": [],
+    "areas_from": "weakest",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "No part of your chart works against you on balance, though it supports your father, your reputation, and your brothers, sisters and courage least of all.",
+      "reasons": [
+        "untagged claim: 'No part of your chart works against you on balance, though it supports your father, your reputation, and your brothers, sisters and courage least of all.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for brothers, sisters and courage leans unfavourably; the Sun falls in Libra there, where it is least at ease. [vote:siblings.varga]",
+      "reasons": [
+        "the checker found it unsupported: The divisional chart is read for courage (the data's area says only \"siblings\"; courage is not stated anywhere in the finding)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The signs that show how others see your reputation, Capricorn and Libra, lean unfavourably; the Moon sits there with no helpful planet beside. [vote:reputation.arudha]",
+      "reasons": [
+        "the checker found it unsupported: Capricorn and Libra are the signs that show how others see your reputation (The derivation states AL = Capricorn and AL10 = Libra, the two arudha image points the vote rests on, so the two signs themselves are correctly identified. But attaching the area 'reputation' to them is not stated: the data names no area for AL10, area_houses is empty, and the glossary has no entry for reputation. The glossary's arudha entry ('read for how its matters appear to the world') and the Arudha lagna entry ('read for how the person is seen') support only the generic 'how others see' framing, not the reputation label. Partially supported, partially unsupported; on the whole reading, unsupported.)",
+        "the checker found it unsupported: The Moon sits there (in the signs just named) (Ambiguous between a supported and an unsupported reading. 'There' can be read as Libra only, where the derivation lists the Moon among AL10's occupants (supported), or as applying to both Capricorn and Libra — but Capricorn (AL) has no occupants, so Moon in both signs is contradicted. Per the rules, the ambiguity makes it unsupported.)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": null,
+      "reasons": [
+        "api.deepinfra.com did not answer after 5 attempts (model moonshotai/Kimi-K2.6)",
+        "ReadTimeout"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": null,
+      "reasons": [
+        "api.deepinfra.com did not answer after 5 attempts (model moonshotai/Kimi-K2.6)",
+        "ReadTimeout"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "The planets that signify your father lean unfavourably; the Sun sits in Aquarius in the tenth house, in an unfriendly sign. [vote:father.karaka]",
+      "findings": [
+        "vote:father.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The planets that signify the father lean unfavourably (the karaka vote is against)",
+            "supported": true,
+            "evidence": "The finding's direction is \"against\" and its area_votes verdict for \"karaka\" is \"against\"."
+          },
+          {
+            "text": "The Sun sits in Aquarius",
+            "supported": true,
+            "evidence": "The derivation lists the Sun with sign \"Aquarius\"."
+          },
+          {
+            "text": "The Sun sits in the tenth house",
+            "supported": true,
+            "evidence": "The derivation lists the Sun with house 10 (from the lagna); the data's area_houses also names the 10th among the father-houses."
+          },
+          {
+            "text": "The Sun is in an unfriendly sign",
+            "supported": true,
+            "evidence": "The derivation gives the Sun's dignity as \"enemy\"."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The houses that govern your father lean unfavourably; the ninth house from your rising sign sits in Capricorn and is among the least supported of your twelve houses. [vote:father.house]",
+      "findings": [
+        "vote:father.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The houses that govern your father lean unfavourably",
+            "supported": true,
+            "evidence": "The vote's direction is \"against\" and its house verdict is \"against\"; area_houses lists the 9th and 10th (from lagna, Moon and Sun) as \"a father's house\" and the 5ths as \"the 9th's Bhavat Bhavam\" — the father's houses, taken as a set, go against"
+          },
+          {
+            "text": "\"The houses that govern your father\" — there is a set of houses read for the father",
+            "supported": true,
+            "evidence": "area_houses lists nine houses under this father vote, each described as \"a father's house\" or \"the 9th's Bhavat Bhavam\"; the glossary's 9th-house entry reads for \"father\""
+          },
+          {
+            "text": "\"Your rising sign\" — the lagna is the sign rising in the east at birth, counted as the 1st house",
+            "supported": true,
+            "evidence": "The glossary's \"lagna\" entry says exactly this; the sentence's \"ninth house from your rising sign\" matches the derivation rows with basis \"lagna\""
+          },
+          {
+            "text": "The ninth house from your rising sign sits in Capricorn",
+            "supported": true,
+            "evidence": "Derivation row: basis \"lagna\", house 9, sign \"Capricorn\""
+          },
+          {
+            "text": "That ninth house (lagna, Capricorn) is among the least supported of your twelve houses",
+            "supported": true,
+            "evidence": "The same derivation row gives relative -0.97, essentially at the bottom of the relative scale (the lowest value shown is -1.0), and the vote's house direction is \"against\"; taken together this states the house is near the least supported. (Note: the data lists only nine houses' strengths, not all twelve, so the comparison set is partial, but \"among the least supported\" is consistent with the stated relative score.)"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for your father leans unfavourably; Mars falls in Gemini there, in an unfriendly sign. [vote:father.varga]",
+      "findings": [
+        "vote:father.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading concerns a divisional chart taken for the father",
+            "supported": true,
+            "evidence": "finding vote:father.varga targets the father area, and the vote in question is its varga vote"
+          },
+          {
+            "text": "That divisional chart leans unfavourably",
+            "supported": true,
+            "evidence": "area_votes.verdict.varga = \"against\""
+          },
+          {
+            "text": "Mars falls in Gemini in that divisional chart",
+            "supported": true,
+            "evidence": "derivation: planet Mars, varga D12, varga_sign Gemini"
+          },
+          {
+            "text": "Gemini there is an unfriendly sign for Mars",
+            "supported": true,
+            "evidence": "Mars's varga_dignity_label = \"enemy\" (varga_dignity -0.5), which 'unfriendly' reads as"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The planets that signify your reputation lean unfavourably; the Sun sits in Aquarius in the tenth house, in an unfriendly sign. [vote:reputation.karaka]",
+      "findings": [
+        "vote:reputation.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The planets that signify your reputation lean unfavourably",
+            "supported": true,
+            "evidence": "vote direction 'against' for the karaka family"
+          },
+          {
+            "text": "The Sun is a planet that signifies reputation",
+            "supported": true,
+            "evidence": "the karaka vote's derivation lists the Sun as a planet considered for this area"
+          },
+          {
+            "text": "The Sun sits in Aquarius",
+            "supported": true,
+            "evidence": "derivation entry for Sun lists sign 'Aquarius'"
+          },
+          {
+            "text": "The Sun sits in the tenth house",
+            "supported": true,
+            "evidence": "derivation entry for Sun lists house 10 (from lagna); area_houses words the 10th as 'a reputation house'"
+          },
+          {
+            "text": "The Sun is in an unfriendly sign",
+            "supported": true,
+            "evidence": "derivation entry for Sun lists dignity 'enemy'"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon sits in Libra in the sixth house, in a neutral sign. [vote:siblings.lord]",
+      "findings": [
+        "vote:siblings.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The planets in question rule the houses of brothers, sisters and courage (the sibling houses and the 3rd)",
+            "supported": true,
+            "evidence": "The glossary entry for '3rd house' reads 'courage, younger siblings, effort and short journeys'; the area_houses list calls the 3rd and 11th (from each basis) 'a sibling house', so houses of brothers, sisters and courage are in the data."
+          },
+          {
+            "text": "These lords lean unfavourably (go against)",
+            "supported": true,
+            "evidence": "The finding's area_votes verdict gives 'lord': 'against' — the generic framing 'lean unfavourably' matches the data's direction."
+          },
+          {
+            "text": "The Moon is a lord of one of these houses",
+            "supported": true,
+            "evidence": "The first derivation row (basis lagna, house 3) lists lord: Moon."
+          },
+          {
+            "text": "The Moon sits in Libra",
+            "supported": true,
+            "evidence": "That row gives lord_sign: 'Libra'."
+          },
+          {
+            "text": "The Moon sits in the sixth house",
+            "supported": true,
+            "evidence": "That row gives lord_house_from_lagna: 6; the ordinary reading of 'the sixth house' matches the data's 6th from the lagna."
+          },
+          {
+            "text": "Libra is a neutral sign for the Moon (the Moon is in a neutral sign)",
+            "supported": true,
+            "evidence": "That row gives dignity: 'neutral' for the Moon in Libra."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The houses that govern your reputation lean unfavourably; the tenth house from your rising sign sits in Aquarius and is among the least supported of your twelve houses. [vote:reputation.house]",
+      "findings": [
+        "vote:reputation.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There are houses that govern the client's reputation (the reputation houses)",
+            "supported": true,
+            "evidence": "area_houses labels the 10th, 1st, 4th and 7th (each also read from the Moon and the Sun) in the words 'a reputation house'"
+          },
+          {
+            "text": "The reputation houses lean unfavourably (the vote on them is against)",
+            "supported": true,
+            "evidence": "verdict 'house: against', and the finding's direction is 'against'"
+          },
+          {
+            "text": "The 10th house counted from the rising sign (the lagna) sits in Aquarius",
+            "supported": true,
+            "evidence": "derivation row: basis lagna, house 10, sign Aquarius"
+          },
+          {
+            "text": "That 10th house from the lagna is among the least supported of the client's houses",
+            "supported": true,
+            "evidence": "derivation row: bhava_bala_rupas 4.51 with relative −1.0, the lowest value and largest negative relative of any row in the finding"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for brothers, sisters and courage leans unfavourably; the Sun falls in Libra there, where it is least at ease. [vote:siblings.varga]",
+      "findings": [
+        "vote:siblings.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The varga (divisional chart) for this area leans unfavourably (the vote is against)",
+            "supported": true,
+            "evidence": "the cited finding vote:siblings.varga is a varga vote with direction \"against\""
+          },
+          {
+            "text": "The divisional chart is read for brothers and sisters (siblings)",
+            "supported": true,
+            "evidence": "the finding's area is siblings, and D3 is the varga the vote is taken on"
+          },
+          {
+            "text": "The divisional chart is read for courage",
+            "supported": false,
+            "evidence": "the data's area says only \"siblings\"; courage is not stated anywhere in the finding"
+          },
+          {
+            "text": "The Sun is placed in Libra in that divisional chart",
+            "supported": true,
+            "evidence": "the finding's derivation row for the Sun: varga D3, varga_sign \"Libra\""
+          },
+          {
+            "text": "The Sun is least at ease in Libra there (i.e. debilitated, at its weakest)",
+            "supported": true,
+            "evidence": "the Sun's row has varga_dignity_label \"debilitated\" (varga_dignity -2.0), and the glossary's entry for \"debilitated\" — \"where the texts hold a planet at its weakest\" — matches the gloss \"least at ease\""
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably; the Moon sits there with no helpful planet beside. [vote:siblings.arudha]",
+      "findings": [
+        "vote:siblings.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "A3 (the arudha read for brothers, sisters and courage) falls in Libra",
+            "supported": true,
+            "evidence": "pada A3 lists sign \"Libra\"; the finding is in the arudha family for the siblings area (the 3rd house covers brothers, sisters and courage), and the glossary defines an arudha as read for how a house's matters appear to the world"
+          },
+          {
+            "text": "that arudha leans unfavourably (the arudha vote is against)",
+            "supported": true,
+            "evidence": "the finding's direction is \"against\", the verdict lists \"arudha\": \"against\", and the derivation's why states \"the vote is against\""
+          },
+          {
+            "text": "the Moon occupies that arudha's sign",
+            "supported": true,
+            "evidence": "pada A3 lists occupants [\"Moon\"]"
+          },
+          {
+            "text": "no helpful (benefic) planet occupies it alongside the Moon",
+            "supported": true,
+            "evidence": "pada A3 lists benefics [] (empty); the glossary defines a benefic as a naturally favourable planet, matching \"helpful planet\""
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The signs that show how others see your reputation, Capricorn and Libra, lean unfavourably; the Moon sits there with no helpful planet beside. [vote:reputation.arudha]",
+      "findings": [
+        "vote:reputation.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Capricorn and Libra are the signs that show how others see your reputation",
+            "supported": false,
+            "evidence": "The derivation states AL = Capricorn and AL10 = Libra, the two arudha image points the vote rests on, so the two signs themselves are correctly identified. But attaching the area 'reputation' to them is not stated: the data names no area for AL10, area_houses is empty, and the glossary has no entry for reputation. The glossary's arudha entry ('read for how its matters appear to the world') and the Arudha lagna entry ('read for how the person is seen') support only the generic 'how others see' framing, not the reputation label. Partially supported, partially unsupported; on the whole reading, unsupported."
+          },
+          {
+            "text": "These signs lean unfavourably (the arudha vote is against)",
+            "supported": true,
+            "evidence": "The finding's direction is 'against', its why-text says 'more malefics than benefics occupy AL, AL10: the vote is against', and the area verdict for arudha is 'against'."
+          },
+          {
+            "text": "The Moon sits there (in the signs just named)",
+            "supported": false,
+            "evidence": "Ambiguous between a supported and an unsupported reading. 'There' can be read as Libra only, where the derivation lists the Moon among AL10's occupants (supported), or as applying to both Capricorn and Libra — but Capricorn (AL) has no occupants, so Moon in both signs is contradicted. Per the rules, the ambiguity makes it unsupported."
+          },
+          {
+            "text": "No helpful (benefic) planet sits beside the Moon",
+            "supported": true,
+            "evidence": "AL10's occupants are only the Moon and its benefics list is empty; AL's occupants and benefics are also empty. The glossary's 'benefic' entry (naturally favourable planets) matches 'helpful planet'."
+          }
+        ]
+      },
+      "attempt": 1
+    }
+  ],
+  "writer": {
+    "model": "moonshotai/Kimi-K2.6",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "moonshotai/Kimi-K2.6",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 11202,
+      "output_tokens": 42258,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 3844.917
+    },
+    "checker": {
+      "calls": 9,
+      "input_tokens": 15604,
+      "output_tokens": 8820,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 66.46
+    },
+    "wall_seconds": 7396.484
+  },
+  "kinds": [],
+  "engine": {
+    "question": "what are the challanges in my life",
+    "direction": "against",
+    "areas": [
+      "father",
+      "reputation",
+      "siblings"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "No part of your chart works against you on balance; the parts it supports least are your father, your reputation and brothers, sisters and courage.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "reputation",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "siblings",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          }
+        ]
+      },
+      {
+        "text": "This chart does not emphasise your father; on balance what it shows leans favourably.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "father",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your rising sign, in Capricorn, is among the least supported of your twelve houses.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "house",
+            "text": "against — 9th Capricorn, 4.62 rupas, relative -0.97"
+          },
+          {
+            "area": "father",
+            "point": 1,
+            "item": 0,
+            "text": "9th from the lagna: Capricorn, lord Saturn, empty; Bhava Bala (house strength) 4.62 rupas (units of 60 virupas), rank 11 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for your father leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D12: Mars enemy (-0.25), Saturn friend (+0.25)"
+          },
+          {
+            "area": "father",
+            "point": 5,
+            "item": 0,
+            "text": "D12 (dwadasamsa): Sun Capricorn enemy; Moon Libra neutral; Mars Gemini enemy; Mercury Aquarius neutral; Jupiter Virgo enemy; Venus Sagittarius neutral; Saturn Taurus friend; Rahu Capricorn; Ketu Cancer."
+          }
+        ]
+      },
+      {
+        "text": "For your reputation, what the chart shows points different ways; on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "reputation",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern your reputation lean unfavourably: the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "house",
+            "text": "against — 10th Aquarius, 4.51 rupas, relative -1.00"
+          },
+          {
+            "area": "reputation",
+            "point": 1,
+            "item": 0,
+            "text": "10th from the lagna: Aquarius, lord Saturn, occupied by Sun, Mercury; Bhava Bala (house strength) 4.51 rupas (units of 60 virupas), rank 12 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your reputation lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "reputation",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see your reputation, Capricorn and Libra, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy AL, AL10: the vote is against"
+          },
+          {
+            "area": "reputation",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) AL: Capricorn, 9th from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "reputation",
+            "point": 8,
+            "item": 1,
+            "text": "arudha AL10: Libra, 6th from the lagna; occupants Moon; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "For brothers, sisters and courage, what the chart shows points different ways; on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "siblings",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "lord",
+            "text": "against — Moon, 3rd lord, neutral, ratio 1.27"
+          },
+          {
+            "area": "siblings",
+            "point": 2,
+            "item": 0,
+            "text": "Moon — lord of the 3rd from the lagna: Libra 1°25′34″ in the 6th; neutral (compound enemy); Shadbala (sixfold strength) ratio 1.27 (7.64 of 6.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window)."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for brothers, sisters and courage leans unfavourably; there the Sun falls in Libra, debilitated, where it is least at ease.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D3: Sun debilitated (-1.00), Mars friend (+0.25)"
+          },
+          {
+            "area": "siblings",
+            "point": 5,
+            "item": 0,
+            "text": "D3 (drekkana): Sun Libra debilitated; Moon Libra neutral; Mars Pisces friend; Mercury Aquarius neutral; Jupiter Virgo enemy; Venus Scorpio neutral; Saturn Taurus friend; Rahu Libra; Ketu Aries."
+          }
+        ]
+      },
+      {
+        "text": "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A3: the vote is against"
+          },
+          {
+            "area": "siblings",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A3: Libra, 6th from the lagna; occupants Moon; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": null,
+  "source": "writer",
+  "shown": [
+    "The houses that govern your father lean unfavourably; the ninth house from your rising sign sits in Capricorn and is among the least supported of your twelve houses.",
+    "The planets that signify your father lean unfavourably; the Sun sits in Aquarius in the tenth house, in an unfriendly sign.",
+    "The divisional chart for your father leans unfavourably; Mars falls in Gemini there, in an unfriendly sign.",
+    "The houses that govern your reputation lean unfavourably; the tenth house from your rising sign sits in Aquarius and is among the least supported of your twelve houses.",
+    "The planets that signify your reputation lean unfavourably; the Sun sits in Aquarius in the tenth house, in an unfriendly sign.",
+    "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon sits in Libra in the sixth house, in a neutral sign.",
+    "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably; the Moon sits there with no helpful planet beside."
+  ],
+  "paragraphs": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "accepted": [
+    "The houses that govern your father lean unfavourably; the ninth house from your rising sign sits in Capricorn and is among the least supported of your twelve houses. [vote:father.house]",
+    "The planets that signify your father lean unfavourably; the Sun sits in Aquarius in the tenth house, in an unfriendly sign. [vote:father.karaka]",
+    "The divisional chart for your father leans unfavourably; Mars falls in Gemini there, in an unfriendly sign. [vote:father.varga]",
+    "The houses that govern your reputation lean unfavourably; the tenth house from your rising sign sits in Aquarius and is among the least supported of your twelve houses. [vote:reputation.house]",
+    "The planets that signify your reputation lean unfavourably; the Sun sits in Aquarius in the tenth house, in an unfriendly sign. [vote:reputation.karaka]",
+    "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon sits in Libra in the sixth house, in a neutral sign. [vote:siblings.lord]",
+    "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably; the Moon sits there with no helpful planet beside. [vote:siblings.arudha]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 1276.656,
+    "written": 1281.762,
+    "done": 7396.484
+  },
+  "word_rules": "warn"
+}

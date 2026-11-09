@@ -1,0 +1,672 @@
+{
+  "question": "why do you say that?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": true,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "Here is what in your chart lies behind it.",
+      "reasons": [
+        "untagged claim: 'Here is what in your chart lies behind it.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The heart of the reading is where the planets that carry marriage sit.",
+      "reasons": [
+        "untagged claim: 'The heart of the reading is where the planets that carry marriage sit.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Venus, the main planet that signifies marriage, is placed in Pisces, where it works at its best for this union [rule:place.venus_in_pisces].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Venus, the main planet that signifies marriage, sits in Pisces in your 11th house, exalted, where it is at its best.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Mars, which rules your 7th house of marriage, sits in that very house, in Scorpio, its own sign [rule:place.l7_h7] [vote:marriage.lord].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The houses that govern marriage support it overall , and Mars, the planet that rules your 7th house, sits in Scorpio in that very house, in its own sign.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The chain of rulers from Venus runs from Venus to Jupiter in Taurus, which turns back on itself between Jupiter and Venus — it shows which planets carry the marriage, with no lean of its own [chain:marriage.karaka].",
+      "reasons": [
+        "[chain:marriage.karaka] on a sentence that names no chain (sign, nakshatra or navamsa): 'The chain of rulers from Venus runs from Venus to Jupiter in Taurus, which turns back on itself between Jupiter and Venus — it shows which planets carry the marriage, with no lean of its own [chain:marriage.karaka].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The chain from Mars, the ruler of your 7th house, runs simply Mars in Scorpio, ending with Mars, so one planet carries much of the weight here [chain:marriage.lord].",
+      "reasons": [
+        "[chain:marriage.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'The chain from Mars, the ruler of your 7th house, runs simply Mars in Scorpio, ending with Mars, so one planet carries much of the weight here [chain:marriage.lord].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses [vote:marriage.house].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('On the whole, your chart leans favourably here — the houses that govern marriage support it, though the main one, the 7th house from your rising sign, is less supported than most , and the planets that rule those houses stand with you, with Mars sitting in Scorpio in your 7th house, in its own sign.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "What works against it is only how others see the marriage: the signs Gemini, Cancer and Leo lean unfavourably, with Rahu sitting there and no helpful planet beside [vote:marriage.arudha].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('What works against it is how others see the marriage — the signs Gemini, Cancer and Leo lean unfavourably, with Rahu sitting in Gemini and no helpful planet beside.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "In the reading's view, the placements that support the marriage outweigh those signs [vote:marriage.house] [vote:marriage.lord] [vote:marriage.karaka] [vote:marriage.varga].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client (\"In the reading's view, the houses and planets that support marriage outweigh the signs that work against it.\"): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for marriage leans favourably as well; there Saturn falls in Capricorn, in its own sign [vote:marriage.varga].",
+      "reasons": [
+        "the checker found it unsupported: \"as well\": some other factor in the reading also leans favourably (The cited finding is only the varga vote; nothing in it states another finding or area leans favourably in a way the sentence attaches to, so the connective hangs on uncited material)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Let me show you what the chart adds beyond what we have already covered, since you asked why.",
+      "reasons": [
+        "untagged claim: 'Let me show you what the chart adds beyond what we have already covered, since you asked why.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mars, the ruler of your 12th house, sits in the 7th house of marriage; it is a placement with no lean of its own [rule:place.l12_h7].",
+      "reasons": [
+        "[rule:place.l12_h7] on a sentence that names none of ['12th lord', 'lord of the 12th', 'ruler of the 12th']: 'Mars, the ruler of your 12th house, sits in the 7th house of marriage; it is a placement with no lean of its own [rule:place.l12_h7].'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Beyond these placements and chains, the chart adds nothing further to what we have already spoken of.",
+      "reasons": [
+        "untagged claim: 'Beyond these placements and chains, the chart adds nothing further to what we have already spoken of.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Venus sits in the 11th house, which is a house of marriage; this placement carries no lean of its own [rule:place.venus_h11].",
+      "reasons": [
+        "the checker found it unsupported: This placement (Venus in the 11th) carries no lean of its own (no finding or fact states a lean or its absence for the placement; the fires entry carries scale 1.0 and no modifiers, but nothing in the data asserts that the placement has no lean of its own, and scale 1.0 is not a statement of neutrality)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Venus, the main planet that signifies marriage, runs Venus in Pisces, then Jupiter in Taurus, which turns back on itself between Jupiter and Venus; it shows which planets carry the marriage, and carries no lean of its own [chain:marriage.karaka].",
+      "reasons": [
+        "the checker found it unsupported: The sign chain carries no lean of its own (it adds no strength or favour of its own) (no cited fact or finding states this; the data records dignities along the chain (Venus exalted, Jupiter in enemy sign), the loop, and the Parivartana exchange, but nowhere says the chain itself is without lean)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Mars, the ruler of your 7th house of marriage, runs Mars in Scorpio, ending with Mars; it shows which planets carry the marriage, and carries no lean of its own [chain:marriage.lord].",
+      "reasons": [
+        "the checker found it unsupported: The chain carries no lean of its own (no fact or finding states this; the data states the chain ends in Mars, self-disposited, but makes no claim about the chain carrying or not carrying a lean)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Here is what in your chart lies behind it.",
+      "reasons": [
+        "untagged claim: 'Here is what in your chart lies behind it.'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Venus sits in the 11th house; the 11th is a house of marriage; it is a placement only, with no lean of its own [rule:place.venus_h11].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Venus, the main planet that signifies marriage, sits in Pisces in your 11th house, exalted, where it is at its best.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The chain of sign rulers from Mars, the ruler of the 7th house, runs Mars in Scorpio, ending with Mars; it shows which planets carry marriage, with no lean of its own [chain:marriage.lord].",
+      "reasons": [
+        "the checker found it unsupported: The chain has no lean of its own. (The data states the chain's steps, its endpoint (Mars, self-disposited, not in a loop), and its role, but nowhere states that the chain lacks a lean, preference, or weighting of its own; no glossary entry or fact supports this characterization.)"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Mars, the ruler of the 12th house, sits in the 7th house; the 7th is a house of marriage; it is a placement only, with no lean of its own [rule:place.l12_h7].",
+      "reasons": [
+        "the checker found it unsupported: The Mars placement is 'a placement only', i.e. it contributes no lean (directional weight) of its own (the finding carries a fire for this placement with scale 0.6, reduced by the modifier 'marana_karaka_sthana -> x0.6'; the data states a (dampened) weight for the placement and never states that there is no lean, so the sentence asserts something the data does not state)"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The chain of sign rulers from Venus, the main planet that signifies marriage, runs Venus in Pisces, then Jupiter in Taurus, which turns back on itself between Jupiter and Venus; it shows which planets carry marriage, with no lean of its own [chain:marriage.karaka].",
+      "reasons": [
+        "the checker found it unsupported: The chain has no lean of its own (it carries no directional tendency or preference of its own) (no fact or finding states anything about the chain having or lacking a 'lean'; the data only states the loop terminus and the exchange)"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "The divisional chart for marriage leans favourably as well; there Saturn falls in Capricorn, in its own sign [vote:marriage.varga].",
+      "findings": [
+        "vote:marriage.varga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The divisional chart for marriage leans favourably (the varga vote's direction is \"for\")",
+            "supported": true,
+            "evidence": "vote:marriage.varga has direction \"for\""
+          },
+          {
+            "text": "\"as well\": some other factor in the reading also leans favourably",
+            "supported": false,
+            "evidence": "The cited finding is only the varga vote; nothing in it states another finding or area leans favourably in a way the sentence attaches to, so the connective hangs on uncited material"
+          },
+          {
+            "text": "\"The divisional chart for marriage\" = the D9 is read for marriage",
+            "supported": true,
+            "evidence": "glossary: \"navamsa: The ninth-part divisional chart, read for marriage and the strength of planets\"; the finding's varga is D9"
+          },
+          {
+            "text": "Saturn falls in Capricorn in that chart",
+            "supported": true,
+            "evidence": "derivation Saturn: varga \"D9\", varga_sign \"Capricorn\""
+          },
+          {
+            "text": "Saturn is in its own sign there",
+            "supported": true,
+            "evidence": "derivation Saturn: varga_dignity_label \"own\", varga_dignity 1.0"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "Venus sits in the 11th house, which is a house of marriage; this placement carries no lean of its own [rule:place.venus_h11].",
+      "findings": [
+        "place.venus_h11@lagna"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus sits in the 11th house",
+            "supported": true,
+            "evidence": "finding place.venus_h11@lagna states its placement as planet Venus, house 11, and its fires cite Venus and H11"
+          },
+          {
+            "text": "The 11th house is a house of marriage",
+            "supported": true,
+            "evidence": "the finding's area_houses lists house 11 on basis lagna with the words \"the 11th, a marriage house\" (note: the glossary entry for \"11th house\" gives gains, income, elder siblings and fulfilment of wishes, but the area_houses entry supports the marriage framing in the area's own words)"
+          },
+          {
+            "text": "This placement (Venus in the 11th) carries no lean of its own",
+            "supported": false,
+            "evidence": "no finding or fact states a lean or its absence for the placement; the fires entry carries scale 1.0 and no modifiers, but nothing in the data asserts that the placement has no lean of its own, and scale 1.0 is not a statement of neutrality"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Venus, the main planet that signifies marriage, runs Venus in Pisces, then Jupiter in Taurus, which turns back on itself between Jupiter and Venus; it shows which planets carry the marriage, and carries no lean of its own [chain:marriage.karaka].",
+      "findings": [
+        "chain:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a chain of sign rulers (a dispositor chain) beginning from Venus",
+            "supported": true,
+            "evidence": "the finding is a chain of kind karaka for Venus, and its derivation includes a sign chain with steps starting from Venus"
+          },
+          {
+            "text": "Venus is the main planet that signifies marriage (the area's karaka)",
+            "supported": true,
+            "evidence": "the finding's id is chain:marriage.karaka, its role is 'the area's main significator (karaka)' with planet Venus, and the cited fact states 'Venus is the area's main significator (karaka)'; the glossary's karaka entry names Venus for partnership"
+          },
+          {
+            "text": "The sign chain runs Venus in Pisces, then Jupiter in Taurus",
+            "supported": true,
+            "evidence": "the cited fact: 'Sign chain of Venus: Venus in Pisces, the 11th, exalted → Jupiter in Taurus, the 1st, enemy', matching the derivation's sign steps"
+          },
+          {
+            "text": "The sign chain turns back on itself between Jupiter and Venus (it ends in a loop of Jupiter and Venus)",
+            "supported": true,
+            "evidence": "the cited facts 'it ends in the Jupiter–Venus loop' and 'Venus is in the sign loop, with Jupiter', matching ends_in ['Jupiter','Venus'], in_loop true, loop_with ['Jupiter']"
+          },
+          {
+            "text": "The chain shows which planets carry the marriage",
+            "supported": true,
+            "evidence": "generic framing: the finding is the karaka chain for the marriage area, and the glossary's final dispositor entry describes the chain as that 'through which the planets of the chain finally act'"
+          },
+          {
+            "text": "The sign chain carries no lean of its own (it adds no strength or favour of its own)",
+            "supported": false,
+            "evidence": "no cited fact or finding states this; the data records dignities along the chain (Venus exalted, Jupiter in enemy sign), the loop, and the Parivartana exchange, but nowhere says the chain itself is without lean"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Mars, the ruler of your 7th house of marriage, runs Mars in Scorpio, ending with Mars; it shows which planets carry the marriage, and carries no lean of its own [chain:marriage.lord].",
+      "findings": [
+        "chain:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a chain of sign rulers (a dispositor chain) starting from Mars in the chart",
+            "supported": true,
+            "evidence": "the finding's derivation.sign chain begins with Mars"
+          },
+          {
+            "text": "Mars is the ruler of the client's 7th house",
+            "supported": true,
+            "evidence": "fact \"Mars is the lord of the 7th\""
+          },
+          {
+            "text": "The 7th house is the house of marriage",
+            "supported": true,
+            "evidence": "glossary entry for \"7th house\": \"marriage, partners, partnerships and travel\""
+          },
+          {
+            "text": "In the sign chain, Mars sits in Scorpio",
+            "supported": true,
+            "evidence": "derivation.sign step: Mars in Scorpio; fact \"Sign chain of Mars: Mars in Scorpio, the 7th, own\""
+          },
+          {
+            "text": "The sign chain ends with Mars",
+            "supported": true,
+            "evidence": "derivation.sign ends_in: [\"Mars\"]; fact \"it ends in Mars, self-disposited\"; fact \"Mars is its own final sign dispositor\""
+          },
+          {
+            "text": "The chain shows which planets carry the marriage",
+            "supported": true,
+            "evidence": "supported framing: the glossary on dispositors and final dispositors (\"through which the planets of the chain finally act\") matches a chain run from the marriage house's lord"
+          },
+          {
+            "text": "The chain carries no lean of its own",
+            "supported": false,
+            "evidence": "no fact or finding states this; the data states the chain ends in Mars, self-disposited, but makes no claim about the chain carrying or not carrying a lean"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Mars, the ruler of the 7th house, runs Mars in Scorpio, ending with Mars; it shows which planets carry marriage, with no lean of its own [chain:marriage.lord].",
+      "findings": [
+        "chain:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a chain of sign rulers starting from Mars.",
+            "supported": true,
+            "evidence": "The finding is a `chain: lord` for Mars, and its derivation includes a `sign` chain with steps; the fact row reads 'Sign chain of Mars: Mars in Scorpio, the 7th, own'."
+          },
+          {
+            "text": "Mars is the ruler of the 7th house.",
+            "supported": true,
+            "evidence": "Fact: 'Mars is the lord of the 7th, the area's first house'; role: 'the lord of the 7th, the area's first house'."
+          },
+          {
+            "text": "The chain runs Mars in Scorpio.",
+            "supported": true,
+            "evidence": "Sign step: Mars in Scorpio (7th house, own dignity); fact: 'Sign chain of Mars: Mars in Scorpio, the 7th, own'."
+          },
+          {
+            "text": "The chain ends with Mars.",
+            "supported": true,
+            "evidence": "`ends_in: [\"Mars\"]`, `in_loop: false`; fact: 'Sign chain of Mars: Mars in Scorpio, the 7th, own; it ends in Mars, self-disposited' and 'Mars is its own final sign dispositor'."
+          },
+          {
+            "text": "The chain shows which planets carry marriage (i.e., it traces the 7th house's significations, of which marriage is one).",
+            "supported": true,
+            "evidence": "The chain is drawn from the lord of the 7th ('the area's first house'), and the glossary entry for '7th house' reads 'marriage, partners, partnerships and travel', so the 7th lord's chain identifies which planets carry the 7th house's matters."
+          },
+          {
+            "text": "The chain has no lean of its own.",
+            "supported": false,
+            "evidence": "The data states the chain's steps, its endpoint (Mars, self-disposited, not in a loop), and its role, but nowhere states that the chain lacks a lean, preference, or weighting of its own; no glossary entry or fact supports this characterization."
+          }
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "Mars, the ruler of the 12th house, sits in the 7th house; the 7th is a house of marriage; it is a placement only, with no lean of its own [rule:place.l12_h7].",
+      "findings": [
+        "place.l12_h7@lagna"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Mars is the ruler of the 12th house",
+            "supported": true,
+            "evidence": "the finding's placement: planet Mars, lord_of [12]"
+          },
+          {
+            "text": "Mars sits in the 7th house",
+            "supported": true,
+            "evidence": "the finding's placement: planet Mars, house 7; also the fire node H7"
+          },
+          {
+            "text": "The 7th is a house of marriage",
+            "supported": true,
+            "evidence": "area_houses lists house 7 as 'the 7th, a marriage house'; the glossary entry for '7th house' says 'marriage, partners, partnerships and travel'"
+          },
+          {
+            "text": "The Mars placement is 'a placement only', i.e. it contributes no lean (directional weight) of its own",
+            "supported": false,
+            "evidence": "the finding carries a fire for this placement with scale 0.6, reduced by the modifier 'marana_karaka_sthana -> x0.6'; the data states a (dampened) weight for the placement and never states that there is no lean, so the sentence asserts something the data does not state"
+          }
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "The chain of sign rulers from Venus, the main planet that signifies marriage, runs Venus in Pisces, then Jupiter in Taurus, which turns back on itself between Jupiter and Venus; it shows which planets carry marriage, with no lean of its own [chain:marriage.karaka].",
+      "findings": [
+        "chain:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a chain of sign rulers (dispositors) that starts from Venus",
+            "supported": true,
+            "evidence": "facts: 'Sign chain of Venus: Venus in Pisces, the 11th, exalted → Jupiter in Taurus, the 1st, enemy; it ends in the Jupiter–Venus loop'"
+          },
+          {
+            "text": "Venus is the main planet that signifies marriage (the area's main significator, karaka)",
+            "supported": true,
+            "evidence": "fact: 'Venus is the area's main significator (karaka)'; the finding is for the marriage area (chain:marriage.karaka)"
+          },
+          {
+            "text": "The chain runs to Venus in Pisces",
+            "supported": true,
+            "evidence": "sign step: Venus, sign Pisces; fact states the same"
+          },
+          {
+            "text": "The chain then runs to Jupiter in Taurus",
+            "supported": true,
+            "evidence": "sign step: Jupiter, sign Taurus; fact states the same"
+          },
+          {
+            "text": "The chain turns back on itself between Jupiter and Venus (it ends in a Jupiter–Venus loop)",
+            "supported": true,
+            "evidence": "derivation: in_loop true, loop_with [Jupiter]; fact: 'Venus is in the sign loop, with Jupiter' and 'it ends in the Jupiter–Venus loop'"
+          },
+          {
+            "text": "The chain shows which planets carry marriage (which planets finally act for the matter)",
+            "supported": true,
+            "evidence": "glossary, 'final dispositor': 'a planet in its own sign, or a loop of planets each in the other's sign, through which the planets of the chain finally act'; the loop of Jupiter and Venus is the chain's terminus"
+          },
+          {
+            "text": "The chain has no lean of its own (it carries no directional tendency or preference of its own)",
+            "supported": false,
+            "evidence": "no fact or finding states anything about the chain having or lacking a 'lean'; the data only states the loop terminus and the exchange"
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "zai-org/GLM-5.3",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 3862,
+      "output_tokens": 2171,
+      "cache_read_input_tokens": 7424,
+      "cache_creation_input_tokens": 0,
+      "seconds": 68.139
+    },
+    "checker": {
+      "calls": 7,
+      "input_tokens": 11067,
+      "output_tokens": 6978,
+      "cache_read_input_tokens": 1536,
+      "cache_creation_input_tokens": 0,
+      "seconds": 63.747
+    },
+    "wall_seconds": 97.363
+  },
+  "kinds": [
+    "why"
+  ],
+  "engine": {
+    "question": "why do you say that?",
+    "direction": "both",
+    "areas": [
+      "marriage"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "house",
+            "text": "for — 7th Scorpio, 7.37 rupas, relative -0.04"
+          },
+          {
+            "area": "marriage",
+            "point": 1,
+            "item": 0,
+            "text": "7th from the lagna: Scorpio, lord Mars, occupied by Mars; Bhava Bala (house strength) 7.37 rupas (units of 60 virupas), rank 8 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in your 7th house, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mars, 7th lord, own, ratio 1.30"
+          },
+          {
+            "area": "marriage",
+            "point": 2,
+            "item": 0,
+            "text": "Mars — lord of the 7th from the lagna, 7th from the Moon, 2nd from the Moon: Scorpio 18°37′11″ in the 7th; own; Shadbala (sixfold strength) ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha (age-state by degree) Kumara; marana karaka sthana (a placement in which a planet cannot give its good results); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, exalted, where it is at its best.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Venus in the 11th, exalted, ratio 1.33"
+          },
+          {
+            "area": "marriage",
+            "point": 3,
+            "item": 0,
+            "text": "Venus — main karaka (significator): Pisces 23°39′19″ in the 11th; exalted; Shadbala ratio 1.33 (7.32 of 5.50 rupas); Baladi avastha Kumara; retrograde; lagna lord."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "varga",
+            "text": "for — D9: Saturn own (+0.50), Mars friend (+0.25)"
+          },
+          {
+            "area": "marriage",
+            "point": 5,
+            "item": 0,
+            "text": "D9 (navamsa): Sun Gemini neutral; Moon Libra neutral; Mars Sagittarius friend; Mercury Libra friend; Jupiter Aries friend; Venus Aquarius friend; Saturn Capricorn own; Rahu Pisces; Ketu Virgo."
+          }
+        ]
+      },
+      {
+        "text": "The reading of the exact start of each house leans favourably for marriage.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "kp",
+            "text": "for — cusp 7, star lord Mars: for"
+          },
+          {
+            "area": "marriage",
+            "point": 7,
+            "item": 3,
+            "text": "KP verdict: for."
+          }
+        ]
+      },
+      {
+        "text": "Mars, a ruler of the day you were born, leans favourably for marriage.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra)"
+          },
+          {
+            "area": "marriage",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 7th from the lagna; 7th from the moon; 2nd from the moon."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": null,
+  "source": "engine",
+  "shown": [
+    "Here is what in your chart lies behind it.",
+    "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+    "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses.",
+    "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in your 7th house, in its own sign.",
+    "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, exalted, where it is at its best.",
+    "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
+    "The reading of the exact start of each house leans favourably for marriage.",
+    "Mars, a ruler of the day you were born, leans favourably for marriage.",
+    "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside."
+  ],
+  "paragraphs": [
+    1
+  ],
+  "accepted": [],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "written": 12.691,
+    "done": 97.363
+  },
+  "word_rules": "warn"
+}

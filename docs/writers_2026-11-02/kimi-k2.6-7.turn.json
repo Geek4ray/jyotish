@@ -1,0 +1,442 @@
+{
+  "question": "whan and how",
+  "route": {
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "when": true,
+    "why": false,
+    "how": true,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "If you start from Jupiter, the main planet that signifies money, it sits in Taurus and looks to Venus in Pisces, and that path turns back on itself between them; that traces which planets carry your money. [chain:wealth.karaka]",
+      "reasons": [
+        "[chain:wealth.karaka] on a sentence that names no chain (sign, nakshatra or navamsa): 'If you start from Jupiter, the main planet that signifies money, it sits in Taurus and looks to Venus in Pisces, and that path turns back on itself between them; that traces which planets carry your money. [chain:wealth.karaka]'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "I have already spoken of the one unfavourable sign placement for money, with nothing new to add.</p><p>If you follow the chain of sign rulers from Mercury, which looks after your house of money, it runs next to Saturn in Taurus, then to Venus in Pisces, then to Jupiter back in Taurus, ending with Jupiter and Venus together; this shows which planets carry your money. [chain:wealth.lord]",
+      "reasons": [
+        "the checker found it unsupported: There is one unfavourable sign placement for money in the chart (no finding or fact in the data states any unfavourable sign placement; the only dignity notes are neutral, friend, exalted and enemy for chain members, and no finding calls any placement unfavourable for money)",
+        "the checker found it unsupported: That unfavourable sign placement was already discussed earlier in the reading (the data contains only this chain finding; nothing records an earlier discussion, and no finding identifies which placement is meant)",
+        "the checker found it unsupported: There is nothing new to add about it (a meta-claim about the reading's content; no fact or finding states it)"
+      ],
+      "attempt": 1
+    }
+  ],
+  "warnings": [
+    {
+      "sentence": "I have already spoken of the one unfavourable sign placement for money, with nothing new to add.</p><p>If you follow the chain of sign rulers from Mercury, which looks after your house of money, it runs next to Saturn in Taurus, then to Venus in Pisces, then to Jupiter back in Taurus, ending with Jupiter and Venus together; this shows which planets carry your money. [chain:wealth.lord]",
+      "warning": "the client's text never says 'I'; a weighing is 'in the reading's view': 'I have already spoken of the one unfavourable sign placement for money, with nothing new to add.</p><p>If you follow the chain of sign rulers from Mercury, which looks after your house of money, it runs next to Saturn in Taurus, then to Venus in Pisces, then to Jupiter back in Taurus, ending with Jupiter and Venus together; this shows which planets carry your money. [chain:wealth.lord]'",
+      "attempt": 1
+    }
+  ],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for money; it only shows which stretches read as more and less favourable for it.</p><p>Let me begin with the hard part, as you asked about both sides.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "I have already spoken of the one unfavourable sign placement for money, with nothing new to add.</p><p>If you follow the chain of sign rulers from Mercury, which looks after your house of money, it runs next to Saturn in Taurus, then to Venus in Pisces, then to Jupiter back in Taurus, ending with Jupiter and Venus together; this shows which planets carry your money. [chain:wealth.lord]",
+      "findings": [
+        "chain:wealth.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is one unfavourable sign placement for money in the chart",
+            "supported": false,
+            "evidence": "no finding or fact in the data states any unfavourable sign placement; the only dignity notes are neutral, friend, exalted and enemy for chain members, and no finding calls any placement unfavourable for money"
+          },
+          {
+            "text": "That unfavourable sign placement was already discussed earlier in the reading",
+            "supported": false,
+            "evidence": "the data contains only this chain finding; nothing records an earlier discussion, and no finding identifies which placement is meant"
+          },
+          {
+            "text": "There is nothing new to add about it",
+            "supported": false,
+            "evidence": "a meta-claim about the reading's content; no fact or finding states it"
+          },
+          {
+            "text": "There is a chain of sign rulers starting from Mercury",
+            "supported": true,
+            "evidence": "fact: 'Sign chain of Mercury: Mercury in Aquarius, the 10th, neutral → Saturn in Taurus, the 1st, friend → Venus in Pisces, the 11th, exalted → Jupiter in Taurus, the 1st, enemy; it ends in the Jupiter–Venus loop'"
+          },
+          {
+            "text": "Mercury looks after your house of money (is the lord of the money house)",
+            "supported": true,
+            "evidence": "fact: 'Mercury is the lord of the 2nd, the area's first house'; glossary '2nd house': 'wealth, family, speech and food', so the 2nd is the money house and Mercury its lord"
+          },
+          {
+            "text": "The chain runs next to Saturn in Taurus",
+            "supported": true,
+            "evidence": "sign step: Saturn, sign Taurus, house 1, dignity friend"
+          },
+          {
+            "text": "Then to Venus in Pisces",
+            "supported": true,
+            "evidence": "sign step: Venus, sign Pisces, house 11, dignity exalted"
+          },
+          {
+            "text": "Then to Jupiter back in Taurus",
+            "supported": true,
+            "evidence": "sign step: Jupiter, sign Taurus, house 1, dignity enemy; 'back' fits, since Saturn earlier in the chain is also in Taurus, the 1st"
+          },
+          {
+            "text": "The chain ends with Jupiter and Venus together (in a loop)",
+            "supported": true,
+            "evidence": "fact: 'it ends in the Jupiter–Venus loop'; derivation ends_in: ['Jupiter','Venus']"
+          },
+          {
+            "text": "This shows which planets carry the client's money (the final sign dispositors, who hold the results, are Jupiter and Venus)",
+            "supported": true,
+            "evidence": "fact: 'Mercury is in no sign loop; its final sign dispositors are Jupiter and Venus'; glossary 'dispositor': the lord of the sign a planet occupies, 'which is said to hold that planet's results', and 'final dispositor': 'a planet ... or a loop of planets ... through which the planets of the chain finally act'"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The chain of sign rulers from Mercury, the ruler of the house of money, runs Mercury in Aquarius, then Saturn in Taurus, then Venus in Pisces, then Jupiter in Taurus, ending with Jupiter and Venus; it shows which planets carry money. [chain:wealth.lord]",
+      "findings": [
+        "chain:wealth.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a chain of sign rulers (a dispositor chain read by sign) that starts from Mercury",
+            "supported": true,
+            "evidence": "finding chain:wealth.lord is kind 'chain', derivation includes a sign chain beginning with Mercury; fact: 'Sign chain of Mercury: Mercury in Aquarius...'"
+          },
+          {
+            "text": "Mercury is the ruler of the house of money",
+            "supported": true,
+            "evidence": "fact: 'Mercury is the lord of the 2nd, the area's first house'; the glossary defines the 2nd house as 'wealth, family, speech and food', and the finding's area is wealth (chain:wealth.lord)"
+          },
+          {
+            "text": "The chain's first step is Mercury in Aquarius",
+            "supported": true,
+            "evidence": "sign step 1: Mercury, Aquarius; fact: 'Sign chain of Mercury: Mercury in Aquarius...'"
+          },
+          {
+            "text": "The chain's second step is Saturn in Taurus",
+            "supported": true,
+            "evidence": "sign step 2: Saturn, Taurus; fact: '...→ Saturn in Taurus...'"
+          },
+          {
+            "text": "The chain's third step is Venus in Pisces",
+            "supported": true,
+            "evidence": "sign step 3: Venus, Pisces; fact: '...→ Venus in Pisces...'"
+          },
+          {
+            "text": "The chain's fourth step is Jupiter in Taurus",
+            "supported": true,
+            "evidence": "sign step 4: Jupiter, Taurus; fact: '...→ Jupiter in Taurus...'"
+          },
+          {
+            "text": "The chain ends with Jupiter and Venus",
+            "supported": true,
+            "evidence": "derivation.sign.ends_in: ['Jupiter','Venus']; fact: '...it ends in the Jupiter–Venus loop'; fact: 'its final sign dispositors are Jupiter and Venus'"
+          },
+          {
+            "text": "The chain shows which planets carry the money (i.e., through which planets the wealth-chain's results finally act)",
+            "supported": true,
+            "evidence": "glossary 'final dispositor': 'a planet in its own sign, or a loop of planets each in the other's sign, through which the planets of the chain finally act' — the chain's ending in the Jupiter–Venus loop identifies the planets through which the chain acts, here for the wealth area"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Jupiter, the main planet that signifies money, runs Jupiter in Taurus, then Venus in Pisces, which turns back on itself between Venus and Jupiter; it shows which planets carry money. [chain:wealth.karaka]",
+      "findings": [
+        "chain:wealth.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chain of sign rulers begins with Jupiter",
+            "supported": true,
+            "evidence": "finding chain:wealth.karaka derivation.sign.steps begins with Jupiter; facts: 'Sign chain of Jupiter: Jupiter in Taurus, the 1st, enemy → Venus in Pisces, the 11th, exalted'"
+          },
+          {
+            "text": "Jupiter is the main planet that signifies money",
+            "supported": true,
+            "evidence": "finding's facts: 'Jupiter is the area's main significator (karaka)' with chain 'karaka' and role 'the area's main significator (karaka)' in the wealth finding"
+          },
+          {
+            "text": "Jupiter is in Taurus",
+            "supported": true,
+            "evidence": "derivation.sign.steps[0]: Jupiter, Taurus; facts: 'Sign chain of Jupiter: Jupiter in Taurus, the 1st, enemy → Venus in Pisces, the 11th, exalted'"
+          },
+          {
+            "text": "Venus is in Pisces",
+            "supported": true,
+            "evidence": "derivation.sign.steps[1]: Venus, Pisces; facts: 'Sign chain of Jupiter: Jupiter in Taurus, the 1st, enemy → Venus in Pisces, the 11th, exalted'"
+          },
+          {
+            "text": "The chain turns back on itself between Venus and Jupiter (a Jupiter–Venus loop)",
+            "supported": true,
+            "evidence": "derivation.sign.ends_in: ['Jupiter','Venus'], in_loop: true, loop_with: ['Venus']; facts: 'it ends in the Jupiter–Venus loop', 'Jupiter is in the sign loop, with Venus'"
+          },
+          {
+            "text": "The chain shows which planets carry money (which planets hold the wealth significator's results)",
+            "supported": true,
+            "evidence": "the finding's role 'the area's main significator (karaka)' and the glossary's 'dispositor' entry ('the lord of the sign a planet occupies, which is said to hold that planet's results'), which the sign-ruler chain traces"
+          }
+        ]
+      },
+      "attempt": 2
+    }
+  ],
+  "writer": {
+    "model": "moonshotai/Kimi-K2.6",
+    "effort": "medium",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "moonshotai/Kimi-K2.6",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 2,
+      "input_tokens": 3098,
+      "output_tokens": 26737,
+      "cache_read_input_tokens": 3936,
+      "cache_creation_input_tokens": 0,
+      "seconds": 1172.078
+    },
+    "checker": {
+      "calls": 3,
+      "input_tokens": 7083,
+      "output_tokens": 4664,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 35.047
+    },
+    "wall_seconds": 1206.072
+  },
+  "kinds": [
+    "when",
+    "why"
+  ],
+  "engine": {
+    "question": "whan and how",
+    "direction": "both",
+    "areas": [
+      "wealth"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+        "notes": []
+      },
+      {
+        "text": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The rulers of the day you were born, Mars and the Moon, lean favourably for money.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "wealth",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 2nd from the moon; 3rd from the sun."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch runs from November 2028 to October 2029.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for money; it only shows which stretches read as more and less favourable for it.</p><p>Let me begin with the hard part, as you asked about both sides.",
+    "The chain of sign rulers from Mercury, the ruler of the house of money, runs Mercury in Aquarius, then Saturn in Taurus, then Venus in Pisces, then Jupiter in Taurus, ending with Jupiter and Venus; it shows which planets carry money.",
+    "The chain of sign rulers from Jupiter, the main planet that signifies money, runs Jupiter in Taurus, then Venus in Pisces, which turns back on itself between Venus and Jupiter; it shows which planets carry money.",
+    "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+    "The least favourable stretch runs from November 2028 to October 2029.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    3
+  ],
+  "accepted": [
+    "A chart gives no date for money; it only shows which stretches read as more and less favourable for it.</p><p>Let me begin with the hard part, as you asked about both sides.",
+    "The chain of sign rulers from Mercury, the ruler of the house of money, runs Mercury in Aquarius, then Saturn in Taurus, then Venus in Pisces, then Jupiter in Taurus, ending with Jupiter and Venus; it shows which planets carry money. [chain:wealth.lord]",
+    "The chain of sign rulers from Jupiter, the main planet that signifies money, runs Jupiter in Taurus, then Venus in Pisces, which turns back on itself between Venus and Jupiter; it shows which planets carry money. [chain:wealth.karaka]"
+  ],
+  "attempts": 2,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 682.955,
+    "written": 686.651,
+    "done": 1206.072
+  },
+  "word_rules": "warn"
+}
