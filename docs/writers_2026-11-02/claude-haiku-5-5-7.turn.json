@@ -1,0 +1,352 @@
+{
+  "question": "whan and how",
+  "route": {
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "when": true,
+    "why": false,
+    "how": true,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "As for how the chart gets there, Venus, which rules your first house, sits in your 11th house, a house of money, and that placement carries no lean of its own [rule:place.l1_h11].",
+      "reasons": [
+        "[rule:place.l1_h11] on a sentence that names none of ['1st lord', 'lord of the 1st', 'ruler of the 1st']: 'As for how the chart gets there, Venus, which rules your first house, sits in your 11th house, a house of money, and that placement carries no lean of its own [rule:place.l1_h11].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Mercury, which rules your 2nd house of money, sits in your 10th house, and that placement alone carries no lean either way [rule:place.l2_h10].",
+      "reasons": [
+        "[rule:place.l2_h10] on a sentence that names none of ['2nd lord', 'lord of the 2nd', 'ruler of the 2nd']: 'Mercury, which rules your 2nd house of money, sits in your 10th house, and that placement alone carries no lean either way [rule:place.l2_h10].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Following the chain from Mercury, the path runs through Saturn in Taurus and Venus in Pisces to Jupiter, and it ends with Jupiter and Venus, which shows which planets carry money [chain:wealth.lord].",
+      "reasons": [
+        "[chain:wealth.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'Following the chain from Mercury, the path runs through Saturn in Taurus and Venus in Pisces to Jupiter, and it ends with Jupiter and Venus, which shows which planets carry money [chain:wealth.lord].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Starting from Jupiter, the main planet of money, the chain runs to Venus in Pisces and turns back between the two, which shows the same carriers from the other end with no lean of its own [chain:wealth.karaka].",
+      "reasons": [
+        "[chain:wealth.karaka] on a sentence that names no chain (sign, nakshatra or navamsa): 'Starting from Jupiter, the main planet of money, the chain runs to Venus in Pisces and turns back between the two, which shows the same carriers from the other end with no lean of its own [chain:wealth.karaka].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The timing stretches follow below.",
+      "reasons": [
+        "timing language ('timing') in 'The timing stretches follow below.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Venus, tied to your first house, sits in your 11th house, a house of money, and that placement carries no lean of its own [rule:place.l1_h11].",
+      "reasons": [
+        "[rule:place.l1_h11] on a sentence that names none of ['1st lord', 'lord of the 1st', 'ruler of the 1st']: 'Venus, tied to your first house, sits in your 11th house, a house of money, and that placement carries no lean of its own [rule:place.l1_h11].'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mercury, tied to your 2nd house of money, sits in your 10th house, and that placement alone carries no lean either way [rule:place.l2_h10].",
+      "reasons": [
+        "[rule:place.l2_h10] on a sentence that names none of ['2nd lord', 'lord of the 2nd', 'ruler of the 2nd']: 'Mercury, tied to your 2nd house of money, sits in your 10th house, and that placement alone carries no lean either way [rule:place.l2_h10].'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mercury leads onward to Saturn, Saturn to Venus, Venus to Jupiter, and Jupiter back to Venus, which shows which planets carry money [chain:wealth.lord].",
+      "reasons": [
+        "[chain:wealth.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'Mercury leads onward to Saturn, Saturn to Venus, Venus to Jupiter, and Jupiter back to Venus, which shows which planets carry money [chain:wealth.lord].'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "From Jupiter, the main planet of money, the path goes to Venus and back to Jupiter, which shows which planets carry money with no lean of its own [chain:wealth.karaka].",
+      "reasons": [
+        "[chain:wealth.karaka] on a sentence that names no chain (sign, nakshatra or navamsa): 'From Jupiter, the main planet of money, the path goes to Venus and back to Jupiter, which shows which planets carry money with no lean of its own [chain:wealth.karaka].'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Those points are set out below this answer.",
+      "reasons": [
+        "untagged claim: 'Those points are set out below this answer.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Venus, connected with your first house, sits in your 11th house, a house of money, and that placement carries no lean of its own [rule:place.l1_h11].",
+      "reasons": [
+        "[rule:place.l1_h11] on a sentence that names none of ['1st lord', 'lord of the 1st', 'ruler of the 1st']: 'Venus, connected with your first house, sits in your 11th house, a house of money, and that placement carries no lean of its own [rule:place.l1_h11].'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Mercury, connected with your 2nd house of money, sits in your 10th house, and that placement by itself carries no lean either way [rule:place.l2_h10].",
+      "reasons": [
+        "[rule:place.l2_h10] on a sentence that names none of ['2nd lord', 'lord of the 2nd', 'ruler of the 2nd']: 'Mercury, connected with your 2nd house of money, sits in your 10th house, and that placement by itself carries no lean either way [rule:place.l2_h10].'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Mercury leads to Saturn, Saturn to Venus, Venus to Jupiter, and Jupiter back to Venus, which shows which planets carry money [chain:wealth.lord].",
+      "reasons": [
+        "[chain:wealth.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'Mercury leads to Saturn, Saturn to Venus, Venus to Jupiter, and Jupiter back to Venus, which shows which planets carry money [chain:wealth.lord].'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "From Jupiter, the main planet of money, the path moves to Venus and returns to Jupiter, which shows which planets carry money with no lean of its own [chain:wealth.karaka].",
+      "reasons": [
+        "[chain:wealth.karaka] on a sentence that names no chain (sign, nakshatra or navamsa): 'From Jupiter, the main planet of money, the path moves to Venus and returns to Jupiter, which shows which planets carry money with no lean of its own [chain:wealth.karaka].'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "Here is the rest, set out next.",
+      "reasons": [
+        "untagged claim: 'Here is the rest, set out next.'"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for money and makes no promise about when it will come, so the stretches that follow this answer are only the chart's own reading of timing, and neither is a prediction of when you will act.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    }
+  ],
+  "writer": {
+    "model": "claude-haiku-5-5",
+    "effort": "medium",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-haiku-5-5"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 10801,
+      "output_tokens": 5536,
+      "cache_read_input_tokens": 9568,
+      "cache_creation_input_tokens": 4784,
+      "seconds": 27.911
+    },
+    "checker": {
+      "calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 0
+    },
+    "wall_seconds": 28.001
+  },
+  "kinds": [
+    "when",
+    "why"
+  ],
+  "engine": {
+    "question": "whan and how",
+    "direction": "both",
+    "areas": [
+      "wealth"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+        "notes": []
+      },
+      {
+        "text": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "text": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch runs from November 2028 to October 2029.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for money and makes no promise about when it will come, so the stretches that follow this answer are only the chart's own reading of timing, and neither is a prediction of when you will act.",
+    "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+    "The least favourable stretch runs from November 2028 to October 2029.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    1
+  ],
+  "accepted": [
+    "A chart gives no date for money and makes no promise about when it will come, so the stretches that follow this answer are only the chart's own reading of timing, and neither is a prediction of when you will act."
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 15.955,
+    "written": 16.752,
+    "done": 28.001
+  },
+  "word_rules": "warn"
+}

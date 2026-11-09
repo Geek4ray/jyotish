@@ -1,0 +1,724 @@
+{
+  "question": "whan and how",
+  "route": {
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "when": true,
+    "why": false,
+    "how": true,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "The signs that show how others see your money, Libra and Cancer, work against it, because the Moon sits there with no helpful planet beside it. [vote:wealth.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The signs that show how others see your money, Libra and Cancer, work against it, and the Moon sits in Libra with no helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Now the good, which is how it works.",
+      "reasons": [
+        "untagged claim: 'Now the good, which is how it works.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The houses that govern money support it, and the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses. [vote:wealth.house]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Taken together, the houses that govern money support it, and the 2nd house from your rising sign, in Gemini, is one of them.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The planets that rule the houses of money support it, and Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign. [vote:wealth.lord]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The planets that rule the houses of money support it, and Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Jupiter and Venus also form a yoga called Parivartana, an exchange of signs where each planet sits in the sign the other rules, joining your 1st and 11th houses, and it supports money. [rule:yoga.parivartana]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Jupiter and Venus form a yoga called Parivartana, an exchange of signs, where two planets each sit in the sign the other rules; here it joins your 1st and 11th houses and supports money.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The rulers of the day you were born, Mars and the Moon, support money too. [vote:wealth.panchanga]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The rulers of the day you were born, Mars and the Moon, support money as well.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Nothing helpful stands beside the Moon in those signs, and that lack of company is what turns them against money. [vote:wealth.arudha]",
+      "reasons": [
+        "the checker found it unsupported: The Moon occupies A11 (Cancer) as well — the plural \"those signs\" attaches the Moon to both padas (derivation.padas[A11].occupants = []; A11 is empty, and the Moon appears only in A2)",
+        "the checker found it unsupported: The absence of benefic company (the 'lack of company') is the cause of the vote against (derivation.why attributes the verdict to \"more malefics than benefics occupy A2, A11\", not to the mere absence of benefics; a cause stated differently than the data's stated reason is unsupported)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Let me turn to what lies behind the good.",
+      "reasons": [
+        "untagged claim: 'Let me turn to what lies behind the good.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "That the 2nd house, the main house of money, in Gemini, is better supported than most of your twelve houses is what carries the group of houses that govern money. [vote:wealth.house]",
+      "reasons": [
+        "the checker found it unsupported: The 2nd house is the *main* house of money. (The data calls the 2nd \"a wealth house\" alongside the 11th, 5th and 9th (each also \"a wealth house\"). Nothing in the data marks the 2nd as the main or chief money house; the \"main\" ranking is the sentence's own addition.)",
+        "the checker found it unsupported: The 2nd house is better supported than most of the twelve houses. (The vote's direction is \"for\" on the house family, which supports that the 2nd house is supported, but the data nowhere ranks it against most of the twelve houses. The derivation gives Bhava Bala for only five houses per basis, and even within the lagna basis the 2nd (8.93 rupas) is not the strongest — the 5th is (9.02). The \"better than most of your twelve houses\" comparative is not stated.)",
+        "the checker found it unsupported: The 2nd house's being better supported is what carries the group of houses that govern money. (The vote (family \"house\", direction \"for\") is computed from all the derivation rows across the lagna, Moon and Sun bases (basis \"lagna, moon, sun 3:2:1\"), not from the 2nd house alone. The data does not say the 2nd house carries or carries the weight of the wealth-house group; the vote stands on the whole set of rows, in which several other houses (e.g. the 11th from the Moon at 8.51, the 9th from the Moon at 8.95) are as strong or stronger.)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Venus, the ruler of your 1st house, sits in the 11th house, a house of money, and that placement is part of what ties the 1st and 11th houses together in this exchange of signs. [rule:place.l1_h11] [rule:yoga.parivartana]",
+      "reasons": [
+        "[rule:place.l1_h11] on a sentence that names none of ['1st lord', 'lord of the 1st', 'ruler of the 1st']: 'Venus, the ruler of your 1st house, sits in the 11th house, a house of money, and that placement is part of what ties the 1st and 11th houses together in this exchange of signs. [rule:place.l1_h11] [rule:yoga.parivartana]'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Both Mars and the Moon, which rule the day you were born, back money from the side of your birth day itself. [vote:wealth.panchanga]",
+      "reasons": [
+        "the checker found it unsupported: Mars rules the day you were born (The relative clause sits after \"Both Mars and the Moon\" and its plural verb \"rule\" makes the ordinary reading apply it to both planets; but the data gives Mars only the roles \"tithi\" and \"nakshatra\" (the lunar day and a lunar mansion), not the vara (weekday of birth). On the reading where the clause attaches to both, this is unsupported; on a nearest-noun reading (Moon only), it would be supported. The sentence is ambiguous between a supported and an unsupported reading, so it is unsupported.)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "That is the part that works against money: the way others see it, in the signs Libra and Cancer. [vote:wealth.arudha]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The signs that show how others see your money, Libra and Cancer, work against it, and the Moon sits in Libra with no helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The support for money comes from the houses that govern it taken together, not from the 2nd house alone. [vote:wealth.house]",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Taken together, the houses that govern money support it, and the 2nd house from your rising sign, in Gemini, is one of them.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [
+    {
+      "sentence": "Since you asked about the good and the hard, I'll start with the hard part.",
+      "warning": "the client's text never says 'I'; a weighing is 'in the reading's view': \"Since you asked about the good and the hard, I'll start with the hard part.\"",
+      "attempt": 1
+    }
+  ],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable, and here that means money, which is what the engine looked at.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "Since you asked about the good and the hard, I'll start with the hard part.",
+      "findings": [],
+      "result": {
+        "propositions": []
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The main planet that signifies money, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign, and still lends support. [vote:wealth.karaka]",
+      "findings": [
+        "vote:wealth.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Jupiter is the main planet that signifies money (the wealth karaka)",
+            "supported": true,
+            "evidence": "the karaka finding's derivation lists Jupiter as the planet row for the wealth karaka vote; the glossary defines a karaka as the planet that naturally stands for a matter"
+          },
+          {
+            "text": "Jupiter sits in Taurus",
+            "supported": true,
+            "evidence": "the derivation row for Jupiter gives sign: Taurus"
+          },
+          {
+            "text": "Jupiter sits in the 1st house (the client's lagna)",
+            "supported": true,
+            "evidence": "the derivation row for Jupiter gives house: 1 on basis lagna"
+          },
+          {
+            "text": "Taurus is an unfriendly sign for Jupiter (Jupiter is in enemy dignity there)",
+            "supported": true,
+            "evidence": "the derivation row for Jupiter gives dignity: enemy"
+          },
+          {
+            "text": "Jupiter still lends support to wealth matters despite the unfriendly placement",
+            "supported": true,
+            "evidence": "the finding's direction is \"for\", and the vote's area_votes verdict for karaka is \"for\""
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The chain of sign rulers from Mercury runs through Saturn and Venus and ends with Jupiter and Venus, which shows those two planets carry much of your money. [chain:wealth.lord]",
+      "findings": [
+        "chain:wealth.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a chain of sign rulers (sign dispositors) starting from Mercury.",
+            "supported": true,
+            "evidence": "The finding is a sign-lord chain ('chain': 'lord') for Mercury, and its facts state 'Sign chain of Mercury: Mercury in Aquarius, the 10th, neutral → …'"
+          },
+          {
+            "text": "That chain runs through Saturn.",
+            "supported": true,
+            "evidence": "The sign chain lists the step 'Saturn in Taurus, the 1st, friend'."
+          },
+          {
+            "text": "That chain runs through Venus.",
+            "supported": true,
+            "evidence": "The sign chain lists the step 'Venus in Pisces, the 11th, exalted'."
+          },
+          {
+            "text": "The chain ends with Jupiter and Venus.",
+            "supported": true,
+            "evidence": "The sign chain 'ends_in': [\"Jupiter\", \"Venus\"], and the facts state it 'ends in the Jupiter–Venus loop' and 'its final sign dispositors are Jupiter and Venus'."
+          },
+          {
+            "text": "Jupiter and Venus carry much of your money.",
+            "supported": true,
+            "evidence": "The finding's role states 'Mercury is the lord of the 2nd, the area's first house', and the glossary defines the 2nd house as 'wealth, family, speech and food'; the glossary's 'final dispositor' entry says the chain ends 'through which the planets of the chain finally act'. Together these support that the wealth lord's chain finally acts through Jupiter and Venus, i.e. they carry the money signification."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "In the reading's view, the support outweighs the one difficult point, so the chart leans favourably on balance. [vote:wealth.house] [vote:wealth.lord] [vote:wealth.karaka] [vote:wealth.arudha] [vote:wealth.panchanga]",
+      "findings": [
+        "vote:wealth.house",
+        "vote:wealth.lord",
+        "vote:wealth.karaka",
+        "vote:wealth.arudha",
+        "vote:wealth.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading finds support for wealth (there are favourable findings on the wealth vote).",
+            "supported": true,
+            "evidence": "Four of the five cited findings carry direction \"for\" — vote:wealth.house, vote:wealth.lord, vote:wealth.karaka and vote:wealth.panchanga each state direction \"for\"."
+          },
+          {
+            "text": "There is one difficult (unfavourable) point in the wealth assessment.",
+            "supported": true,
+            "evidence": "vote:wealth.arudha is the only finding with direction \"against\"; every other cited finding is \"for\", so the count of difficult points is exactly one."
+          },
+          {
+            "text": "The support outweighs the one difficult point (the favourable findings are the stronger side).",
+            "supported": true,
+            "evidence": "The data states the balance in each finding's area_votes: for = 4, against = 1, abstains = 1, not applicable = 1. The favourable side outnumbers the single against vote, so the weighing follows from what the data states. (It is also the sentence's weighing — \"In the reading's view\" — which may stand on the weighing itself.)"
+          },
+          {
+            "text": "The chart leans favourably on balance (the overall wealth picture is positive).",
+            "supported": true,
+            "evidence": "This is the conclusion the sentence draws from the same stated counts (4 for vs. 1 against across the cited findings); it follows from the data's directions and vote tallies, and is the weighing's overall verdict, which stands supported."
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "Nothing helpful stands beside the Moon in those signs, and that lack of company is what turns them against money. [vote:wealth.arudha]",
+      "findings": [
+        "vote:wealth.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "\"Helpful\" glosses \"benefic\" (a planet counted as naturally favourable)",
+            "supported": true,
+            "evidence": "glossary.benefic"
+          },
+          {
+            "text": "The Moon occupies A2 (Libra)",
+            "supported": true,
+            "evidence": "derivation.padas[A2].occupants = [\"Moon\"]"
+          },
+          {
+            "text": "No benefics occupy A2 alongside the Moon (nothing helpful stands beside it)",
+            "supported": true,
+            "evidence": "derivation.padas[A2].benefics = []"
+          },
+          {
+            "text": "The Moon occupies A11 (Cancer) as well — the plural \"those signs\" attaches the Moon to both padas",
+            "supported": false,
+            "evidence": "derivation.padas[A11].occupants = []; A11 is empty, and the Moon appears only in A2"
+          },
+          {
+            "text": "No benefics occupy A11",
+            "supported": true,
+            "evidence": "derivation.padas[A11].benefics = []"
+          },
+          {
+            "text": "The arudha vote in the wealth area is against (the signs/padas are 'against money')",
+            "supported": true,
+            "evidence": "direction = \"against\"; area_votes.verdict.arudha = \"against\"; family = \"arudha\", finding_id \"wealth.arudha\""
+          },
+          {
+            "text": "The absence of benefic company (the 'lack of company') is the cause of the vote against",
+            "supported": false,
+            "evidence": "derivation.why attributes the verdict to \"more malefics than benefics occupy A2, A11\", not to the mere absence of benefics; a cause stated differently than the data's stated reason is unsupported"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "That the 2nd house, the main house of money, in Gemini, is better supported than most of your twelve houses is what carries the group of houses that govern money. [vote:wealth.house]",
+      "findings": [
+        "vote:wealth.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The 2nd house is in Gemini (by the lagna basis).",
+            "supported": true,
+            "evidence": "Derivation row: basis \"lagna\", house 2, sign \"Gemini\"."
+          },
+          {
+            "text": "The 2nd house is a house of money/wealth.",
+            "supported": true,
+            "evidence": "area_houses: \"the 2nd, a wealth house\" (lagna basis); glossary \"2nd house\": \"wealth, family, speech and food\"."
+          },
+          {
+            "text": "The 2nd house is the *main* house of money.",
+            "supported": false,
+            "evidence": "The data calls the 2nd \"a wealth house\" alongside the 11th, 5th and 9th (each also \"a wealth house\"). Nothing in the data marks the 2nd as the main or chief money house; the \"main\" ranking is the sentence's own addition."
+          },
+          {
+            "text": "The 2nd house is better supported than most of the twelve houses.",
+            "supported": false,
+            "evidence": "The vote's direction is \"for\" on the house family, which supports that the 2nd house is supported, but the data nowhere ranks it against most of the twelve houses. The derivation gives Bhava Bala for only five houses per basis, and even within the lagna basis the 2nd (8.93 rupas) is not the strongest — the 5th is (9.02). The \"better than most of your twelve houses\" comparative is not stated."
+          },
+          {
+            "text": "The 2nd house's being better supported is what carries the group of houses that govern money.",
+            "supported": false,
+            "evidence": "The vote (family \"house\", direction \"for\") is computed from all the derivation rows across the lagna, Moon and Sun bases (basis \"lagna, moon, sun 3:2:1\"), not from the 2nd house alone. The data does not say the 2nd house carries or carries the weight of the wealth-house group; the vote stands on the whole set of rows, in which several other houses (e.g. the 11th from the Moon at 8.51, the 9th from the Moon at 8.95) are as strong or stronger."
+          },
+          {
+            "text": "There is a group of houses that govern money.",
+            "supported": true,
+            "evidence": "area_houses list the 2nd, 11th, 5th and 9th (and the 3rd as the 2nd's Bhavat Bhavam) under each basis, each described as \"a wealth house\" or the 2nd's Bhavat Bhavam."
+          },
+          {
+            "text": "The vote on the money-house group (its house family) is \"for\".",
+            "supported": true,
+            "evidence": "area_votes.verdict: house \"for\"; finding direction \"for\", family \"house\"."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Mercury, as the ruler of the 2nd house, is the planet carrying that support, and it sits in Aquarius in your 10th house. [vote:wealth.lord]",
+      "findings": [
+        "vote:wealth.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Mercury is the ruler of the 2nd house",
+            "supported": true,
+            "evidence": "derivation (basis lagna, house 2, sign Gemini, lord Mercury)"
+          },
+          {
+            "text": "Mercury is the planet carrying the support for wealth",
+            "supported": true,
+            "evidence": "the vote finding is direction 'for', and its verdict lists 'lord: for'"
+          },
+          {
+            "text": "Mercury sits in Aquarius",
+            "supported": true,
+            "evidence": "derivation (basis lagna, house 2): lord_sign 'Aquarius' — same entry that names Mercury as the 2nd lord"
+          },
+          {
+            "text": "Mercury sits in the 10th house",
+            "supported": true,
+            "evidence": "derivation (basis lagna, house 2): lord_house_from_lagna 10"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Both Mars and the Moon, which rule the day you were born, back money from the side of your birth day itself. [vote:wealth.panchanga]",
+      "findings": [
+        "vote:wealth.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The Moon rules the day you were born",
+            "supported": true,
+            "evidence": "The Moon's role is \"vara\", which the glossary defines as \"The weekday of birth, each ruled by a planet\" — the day of birth."
+          },
+          {
+            "text": "Mars rules the day you were born",
+            "supported": false,
+            "evidence": "The relative clause sits after \"Both Mars and the Moon\" and its plural verb \"rule\" makes the ordinary reading apply it to both planets; but the data gives Mars only the roles \"tithi\" and \"nakshatra\" (the lunar day and a lunar mansion), not the vara (weekday of birth). On the reading where the clause attaches to both, this is unsupported; on a nearest-noun reading (Moon only), it would be supported. The sentence is ambiguous between a supported and an unsupported reading, so it is unsupported."
+          },
+          {
+            "text": "Mars backs money (supports wealth)",
+            "supported": true,
+            "evidence": "The cited finding is a wealth vote (vote:wealth.panchanga) with direction \"for\", and Mars rules the 2nd from the Moon, which the data calls \"a wealth house\"."
+          },
+          {
+            "text": "The Moon backs money (supports wealth)",
+            "supported": true,
+            "evidence": "The cited finding is a wealth vote with direction \"for\", and the Moon rules the 3rd, which the data calls \"the 2nd's Bhavat Bhavam\" — a second seat of wealth matters."
+          },
+          {
+            "text": "They back it from the side of your birth day itself (the panchanga)",
+            "supported": true,
+            "evidence": "The cited finding's family is \"panchanga\", which the glossary defines as \"The five limbs of the day at birth: tithi, vara, nakshatra, nitya yoga and karana\" — the day of birth itself. Both planets' roles (tithi, nakshatra, vara) are among these limbs."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Now let me turn to the good side.",
+      "findings": [],
+      "result": {
+        "propositions": [
+          {
+            "text": "The reading now turns to the good side (a transition statement announcing a shift in focus)",
+            "supported": true,
+            "evidence": "no chart content"
+          }
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "Venus, the ruler of the 1st house, sits in the 11th house, a house of money. [rule:place.l1_h11]",
+      "findings": [
+        "place.l1_h11@lagna"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Venus is the ruler of the 1st house",
+            "supported": true,
+            "evidence": "The finding's placement says Venus is lord_of [1]"
+          },
+          {
+            "text": "Venus sits in the 11th house",
+            "supported": true,
+            "evidence": "The finding's placement gives Venus house 11"
+          },
+          {
+            "text": "the 11th house is a house of money",
+            "supported": true,
+            "evidence": "area_houses lists the 11th as 'the 11th, a wealth house', and the glossary entry reads it for 'gains, income'"
+          }
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "The way the day you were born is ruled, by Mars and the Moon, leans in favour of money. [vote:wealth.panchanga]",
+      "findings": [
+        "vote:wealth.panchanga"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The way the day of your birth is ruled (the panchanga, the day's five limbs) leans in favour of money — i.e., the panchanga vote in the wealth area is 'for'.",
+            "supported": true,
+            "evidence": "The cited finding is a vote with family 'panchanga', direction 'for', in the wealth area."
+          },
+          {
+            "text": "Mars is among the planets that rule the day of birth (the panchanga factors).",
+            "supported": true,
+            "evidence": "The finding's derivation lists Mars with roles ['tithi', 'nakshatra'], both limbs of the panchanga."
+          },
+          {
+            "text": "The Moon is among the planets that rule the day of birth (the panchanga factors).",
+            "supported": true,
+            "evidence": "The derivation lists the Moon with role 'vara', the weekday of birth, itself a panchanga limb."
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-sonnet-5-5"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 6705,
+      "output_tokens": 2958,
+      "cache_read_input_tokens": 10080,
+      "cache_creation_input_tokens": 5040,
+      "seconds": 24.991
+    },
+    "checker": {
+      "calls": 11,
+      "input_tokens": 19769,
+      "output_tokens": 11653,
+      "cache_read_input_tokens": 3840,
+      "cache_creation_input_tokens": 0,
+      "seconds": 99.62
+    },
+    "wall_seconds": 98.135
+  },
+  "kinds": [
+    "when",
+    "why"
+  ],
+  "engine": {
+    "question": "whan and how",
+    "direction": "both",
+    "areas": [
+      "wealth"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+        "notes": []
+      },
+      {
+        "text": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "text": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The rulers of the day you were born, Mars and the Moon, lean favourably for money.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "wealth",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 2nd from the moon; 3rd from the sun."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch runs from November 2028 to October 2029.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable, and here that means money, which is what the engine looked at.",
+    "Since you asked about the good and the hard, I'll start with the hard part.",
+    "Now let me turn to the good side.",
+    "Mercury, as the ruler of the 2nd house, is the planet carrying that support, and it sits in Aquarius in your 10th house.",
+    "The main planet that signifies money, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign, and still lends support.",
+    "Venus, the ruler of the 1st house, sits in the 11th house, a house of money.",
+    "The way the day you were born is ruled, by Mars and the Moon, leans in favour of money.",
+    "The chain of sign rulers from Mercury runs through Saturn and Venus and ends with Jupiter and Venus, which shows those two planets carry much of your money.",
+    "In the reading's view, the support outweighs the one difficult point, so the chart leans favourably on balance.",
+    "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+    "The least favourable stretch runs from November 2028 to October 2029.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    2,
+    7,
+    8,
+    9
+  ],
+  "accepted": [
+    "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable, and here that means money, which is what the engine looked at.",
+    "Since you asked about the good and the hard, I'll start with the hard part.",
+    "Now let me turn to the good side.",
+    "Mercury, as the ruler of the 2nd house, is the planet carrying that support, and it sits in Aquarius in your 10th house. [vote:wealth.lord]",
+    "The main planet that signifies money, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign, and still lends support. [vote:wealth.karaka]",
+    "Venus, the ruler of the 1st house, sits in the 11th house, a house of money. [rule:place.l1_h11]",
+    "The way the day you were born is ruled, by Mars and the Moon, leans in favour of money. [vote:wealth.panchanga]",
+    "The chain of sign rulers from Mercury runs through Saturn and Venus and ends with Jupiter and Venus, which shows those two planets carry much of your money. [chain:wealth.lord]",
+    "In the reading's view, the support outweighs the one difficult point, so the chart leans favourably on balance. [vote:wealth.house] [vote:wealth.lord] [vote:wealth.karaka] [vote:wealth.arudha] [vote:wealth.panchanga]"
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 1.548,
+    "written": 5.005,
+    "done": 98.135
+  },
+  "word_rules": "warn"
+}

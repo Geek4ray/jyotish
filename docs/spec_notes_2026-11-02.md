@@ -125,12 +125,11 @@ writer's, and one was the route's:
 Run on 2026-11-06, as of 2026-11-02, with one seven-turn conversation per writer. The worst-case estimate was USD 3.28
 for all seven writers, under the USD 4 limit. This run spent USD 0.24.
 
-**Five of the seven writers ran to the end.** On 2026-11-06 DeepInfra's account ran out of balance during Kimi-K2.6's
-first turn, and it refused Kimi-K2.6 and GLM-5.3 with HTTP 402. The Anthropic account's credit balance was too low for
-claude-haiku-5-5 and claude-sonnet-5-5 (HTTP 400). Once DeepInfra had balance, Kimi-K2.6 and GLM-5.3 ran on 2026-11-09
-(`--only`; USD 0.94). The two Claude writers are still refused for credit (checked 2026-11-09) and have spent nothing.
-They run with `scripts/compare_writers.py --only claude-haiku-5-5 claude-sonnet-5-5` once the account has credit, and
-the report is then rewritten with every writer that has records.
+**All seven writers ran to the end, over three runs.** On 2026-11-06 DeepInfra's account ran out of balance during
+Kimi-K2.6's first turn, and it refused Kimi-K2.6 and GLM-5.3 with HTTP 402. The Anthropic account's credit balance was too
+low for claude-haiku-5-5 and claude-sonnet-5-5 (HTTP 400). Once the accounts had credit, the four ran on 2026-11-09 with
+`--only`: Kimi-K2.6 and GLM-5.3 for USD 0.94, then Haiku and Sonnet for USD 0.45 (estimate USD 1.70). The whole bake-off
+cost USD 1.63.
 
 Means over the six answered turns:
 
@@ -141,10 +140,12 @@ Means over the six answered turns:
 | DeepSeek-V3.2 | 17.5 | 55.4 | 0.70 | 0.0079 | 6.95 |
 | Kimi-K2.6 | 855.6 | 4139.8 | 0.36 | 0.1332 | 117.20 |
 | GLM-5.3 | 23.3 | 436.1 | 0.66 | 0.0240 | 21.12 |
+| claude-haiku-5-5 | 19.7 | 65.7 | 0.60 | 0.0109 | 9.62 |
+| claude-sonnet-5-5 | 21.5 | 169.8 | 0.60 | 0.0646 | 56.84 |
 
-All five writers ran under INR 149 a ten-turn session. INR 123.75 is left after GST at 18% and a 2% payment fee;
-both rates are assumed, not quoted. gpt-oss-120b took 4.3% of that, DeepSeek-V3.2 5.6%, GLM-5.3 17.1%, Qwen3.6-35B-A3B
-18.2% and Kimi-K2.6 94.7%.
+All seven writers ran under INR 149 a ten-turn session. INR 123.75 is left after GST at 18% and a 2% payment fee;
+both rates are assumed, not quoted. gpt-oss-120b took 4.3% of that, DeepSeek-V3.2 5.6%, claude-haiku-5-5 7.8%, GLM-5.3
+17.1%, Qwen3.6-35B-A3B 18.2%, claude-sonnet-5-5 45.9% and Kimi-K2.6 94.7%.
 
 **Kimi-K2.6 is affordable by the rule but not usable as measured.** Its turns took 20 to 147 minutes, with 69 minutes
 on average. It wrote 13,000 to 48,000 tokens a turn, most of them reasoning, and its first turn had 20 retries of
@@ -157,11 +158,12 @@ fixes held on every writer:
 - No answer carried a vote, family, tier or "marked as" label.
 - Every "when" turn ended with the engine's stretches.
 - The three turns that need an opening line (the "when" turn and Ray's two) opened on the question: by the writer in
-  fourteen of fifteen, and by the engine's line once (DeepSeek-V3.2 on the money question).
+  twenty of twenty-one, and by the engine's line once (DeepSeek-V3.2 on the money question).
 
 What the transcripts show besides, recorded for the review and not acted on here:
-- **The opening line.** Every writer copied the engine's opening line word for word rather than saying it in its
-  own words.
+- **The opening line.** gpt-oss-120b, Qwen3.6-35B-A3B, DeepSeek-V3.2 and GLM-5.3 copied the engine's opening line
+  word for word. Kimi-K2.6, claude-haiku-5-5 and claude-sonnet-5-5 said it in their own words. Haiku's last turn
+  then repeats its own caveat: the opening says neither stretch is a prediction, and so does the engine's closing line.
 - **Restating within an answer.** Qwen3.6-35B-A3B restated a sentence within one answer: the no-repeat rule reads
   earlier turns only. It also called houses "rooms" and planets "stars".
 - **"Also".** gpt-oss-120b's sentences still lean on each other with "also" despite the prompt.
@@ -169,8 +171,13 @@ What the transcripts show besides, recorded for the review and not acted on here
 - **HTML in a shown sentence.** Kimi-K2.6's last turn shows "…favourable for it.</p><p>Let me begin with the hard
   part…" as one sentence. The tags reach the client's screen as text. The rule that keeps markdown off the client
   does not catch HTML.
-- **Filler sentences.** Kimi-K2.6 and GLM-5.3 open sections with "Let me start with the hard part." and "Let me put
-  that in plain words.", which state nothing about the chart. Kimi-K2.6 also shows "Marriage." as a sentence of its own.
+- **Filler sentences.** Kimi-K2.6, GLM-5.3 and claude-sonnet-5-5 open sections with sentences that state nothing
+  about the chart: "Let me start with the hard part.", "Let me put that in plain words." and "Now let's turn to the
+  supportive side.". Sonnet does it most, with two or three such sentences a turn. Kimi-K2.6 also shows "Marriage." as
+  a sentence of its own.
+- **"The engine" reached the client.** claude-sonnet-5-5's opening lines on its "when" turns say the area is
+  "what the engine looked at", and both were shown. "Engine" is not in `client.NEVER_SHOW`. On its "when" turn Sonnet also
+  announces "the difficult side" and then gives a sentence saying the 7th house supports marriage.
 
 The choice of writer is Ray's, made by reading the side-by-side turns in the report.
 

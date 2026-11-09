@@ -1,0 +1,598 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "You asked about what is hard, so I will start there.",
+      "reasons": [
+        "untagged claim: 'You asked about what is hard, so I will start there.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The signs that show how others see marriage, Gemini, Cancer and Leo, work against it, because Rahu sits there with no helpful planet beside it [vote:marriage.arudha].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The signs that show how others see marriage, Gemini, Cancer and Leo, work against it, and no helpful planet stands beside Rahu there.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The good news is that, in the reading's view, much more of the chart stands on the supporting side.",
+      "reasons": [
+        "untagged claim: \"The good news is that, in the reading's view, much more of the chart stands on the supporting side.\""
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The houses that govern marriage support it taken together [vote:marriage.house].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Taken together, the houses that govern your reputation lean unfavourably, and the main one, the 10th house from your rising sign, in Aquarius, is the one that lacks support.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Mars, which rules the 7th house, sits in its own sign in that same house [vote:marriage.lord].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The planets that rule those houses support it too, and Mars, which rules the 7th house, sits in its own sign in that same house.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Venus, the main planet that stands for marriage, sits in Pisces in your 11th house, exalted, where it is at its best [vote:marriage.karaka].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Venus, the main planet that stands for marriage, sits in Pisces in your 11th house, exalted, where it is at its best.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The divisional chart for marriage supports it as well, with Saturn in its own sign of Capricorn [vote:marriage.varga].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The divisional chart for marriage supports it as well, with Saturn in Capricorn, its own sign.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Neither one is a prediction of when you will act.",
+      "reasons": [
+        "untagged claim: 'Neither one is a prediction of when you will act.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The stretches the chart reads as least and most favourable for marriage follow below.",
+      "reasons": [
+        "the checker found it unsupported: The chart contains stretches that it reads as least favourable for marriage (no finding or fact in the data states it)",
+        "the checker found it unsupported: The chart contains stretches that it reads as most favourable for marriage (no finding or fact in the data states it)",
+        "the checker found it unsupported: Those stretches are listed below in the reading (\"follow below\") (the data is empty (findings: []), so no such stretches appear anywhere in it)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The 7th house from your rising sign, in Scorpio, is also less supported than most of your twelve houses [vote:marriage.house].",
+      "reasons": [
+        "the checker found it unsupported: The 7th house is less supported than most of the twelve houses. (the cited vote vote:marriage.house has direction 'for' (area_votes: for 6, against 1, verdict house 'for'), so the data says the house is supported, not less supported than most; the single lagna row with relative −0.04 does not state a comparison against most of the twelve houses)"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "Let's start with the hard part, since you asked about it.",
+      "reasons": [
+        "the checker found it unsupported: There is a 'hard part' of the reading to start with (not stated)",
+        "the checker found it unsupported: You (the client) asked about it (the hard part) (not stated)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "The planet behind that is Rahu, placed across those three signs with no helpful planet near it [vote:marriage.arudha].",
+      "reasons": [
+        "the checker found it unsupported: Rahu is placed across those three signs (i.e., Rahu occupies or spans Gemini, Cancer and Leo) (The data places Rahu only in UL (Gemini). UL2 (Cancer) and A7 (Leo) have empty occupants lists. Read the ordinary way, 'placed across those three signs' says Rahu lies in all three, which the data does not state — the detail is attached to the wrong thing (a placement spanning the three padas is being attributed to Rahu, when only the first pada holds him).)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mars rules the 12th house and sits in the 7th house, a house of marriage [rule:place.l12_h7].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Mars, the ruler of the 12th house, sits in the 7th house, a house of marriage.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Mars, a ruler of the day you were born, supports marriage [vote:marriage.panchanga].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The reading of the exact start of each house also supports marriage, and so does Mars as a ruler of the day you were born.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Venus sits in the 11th house, a house of marriage [rule:place.venus_h11].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Venus, the main planet that stands for marriage, sits in Pisces in your 11th house, exalted, where it is at its best.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "Please hold the dates that follow lightly.",
+      "reasons": [
+        "untagged claim: 'Please hold the dates that follow lightly.'",
+        "timing language ('dates') in 'Please hold the dates that follow lightly.'"
+      ],
+      "attempt": 2
+    },
+    {
+      "sentence": "What works against marriage in the signs that show how others see it is Rahu, with no helpful planet beside it [vote:marriage.arudha].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The signs that show how others see marriage, Gemini, Cancer and Leo, work against it, and no helpful planet stands beside Rahu there.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "That line of rulers shows Mars carrying marriage, with no lean of its own [chain:marriage.lord].",
+      "reasons": [
+        "[chain:marriage.lord] on a sentence that names no chain (sign, nakshatra or navamsa): 'That line of rulers shows Mars carrying marriage, with no lean of its own [chain:marriage.lord].'"
+      ],
+      "attempt": 3
+    },
+    {
+      "sentence": "The 11th house, where Venus sits, counts as a house of marriage [rule:place.venus_h11].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('Venus, the main planet that stands for marriage, sits in Pisces in your 11th house, exalted, where it is at its best.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 3
+    }
+  ],
+  "warnings": [
+    {
+      "sentence": "You asked about what is hard, so I will start there.",
+      "warning": "the client's text never says 'I'; a weighing is 'in the reading's view': 'You asked about what is hard, so I will start there.'",
+      "attempt": 1
+    },
+    {
+      "sentence": "I'll begin with the difficult side.",
+      "warning": "the client's text never says 'I'; a weighing is 'in the reading's view': \"I'll begin with the difficult side.\"",
+      "attempt": 3
+    }
+  ],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for an event; what it offers are stretches it reads as more and less favourable, and I can only speak to marriage here, since that is what the engine looked at for this question.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "The stretches the chart reads as least and most favourable for marriage follow below.",
+      "findings": [],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chart contains stretches that it reads as least favourable for marriage",
+            "supported": false,
+            "evidence": "no finding or fact in the data states it"
+          },
+          {
+            "text": "The chart contains stretches that it reads as most favourable for marriage",
+            "supported": false,
+            "evidence": "no finding or fact in the data states it"
+          },
+          {
+            "text": "Those stretches are listed below in the reading (\"follow below\")",
+            "supported": false,
+            "evidence": "the data is empty (findings: []), so no such stretches appear anywhere in it"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "The 7th house from your rising sign, in Scorpio, is also less supported than most of your twelve houses [vote:marriage.house].",
+      "findings": [
+        "vote:marriage.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The 7th house from the client's rising sign is in Scorpio.",
+            "supported": true,
+            "evidence": "derivation row basis=lagna, house=7, sign=Scorpio"
+          },
+          {
+            "text": "The rising sign is Taurus (implied by 'the 7th house from your rising sign, in Scorpio').",
+            "supported": true,
+            "evidence": "derivation row basis=lagna, house=1, sign=Taurus; the sign 7th from Taurus is Scorpio"
+          },
+          {
+            "text": "The 7th house is less supported than most of the twelve houses.",
+            "supported": false,
+            "evidence": "the cited vote vote:marriage.house has direction 'for' (area_votes: for 6, against 1, verdict house 'for'), so the data says the house is supported, not less supported than most; the single lagna row with relative −0.04 does not state a comparison against most of the twelve houses"
+          }
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "sentence": "Let's start with the hard part, since you asked about it.",
+      "findings": [],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a 'hard part' of the reading to start with",
+            "supported": false,
+            "evidence": "not stated"
+          },
+          {
+            "text": "You (the client) asked about it (the hard part)",
+            "supported": false,
+            "evidence": "not stated"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The planet behind that is Rahu, placed across those three signs with no helpful planet near it [vote:marriage.arudha].",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "Rahu is the planet at issue here — the planet behind the point just made (the one occupying the marriage-related pada in this finding)",
+            "supported": true,
+            "evidence": "derivation.padas[0].occupants lists Rahu as the sole occupant of UL, and it is the only planet named in the whole derivation; it is the malefic whose presence drives the 'more malefics than benefics' reasoning."
+          },
+          {
+            "text": "There are three signs/padas in play for this arudha vote (UL in Gemini/2nd, UL2 in Cancer/3rd, A7 in Leo/4th)",
+            "supported": true,
+            "evidence": "derivation.padas lists exactly these three, each with house and sign."
+          },
+          {
+            "text": "Rahu is placed across those three signs (i.e., Rahu occupies or spans Gemini, Cancer and Leo)",
+            "supported": false,
+            "evidence": "The data places Rahu only in UL (Gemini). UL2 (Cancer) and A7 (Leo) have empty occupants lists. Read the ordinary way, 'placed across those three signs' says Rahu lies in all three, which the data does not state — the detail is attached to the wrong thing (a placement spanning the three padas is being attributed to Rahu, when only the first pada holds him)."
+          },
+          {
+            "text": "No helpful (benefic) planet is near Rahu — no benefic occupies that stretch",
+            "supported": true,
+            "evidence": "benefics is an empty list for UL, UL2 and A7, and the derivation's 'why' states 'more malefics than benefics occupy UL, UL2, A7'. Read as 'no benefic occupies the padas in Rahu's vicinity' (the occupancy framing the sentence is working in), this is stated."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The 7th house from your rising sign, in Scorpio, sits among the houses that govern marriage and supports it [vote:marriage.house].",
+      "findings": [
+        "vote:marriage.house"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a 7th house counted from the client's rising sign (lagna).",
+            "supported": true,
+            "evidence": "The finding vote:marriage.house includes a derivation row with basis 'lagna', house 7."
+          },
+          {
+            "text": "The 7th house from the rising sign is in Scorpio.",
+            "supported": true,
+            "evidence": "The derivation row with basis 'lagna', house 7, gives sign 'Scorpio'."
+          },
+          {
+            "text": "The 7th house from the rising sign sits among the houses that govern marriage (is a marriage house).",
+            "supported": true,
+            "evidence": "The finding's area_houses lists, for basis 'lagna' and house 7, the words 'the 7th, a marriage house'; the glossary also defines the 7th house as covering marriage."
+          },
+          {
+            "text": "The 7th house from the rising sign supports marriage — the house vote on marriage is for.",
+            "supported": true,
+            "evidence": "The finding vote:marriage.house has direction 'for' and its area_votes verdict for 'house' is 'for'."
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Now let's turn to the supportive side.",
+      "findings": [],
+      "result": {
+        "propositions": []
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from the ruler of the 7th house runs from Mars in Scorpio and ends with Mars itself [chain:marriage.lord].",
+      "findings": [
+        "chain:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The sentence is about the chain of sign rulers (the sign dispositor chain) of the chart",
+            "supported": true,
+            "evidence": "the finding's derivation.sign is a chain of sign dispositors, and the glossary's dispositor entry covers sign lords"
+          },
+          {
+            "text": "That chain starts from the ruler of the 7th house",
+            "supported": true,
+            "evidence": "facts: \"Mars is the lord of the 7th, the area's first house\"; the sign chain's first step is that planet"
+          },
+          {
+            "text": "The ruler of the 7th house is Mars",
+            "supported": true,
+            "evidence": "facts: \"Mars is the lord of the 7th, the area's first house\""
+          },
+          {
+            "text": "The chain's starting placement is Mars in Scorpio (Mars occupies Scorpio)",
+            "supported": true,
+            "evidence": "derivation.sign.steps[0]: Mars, sign Scorpio, house 7; facts: \"Sign chain of Mars: Mars in Scorpio, the 7th, own\""
+          },
+          {
+            "text": "The sign-ruler chain ends with Mars itself (Mars is the terminus / final sign dispositor)",
+            "supported": true,
+            "evidence": "derivation.sign.ends_in: [\"Mars\"], in_loop false; facts: \"it ends in Mars, self-disposited\", \"Mars is its own final sign dispositor\""
+          },
+          {
+            "text": "Mars is in its own sign in Scorpio (dignity 'own')",
+            "supported": true,
+            "evidence": "derivation.sign.steps[0].dignity: \"own\"; facts: \"Mars in Scorpio, the 7th, own\""
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The chain of sign rulers from Venus runs from Venus in Pisces to Jupiter in Taurus, then turns back between Jupiter and Venus [chain:marriage.karaka].",
+      "findings": [
+        "chain:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The finding concerns a chain of sign rulers (a sign dispositor chain) starting from Venus",
+            "supported": true,
+            "evidence": "derivation.kind=sign with first step Venus; fact 'Sign chain of Venus'"
+          },
+          {
+            "text": "Venus is in Pisces in that sign chain",
+            "supported": true,
+            "evidence": "step 1: Venus, sign Pisces; fact 'Sign chain of Venus: Venus in Pisces, the 11th, exalted'"
+          },
+          {
+            "text": "The chain runs from Venus in Pisces to Jupiter in Taurus",
+            "supported": true,
+            "evidence": "step 2: Jupiter, sign Taurus; fact 'Sign chain of Venus: Venus in Pisces ... → Jupiter in Taurus'"
+          },
+          {
+            "text": "The chain turns back (loops) between Jupiter and Venus — it ends in a loop with Jupiter",
+            "supported": true,
+            "evidence": "sign derivation ends_in ['Jupiter','Venus'], in_loop=true, loop_with ['Jupiter']; facts 'it ends in the Jupiter–Venus loop' and 'Venus is in the sign loop, with Jupiter'"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "I'll begin with the difficult side.",
+      "findings": [],
+      "result": {
+        "propositions": []
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "Support for marriage comes from the planets that rule its houses [vote:marriage.lord].",
+      "findings": [
+        "vote:marriage.lord"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The vote in the lord family on marriage is \"for\" (in support of marriage).",
+            "supported": true,
+            "evidence": "The cited finding has direction \"for\" and area_votes with 6 votes for against 1 against."
+          },
+          {
+            "text": "The support comes from the planets that rule marriage's houses (the lords of the marriage houses).",
+            "supported": true,
+            "evidence": "The finding's family is \"lord\" and its verdict for the lord row is \"for\"; the derivation lists the lords of the marriage houses (7th, 2nd, 11th, 8th, and the 1st as the 7th's Bhavat Bhavam) across the lagna, Moon and Sun bases."
+          },
+          {
+            "text": "Marriage is read through a set of houses whose lords are assessed (marriage has houses in the reading).",
+            "supported": true,
+            "evidence": "area_houses lists the 7th, 2nd, 11th, 8th and 1st (from lagna, Moon and Sun) each called \"a marriage house\" or \"the 7th's Bhavat Bhavam\", and the derivation gives each one's lord."
+          }
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "sentence": "Let me hand over to what the chart reads next.",
+      "findings": [],
+      "result": {
+        "propositions": []
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-sonnet-5-5"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 6642,
+      "output_tokens": 3630,
+      "cache_read_input_tokens": 6972,
+      "cache_creation_input_tokens": 3486,
+      "seconds": 31.544
+    },
+    "checker": {
+      "calls": 11,
+      "input_tokens": 14032,
+      "output_tokens": 6102,
+      "cache_read_input_tokens": 3072,
+      "cache_creation_input_tokens": 0,
+      "seconds": 77.315
+    },
+    "wall_seconds": 105.122
+  },
+  "kinds": [
+    "when"
+  ],
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for an event; what it offers are stretches it reads as more and less favourable, and I can only speak to marriage here, since that is what the engine looked at for this question.",
+    "I'll begin with the difficult side.",
+    "The 7th house from your rising sign, in Scorpio, sits among the houses that govern marriage and supports it.",
+    "Now let's turn to the supportive side.",
+    "The chain of sign rulers from the ruler of the 7th house runs from Mars in Scorpio and ends with Mars itself.",
+    "The chain of sign rulers from Venus runs from Venus in Pisces to Jupiter in Taurus, then turns back between Jupiter and Venus.",
+    "Support for marriage comes from the planets that rule its houses.",
+    "Let me hand over to what the chart reads next.",
+    "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+    "The most favourable stretch runs from January 2030 to October 2031.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    1,
+    3,
+    8
+  ],
+  "accepted": [
+    "A chart gives no date for an event; what it offers are stretches it reads as more and less favourable, and I can only speak to marriage here, since that is what the engine looked at for this question.",
+    "I'll begin with the difficult side.",
+    "The 7th house from your rising sign, in Scorpio, sits among the houses that govern marriage and supports it [vote:marriage.house].",
+    "Now let's turn to the supportive side.",
+    "The chain of sign rulers from the ruler of the 7th house runs from Mars in Scorpio and ends with Mars itself [chain:marriage.lord].",
+    "The chain of sign rulers from Venus runs from Venus in Pisces to Jupiter in Taurus, then turns back between Jupiter and Venus [chain:marriage.karaka].",
+    "Support for marriage comes from the planets that rule its houses [vote:marriage.lord].",
+    "Let me hand over to what the chart reads next."
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 2.562,
+    "written": 4.509,
+    "done": 105.122
+  },
+  "word_rules": "warn"
+}

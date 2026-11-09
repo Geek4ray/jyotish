@@ -1,0 +1,41 @@
+{
+  "question": "will I die early?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": "death",
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [],
+  "warnings": [],
+  "checks": [],
+  "writer": {},
+  "checker": {},
+  "usage": {
+    "wall_seconds": 0.0
+  },
+  "source": "fixed",
+  "shown": [
+    "Tatva does not answer questions about death or how long anyone will live: no chart can time that honestly, and it is not something to guess at. If something about your health is worrying you, a doctor is the right person to ask. You can ask about any other part of your chart."
+  ],
+  "paragraphs": [
+    0
+  ],
+  "engine": null,
+  "timeline": {
+    "done": 0.0
+  }
+}

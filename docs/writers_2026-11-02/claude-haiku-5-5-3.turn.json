@@ -1,0 +1,331 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [
+    {
+      "sentence": "What it shows are stretches it reads as more and less favourable, and those are set out after this answer.",
+      "reasons": [
+        "untagged claim: 'What it shows are stretches it reads as more and less favourable, and those are set out after this answer.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The hard part of that timing is the stretch the reading counts as least favourable, and it is the one to be patient through [vote:marriage.arudha].",
+      "reasons": [
+        "timing language ('timing') in 'The hard part of that timing is the stretch the reading counts as least favourable, and it is the one to be patient through [vote:marriage.arudha].'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The stretch the reading favours comes after it, so the wait has an end in view.",
+      "reasons": [
+        "untagged claim: 'The stretch the reading favours comes after it, so the wait has an end in view.'"
+      ],
+      "attempt": 1
+    },
+    {
+      "sentence": "The signs that show how others see marriage, Gemini, Cancer and Leo, work against it, with Rahu sitting there and no helpful planet beside it [vote:marriage.arudha].",
+      "reasons": [
+        "it restates a sentence an earlier answer gave the client ('The hard part sits in how others see marriage: the signs Gemini, Cancer and Leo lean against it, and Rahu sits in Gemini with no helpful planet beside it.'): say what the chart adds instead (the reason, what in the chart does it)"
+      ],
+      "attempt": 2
+    }
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "sentence": "A chart gives no date for marriage, and it makes no promise about when you will act.",
+      "opening": true,
+      "refusals": [],
+      "attempt": 1
+    },
+    {
+      "sentence": "The hard part is confined to that one lean, and it is the single place the chart pulls against marriage [vote:marriage.arudha].",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "There is a hard part (a difficulty) in the marriage reading",
+            "supported": true,
+            "evidence": "the finding's direction 'against' and the 'why' note that the vote is against"
+          },
+          {
+            "text": "That hard part is confined to one single place in the chart",
+            "supported": true,
+            "evidence": "area_votes shows exactly one 'against' verdict (arudha) among seven areas, with 'for': 6, 'against': 1"
+          },
+          {
+            "text": "That single place is a lean (a slight tilt, not an overwhelming pull)",
+            "supported": true,
+            "evidence": "area_votes shows 6 areas 'for' and only 1 'against', i.e. a one-vote margin"
+          },
+          {
+            "text": "It is the single place the chart pulls against marriage",
+            "supported": true,
+            "evidence": "the verdict map lists arudha as the only 'against'; house, lord, karaka, varga, kp and panchanga are all 'for'"
+          },
+          {
+            "text": "The chart pulls against marriage (the vote's direction is against marriage)",
+            "supported": true,
+            "evidence": "the finding vote:marriage.arudha has direction 'against' and 'why': 'the vote is against'"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "Most of what the chart shows about marriage supports it [vote:marriage.house] [vote:marriage.karaka].",
+      "findings": [
+        "vote:marriage.house",
+        "vote:marriage.karaka"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The chart's house vote on marriage is 'for' (the marriage-house vote favors marriage)",
+            "supported": true,
+            "evidence": "vote:marriage.house has direction 'for' (and its area_votes verdict lists house 'for', with 6 for against 1)"
+          },
+          {
+            "text": "The chart's karaka vote on marriage is 'for' (the marriage-karaka vote favors marriage)",
+            "supported": true,
+            "evidence": "vote:marriage.karaka has direction 'for' (and its area_votes verdict lists karaka 'for', with 6 for against 1)"
+          },
+          {
+            "text": "Most of what the chart shows about marriage supports it (marriage)",
+            "supported": true,
+            "evidence": "the conclusion follows from the two cited votes: both are 'for', and each finding's area_votes report 6 for vs 1 against, so 'most' holds on either count"
+          }
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "sentence": "The lean lands there because the group of signs that shows how others regard a marriage holds Rahu, and no supportive planet shares that placement to soften it [vote:marriage.arudha].",
+      "findings": [
+        "vote:marriage.arudha"
+      ],
+      "result": {
+        "propositions": [
+          {
+            "text": "The vote against (\"the lean\") lands at the arudha factor — the arudha test is the one that goes against marriage here",
+            "supported": true,
+            "evidence": "area_votes.verdict lists arudha: \"against\" (and the finding's direction is \"against\", family \"arudha\"), while the other tests vote \"for\""
+          },
+          {
+            "text": "The arudha is a group of signs (the padas the derivation rests on: UL, UL2, A7) that shows how a marriage and its matters appear to the world / how others regard the marriage",
+            "supported": true,
+            "evidence": "glossary \"arudha\": \"The image point of a house… read for how its matters appear to the world\"; glossary \"Upapada\": \"…read for marriage\"; glossary \"A7\": \"…read for partners as they appear\"; derivation.rests_on lists UL, UL2, A7"
+          },
+          {
+            "text": "Rahu occupies (one of) these signs — the group holds Rahu",
+            "supported": true,
+            "evidence": "derivation.padas: pada \"UL\" has occupants [\"Rahu\"]. Even if \"the group\" is read as the whole set of padas, Rahu is among them; if read as the marriage image point alone (UL), it holds Rahu directly. Supported on either reading"
+          },
+          {
+            "text": "No supportive planet (benefic) shares that placement — the sign where Rahu sits has no benefic in it",
+            "supported": true,
+            "evidence": "derivation.padas: UL has \"benefics\": [] and occupants only [\"Rahu\"]. (UL2 and A7 are also empty, so the claim holds if \"that placement\" is read as the whole group too.) \"Supportive planet\" matches the glossary's \"benefic: a planet counted as naturally favourable\""
+          },
+          {
+            "text": "The absence of a benefic there contributes to the against-lean — a supportive planet's presence would have counted in the marriage's favour (\"to soften it\")",
+            "supported": true,
+            "evidence": "derivation.why: \"more malefics than benefics occupy UL, UL2, A7: the vote is against\" — the count of benefics (here zero) is exactly what drives the against vote"
+          }
+        ]
+      },
+      "attempt": 3
+    }
+  ],
+  "writer": {
+    "model": "claude-haiku-5-5",
+    "effort": "medium",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-haiku-5-5"
+    }
+  },
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "effort": "high",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "structured": "json_schema",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "writer": {
+      "calls": 3,
+      "input_tokens": 5106,
+      "output_tokens": 2609,
+      "cache_read_input_tokens": 6838,
+      "cache_creation_input_tokens": 3419,
+      "seconds": 15.894
+    },
+    "checker": {
+      "calls": 3,
+      "input_tokens": 6500,
+      "output_tokens": 3757,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 33.957
+    },
+    "wall_seconds": 49.932
+  },
+  "kinds": [
+    "when"
+  ],
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "text": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "opened_by": "writer",
+  "source": "writer",
+  "shown": [
+    "A chart gives no date for marriage, and it makes no promise about when you will act.",
+    "The lean lands there because the group of signs that shows how others regard a marriage holds Rahu, and no supportive planet shares that placement to soften it.",
+    "The hard part is confined to that one lean, and it is the single place the chart pulls against marriage.",
+    "Most of what the chart shows about marriage supports it.",
+    "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+    "The most favourable stretch runs from January 2030 to October 2031.",
+    "Neither stretch is a prediction of when you will act."
+  ],
+  "paragraphs": [
+    0,
+    4
+  ],
+  "accepted": [
+    "A chart gives no date for marriage, and it makes no promise about when you will act.",
+    "The lean lands there because the group of signs that shows how others regard a marriage holds Rahu, and no supportive planet shares that placement to soften it [vote:marriage.arudha].",
+    "The hard part is confined to that one lean, and it is the single place the chart pulls against marriage [vote:marriage.arudha].",
+    "Most of what the chart shows about marriage supports it [vote:marriage.house] [vote:marriage.karaka]."
+  ],
+  "attempts": 3,
+  "timeline": {
+    "engine": 0.002,
+    "first_verified": 8.37,
+    "written": 8.803,
+    "done": 49.932
+  },
+  "word_rules": "warn"
+}

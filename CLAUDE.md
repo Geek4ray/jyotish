@@ -381,6 +381,6 @@ engine_reading's `said_before`); the question's kinds (`kinds_of`: amount, yes_n
 (`narrate.OPENING`) and the writer's (`opens_on`, else the engine's lines, `doc.opened_by`); the conversation test is
 seven turns. `scripts/compare_writers.py` is the writer bake-off (docs/writers_2026-11-02.md; live_timing.py --turn
 takes --writer, --writer-model, --out; Haiku 5.5 is sent no refusal fallback, `narrate.NO_FALLBACK`): gpt-oss-120b,
-Qwen3.6-35B-A3B, DeepSeek-V3.2, Kimi-K2.6 and GLM-5.3 ran (Kimi-K2.6 69 minutes a turn); Haiku and Sonnet wait for
-Anthropic credit (HTTP 400), and the choice is Ray's.
+Qwen3.6-35B-A3B, DeepSeek-V3.2, Kimi-K2.6, GLM-5.3, Haiku 5.5 and Sonnet 5.5 all ran (Kimi-K2.6 69 minutes a turn), and the
+choice is Ray's.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.
