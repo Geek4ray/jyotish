@@ -679,7 +679,10 @@ class _Order:
 
 def unbullet(text: str) -> str:
     """A writer's answer read before it is split into sentences (review H3): a heading line dropped, list items as
-    paragraphs, bold and code marks taken off, so each item is a sentence of its own and no mark reaches the client."""
+    paragraphs, bold and code marks taken off, so each item is a sentence of its own and no mark reaches the client.
+    HTML is read the same way: a block tag is a paragraph break and any other tag is dropped (2026-11-09)."""
+    from .client import HTML_BREAK, HTML_TAG
+    text = re.sub(r"\n{3,}", "\n\n", HTML_TAG.sub("", HTML_BREAK.sub("\n\n", text)))
     text = re.sub(r"(?m)^[ \t]*#{1,6}[ \t]+[^\n]*\n?", "", text)
     text = re.sub(r"(?m)^[ \t]*(?:[-*•]|\d+[.)])[ \t]+", "\n", text)
     return re.sub(r"\*\*|__|`", "", text).strip()

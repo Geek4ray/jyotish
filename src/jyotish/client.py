@@ -220,11 +220,15 @@ def never_show(text: str | None) -> list[str]:
 
 # Markdown a writer may send: never shown as marks (review H3).
 MARKDOWN = re.compile(r"\*\*|__|`|^\s*#{1,6}\s+|^\s*[-*•]\s+|(?<!\w)\*(?=\S)|(?<=\S)\*(?!\w)", re.M)
+# HTML a writer may send (Kimi-K2.6's "…for it.</p><p>Let me begin…", 2026-11-09): a block tag is a paragraph break,
+# read before the answer is split into sentences (conversation.unbullet); any tag left is never shown as text.
+HTML_BREAK = re.compile(r"(?i)[ \t]*(?:</?(?:p|div|li|ul|ol|h[1-6]|blockquote|section)\b[^<>]*>|<br\s*/?>)[ \t]*")
+HTML_TAG = re.compile(r"</?[A-Za-z][A-Za-z0-9]*(?:\s[^<>]*)?/?>")
 
 
 def plain(text: str) -> str:
-    """A sentence as the client's screen shows it: markdown marks taken off, spaces collapsed."""
-    return " ".join(MARKDOWN.sub("", text).split())
+    """A sentence as the client's screen shows it: markdown marks and HTML tags taken off, spaces collapsed."""
+    return " ".join(MARKDOWN.sub("", HTML_TAG.sub(" ", text)).split())
 
 
 def client_warnings(text: str | None, conversation: bool = False) -> list[str]:

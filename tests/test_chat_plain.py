@@ -406,3 +406,44 @@ def test_4_an_opening_is_still_held_to_the_forbidden_words():
     assert validate_opening("A chart gives no date for an event.") == []
     assert any("confidence" in e for e in validate_opening("No chart can guarantee an amount."))
     assert any(e.startswith("never shown") for e in validate_opening("No score gives an amount."))
+
+
+# --- After the bake-off (2026-11-09): what the transcripts showed on the client's screen ------------------------------
+
+KIMI = ("A chart gives no date for money; it only shows which stretches read as more and less favourable for it.</p><p>"
+        "Let me begin with the hard part, as you asked about both sides.")
+
+
+def test_html_from_the_writer_is_a_paragraph_break_and_never_text():
+    """Kimi-K2.6's last turn on 2026-11-09 showed "</p><p>" inside one sentence: a block tag now ends a paragraph
+    before the answer is split, and any tag left is taken off what the client reads."""
+    from jyotish.conversation import shown_text, unbullet
+    from jyotish.narrate import sentences
+    assert sentences(unbullet(KIMI)) == [KIMI.split("</p><p>")[0], KIMI.split("</p><p>")[1]]
+    assert unbullet("One.<br/>Two.<div>Three.</div>") == "One.\n\nTwo.\n\nThree."
+    assert shown_text("Venus sits <b>well</b> here.") == "Venus sits well here."
+    assert shown_text("Mars is 3 < 5 degrees on.") == "Mars is 3 < 5 degrees on."   # not a tag: left alone
+
+
+class Html(OfflineTurnWriter):
+    """The engine's tagged sentences, each paragraph wrapped in <p>, the second joined to the first by "</p><p>"."""
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        body = json.loads(user)
+        self.last_meta = {"kind": "writer", "replayed": True}
+        tagged = [f"{x['text'][:-1]} [{x['tags'][0]}]." for x in body["engine_answer"] if x["tags"]]
+        return TurnDraft(answer="<p>" + "</p><p>".join(tagged) + "</p>")
+
+
+def test_a_turn_written_in_html_shows_no_tag_and_checks_each_sentence_alone(chart):
+    from jyotish.conversation import answer_turn
+    asked = []
+
+    def checker(sentence, data):
+        asked.append(sentence)
+        return passes(sentence, data)
+    message = "how is my career"
+    doc = answer_turn(chart, message, route_turn(message, chart), as_of=AS_OF, drafter=Html(), checker=checker)
+    assert doc["source"] == "writer" and len(doc["shown"]) >= 2
+    assert not [s for s in doc["shown"] if re.search(r"[<>]", s)], doc["shown"]
+    assert asked and not [s for s in asked if "<" in s]

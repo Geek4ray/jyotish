@@ -382,5 +382,6 @@ engine_reading's `said_before`); the question's kinds (`kinds_of`: amount, yes_n
 seven turns. `scripts/compare_writers.py` is the writer bake-off (docs/writers_2026-11-02.md; live_timing.py --turn
 takes --writer, --writer-model, --out; Haiku 5.5 is sent no refusal fallback, `narrate.NO_FALLBACK`): gpt-oss-120b,
 Qwen3.6-35B-A3B, DeepSeek-V3.2, Kimi-K2.6, GLM-5.3, Haiku 5.5 and Sonnet 5.5 all ran (Kimi-K2.6 69 minutes a turn), and the
-choice is Ray's.
+choice is Ray's. After it (2026-11-09): HTML from a writer is a paragraph break, never
+text (`client.HTML_BREAK`, `HTML_TAG`).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

@@ -181,6 +181,17 @@ What the transcripts show besides, recorded for the review and not acted on here
 
 The choice of writer is Ray's, made by reading the side-by-side turns in the report.
 
+## After the bake-off: two leaks fixed (2026-11-09)
+
+The transcripts put two things on the client's screen that the conversation's rules should keep off. Each fix is one
+commit, with tests in tests/test_chat_plain.py.
+
+1. **HTML is a paragraph break, never text.** Kimi-K2.6 wrote "…favourable for it.</p><p>Let me begin with the hard
+   part…". The splitter reads a sentence end only before a space, so the two were one sentence, checked and shown as
+   one, tags and all. A block tag (p, div, li, a list, a heading, br) is now a paragraph break before the answer is
+   split (`conversation.unbullet`, `client.HTML_BREAK`), and `client.plain` takes off any tag left (`client.HTML_TAG`).
+   A "<" that opens no tag ("3 < 5") is left alone.
+
 ## Not done here
 
 - **DoD 7.** compare_readings.py was not re-run: the reading's writer, prompt and payload are unchanged. The turn's
