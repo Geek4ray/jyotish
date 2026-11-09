@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-06",
-  "commit": "ead9e6c",
+  "date": "2026-11-09",
+  "commit": "61ba9af",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.3304,
+      "value": 0.3421,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.4966,
+      "value": 0.5098,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,19 +255,19 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 182,
+      "value": 184,
       "better": null,
       "unit": "",
       "gate": false
     },
     "checker.answer.rows": {
-      "value": 25,
+      "value": 27,
       "better": null,
       "unit": "",
       "gate": false
     },
     "checker.answer.validator_recall": {
-      "value": 0.5455,
+      "value": 0.5833,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -1616,6 +1616,708 @@
       "unit": "",
       "gate": false
     },
+    "turn.kimi-k2.6-1.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-1.first_verified_s": {
+      "value": 1276.656,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-1.removed_share": {
+      "value": 0.3,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-1.done_s": {
+      "value": 7396.484,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-1.cost_usd": {
+      "value": 0.163055,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-2.engine_s": {
+      "value": 0.004,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-2.first_verified_s": {
+      "value": 938.965,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-2.removed_share": {
+      "value": 0.167,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-2.done_s": {
+      "value": 3968.127,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-2.cost_usd": {
+      "value": 0.057995,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-3.engine_s": {
+      "value": 0.003,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-3.first_verified_s": {
+      "value": 1190.698,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-3.removed_share": {
+      "value": 0.714,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-3.done_s": {
+      "value": 8792.033,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-3.cost_usd": {
+      "value": 0.16166,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-4.engine_s": {
+      "value": 0.006,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-4.done_s": {
+      "value": 1923.264,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-4.cost_usd": {
+      "value": 0.170835,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-6.engine_s": {
+      "value": 0.004,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-6.first_verified_s": {
+      "value": 188.869,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-6.removed_share": {
+      "value": 0.385,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-6.done_s": {
+      "value": 1552.538,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-6.cost_usd": {
+      "value": 0.145629,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-7.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-7.first_verified_s": {
+      "value": 682.955,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-7.removed_share": {
+      "value": 0.4,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-7.done_s": {
+      "value": 1206.072,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.kimi-k2.6-7.cost_usd": {
+      "value": 0.099888,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-1.engine_s": {
+      "value": 0.003,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-1.first_verified_s": {
+      "value": 62.638,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-1.removed_share": {
+      "value": 0.656,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-1.done_s": {
+      "value": 2079.052,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-1.cost_usd": {
+      "value": 0.060832,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-2.engine_s": {
+      "value": 0.003,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-2.first_verified_s": {
+      "value": 34.868,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-2.removed_share": {
+      "value": 0.55,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-2.done_s": {
+      "value": 172.95,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-2.cost_usd": {
+      "value": 0.020145,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-3.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-3.first_verified_s": {
+      "value": 4.701,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-3.removed_share": {
+      "value": 0.692,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-3.done_s": {
+      "value": 104.462,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-3.cost_usd": {
+      "value": 0.014735,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-4.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-4.removed_share": {
+      "value": 1.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-4.done_s": {
+      "value": 97.363,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-4.cost_usd": {
+      "value": 0.01884,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-6.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-6.first_verified_s": {
+      "value": 6.236,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-6.removed_share": {
+      "value": 0.308,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-6.done_s": {
+      "value": 64.229,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-6.cost_usd": {
+      "value": 0.014279,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-7.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-7.first_verified_s": {
+      "value": 8.265,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-7.removed_share": {
+      "value": 0.615,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-7.done_s": {
+      "value": 98.702,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.glm-5.3-7.cost_usd": {
+      "value": 0.015163,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-1.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-1.first_verified_s": {
+      "value": 14.737,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-1.removed_share": {
+      "value": 0.64,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-1.done_s": {
+      "value": 110.508,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-1.cost_usd": {
+      "value": 0.018127,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-2.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-2.first_verified_s": {
+      "value": 50.119,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-2.removed_share": {
+      "value": 0.5,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-2.done_s": {
+      "value": 83.888,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-2.cost_usd": {
+      "value": 0.012658,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-3.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-3.first_verified_s": {
+      "value": 8.37,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-3.removed_share": {
+      "value": 0.5,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-3.done_s": {
+      "value": 49.932,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-3.cost_usd": {
+      "value": 0.00578,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-4.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-4.first_verified_s": {
+      "value": 19.194,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-4.removed_share": {
+      "value": 0.6,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-4.done_s": {
+      "value": 62.813,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-4.cost_usd": {
+      "value": 0.010347,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-6.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-6.first_verified_s": {
+      "value": 9.571,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-6.removed_share": {
+      "value": 0.25,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-6.done_s": {
+      "value": 59.248,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-6.cost_usd": {
+      "value": 0.013309,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-7.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-7.first_verified_s": {
+      "value": 15.955,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-7.removed_share": {
+      "value": 0.938,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-7.done_s": {
+      "value": 28.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-haiku-5-5-7.cost_usd": {
+      "value": 0.005403,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-1.engine_s": {
+      "value": 0.003,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-1.first_verified_s": {
+      "value": 34.433,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-1.removed_share": {
+      "value": 0.545,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-1.done_s": {
+      "value": 147.858,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-1.cost_usd": {
+      "value": 0.070407,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-2.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-2.first_verified_s": {
+      "value": 33.381,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-2.removed_share": {
+      "value": 0.474,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-2.done_s": {
+      "value": 112.871,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-2.cost_usd": {
+      "value": 0.060395,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-3.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-3.first_verified_s": {
+      "value": 2.562,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-3.removed_share": {
+      "value": 0.704,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-3.done_s": {
+      "value": 105.122,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-3.cost_usd": {
+      "value": 0.064941,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-4.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-4.first_verified_s": {
+      "value": 53.615,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-4.removed_share": {
+      "value": 0.724,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-4.done_s": {
+      "value": 343.649,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-4.cost_usd": {
+      "value": 0.070663,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-6.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-6.first_verified_s": {
+      "value": 3.507,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-6.removed_share": {
+      "value": 0.444,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-6.done_s": {
+      "value": 211.199,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-6.cost_usd": {
+      "value": 0.054651,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-7.engine_s": {
+      "value": 0.002,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-7.first_verified_s": {
+      "value": 1.548,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-7.removed_share": {
+      "value": 0.591,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-7.done_s": {
+      "value": 98.135,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.claude-sonnet-5-5-7.cost_usd": {
+      "value": 0.066513,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
     "turn.median.engine_s": {
       "value": 0.002,
       "better": "lower",
@@ -1623,25 +2325,25 @@
       "gate": false
     },
     "turn.median.first_verified_s": {
-      "value": 34.844,
+      "value": 34.198,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.removed_share": {
-      "value": 0.571,
+      "value": 0.5605,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.done_s": {
-      "value": 102.755,
+      "value": 110.508,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.cost_usd": {
-      "value": 0.00696,
+      "value": 0.013309,
       "better": "lower",
       "unit": "",
       "gate": false

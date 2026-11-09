@@ -201,6 +201,8 @@ NEVER_SHOW = (
     (r"\bsub-?lords?\b", "say what the start of the house shows"),
     (r"\bshadbala\b", "say how much strength a planet has, in words"),
     (r"\bbhava bala\b", "say how well supported the house is, in words"),
+    # claude-sonnet-5-5 in the bake-off (2026-11-09): "…which is what the engine looked at", shown on two turns.
+    (r"\bengines?\b", "say 'your chart' or 'the reading', never the engine"),
 )
 _NEVER = [(re.compile(rx, re.I if "KP" not in rx and "D\\d" not in rx else 0), hint) for rx, hint in NEVER_SHOW]
 

@@ -191,6 +191,16 @@ commit, with tests in tests/test_chat_plain.py.
    one, tags and all. A block tag (p, div, li, a list, a heading, br) is now a paragraph break before the answer is
    split (`conversation.unbullet`, `client.HTML_BREAK`), and `client.plain` takes off any tag left (`client.HTML_TAG`).
    A "<" that opens no tag ("3 < 5") is left alone.
+2. **"The engine" is never named to the client.** claude-sonnet-5-5 opened both its "when" turns with "…which is what
+   the engine looked at", and both were shown: an opening goes to no checker, and "engine" was on no list.
+   `client.NEVER_SHOW` now refuses "engine(s)", with the hint "say 'your chart' or 'the reading'". The refusal holds
+   for a checked sentence and for an opening alike: a refused opening gives way to the engine's own line. The two
+   sentences are benchmark rows (`live-ans-sonnet-engine-marriage`, `-money`; `client_words`, `where: "answer"`),
+   verbatim, untagged as openings are. The benchmark has 184 rows. No engine sentence, fixed reply or opening line
+   names the engine; the test reads every area and direction of four charts.
+
+   *Reading settled:* "engine" is refused in every sense, a figure of speech included ("the engine of your career"):
+   the conversation has no need of the word, and the list is read before meaning.
 
 ## Not done here
 

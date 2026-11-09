@@ -392,7 +392,8 @@ def never_show_rows() -> list[dict]:
     `client_words`: the sentences of Ray's first live turns as he quoted them from his screen ("how much money will i
     earn in my life, will i be rich"; the client's screen shows no tags, so each row carries the tag of the finding it
     restates), and the two engine-word sentences the live five-turn conversation of 2026-11-01 showed under the
-    warning rule (docs/live_2026-11-01/conversation-1-2 and -4), verbatim with their tags."""
+    warning rule (docs/live_2026-11-01/conversation-1-2 and -4), verbatim with their tags; and the two openings in which
+    claude-sonnet-5-5 named "the engine" in the writer bake-off (2026-11-09), verbatim (an opening carries no tag)."""
     from jyotish.conversation import Route, held_to
     r, chart, _ = reading_chart()
     as_of = date.fromisoformat(NEVER_SHOW_AS_OF)
@@ -410,6 +411,16 @@ def never_show_rows() -> list[dict]:
         ("live-ans-kp-analysis", "marriage",
          "The KP analysis of the seventh house gives a favourable outcome for marriage. [vote:marriage.kp]",
          "live five-turn conversation of 2026-11-01 (conversation-1-4), shown under the warning rule"),
+        ("live-ans-sonnet-engine-marriage", "marriage",
+         "A chart gives no date for an event; what it offers are stretches it reads as more and less favourable, and I "
+         "can only speak to marriage here, since that is what the engine looked at for this question.",
+         "the writer bake-off of 2026-11-09, claude-sonnet-5-5's opening of the 'when?' turn "
+         "(docs/writers_2026-11-02/claude-sonnet-5-5-3), shown"),
+        ("live-ans-sonnet-engine-money", "wealth",
+         "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable, and "
+         "here that means money, which is what the engine looked at.",
+         "the writer bake-off of 2026-11-09, claude-sonnet-5-5's opening of the 'whan and how' turn "
+         "(docs/writers_2026-11-02/claude-sonnet-5-5-7), shown"),
     ]
     out = []
     for rid, area, sentence, why in rows:

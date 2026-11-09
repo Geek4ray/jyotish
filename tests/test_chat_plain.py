@@ -447,3 +447,51 @@ def test_a_turn_written_in_html_shows_no_tag_and_checks_each_sentence_alone(char
     assert doc["source"] == "writer" and len(doc["shown"]) >= 2
     assert not [s for s in doc["shown"] if re.search(r"[<>]", s)], doc["shown"]
     assert asked and not [s for s in asked if "<" in s]
+
+
+SONNET = ("A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable, and "
+          "here that means money, which is what the engine looked at.")
+
+
+def test_the_engine_is_never_named_to_the_client(chart):
+    """claude-sonnet-5-5 put "the engine" on the client's screen twice in the bake-off (2026-11-09): it is now on the
+    never-show list, in a checked sentence and in an opening alike, and no engine sentence names it."""
+    from jyotish.conversation import validate_opening
+    ok, refusals, _, _ = judged(chart, "The engine reads the houses of money as supportive. [vote:wealth.house]")
+    assert not ok and any("never shown to the client ('engine')" in r and ": say " in r for r in refusals), refusals
+    assert any(e.startswith("never shown to the client ('engine')") for e in validate_opening(SONNET))
+    from jyotish.client import never_show
+    from jyotish.conversation import REPLIES, THIRD_PARTY_LINE, WHY_REPLIES
+    from jyotish.narrate import OPENING, OPENING_SAID
+    fixed = [*REPLIES.values(), THIRD_PARTY_LINE, *WHY_REPLIES.values(), *OPENING.values(), OPENING_SAID]
+    assert not [s for s in fixed if never_show(s)]       # the engine's sentences: test_2_every_engine_sentence_…
+
+
+class NamesTheEngine(OfflineTurnWriter):
+    """Opens on the question as the engine's line does, naming the engine; then the engine's tagged sentences."""
+    def __call__(self, system, user, errors):
+        from jyotish.conversation import TurnDraft
+        body = json.loads(user)
+        self.last_meta = {"kind": "writer", "replayed": True}
+        rest = " ".join(f"{x['text'][:-1]} [{x['tags'][0]}]." for x in body["engine_answer"] if x["tags"])
+        return TurnDraft(answer="A chart gives no amount and makes no promise, as the engine reads it. " + rest)
+
+
+def test_an_opening_naming_the_engine_is_not_shown_and_the_engines_line_opens(chart):
+    from jyotish.conversation import answer_turn
+    doc = answer_turn(chart, MONEY, route_turn(MONEY, chart), as_of=AS_OF, drafter=NamesTheEngine(), checker=passes)
+    assert not [s for s in doc["shown"] if "engine" in s.lower()], doc["shown"]
+    assert doc["opened_by"] == "engine" and doc["shown"][0].startswith("A chart gives no amount and makes no promise;")
+
+
+def test_the_bake_off_sentences_naming_the_engine_are_benchmark_rows_the_validator_refuses():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("checker_bench", ROOT / "scripts" / "checker_bench.py")
+    bench = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(bench)
+    rows = {r["id"]: r for r in bench.load()}
+    for rid in ("live-ans-sonnet-engine-marriage", "live-ans-sonnet-engine-money"):
+        r = rows[rid]
+        assert (r["where"], r["category"], r["label"]) == ("answer", "client_words", "reject")
+        assert any(e.startswith("never shown to the client ('engine')") for e in bench.validator_errors(r)), rid
+    assert rows["live-ans-sonnet-engine-money"]["sentence"] == SONNET

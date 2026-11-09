@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-06 at commit `ead9e6c` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-09 at commit `61ba9af` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -16,7 +16,7 @@ Run 2026-11-06 at commit `ead9e6c` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-182 rows; the validator alone: precision 1.000, recall 0.330, F1 0.497; 33 of 33 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 25 rows from the live turns of 2026-11-01 and Ray's of 2026-11-02): the validator alone refuses 12 of 22 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+184 rows; the validator alone: precision 1.000, recall 0.342, F1 0.510; 35 of 35 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 27 rows from the live turns of 2026-11-01, Ray's of 2026-11-02 and the writer bake-off of 2026-11-09): the validator alone refuses 14 of 24 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -70,6 +70,30 @@ Live turns of the reference chart (docs/live_timings.jsonl, scripts/live_timing.
 - deepseek-v3.2-4 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.002 s, first verified 25.65 s, done 28.649 s; 4 of 7 sentences removed; answer from the writer; USD 0.006195.
 - deepseek-v3.2-6 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 18.161 s, done 57.663 s; 5 of 11 sentences removed; answer from the writer; USD 0.010055.
 - deepseek-v3.2-7 (2026-11-06; deepseek-ai/DeepSeek-V3.2 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 3.162 s, done 55.704 s; 17 of 21 sentences removed; answer from the writer; USD 0.005261.
+- kimi-k2.6-1 (2026-11-07; moonshotai/Kimi-K2.6 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.002 s, first verified 1276.656 s, done 7396.484 s; 3 of 10 sentences removed; answer from the writer; USD 0.163055.
+- kimi-k2.6-2 (2026-11-07; moonshotai/Kimi-K2.6 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.004 s, first verified 938.965 s, done 3968.127 s; 2 of 12 sentences removed; answer from the writer; USD 0.057995.
+- kimi-k2.6-3 (2026-11-08; moonshotai/Kimi-K2.6 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.003 s, first verified 1190.698 s, done 8792.033 s; 5 of 7 sentences removed; answer from the writer; USD 0.16166.
+- kimi-k2.6-4 (2026-11-08; moonshotai/Kimi-K2.6 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.006 s, first verified None s, done 1923.264 s; 0 of 0 sentences removed; answer from the engine; USD 0.170835.
+- kimi-k2.6-6 (2026-11-08; moonshotai/Kimi-K2.6 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.004 s, first verified 188.869 s, done 1552.538 s; 5 of 13 sentences removed; answer from the writer; USD 0.145629.
+- kimi-k2.6-7 (2026-11-08; moonshotai/Kimi-K2.6 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 682.955 s, done 1206.072 s; 2 of 5 sentences removed; answer from the writer; USD 0.099888.
+- glm-5.3-1 (2026-11-09; zai-org/GLM-5.3 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.003 s, first verified 62.638 s, done 2079.052 s; 21 of 32 sentences removed; answer from the writer; USD 0.060832.
+- glm-5.3-2 (2026-11-09; zai-org/GLM-5.3 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.003 s, first verified 34.868 s, done 172.95 s; 11 of 20 sentences removed; answer from the writer; USD 0.020145.
+- glm-5.3-3 (2026-11-09; zai-org/GLM-5.3 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.002 s, first verified 4.701 s, done 104.462 s; 9 of 13 sentences removed; answer from the writer; USD 0.014735.
+- glm-5.3-4 (2026-11-09; zai-org/GLM-5.3 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.002 s, first verified None s, done 97.363 s; 21 of 21 sentences removed; answer from the engine; USD 0.01884.
+- glm-5.3-6 (2026-11-09; zai-org/GLM-5.3 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 6.236 s, done 64.229 s; 4 of 13 sentences removed; answer from the writer; USD 0.014279.
+- glm-5.3-7 (2026-11-09; zai-org/GLM-5.3 on api.deepinfra.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 8.265 s, done 98.702 s; 8 of 13 sentences removed; answer from the writer; USD 0.015163.
+- claude-haiku-5-5-1 (2026-11-09; claude-haiku-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.002 s, first verified 14.737 s, done 110.508 s; 16 of 25 sentences removed; answer from the writer; USD 0.018127.
+- claude-haiku-5-5-2 (2026-11-09; claude-haiku-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.002 s, first verified 50.119 s, done 83.888 s; 6 of 12 sentences removed; answer from the writer; USD 0.012658.
+- claude-haiku-5-5-3 (2026-11-09; claude-haiku-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.002 s, first verified 8.37 s, done 49.932 s; 4 of 8 sentences removed; answer from the writer; USD 0.00578.
+- claude-haiku-5-5-4 (2026-11-09; claude-haiku-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.002 s, first verified 19.194 s, done 62.813 s; 6 of 10 sentences removed; answer from the writer; USD 0.010347.
+- claude-haiku-5-5-6 (2026-11-09; claude-haiku-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 9.571 s, done 59.248 s; 3 of 12 sentences removed; answer from the writer; USD 0.013309.
+- claude-haiku-5-5-7 (2026-11-09; claude-haiku-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 15.955 s, done 28.001 s; 15 of 16 sentences removed; answer from the writer; USD 0.005403.
+- claude-sonnet-5-5-1 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.003 s, first verified 34.433 s, done 147.858 s; 12 of 22 sentences removed; answer from the writer; USD 0.070407.
+- claude-sonnet-5-5-2 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.002 s, first verified 33.381 s, done 112.871 s; 9 of 19 sentences removed; answer from the writer; USD 0.060395.
+- claude-sonnet-5-5-3 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.002 s, first verified 2.562 s, done 105.122 s; 19 of 27 sentences removed; answer from the writer; USD 0.064941.
+- claude-sonnet-5-5-4 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.001 s, first verified 53.615 s, done 343.649 s; 21 of 29 sentences removed; answer from the writer; USD 0.070663.
+- claude-sonnet-5-5-6 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 3.507 s, done 211.199 s; 8 of 18 sentences removed; answer from the writer; USD 0.054651.
+- claude-sonnet-5-5-7 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 1.548 s, done 98.135 s; 13 of 22 sentences removed; answer from the writer; USD 0.066513.
 
 ## The paragraph held sentence by sentence (reported, not gated)
 
@@ -77,10 +101,10 @@ From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run p
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 25 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 9 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 253 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 104 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 30 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 11 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 247 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 111 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -126,13 +150,13 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `metamorphic.seed_agreement.synthetic-3` | 1.0 |  | higher | no |
 | `metamorphic.changed_at_one_minute.synthetic-3` | 2 |  | informational | no |
 | `checker.validator.precision` | 1.0 |  | higher | no |
-| `checker.validator.recall` | 0.3304 |  | higher | no |
-| `checker.validator.f1` | 0.4966 |  | higher | no |
+| `checker.validator.recall` | 0.3421 |  | higher | no |
+| `checker.validator.f1` | 0.5098 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
-| `checker.bench_rows` | 182 |  | informational | no |
-| `checker.answer.rows` | 25 |  | informational | no |
-| `checker.answer.validator_recall` | 0.5455 |  | higher | no |
+| `checker.bench_rows` | 184 |  | informational | no |
+| `checker.answer.rows` | 27 |  | informational | no |
+| `checker.answer.validator_recall` | 0.5833 |  | higher | no |
 | `checker.answer.validator_false_rejects` | 0 |  | lower | no |
 | `checker.tests_failed` | 0 |  | lower | yes |
 | `checker.live.precision` | 1.0 |  | informational | no |
@@ -357,11 +381,128 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `turn.deepseek-v3.2-7.removed_share` | 0.81 |  | lower | no |
 | `turn.deepseek-v3.2-7.done_s` | 55.704 |  | lower | no |
 | `turn.deepseek-v3.2-7.cost_usd` | 0.005261 |  | lower | no |
+| `turn.kimi-k2.6-1.engine_s` | 0.002 |  | lower | no |
+| `turn.kimi-k2.6-1.first_verified_s` | 1276.656 |  | lower | no |
+| `turn.kimi-k2.6-1.removed_share` | 0.3 |  | lower | no |
+| `turn.kimi-k2.6-1.done_s` | 7396.484 |  | lower | no |
+| `turn.kimi-k2.6-1.cost_usd` | 0.163055 |  | lower | no |
+| `turn.kimi-k2.6-2.engine_s` | 0.004 |  | lower | no |
+| `turn.kimi-k2.6-2.first_verified_s` | 938.965 |  | lower | no |
+| `turn.kimi-k2.6-2.removed_share` | 0.167 |  | lower | no |
+| `turn.kimi-k2.6-2.done_s` | 3968.127 |  | lower | no |
+| `turn.kimi-k2.6-2.cost_usd` | 0.057995 |  | lower | no |
+| `turn.kimi-k2.6-3.engine_s` | 0.003 |  | lower | no |
+| `turn.kimi-k2.6-3.first_verified_s` | 1190.698 |  | lower | no |
+| `turn.kimi-k2.6-3.removed_share` | 0.714 |  | lower | no |
+| `turn.kimi-k2.6-3.done_s` | 8792.033 |  | lower | no |
+| `turn.kimi-k2.6-3.cost_usd` | 0.16166 |  | lower | no |
+| `turn.kimi-k2.6-4.engine_s` | 0.006 |  | lower | no |
+| `turn.kimi-k2.6-4.done_s` | 1923.264 |  | lower | no |
+| `turn.kimi-k2.6-4.cost_usd` | 0.170835 |  | lower | no |
+| `turn.kimi-k2.6-6.engine_s` | 0.004 |  | lower | no |
+| `turn.kimi-k2.6-6.first_verified_s` | 188.869 |  | lower | no |
+| `turn.kimi-k2.6-6.removed_share` | 0.385 |  | lower | no |
+| `turn.kimi-k2.6-6.done_s` | 1552.538 |  | lower | no |
+| `turn.kimi-k2.6-6.cost_usd` | 0.145629 |  | lower | no |
+| `turn.kimi-k2.6-7.engine_s` | 0.002 |  | lower | no |
+| `turn.kimi-k2.6-7.first_verified_s` | 682.955 |  | lower | no |
+| `turn.kimi-k2.6-7.removed_share` | 0.4 |  | lower | no |
+| `turn.kimi-k2.6-7.done_s` | 1206.072 |  | lower | no |
+| `turn.kimi-k2.6-7.cost_usd` | 0.099888 |  | lower | no |
+| `turn.glm-5.3-1.engine_s` | 0.003 |  | lower | no |
+| `turn.glm-5.3-1.first_verified_s` | 62.638 |  | lower | no |
+| `turn.glm-5.3-1.removed_share` | 0.656 |  | lower | no |
+| `turn.glm-5.3-1.done_s` | 2079.052 |  | lower | no |
+| `turn.glm-5.3-1.cost_usd` | 0.060832 |  | lower | no |
+| `turn.glm-5.3-2.engine_s` | 0.003 |  | lower | no |
+| `turn.glm-5.3-2.first_verified_s` | 34.868 |  | lower | no |
+| `turn.glm-5.3-2.removed_share` | 0.55 |  | lower | no |
+| `turn.glm-5.3-2.done_s` | 172.95 |  | lower | no |
+| `turn.glm-5.3-2.cost_usd` | 0.020145 |  | lower | no |
+| `turn.glm-5.3-3.engine_s` | 0.002 |  | lower | no |
+| `turn.glm-5.3-3.first_verified_s` | 4.701 |  | lower | no |
+| `turn.glm-5.3-3.removed_share` | 0.692 |  | lower | no |
+| `turn.glm-5.3-3.done_s` | 104.462 |  | lower | no |
+| `turn.glm-5.3-3.cost_usd` | 0.014735 |  | lower | no |
+| `turn.glm-5.3-4.engine_s` | 0.002 |  | lower | no |
+| `turn.glm-5.3-4.removed_share` | 1.0 |  | lower | no |
+| `turn.glm-5.3-4.done_s` | 97.363 |  | lower | no |
+| `turn.glm-5.3-4.cost_usd` | 0.01884 |  | lower | no |
+| `turn.glm-5.3-6.engine_s` | 0.002 |  | lower | no |
+| `turn.glm-5.3-6.first_verified_s` | 6.236 |  | lower | no |
+| `turn.glm-5.3-6.removed_share` | 0.308 |  | lower | no |
+| `turn.glm-5.3-6.done_s` | 64.229 |  | lower | no |
+| `turn.glm-5.3-6.cost_usd` | 0.014279 |  | lower | no |
+| `turn.glm-5.3-7.engine_s` | 0.002 |  | lower | no |
+| `turn.glm-5.3-7.first_verified_s` | 8.265 |  | lower | no |
+| `turn.glm-5.3-7.removed_share` | 0.615 |  | lower | no |
+| `turn.glm-5.3-7.done_s` | 98.702 |  | lower | no |
+| `turn.glm-5.3-7.cost_usd` | 0.015163 |  | lower | no |
+| `turn.claude-haiku-5-5-1.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-haiku-5-5-1.first_verified_s` | 14.737 |  | lower | no |
+| `turn.claude-haiku-5-5-1.removed_share` | 0.64 |  | lower | no |
+| `turn.claude-haiku-5-5-1.done_s` | 110.508 |  | lower | no |
+| `turn.claude-haiku-5-5-1.cost_usd` | 0.018127 |  | lower | no |
+| `turn.claude-haiku-5-5-2.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-haiku-5-5-2.first_verified_s` | 50.119 |  | lower | no |
+| `turn.claude-haiku-5-5-2.removed_share` | 0.5 |  | lower | no |
+| `turn.claude-haiku-5-5-2.done_s` | 83.888 |  | lower | no |
+| `turn.claude-haiku-5-5-2.cost_usd` | 0.012658 |  | lower | no |
+| `turn.claude-haiku-5-5-3.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-haiku-5-5-3.first_verified_s` | 8.37 |  | lower | no |
+| `turn.claude-haiku-5-5-3.removed_share` | 0.5 |  | lower | no |
+| `turn.claude-haiku-5-5-3.done_s` | 49.932 |  | lower | no |
+| `turn.claude-haiku-5-5-3.cost_usd` | 0.00578 |  | lower | no |
+| `turn.claude-haiku-5-5-4.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-haiku-5-5-4.first_verified_s` | 19.194 |  | lower | no |
+| `turn.claude-haiku-5-5-4.removed_share` | 0.6 |  | lower | no |
+| `turn.claude-haiku-5-5-4.done_s` | 62.813 |  | lower | no |
+| `turn.claude-haiku-5-5-4.cost_usd` | 0.010347 |  | lower | no |
+| `turn.claude-haiku-5-5-6.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-haiku-5-5-6.first_verified_s` | 9.571 |  | lower | no |
+| `turn.claude-haiku-5-5-6.removed_share` | 0.25 |  | lower | no |
+| `turn.claude-haiku-5-5-6.done_s` | 59.248 |  | lower | no |
+| `turn.claude-haiku-5-5-6.cost_usd` | 0.013309 |  | lower | no |
+| `turn.claude-haiku-5-5-7.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-haiku-5-5-7.first_verified_s` | 15.955 |  | lower | no |
+| `turn.claude-haiku-5-5-7.removed_share` | 0.938 |  | lower | no |
+| `turn.claude-haiku-5-5-7.done_s` | 28.001 |  | lower | no |
+| `turn.claude-haiku-5-5-7.cost_usd` | 0.005403 |  | lower | no |
+| `turn.claude-sonnet-5-5-1.engine_s` | 0.003 |  | lower | no |
+| `turn.claude-sonnet-5-5-1.first_verified_s` | 34.433 |  | lower | no |
+| `turn.claude-sonnet-5-5-1.removed_share` | 0.545 |  | lower | no |
+| `turn.claude-sonnet-5-5-1.done_s` | 147.858 |  | lower | no |
+| `turn.claude-sonnet-5-5-1.cost_usd` | 0.070407 |  | lower | no |
+| `turn.claude-sonnet-5-5-2.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-sonnet-5-5-2.first_verified_s` | 33.381 |  | lower | no |
+| `turn.claude-sonnet-5-5-2.removed_share` | 0.474 |  | lower | no |
+| `turn.claude-sonnet-5-5-2.done_s` | 112.871 |  | lower | no |
+| `turn.claude-sonnet-5-5-2.cost_usd` | 0.060395 |  | lower | no |
+| `turn.claude-sonnet-5-5-3.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-sonnet-5-5-3.first_verified_s` | 2.562 |  | lower | no |
+| `turn.claude-sonnet-5-5-3.removed_share` | 0.704 |  | lower | no |
+| `turn.claude-sonnet-5-5-3.done_s` | 105.122 |  | lower | no |
+| `turn.claude-sonnet-5-5-3.cost_usd` | 0.064941 |  | lower | no |
+| `turn.claude-sonnet-5-5-4.engine_s` | 0.001 |  | lower | no |
+| `turn.claude-sonnet-5-5-4.first_verified_s` | 53.615 |  | lower | no |
+| `turn.claude-sonnet-5-5-4.removed_share` | 0.724 |  | lower | no |
+| `turn.claude-sonnet-5-5-4.done_s` | 343.649 |  | lower | no |
+| `turn.claude-sonnet-5-5-4.cost_usd` | 0.070663 |  | lower | no |
+| `turn.claude-sonnet-5-5-6.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-sonnet-5-5-6.first_verified_s` | 3.507 |  | lower | no |
+| `turn.claude-sonnet-5-5-6.removed_share` | 0.444 |  | lower | no |
+| `turn.claude-sonnet-5-5-6.done_s` | 211.199 |  | lower | no |
+| `turn.claude-sonnet-5-5-6.cost_usd` | 0.054651 |  | lower | no |
+| `turn.claude-sonnet-5-5-7.engine_s` | 0.002 |  | lower | no |
+| `turn.claude-sonnet-5-5-7.first_verified_s` | 1.548 |  | lower | no |
+| `turn.claude-sonnet-5-5-7.removed_share` | 0.591 |  | lower | no |
+| `turn.claude-sonnet-5-5-7.done_s` | 98.135 |  | lower | no |
+| `turn.claude-sonnet-5-5-7.cost_usd` | 0.066513 |  | lower | no |
 | `turn.median.engine_s` | 0.002 |  | lower | no |
-| `turn.median.first_verified_s` | 34.844 |  | lower | no |
-| `turn.median.removed_share` | 0.571 |  | lower | no |
-| `turn.median.done_s` | 102.755 |  | lower | no |
-| `turn.median.cost_usd` | 0.00696 |  | lower | no |
+| `turn.median.first_verified_s` | 34.198 |  | lower | no |
+| `turn.median.removed_share` | 0.5605 |  | lower | no |
+| `turn.median.done_s` | 110.508 |  | lower | no |
+| `turn.median.cost_usd` | 0.013309 |  | lower | no |
 | `paragraph.complete` | 4 |  | higher | no |
 | `paragraph.partial` | 2 |  | lower | no |
 | `paragraph.none` | 0 |  | lower | no |

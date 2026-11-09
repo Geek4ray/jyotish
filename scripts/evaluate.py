@@ -175,7 +175,7 @@ def checker(card: Card):
         f"{len(rows)} rows; the validator alone: precision {s['overall']['precision']:.3f}, recall "
         f"{s['overall']['recall']:.3f}, F1 {s['overall']['f1']:.3f}; {caught} of {len(wording)} tag and wording "
         f"errors caught; {s['accepted']['fp']} accepted sentences rejected. The semantic categories are the "
-        f"checker's. A turn's sentences (`where: \"answer\"`, {len(answer)} rows from the live turns of 2026-11-01 and Ray's of 2026-11-02): "
+        f"checker's. A turn's sentences (`where: \"answer\"`, {len(answer)} rows from the live turns of 2026-11-01, Ray's of 2026-11-02 and the writer bake-off of 2026-11-09): "
         f"the validator alone refuses {sa['tp']} of {sa['tp'] + sa['fn']} wrong ones and {sa['fp']} true ones. " + live]))
 
 
