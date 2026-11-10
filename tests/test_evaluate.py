@@ -64,24 +64,32 @@ def test_the_committed_scorecard_has_every_number_with_a_direction_and_gates_onl
     assert "no Anthropic credentials here" not in md and "live run on record" in md
 
 
-def test_ci_runs_the_suite_then_the_gate_with_the_crosscheck_install_apart():
+def test_ci_runs_the_suite_and_the_gate_as_two_jobs_with_the_crosscheck_install_apart():
+    # Two jobs since 2026-11-10: pytest (44 to 54 minutes on the runners) and the harness (about 20) outgrew one
+    # job's 75 minutes, and the harness runs its own tests, so neither waits on the other.
     import yaml
     ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
-    steps = yaml.safe_load(ci)["jobs"]["test"]["steps"]                        # valid YAML, and its steps
-    apart = [s for s in steps if "[crosscheck]" in s.get("run", "")]
-    assert len(apart) == 1 and apart[0]["continue-on-error"] is True
-    assert "on: push" in ci and ".venv/bin/pytest -q" in ci
-    assert "scripts/evaluate.py" in ci and "--compare docs/scorecard.json" in ci
-    i = ci.index('pip install -e ".[crosscheck]"')
-    assert "continue-on-error: true" in ci[ci.rfind("- name:", 0, i):i]         # its own step, allowed to fail
-    assert ci.index("run: .venv/bin/pytest -q") < ci.index("run: .venv/bin/python scripts/evaluate.py")
-    job = yaml.safe_load(ci)["jobs"]["test"]
-    assert 60 <= job["timeout-minutes"] <= 120                                   # a cap on a hang, not on the harness
-    assert job["runs-on"] != "ubuntu-latest" and job["runs-on"].startswith("ubuntu-")   # pinned: a stable cache key
-    setup = next(s for s in steps if "setup-python" in s.get("uses", ""))
-    assert setup["with"]["cache"] == "pip" and setup["with"]["cache-dependency-path"] == "pyproject.toml"
-    browser = next(s for s in steps if "actions/cache" in s.get("uses", ""))
+    jobs = yaml.safe_load(ci)["jobs"]                                            # valid YAML, and its jobs
+    assert "on: push" in ci
+    test, evaluate = jobs["test"], jobs["evaluate"]
+    assert [s["run"] for s in test["steps"] if s.get("name") == "pytest"] == [".venv/bin/pytest -q"]
+    gate = [s["run"] for s in evaluate["steps"] if "scripts/evaluate.py" in s.get("run", "")]
+    assert len(gate) == 1 and "--compare docs/scorecard.json" in gate[0]
+    assert not [s for s in test["steps"] if "scripts/evaluate.py" in s.get("run", "")]
+    assert "needs" not in evaluate                                               # side by side, not in turn
+    for job in (test, evaluate):
+        steps = job["steps"]
+        apart = [s for s in steps if "[crosscheck]" in s.get("run", "")]
+        assert len(apart) == 1 and apart[0]["continue-on-error"] is True          # its own step, allowed to fail
+        assert 30 <= job["timeout-minutes"] <= 120                               # a cap on a hang
+        assert job["runs-on"] != "ubuntu-latest" and job["runs-on"].startswith("ubuntu-")   # pinned: a stable cache key
+        setup = next(s for s in steps if "setup-python" in s.get("uses", ""))
+        assert setup["with"]["cache"] == "pip" and setup["with"]["cache-dependency-path"] == "pyproject.toml"
+    assert test["timeout-minutes"] >= 60 and "postgres" in test["services"]
+    browser = next(s for s in test["steps"] if "actions/cache" in s.get("uses", ""))
     assert "ms-playwright" in browser["with"]["path"] and "pyproject.toml" in browser["with"]["key"]
+    kept = next(s for s in evaluate["steps"] if "upload-artifact" in s.get("uses", ""))
+    assert kept["if"] == "always()" and "scorecard" in kept["with"]["path"]
 
 
 def test_the_paragraph_policy_is_counted_from_the_latest_curious_comparison():

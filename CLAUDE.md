@@ -248,7 +248,7 @@ the reference chart and three synthetic births (`tests/fixtures/births.json`).
 `tests/fixtures/checker_bench.jsonl` is built and scored by `scripts/checker_bench.py`; the live
 checker run is marked live. `jyotish export-reviews` writes the judgements to data/preferences/
 (gitignored client data; judgements, not outcomes). `scripts/evaluate.py` writes
-docs/scorecard.{md,json}, and `.github/workflows/ci.yml` runs pytest and then fails when any *gated*
+docs/scorecard.{md,json}, and `.github/workflows/ci.yml` runs pytest and, as a second job beside it (2026-11-10), fails when any *gated*
 scorecard number is worse than the committed one: the verdicts (tests passed and failed, the
 cross-check's maxima, the validator's wording catch and false rejects, the placement check) and two
 pass/fail checks on the 20,000-subject synthetic runs. Sampled statistics (the synthetic shares and
