@@ -261,6 +261,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                web_dir: Path | None = REPO / "web", examples_dir: Path | None = REPO / "examples",
                reviewers: dict[str, str] | None = None, review_checker=None,
                clerks: dict[str, str] | None = None, rate: tuple[int, int] | None = None,
+               astrologers: dict[str, str] | None = None,
                turn_writer=None, turn_checker=None, turn_limit: float | None = None,
                payloads_held: int | None = None, today=None) -> FastAPI:
     """The app. `model_fixture` replays a recorded narration instead of calling the model
@@ -291,7 +292,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     Session = sessionmaker(engine, expire_on_commit=False)
     tokens = reviewers if reviewers is not None else reviewers_from_env()
     clerk_tokens = clerks if clerks is not None else reviewers_from_env("JYOTISH_CLERKS")
-    for var, given, explicit in (("JYOTISH_REVIEWERS", tokens, reviewers), ("JYOTISH_CLERKS", clerk_tokens, clerks)):
+    astro_tokens = astrologers if astrologers is not None else reviewers_from_env("JYOTISH_ASTROLOGERS")
+    for var, given, explicit in (("JYOTISH_REVIEWERS", tokens, reviewers), ("JYOTISH_CLERKS", clerk_tokens, clerks),
+                                 ("JYOTISH_ASTROLOGERS", astro_tokens, astrologers)):
         if given and explicit is None:
             logs.event("credentials.environment", logging.WARNING, variable=var, names=sorted(set(given.values())),
                        note="tokens from the environment: for a local run; deployed, use `jyotish reviewer add` "
@@ -848,8 +851,17 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
 
     # --- the review step ----------------------------------------------------------------
 
+    def astrologer(request: Request) -> str:
+        """The astrologer's token: the only one whose verdict is stored against a bank row (review 2026-11-15, M11:
+        any reviewer's token, a blind comparison's judge included, could approve a meaning for every client)."""
+        return credential(request, "astrologer", astro_tokens)
+
     def reviewer(request: Request) -> str:
-        return credential(request, "reviewer", tokens)
+        """A reviewer's token, or the astrologer's: he reviews too (the session review page, the worksheet)."""
+        try:
+            return credential(request, "reviewer", tokens)
+        except HTTPException:
+            return astrologer(request)
 
     def done_reading(s, reading_id: str, pending_ok: bool = False):
         """A finished reading, for the review step and the comparison. `pending_ok`: the review view may
@@ -1070,7 +1082,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         can write it back to the bank and every later client reads the correction."""
         from .conversation import worksheet
         from .db import BankReviewRow
-        who = reviewer(request)
+        who = astrologer(request)
         if req.verdict in ("change", "wrong") and not (req.words or "").strip():
             raise HTTPException(status_code=422, detail=f"a verdict '{req.verdict}' needs your words "
                                                         f"({'the sentence as it should read' if req.verdict == 'change' else 'why'})")

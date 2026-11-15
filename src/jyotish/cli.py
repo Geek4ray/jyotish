@@ -424,7 +424,7 @@ def cmd_read(args) -> int:
 
 
 def cmd_credentials(args) -> int:
-    """jyotish reviewer|clerk|owner add|revoke|list: tokens in the credentials table."""
+    """jyotish reviewer|clerk|owner|astrologer add|revoke|list: tokens in the credentials table."""
     import sys
     from sqlalchemy.orm import sessionmaker
     from .db import CredentialRow, describe, issue_token, migrate, revoke_token
@@ -604,7 +604,8 @@ def main(argv: list[str] | None = None) -> None:
     for x in (sne, snx):
         x.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
     for kind, what in (("reviewer", "a reviewer's token: /review, /review?mode=blind (the judge page), /compare"),
-                       ("clerk", "a clerk's token: POST /outcomes"), ("owner", "the owner's token: /costs/daily")):
+                       ("clerk", "a clerk's token: POST /outcomes"), ("owner", "the owner's token: /costs/daily"),
+                       ("astrologer", "the astrologer's token: verdicts on the bank from the worksheet")):
         k = sub.add_parser(kind, help=what)
         ksub = k.add_subparsers(dest="kcmd", required=True)
         ka = ksub.add_parser("add", help=f"a new {kind} token, printed once (only its hash is stored)")
@@ -635,7 +636,7 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.cmd == "read":
         raise SystemExit(cmd_read(args))
-    if args.cmd in ("reviewer", "clerk", "owner"):
+    if args.cmd in ("reviewer", "clerk", "owner", "astrologer"):
         raise SystemExit(cmd_credentials(args))
     if args.cmd in ("outcomes", "subject", "session"):
         raise SystemExit(cmd_outcomes(args))

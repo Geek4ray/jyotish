@@ -264,7 +264,7 @@ class CredentialRow(Base):
     reviewer add`, and never stored), the name it acts under, and when it was revoked."""
     __tablename__ = "credentials"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    kind: Mapped[str] = mapped_column(String(16))                        # reviewer | clerk | owner
+    kind: Mapped[str] = mapped_column(String(16))                        # reviewer | clerk | owner | astrologer
     name: Mapped[str] = mapped_column(String(64))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
@@ -386,7 +386,7 @@ class LedgerRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
-KINDS = ("reviewer", "clerk", "owner")
+KINDS = ("reviewer", "clerk", "owner", "astrologer")   # the astrologer: verdicts on the bank (review 2026-11-15, M11)
 
 
 def token_hash(token: str) -> str:

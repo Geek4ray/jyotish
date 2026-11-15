@@ -573,7 +573,8 @@ def ws_app(tmp_path_factory, ws_bank):
         from jyotish.narrate import CheckResult, Proposition
         return CheckResult(propositions=[Proposition(text=s, supported=True, evidence="stub")])
     app = create_app(f"sqlite:///{db}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
-                     reviewers={"tok-ws": "astrologer-1"}, review_checker=passes, today=lambda: AS_OF)
+                     reviewers={"tok-judge": "judge-1"}, astrologers={"tok-ws": "astrologer-1"},
+                     review_checker=passes, today=lambda: AS_OF)
     yield app, f"sqlite:///{db}"
     mp.undo()
 
@@ -698,7 +699,7 @@ def test_6_the_session_review_page_opens_the_worksheet_and_saves_a_verdict(tmp_p
     mp = pytest.MonkeyPatch()
     mp.setenv("JYOTISH_LAYERED", "1")
     server, thread, base = _serve(tmp_path / "ws.db", str(ROOT / "tests" / "fixtures" / "narration_career_edited.json"),
-                                  reviewers={"tok-page": "astrologer-1"}, today=lambda: AS_OF)
+                                  astrologers={"tok-page": "astrologer-1"}, today=lambda: AS_OF)
     try:
         with httpx.Client(base_url=base, timeout=90) as c:
             sid = c.post("/sessions", json=BIRTH).json()["id"]

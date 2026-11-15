@@ -753,3 +753,46 @@ def test_m10_the_frozen_turns_hold_every_variant():
     frozen = json.loads((ROOT / "tests" / "fixtures" / "layered_seven_turns.json").read_text())
     assert sorted(frozen["variants"]) == ["0", "1", "2"]
     assert len({json.dumps(t) for t in frozen["variants"].values()}) == 3        # three different answers
+
+
+# --- M11. Any reviewer can approve bank rows --------------------------------------------------------------------------
+
+def test_m11_only_the_astrologers_token_stores_a_bank_verdict(tmp_path, monkeypatch):
+    import time
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.api import create_app
+    from jyotish.conversation import OfflineTurnWriter
+    from jyotish.db import BankReviewRow, issue_token, migrate
+    from jyotish.reference import REFERENCE_LAT, REFERENCE_LON
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    url = f"sqlite:///{tmp_path / 'm11.db'}"
+    with sessionmaker(migrate(url)).begin() as s:                       # `jyotish astrologer add` stores its hash
+        token = issue_token(s, "astrologer", "astrologer-1")
+    app = create_app(url, turn_writer=OfflineTurnWriter, reviewers={"tok-judge": "judge-1"}, astrologers={},
+                     today=lambda: AS_OF)
+    birth = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT,
+             "lon": REFERENCE_LON, "node": "mean", "place": "Rewari, Haryana"}
+    judge, astro = {"Authorization": "Bearer tok-judge"}, {"Authorization": f"Bearer {token}"}
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=birth).json()["id"]
+        n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
+        t = time.monotonic()
+        while c.get(f"/sessions/{sid}/turns/{n}").json()["status"] not in ("done", "failed"):
+            assert time.monotonic() - t < 90
+            time.sleep(0.05)
+        assert c.get(f"/sessions/{sid}/turns/{n}/worksheet", headers=judge).status_code == 200     # a reviewer reads
+        assert c.get(f"/sessions/{sid}/turns/{n}/worksheet", headers=astro).status_code == 200     # so does he
+        v = {"i": 0, "verdict": "right"}
+        assert c.post(f"/sessions/{sid}/turns/{n}/worksheet/verdict", json=v, headers=judge).status_code == 401
+        assert c.post(f"/sessions/{sid}/turns/{n}/worksheet/verdict", json=v, headers=astro).status_code == 200
+    with sessionmaker(migrate(url))() as s:
+        assert [r.reviewer_id for r in s.query(BankReviewRow)] == ["astrologer-1"]
+
+
+def test_m11_the_cli_issues_an_astrologers_token(tmp_path, capsys):
+    from jyotish.cli import main
+    db = f"sqlite:///{tmp_path / 'c.db'}"
+    with pytest.raises(SystemExit) as done:
+        main(["astrologer", "add", "astrologer-1", "--database", db])
+    assert done.value.code == 0 and "astrologer astrologer-1: token" in capsys.readouterr().out
