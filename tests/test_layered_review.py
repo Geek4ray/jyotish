@@ -613,3 +613,48 @@ def test_m6_agreement_mends_the_second_verb_and_leaves_a_role_singular():
         "When {role} sits in"
     assert tidy("in your 12th house,, and together") == "in your 12th house, and together"
     assert tidy("in your 12th house, , and together") == "in your 12th house, and together"
+
+
+# --- M7. Merging several areas into one item overstates what each area has ----------------------------------------------
+
+def _reference():
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    return assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+
+
+def test_m7_the_merged_period_names_each_lord_with_its_own_areas():
+    from jyotish.conversation import compose, plan_turn, route_turn
+    c = _reference()
+    m = "what are the challenges in my life"
+    p = plan_turn(c, m, route_turn(m, c), as_of=AS_OF)
+    period = next(i for i in p.items if i.part == "period")
+    assert period.signature == "period.now.touches.each"
+    assert period.facts["hands"] == {"Jupiter": ["father", "reputation", "siblings"], "Mercury": ["father", "siblings"]}
+    told = next(s["text"] for s in compose(p, session_key="m7")["sentences"] if s["part"] == "period")
+    assert "Mercury in your father and brothers, sisters and courage" in told and "Mercury have a hand" not in told
+
+
+def test_m7_the_merged_period_over_random_charts_never_gives_a_lord_an_area_it_does_not_touch(plans):
+    for c, p in plans:
+        for i in p.items:
+            if i.signature == "period.now.touches.each":
+                a = {x: set(v) for x, v in i.facts["hands"].items()}
+                lords = {ar: set(c.scored.areas[ar].lords) | set(c.scored.areas[ar].karakas) for ar in i.facts["areas"]}
+                assert all(x in lords[ar] for x, v in a.items() for ar in v), (i.facts["hands"], lords)
+
+
+def test_m7_a_rule_said_for_several_areas_reads_each_areas_own_meaning_row():
+    from jyotish.bank import Bank, BankRow
+    from jyotish.conversation import compose, plan_turn, route_turn
+    c = _reference()
+    m = "what are the challenges in my life"
+    p = plan_turn(c, m, route_turn(m, c), as_of=AS_OF)
+    rule = next(i for i in p.items if i.part == "rule" and len(i.facts.get("areas") or []) > 1)
+    rows = [BankRow(signature=f"{rule.signature}@{a}", kind="meaning", slots=["area"], source="BPHS 1.1",
+                    drafted_by="t", drafted_on=AS_OF, variants=[f"For {{area}} ({a})."] * 3) for a in rule.facts["areas"]]
+    told = [s for s in compose(p, Bank(rows, "v"), session_key="m7", draft_meanings=True)["sentences"]
+            if s["row"] and s["row"]["kind"] == "meaning"]
+    labels = rule.facts["area_labels"]
+    assert [s["text"] for s in told] == [f"For {labels[a]} ({a})." for a in rule.facts["areas"]]
+    assert [s["area"] for s in told] == rule.facts["areas"]

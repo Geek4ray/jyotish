@@ -510,6 +510,8 @@ def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tu
                 first = rules[key]
                 first.facts.setdefault("areas", [first.area]).append(i.area)
                 first.slots["area"] = n_and([labels[a] for a in first.facts["areas"]])
+                # Each area's own words, for its own meaning row (review M7).
+                first.facts["area_labels"] = {a: labels[a] for a in first.facts["areas"]}
                 continue
             rules[key] = i
         elif i.part == "weakness":
@@ -527,14 +529,27 @@ def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tu
         touched = [p.area for p in periods if p.signature == "period.now.touches"]
         lords = [x for p in periods for x in (p.facts.get("touching") or [])]
         slots = dict(p0.slots) | {"area": n_and([labels[a] for a in (touched or [p.area for p in periods])])}
-        if touched:
-            slots["touching"] = n_and([("the " + x if x in ("Sun", "Moon") else x) for x in dict.fromkeys(lords)])
+        # Each lord with the areas it has a hand in (review 2026-11-15, M7: "Jupiter and Mercury have a hand in your
+        # father, your reputation and ..." where Mercury touches no reputation).
+        hands = {x: [p.area for p in periods if x in (p.facts.get("touching") or [])] for x in dict.fromkeys(lords)}
+        the = lambda x: "the " + x if x in ("Sun", "Moon") else x
         sig = "period.now.touches" if touched else "period.now.apart"
-        engine = (f"You are in the period of {slots['maha']}, within that of {slots['antar']}, until {slots['until']}; "
-                  + (f"{slots['touching']} {'have' if ' and ' in slots['touching'] else 'has'} a hand in {slots['area']}."
-                     if touched else f"neither rules nor signifies {slots['area']}."))
+        if touched:
+            slots["touching"] = n_and([the(x) for x in hands])
+        if touched and len({tuple(v) for v in hands.values()}) > 1:
+            sig = "period.now.touches.each"
+            parts = [f"{the(x)} {'has a hand ' if k == 0 else ''}in {n_and([labels[a] for a in v])}"
+                     for k, (x, v) in enumerate(hands.items())]
+            slots["hands"] = ", ".join(parts[:-1]) + ", and " + parts[-1]
+            engine = (f"You are in the period of {slots['maha']}, within that of {slots['antar']}, until "
+                      f"{slots['until']}; {slots['hands']}.")
+        else:
+            engine = (f"You are in the period of {slots['maha']}, within that of {slots['antar']}, until {slots['until']}; "
+                      + (f"{slots['touching']} {'have' if ' and ' in slots['touching'] else 'has'} a hand in {slots['area']}."
+                         if touched else f"neither rules nor signifies {slots['area']}."))
         item = p0.model_copy(update={"signature": sig, "slots": slots, "engine": engine, "area": p0.area,
-                                     "facts": p0.facts | {"areas": [p.area for p in periods], "touched_areas": touched}})
+                                     "facts": p0.facts | {"areas": [p.area for p in periods], "touched_areas": touched,
+                                                          "hands": hands}})
         at = next(k for k, i in enumerate(out) if i.part in ("stretch",)) if any(i.part == "stretch" for i in out) else len(out)
         out.insert(at, item)
     return out, left

@@ -940,14 +940,22 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
             out.append(sentence(item, None, item.engine))
         else:
             continue
-        meaning = bank.meaning(item.signature, item.area) if item.part in ("rule", "weakness") else None
-        if meaning is not None and set(meaning.slots) <= set(item.slots):
+        if item.part not in ("rule", "weakness"):
+            continue
+        # A rule said once for several areas reads each area's own meaning row with its own area's words (review M7:
+        # the first area's row was filled with every area, so career's reading was told as money's).
+        own = item.facts.get("area_labels") or {item.area: item.slots.get("area")}
+        for area, label in own.items():
+            meaning = bank.meaning(item.signature, area)
+            slots = item.slots | {"area": label}
+            if meaning is None or not set(meaning.slots) <= set(slots):
+                continue
             # A public client reads only a variant the astrologer approved as he read it (review H3): the session's
             # pick, else an approved sibling; with draft meanings on, the pick itself.
             pick = variant_of(session_key, meaning.signature)
             i = pick if draft_meanings else meaning.approved_pick(pick)
             if i is not None:
-                out.append(sentence(item, meaning, meaning.fill(i, item.slots), i))
+                out.append(sentence(item, meaning, meaning.fill(i, slots), i) | {"area": area})
     said_keys = set(said_keys or [])
     if said_before or said_keys:
         keep = ("Neither stretch is", "This stretch is not")

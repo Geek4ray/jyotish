@@ -498,8 +498,36 @@
    "usd": {
     "checker": 0.0014
    }
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 2,
+   "checks": 24,
+   "refused": {
+    "period.now.touches": [
+     "variant 2 ('Until November 2028 you are in the period of Jupiter, within that of Mercury, and Jupiter and Mercury have a hand in your career, marriage and money.') is not stated by the facts: the checker returned no result (max_tokens)"
+    ]
+   },
+   "no_sample": [],
+   "usd": {
+    "checker": 0.0164
+   }
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 1,
+   "checks": 12,
+   "refused": {},
+   "no_sample": [],
+   "usd": {
+    "checker": 0.004
+   }
   }
  ],
- "rows_in_bank": 126,
- "usd_total": 2.0942
+ "rows_in_bank": 127,
+ "usd_total": 2.1146
 }

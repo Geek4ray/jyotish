@@ -223,6 +223,14 @@ def check_rows(rows: dict, found: dict, checker, checker_model: str, spent: dict
                 asks.append((r.fill(i, x["slots"]), data))
                 where.append((k, i, shape_of(x["slots"])))
     results = checker.check_many(asks) if asks else []
+    # A call that returned no verdict (max_tokens, "(no verdict)"; a failed call, "unchecked") is asked again once; a
+    # second miss stands as a refusal, so an unchecked variant is never shown.
+    missed = lambda res, meta: (meta or {}).get("unchecked") or any(p.text in ("(no verdict)", "(unchecked)")
+                                                                   for p in res.propositions)
+    again = [n for n, (res, meta) in enumerate(results) if missed(res, meta)]
+    if again:
+        for n, r in zip(again, checker.check_many([asks[n] for n in again])):
+            results[n] = r
     bad = defaultdict(list)
     for (k, i, shape), (sentence, _), (res, meta) in zip(where, asks, results):
         ok = all(p.supported for p in res.propositions)

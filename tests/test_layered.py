@@ -840,6 +840,7 @@ def test_8_the_scorecard_reports_the_layered_answer_never_gated(monkeypatch, tmp
     card = ev.Card()
     ev.layered(card, charts=4)
     n = card.numbers
-    assert 0 < n["bank.coverage"]["value"] <= 1 and n["bank.rows"]["value"] == 126
+    from jyotish.bank import load_bank
+    assert 0 < n["bank.coverage"]["value"] <= 1 and n["bank.rows"]["value"] == len(load_bank())
     assert n["layered.composer_share"]["value"] == 1.0 and n["layered.polished.cost_usd"]["value"] == 0.002
     assert not any(v["gate"] for k, v in n.items() if k.startswith(("bank.", "layered.")))
