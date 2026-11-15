@@ -51,6 +51,23 @@ REDUCTION_PLAIN = [
     (re.compile(r"^\{?'?lord_of'?: \[6, 8, 12\]"), lambda m: "its rule over a difficult house"),
     (re.compile(r"^class_by_(houses|lordship) == (dainya|kahala)"), lambda m: "a difficult house in the exchange"),
 ]
+# Each rule's name with its condition in plain words, as the rule file's `when` states it (rules/yoga.*.yaml): the slot
+# {named} of a rule's row and the engine's own sentence, so a Sanskrit name never reaches the client unglossed.
+RULE_PLAIN = {
+    "yoga.ruchaka": "Mars in its own or exalted sign in an angular house",
+    "yoga.bhadra": "Mercury in its own or exalted sign in an angular house",
+    "yoga.hamsa": "Jupiter in its own or exalted sign in an angular house",
+    "yoga.malavya": "Venus in its own or exalted sign in an angular house",
+    "yoga.sasa": "Saturn in its own or exalted sign in an angular house",
+    "yoga.budhaditya": "the Sun and Mercury together in one sign",
+    "yoga.gaja_kesari": "Jupiter in an angular house from the Moon",
+    "yoga.gaja_kesari_bphs": "Jupiter in an angular house, joined or aspected by a helpful planet",
+    "yoga.kendra_trikona_raja": "the rulers of an angular house and of a trine house joined",
+    "yoga.kendra_trikona_raja_weak": "the rulers of an angular house and of a trine house joined, one also ruling a "
+                                     "difficult house",
+    "yoga.neecha_bhanga": "a planet's fall in its sign undone by the planets that rule that sign",
+    "yoga.parivartana": "two planets each in the other's sign",
+}
 # A hidden weakness of the main lord or significator: the body field, and its signature.
 WEAKNESSES = ("mks", "mrita", "low_strength")
 
@@ -132,6 +149,21 @@ def _area_data(chart, area: str, data: dict | None) -> dict:
             "votes": {f: {"vote": v, "derivation": a.vote_details.get(f)} for f, v in a.votes.items()}}
 
 
+def about(chart, area: str, label: str) -> dict[str, Any]:
+    """What an area item is about, as the chart and the engine's area table state it: the area and its words, its
+    houses from the rising sign (the first is its main house), the lord of that house and its karakas (the first is
+    its main significator). Every item's facts carry it, so the checker reads "the main one, your 10th house" or
+    "the planets that signify your career" against a stated fact."""
+    from .scoring import AREAS
+    spec = AREAS.get(area) or {}
+    a = chart.scored.areas.get(area)
+    ml = _main_lord(chart, area)
+    return {"area": area, "area_words": label, "area_houses_from_rising_sign": spec.get("houses"),
+            "main_house": ml[1] if ml else None, "main_house_lord": ml[0] if ml else None,
+            "significators": a.karakas if a is not None else None,
+            "main_significator": a.karakas[0] if a is not None and a.karakas else None}
+
+
 def _family_item(chart, fam: str, v: dict, area: str, label: str, part: str, data: dict | None, sheet: dict,
                  term: float | None) -> PlanItem | None:
     from .narrate import DIGNITY_PLAIN, _ORD, _family_sentence, _rel_phrase
@@ -187,7 +219,8 @@ def _family_item(chart, fam: str, v: dict, area: str, label: str, part: str, dat
         sig += ".many" if len(planets) > 1 else ".one"
         slots["planets"] = _and([_the(p) for p in planets])
     return PlanItem(part=part, signature=sig, area=area, slots=slots, tags=[f"vote:{area}.{fam}"],
-                    facts={"family": fam, "vote": v["vote"], "term": term, "derivation": der}, engine=s.text,
+                    facts={"family": fam, "lean": "favourable" if v["vote"] > 0 else "unfavourable", "term": term,
+                           "derivation": der, "about": about(chart, area, label)}, engine=s.text,
                     notes=s.notes)
 
 
@@ -201,20 +234,22 @@ def _rule_item(chart, f: dict, area: str, label: str) -> tuple[PlanItem | None, 
     name = rule_names(f["rule_id"])[0]
     houses = sorted({int(n[1:]) for x in f["fires"] if x["basis"] == "lagna" for n in x["nodes"] if n.startswith("H")})
     planets = [_the(p) for p in f["planets"]]
-    slots = {"area": label, "name": name, "planets": _and(planets) if planets else "",
+    named = f"{name} ({RULE_PLAIN[f['rule_id']]})" if f["rule_id"] in RULE_PLAIN else name
+    slots = {"area": label, "name": name, "named": named, "planets": _and(planets) if planets else "",
              "houses": _and([_ORD[h] for h in houses]) if houses else ""}
     if plain:
         slots["reductions"] = _and(plain)
     where = f" in your {slots['houses']} {'house' if len(houses) == 1 else 'houses'}" if houses else ""
     who = f", formed by {slots['planets']}{where}," if planets else ""
-    engine = (f"Your chart holds {name}{who} which bears on {label}"
+    engine = (f"Your chart holds {named}{who} which bears on {label}"
               + (f", though it is weakened by {slots['reductions']}." if plain else "."))
     sig = f"rule.{f['rule_id']}.{'reduced' if plain else 'full'}"
     if not houses:
         sig += ".nohouse"
     return PlanItem(part="rule", signature=sig, area=area, slots=slots, tags=list(f["allowed_tags"]),
-                    facts={"rule_id": f["rule_id"], "fires": f["fires"], "planets": f["planets"],
-                           "houses": houses, "reductions": plain}, engine=engine), None
+                    facts={"rule_id": f["rule_id"], "names": rule_names(f["rule_id"]), "fires": f["fires"],
+                           "planets": f["planets"], "houses": houses, "reductions": plain,
+                           "about": about(chart, area, label)}, engine=engine), None
 
 
 def _weakness_items(chart, area: str, label: str, data: dict | None, sheet: dict) -> list[PlanItem]:
@@ -252,7 +287,8 @@ def _weakness_items(chart, area: str, label: str, data: dict | None, sheet: dict
             notes = [n for n in [_sheet_note(sheet, 2 if "lord" in kind else 3, f"planets.{planet}", area)] if n]
             out.append(PlanItem(part="weakness", signature=f"weakness.{w}", area=area, slots=slots,
                                 tags=[f"vote:{area}.{'lord' if 'lord' in kind else 'karaka'}"],
-                                facts={"planet": planet, "role": kind, "sign": b.sign_name, "house": b.house} | fact,
+                                facts={"planet": planet, "role": kind, "sign": b.sign_name, "house": b.house,
+                                       "about": about(chart, area, label)} | fact,
                                 engine=engine, notes=notes))
     return out
 
@@ -280,7 +316,8 @@ def _period_item(chart, area: str, label: str, as_of: date) -> PlanItem | None:
                   f"neither rules nor signifies {label}.")
     return PlanItem(part="period", signature=f"period.now.{'touches' if touched else 'apart'}", area=area,
                     slots=slots, facts={"mahadasha": lords["mahadasha"], "antardasha": lords["antardasha"],
-                                        "until": until, "area_lords": a.lords, "area_karakas": a.karakas},
+                                        "until": until, "area_lords": a.lords, "area_karakas": a.karakas,
+                                        "touching": touched, "about": about(chart, area, label)},
                     engine=engine)
 
 
@@ -289,7 +326,8 @@ def _stretch_items(area: str, label: str, data: dict | None, sheet: dict, hard_f
     if area in NO_STRETCHES:
         return []
     if data is None:                                 # the coverage tool: the signatures a "when" turn carries
-        return [PlanItem(part="stretch", signature=s, area=area, engine="") for s in
+        return [PlanItem(part="stretch", signature=s, area=area, engine="",
+                         slots={"area": label, "when": ""} if "caveat" not in s else {}) for s in
                 ("stretch.most.first", "stretch.least.second", "stretch.caveat.two")]
     sents = _window_sentences(area, label, data, sheet, hard_first)
     if not sents:
@@ -333,6 +371,7 @@ def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str
     for k in OPENING:
         if k in kinds and (k != "when" or when):
             items.append(PlanItem(part="opening", signature=f"opening.{k}", slots={"area": joined},
+                                  facts={"question_kind": k, "areas": list(areas), "area_words": joined},
                                   engine=OPENING[k].format(label=joined)))
     if weakest and areas:
         adverse = [a for a in areas if _area_data(chart, a, data).get("direction") == "adverse"]
@@ -363,7 +402,7 @@ def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str
         items.append(PlanItem(part="verdict", signature=f"verdict.{TIER_KEY[tier]}", area=area,
                               slots={"area": label, "Area": _cap(label), "lean": lean},
                               tags=[f"vote:{area}.{f}" for f, v in a.votes.items() if v],
-                              facts={"tier": tier, "direction": ad.get("direction")},
+                              facts={"tier": tier, "direction": ad.get("direction"), "about": about(chart, area, label)},
                               engine=TIER_SENTENCE[tier].format(label=label, Label=_cap(label), lean=lean),
                               notes=[n for n in [_sheet_note(sheet, 10, None, area), st_note] if n]))
         label_st = (ad.get("stability") or {}).get("label")

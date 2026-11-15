@@ -390,5 +390,7 @@ families, every fired cited rule with its reductions in plain words, the main lo
 weaknesses, the period now, the stretches; each item a bank signature with slots, tags, facts, the engine's sentence,
 and what it left out); the sentence bank (`jyotish.bank`, `data/bank/*.yaml` and its schema: fact and meaning rows,
 three variants with slots, drafted_by/on, draft or approved; every variant refused at load for a never-show, client or
-tier word; `jyotish bank check|coverage`, the share of plan items on 1,000 random charts that find a row).
+tier word; `jyotish bank check|coverage`, the share of plan items on 1,000 random charts that find a row);
+`scripts/draft_bank.py` drafted its 126 rows with claude-sonnet-5-5, every fact variant checked once by the gate
+checker (docs/bank_draft_2026-11-15.json; coverage 99.7%, all rows draft).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

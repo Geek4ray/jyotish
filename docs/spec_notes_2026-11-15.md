@@ -2,8 +2,8 @@
 
 SPEC.md is the export of the living doc and is never edited directly (CLAUDE.md). These record the build of "The
 layered answer" (SPEC Layer 8, rev 134, set 2026-11-15 before the build), one commit per step, against the
-paragraph as written. SPEC.md in the repository is still the rev 132 export; the paragraph was read from the living
-doc.
+paragraph as written. The paragraph was read from the living doc; Ray's re-export of rev 134 (0134da3) landed
+during the build.
 
 ## The layered answer, step by step
 
@@ -64,3 +64,43 @@ doc.
      bank row is written once and shown to every later client, so it is held to the stricter rule.
    - **Meaning rows.** They are drafted for the rules and the hidden weaknesses, per area. A family's lean is a
      fact only.
+3. **The drafted bank** (`scripts/draft_bank.py`; `data/bank/*.yaml`, 126 rows, all `draft`; `docs/bank_draft_2026-11-15.json`).
+   - **Which signatures.** Those that the areas career, marriage and wealth produce, over 300 random charts and the
+     reference chart, with every question kind and a "when" turn, plus every opening, period and stretch. A fact
+     row is drafted for each, and a meaning row per area for each rule and hidden weakness of the three areas: 131
+     signatures in all.
+   - **The drafting.** claude-sonnet-5-5, on the anthropic backend, drafts about ten rows a call. For a fact row it
+     is given the engine's own sentence as what the row says; for a meaning row, the rule's names, glossary,
+     themes, outcomes and citation (its `source`). Each variant is held to `bank.row_errors`, and a refused row is
+     redrafted once with the reasons.
+   - **The check.** Every fact variant, filled with a real chart's values, was checked once by the gate checker
+     (GLM-5.3-Flash at temperature 0) against the item's facts and the engine's sentence. A row with an
+     unsupported variant was redrafted once and checked again; if it still failed it was left out. The verdicts
+     are on the row (`checks`).
+   - **Cost.** The expected cost was printed before each run and was under USD 2 each time (1.61, 0.92 and 0.51,
+     worst case). Spent: USD 1.80 over three runs (drafting 1.45, checking 0.36).
+
+   **The three runs.**
+   1. 71 rows written, 60 left out. Most were refused because the facts the checker was given named no area, its
+      houses, its main house or a dignity's meaning.
+   2. Every plan item's facts now carry `about` (`plan.about`: the area, its houses from the rising sign, its main
+      house and that house's lord, its significators), and the check is given the engine's dignity words and the
+      glossary. 27 rows written, 33 left out, mostly rule rows with a bare Sanskrit name in one variant.
+   3. A rule's slot `{named}` gives its name with its condition in plain words (`plan.RULE_PLAIN`, from each rule's
+      `when`), and the engine's fallback sentence uses it. 28 rows written, 5 left out.
+
+   **Coverage.** On 1,000 random synthetic charts (every area, every question kind, a "when" turn), 99.7% of plan
+   items find a fact row whose slots they fill. Every part is at 100% except the rules, at 94.7%. Meaning rows exist
+   for 24% of the rule and weakness items, the three areas drafted first.
+
+   **What the astrologer must settle.** The 5 rows left out are Gaja Kesari in its BPHS form (four signatures) and
+   Neecha Bhanga reduced. The checker refused them because `RULE_PLAIN` for those two rules does not say what their
+   glossary entries say: the glossary defines Gaja Kesari from the Moon, while the rule's BPHS form counts from the
+   ascendant or the Moon. Until the plain phrase and the glossary agree, those items fall back to the engine's
+   sentence, which carries the same phrase.
+
+   *Readings settled:*
+   - **"Batch where possible".** About ten signatures to a call, rather than the Message Batches API: the gate
+     checker is on DeepInfra, and the drafting wanted the redraft loop within one run.
+   - **The cost limit.** USD 2 is applied per run, to the printed estimate.
+

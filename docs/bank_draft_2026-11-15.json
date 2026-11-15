@@ -1,0 +1,407 @@
+{
+ "runs": [
+  {
+   "date": "2026-11-15",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 71,
+   "rows_kept": 0,
+   "left_out": {
+    "family.arudha.against.many.hard.alone": [
+     "variant 1 ('The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: across them Rahu sits, with no helpful planet beside.') is not stated by the facts: Rahu is an occupant only of UL (Gemini); UL2 (Cancer) and A7 (Leo) list occupants []. The sentence attaches Rahu to all three signs, but the data places it in only one",
+     "variant 3 ('How others see marriage is shown by Gemini, Cancer and Leo, and these signs lean unfavourably; across them Rahu sits, with no helpful planet beside.') is not stated by the facts: The pada rows show Rahu only as an occupant of UL (Gemini); UL2 (Cancer) and A7 (Leo) have occupants: []. \"Across them\" distributes Rahu over all three signs, attaching it to Cancer and Leo where the data states none sits; the only reading that fits the data \u2014 \"Rahu sits in one of these signs\" \u2014 is not what \"across them\" ordinarily says, so the proposition is unsupported (ambiguous between a supported and an unsupported reading)"
+    ],
+    "family.arudha.against.one.hard.helped": [
+     "variant 1 ('The sign that shows how others see your career, Scorpio, leans unfavourably: the Sun and Mercury sit there, with Venus beside to help.') is not stated by the facts: not stated: the data gives an arudha (A10) but states no area for it and provides no glossary entry for 'arudha' that would support 'shows how others see'; the career attribution is the sentence's own"
+    ],
+    "family.house.against.agrees": [
+     "variant 1 ('Taken together, the houses that govern marriage lean unfavourably: the main one, your 7th house from your rising sign, in Virgo, stands less supported than most.') is not stated by the facts: No fact, derivation row, or the data's own sentence designates the 7th as the main marriage house. The derivation simply lists lagna house 7 first among the lagna-basis rows, and its relative (-0.43) is not the strongest or weakest figure among the marriage houses, so nothing in the data marks it as 'the main one'."
+    ],
+    "family.house.for.agrees": [
+     "variant 1 ('Taken together, the houses that govern money lean favourably: the main one, your 2nd house from your rising sign, in Gemini, stands better supported than most.') is not stated by the facts: No fact or row designates any house as the primary/main one. The 2nd-from-lagna is the first derivation row, but the data never ranks the houses or calls the 2nd the main wealth house; the appositive attaches a 'main' status the data does not state.",
+     "variant 2 ('The houses that govern money lean favourably as a group, and the main one, your 2nd house in Gemini, counted from your rising sign, stands better supported than most.') is not stated by the facts: ambiguous between a supported and an unsupported reading: the data gives relative strength 0.48 (bhava_bala 8.93) for the lagna 2nd, which is better than most of the houses the derivation actually lists (2nd highest of the five lagna rows), but the data contains no strengths for the other houses, so 'better supported than most' over an unrestricted set of houses is not stated \u2014 ambiguity marks it unsupported"
+    ],
+    "family.karaka.against": [
+     "variant 1 ('The planets that signify your career lean unfavourably; among them, the Sun sits in Libra in your 6th house, debilitated, where it is least at ease.') is not stated by the facts: the data gives the derivation a family of \"karaka\" but states no area anywhere, so nothing in the data says these planets signify career; read as a gloss of \"debilitated\", the data has no glossary entry for the term, so the gloss has nothing to match; read as a claim that the 6th-house Libra placement is where the Sun is least at ease, that ease-ranking is not stated either \u2014 the sentence is ambiguous between a supported and an unsupported reading",
+     "variant 2 ('Looking at the planets that stand for your career, they lean unfavourably, and among them the Sun is placed in Libra in your 6th house, debilitated, where it is least at ease.') is not stated by the facts: The phrase is ambiguous: read as a gloss on 'debilitated' it fails because the data carries no glossary entry for the term; read as a claim about the 6th house it is stated nowhere in the facts. Either way unsupported.",
+     "variant 3 ('Among the planets that signify your career, the Sun sits in Libra in your 6th house, debilitated, where it is least at ease, and together these planets lean unfavourably.') is not stated by the facts: gloss; the data contains no glossary and no entry for \"debilitated\", so the gloss cannot be checked against its term's meaning"
+    ],
+    "family.lord.for": [
+     "variant 1 ('Saturn, which rules the 1st-numbered house of your career, sits in Taurus in your 1st house, in a friendly sign.') is not stated by the facts: unsupported \u2014 the data states Saturn rules the 10th house (derivation, basis lagna, house 10, lord Saturn), not the 1st; unsupported \u2014 the data's career rows (basis lagna) list houses 10, 6, 2, 11, 7; house 1 is not among them",
+     "variant 2 ('The planet that rules a house of your career is Saturn, and it sits in Taurus, in a friendly sign.') is not stated by the facts: no area_houses in the data"
+    ],
+    "family.panchanga.against.many": [
+     "variant 2 ('Among the planets linked with the day of your birth, Mercury and Saturn lean unfavourably for your career.') is not stated by the facts: the data states a direction (vote -1, negative strength) but states no area: there is no area field and no area_houses list, so nothing in the data says the area is career; 'for career' is a generic framing that is only supported when the data's direction or area says so, and here no area is given",
+     "variant 3 ('For your career, the planets Mercury and Saturn, which are linked with your birth day, lean unfavourably.') is not stated by the facts: Saturn's role is listed as yoga, not vara or the birth day; the relative clause attaches the birth-day link to Saturn wrongly"
+    ],
+    "family.panchanga.against.one": [
+     "variant 1 ('the Sun, one of the planets linked with the day you were born, leans unfavourably for marriage.') is not stated by the facts: the derivation lists the Sun with role 'yoga', not with any day (vara) role; the panchanga family alone does not say the Sun is linked with the day, so the sentence attaches 'the day you were born' to the wrong panchanga element",
+     "variant 2 ('Among the planets tied to the day of your birth, the Sun leans unfavourably for marriage.') is not stated by the facts: the phrase 'among the planets' presupposes a group of more than one, but the data's derivation lists only the Sun; no other planet tied to the birth day is stated"
+    ],
+    "family.panchanga.for.many": [
+     "variant 2 ('Among the planets linked with the day of your birth, Saturn, Mars and Venus lean favourably for your career.') is not stated by the facts: The data states no area. There is no area_houses list and no label calling any house or area \"career\"; the derivation rules cite houses (10, 7, 2, 6, 11) but the data never says any of them is the career area. \"For your career\" attaches an area the data does not state.",
+     "variant 3 ('For your career, the planets Saturn, Mars and Venus, which are linked with your birth day, lean favourably.') is not stated by the facts: the data states the direction (vote 1) but states no area for it: there is no area field, no area_houses, and no finding labelling the lean as career-related, so the career framing is unsupported"
+    ],
+    "family.varga.against": [
+     "variant 1 ('The divisional chart for money leans unfavourably; there Mars falls in Cancer, debilitated, where it is least at ease.') is not stated by the facts: the data contains no glossary entry for 'debilitated', so this gloss cannot be verified against the data's own definition; by the rules, a gloss for a term with no entry is unsupported"
+    ],
+    "family.varga.for": [
+     "variant 1 ('The divisional chart for your career leans favourably; there the Sun falls in Aries, exalted, where it is at its best.') is not stated by the facts: the data nowhere states the area of the varga; there is no area field and no area_houses listing, and no glossary entry for D10; no glossary is present in the data, so the term 'exalted' has no entry there for the gloss to match"
+    ],
+    "opening.weakest.adverse": [
+     "variant 3 ('Taken as a whole, your chart works against you most in marriage.') is not stated by the facts: the engine's sentence says the chart works against the client in marriage, but does not state that this is the greatest or most adverse area of the chart"
+    ],
+    "opening.why": [
+     "variant 1 ('Here is what in your chart lies behind it, set out so that you can see it for yourself.') is not stated by the facts: The data states only \"Here is what in your chart lies behind it.\" It says nothing about how the material is set out or about the client being able to see it for themselves; this added framing clause is not stated by the data.",
+     "variant 2 ('Let us look at what in your chart lies behind it, so that you can see it plainly.') is not stated by the facts: :none \u2014 the data contains no findings and an empty \"facts\" object, so nothing states that any placement in the chart lies behind \"it\" (and \"it\" itself has no antecedent in the data).; :this is a transitional framing promise about the reading's next step, not a proposition about the chart; no cited finding or fact states it, and the data's own sentence only repeats the announcement."
+    ],
+    "rule.yoga.bhadra.full": [
+     "variant 1 ('Your chart holds Bhadra, the combination formed by Mercury in your 1st house, and it bears on your career.') is not stated by the facts: the fired fact carries no area, no details ({}) and no career attribution; the data nowhere says the combination bears on career, and no area_houses entry lists the 1st house as a career house",
+     "variant 2 ('Mercury in your 1st house forms Bhadra, a named combination in your chart that bears on your career.') is not stated by the facts: No cited fact or rule data states any area: the facts give only planets (Mercury), houses (1), and the firing of yoga.bhadra, with no area or direction mentioning career. The only career wording appears in the engine's own sentence, \"...formed by Mercury in your 1st house, which bears on your career,\" where \"which bears on your career\" is ambiguous between the 1st house and the combination, so it does not clearly state that Bhadra bears on career. The appositive in the checked sentence attaches the career claim to Bhadra; that attachment is not clearly stated by the data, so the proposition is unsupported.",
+     "variant 3 ('A combination called Bhadra, made by Mercury in your 1st house, is in your chart and bears on your career.') is not stated by the facts: No area or career connection is stated in the data: the rule fires with no area indicated, no finding or fact links Bhadra to career, and the 1st house is not identified in any area_houses list as a career house"
+    ],
+    "rule.yoga.bhadra.full.nohouse": [
+     "rule.yoga.bhadra.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is present in your chart, made by Venus and Mars, and it bears on your career.'",
+     "rule.yoga.bhadra.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars forms Ruchaka in your chart, and this combination bears on your career.'"
+    ],
+    "rule.yoga.bhadra.reduced": [
+     "rule.yoga.bhadra.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart, made by Venus and Mars in your 2nd and 10th house and bearing on your career, but Saturn's aspect on it weakens it.\"",
+     "rule.yoga.bhadra.reduced: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars in your 2nd and 10th house forms Ruchaka in your chart, which bears on your career, though it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.bhadra.reduced.nohouse": [
+     "rule.yoga.bhadra.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart, made by Venus and Mars and bearing on your career, but Saturn's aspect on it weakens it.\"",
+     "rule.yoga.bhadra.reduced.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which bears on your career, though it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.budhaditya.full": [
+     "rule.yoga.budhaditya.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is in your chart, formed by Venus and Mars in your 2nd and 10th house, and it is the combination which bears on your career.'"
+    ],
+    "rule.yoga.gaja_kesari.full.nohouse": [
+     "rule.yoga.gaja_kesari.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is present in your chart, made by Venus and Mars, and it bears on your career.'",
+     "rule.yoga.gaja_kesari.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars forms Ruchaka in your chart, and this combination bears on your career.'"
+    ],
+    "rule.yoga.gaja_kesari.reduced.nohouse": [
+     "rule.yoga.gaja_kesari.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart, made by Venus and Mars and bearing on your career, but Saturn's aspect on it weakens it.\"",
+     "rule.yoga.gaja_kesari.reduced.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which bears on your career, though it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.gaja_kesari_bphs.full": [
+     "rule.yoga.gaja_kesari_bphs.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is in your chart, a combination formed by Venus and Mars in your 2nd and 10th house, which bears on your career.'"
+    ],
+    "rule.yoga.gaja_kesari_bphs.full.nohouse": [
+     "rule.yoga.gaja_kesari_bphs.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is in your chart, a combination formed by Venus and Mars, which bears on your career.'"
+    ],
+    "rule.yoga.gaja_kesari_bphs.reduced": [
+     "rule.yoga.gaja_kesari_bphs.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is in your chart, a combination formed by Venus and Mars in your 2nd and 10th house, which bears on your career, though it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.gaja_kesari_bphs.reduced.nohouse": [
+     "rule.yoga.gaja_kesari_bphs.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is in your chart, a combination formed by Venus and Mars, which bears on your career, though it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.hamsa.full": [
+     "rule.yoga.hamsa.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is present in your chart through Venus and Mars in your 2nd and 10th house, and it bears on your career.'",
+     "rule.yoga.hamsa.full: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars in your 2nd and 10th house forms Ruchaka in your chart, and this combination bears on your career.'"
+    ],
+    "rule.yoga.hamsa.full.nohouse": [
+     "rule.yoga.hamsa.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is present in your chart, made by Venus and Mars, and it bears on your career.'",
+     "rule.yoga.hamsa.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars forms Ruchaka in your chart, and this combination bears on your career.'"
+    ],
+    "rule.yoga.hamsa.reduced": [
+     "rule.yoga.hamsa.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart through Venus and Mars in your 2nd and 10th house and bears on your career, though Saturn's aspect on it weakens it.\"",
+     "rule.yoga.hamsa.reduced: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars in your 2nd and 10th house forms Ruchaka in your chart, which bears on your career, but it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.hamsa.reduced.nohouse": [
+     "rule.yoga.hamsa.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart through Venus and Mars and bears on your career, though Saturn's aspect on it weakens it.\"",
+     "rule.yoga.hamsa.reduced.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which bears on your career, but it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.kendra_trikona_raja.full": [
+     "rule.yoga.kendra_trikona_raja.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is in your chart, formed by Venus and Mars in your 2nd and 10th house, and it is the combination which bears on your career.'"
+    ],
+    "rule.yoga.malavya.full": [
+     "rule.yoga.malavya.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is in your chart, a combination formed by Venus and Mars in your 2nd and 10th house, which bears on your career.'"
+    ],
+    "rule.yoga.malavya.full.nohouse": [
+     "rule.yoga.malavya.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is in your chart, a combination formed by Venus and Mars, which bears on your career.'"
+    ],
+    "rule.yoga.malavya.reduced": [
+     "rule.yoga.malavya.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart through Venus and Mars in your 2nd and 10th house and bears on your career, though Saturn's aspect on it weakens it.\"",
+     "rule.yoga.malavya.reduced: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars in your 2nd and 10th house forms Ruchaka in your chart, which bears on your career, but it is weakened by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.malavya.reduced.nohouse": [
+     "rule.yoga.malavya.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Ruchaka is present in your chart through Venus and Mars and bears on your career, though Saturn's aspect on it reduces it.\"",
+     "rule.yoga.malavya.reduced.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart and bears on your career, but it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.neecha_bhanga.full": [
+     "rule.yoga.neecha_bhanga.full: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'In your chart, Venus and Mars sits in your 2nd and 10th house and forms the combination called Ruchaka.'"
+    ],
+    "rule.yoga.neecha_bhanga.full.nohouse": [
+     "rule.yoga.neecha_bhanga.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'In your chart, Venus and Mars forms the combination called Ruchaka.'"
+    ],
+    "rule.yoga.neecha_bhanga.reduced": [
+     "variant 2 ('Mercury in your 5th house forms Neecha Bhanga, a classical combination in your chart, but lying too close to the Sun reduces it.') is not stated by the facts: an appositive attached to Neecha Bhanga; no glossary entry for Neecha Bhanga exists in the data to support the gloss, and 'classical' is not stated anywhere \u2014 the only possibly supported part ('in your chart', i.e. it occurs here) is ambiguous with the unsupported 'classical combination' reading"
+    ],
+    "rule.yoga.neecha_bhanga.reduced.nohouse": [
+     "variant 2 ('Mars forms Neecha Bhanga, a classical combination in your chart, but lying too close to the Sun reduces it.') is not stated by the facts: appositive gloss on the term; the data contains no glossary entry for Neecha Bhanga and does not describe it as classical"
+    ],
+    "rule.yoga.parivartana.full": [
+     "rule.yoga.parivartana.full: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'In your chart, Venus and Mars sit in your 2nd and 10th houses and together form the combination called Ruchaka.'"
+    ],
+    "rule.yoga.parivartana.reduced": [
+     "variant 2 ('Jupiter and Venus in your 1st and 11th houses form Parivartana, a classical combination in your chart, but a difficult house in the exchange reduces it.') is not stated by the facts: the data has no glossary entry for Parivartana, so this gloss is unsupported"
+    ],
+    "rule.yoga.ruchaka.full": [
+     "rule.yoga.ruchaka.full: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'In your chart, Venus and Mars sits in your 2nd and 10th house and forms the combination called Ruchaka.'"
+    ],
+    "rule.yoga.ruchaka.full.nohouse": [
+     "rule.yoga.ruchaka.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'In your chart, Venus and Mars forms the combination called Ruchaka.'"
+    ],
+    "rule.yoga.ruchaka.reduced": [
+     "variant 2 (\"Mars in your 7th house forms Ruchaka, a classical combination in your chart, but it is lessened by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.\") is not stated by the facts: a gloss of 'Ruchaka'; the data has no glossary entry for the term, so the gloss cannot be matched"
+    ],
+    "rule.yoga.ruchaka.reduced.nohouse": [
+     "variant 2 ('Mars forms Ruchaka, a classical combination in your chart, but it is lessened by too little strength.') is not stated by the facts: the data has no glossary entry for Ruchaka, so the gloss 'a classical combination' has nothing to match against"
+    ],
+    "rule.yoga.sasa.full": [
+     "rule.yoga.sasa.full: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'The combination called Ruchaka is present in your chart, made by Venus and Mars in your 2nd and 10th house, and it bears on your career.'"
+    ],
+    "rule.yoga.sasa.full.nohouse": [
+     "rule.yoga.sasa.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars forms Ruchaka in your chart, a combination whose name means the hare, and it bears on your career.'"
+    ],
+    "rule.yoga.sasa.reduced": [
+     "rule.yoga.sasa.reduced: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"The combination called Ruchaka is in your chart, made by Venus and Mars in your 2nd and 10th house and bearing on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.sasa.reduced.nohouse": [
+     "rule.yoga.sasa.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, a combination whose name means the hare, and it bears on your career, though Saturn's aspect on it reduces it.\""
+    ],
+    "stretch.caveat.two": [
+     "variant 1 ('To be clear, neither of these two stretches is a prediction of the moment when you will act.') is not stated by the facts: The engine's sentence says only \"Neither stretch\" and never states how many stretches there are; the count of two is added by the reading's sentence.",
+     "variant 2 ('Neither stretch we have just looked at is a prediction of when you will act.') is not stated by the facts: The relative clause 'we have just looked at' presupposes two stretches that were examined, but the data contains no rows, findings, or facts about any stretches being reviewed \u2014 the only content is the engine's own sentence itself, which presupposes rather than states this."
+    ],
+    "stretch.most.first": [
+     "variant 1 ('The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.') is not stated by the facts: The fact gives the window a score of 0.844 but states no comparison; nothing in the data says it outranks all other stretches.; The fact names no area for the window; tags are empty and the 'relevance' term does not name career. The data's direction or area does not say so, so this framing is unsupported.",
+     "variant 2 ('As the chart reads it, the most favourable stretch for your career is the one that runs from October 2029 to June 2032.') is not stated by the facts: no cited fact or finding makes the superlative claim; the fact gives a score for this window but nothing in the data compares it with other windows to establish it as the most favourable; the fact window carries no area/direction field and its tags are empty \u2014 nothing in the data ties this window to career; \"for career\" is not supported by the data's area",
+     "variant 3 ('For your career, the chart reads the most favourable stretch as running from October 2029 to June 2032.') is not stated by the facts: unsupported \u2014 the data nowhere labels the window's area as career; it contains a `relevance` term of 1.0, but this does not say the relevance is to career, so the framing is ambiguous between a supported and an unsupported reading."
+    ],
+    "verdict.moderate": [
+     "variant 1 ('For your career, most of what the chart shows agrees, and on balance it leans favourably.') is not stated by the facts: the cited fact gives tier = 'moderate', which indicates a moderate/mixed tier, not that most indicators agree; no cited fact or finding states that most agree"
+    ],
+    "verdict.strong": [
+     "variant 1 ('For money, what the chart shows agrees closely, and on balance it leans favourably.') is not stated by the facts: the data states no area; it gives only \"tier\" and \"direction\", neither of which says the subject is money"
+    ],
+    "weakness.low_strength": [
+     "variant 2 ('Your chart shows Saturn, the ruler of your 10th house, with less strength than it needs to give fully what it promises.') is not stated by the facts: The facts give Saturn's role as \"lord\" but do not say of which house; nothing in the data states that Saturn rules the 10th house. (Saturn's own house placement is house 1, which is a different claim.) The engine's sentence asserts it, but no cited fact states it.",
+     "variant 3 ('There is less strength in Saturn, the ruler of your 10th house, than it needs to give fully what it promises.') is not stated by the facts: unsupported \u2014 the data gives Saturn role \"lord\" with house 1, which either states Saturn is lord of the 1st house or is ambiguous between that and a placement reading; nothing in the facts states Saturn rules the 10th house. Under an ordinary reading the detail \"ruler of your 10th house\" is attached to the wrong house, and the proposition is at best ambiguous between a supported and an unsupported reading."
+    ],
+    "weakness.mks": [
+     "variant 1 ('In your chart, the ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.') is not stated by the facts: the facts state role: \"lord\" for Saturn, but name no house that Saturn rules; the detail \"of your 10th house\" is attached to the wrong thing \u2014 the only house the data gives for Saturn is the one it sits in (1st); the data gives sign: Taurus but nothing states that the draining effect is independent of the sign; the sentence asserts sign-independence the data does not state",
+     "variant 3 ('Whatever the sign says, Saturn, the ruler of your 10th house, sits in your 1st house, and that is a house that drains it.') is not stated by the facts: the data gives the sign (Taurus) but states nothing about whether the sign's influence matters, weakens, or fails to alter the placement's effect"
+    ],
+    "weakness.mks@career": [
+     "weakness.mks@career: variant 1: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus, as the ruler of your 10th house, sits in your 2nd house, a marana karaka sthana or place of draining, which is traditionally read as lessening what is promised for your career.'",
+     "weakness.mks@career: variant 3: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Texts link Venus placed in your 2nd house, a marana karaka sthana or draining place, with a lowered promise from the ruler of your 10th house where your career is concerned.'"
+    ],
+    "weakness.mks@marriage": [
+     "weakness.mks@marriage: variant 1: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus, as the ruler of your 10th house, sits in your 2nd house, a marana karaka sthana or place of draining, which is traditionally read as lessening what is promised for your career.'",
+     "weakness.mks@marriage: variant 3: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Texts link Venus placed in your 2nd house, a marana karaka sthana or draining place, with a lowered promise from the ruler of your 10th house where your career is concerned.'"
+    ],
+    "weakness.mks@wealth": [
+     "weakness.mks@wealth: variant 1: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus, as the ruler of your 10th house, sits in your 2nd house, a marana karaka sthana or place of draining, which is traditionally read as lessening what is promised for your career.'",
+     "weakness.mks@wealth: variant 3: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Texts link Venus placed in your 2nd house, a marana karaka sthana or draining place, with a lowered promise from the ruler of your 10th house where your career is concerned.'"
+    ],
+    "weakness.mrita": [
+     "variant 1 ('In your chart, the ruler of your 10th house, Saturn, is in a feeble state by its degree in Taurus.') is not stated by the facts: The facts state role \"lord\" but never name the house Saturn rules; \"house: 1\" is either Saturn's placement or, read as lordship, the 1st house. Under either reading the data never states a 10th-house rulership, so this detail is attached to the wrong house.",
+     "variant 2 ('By its degree in Taurus, Saturn, the ruler of your 10th house, is in a feeble state.') is not stated by the facts: The facts give Saturn role \"lord\" but record \"house\": 1. Nothing in the data states Saturn rules the 10th. If \"house\": 1 is the house Saturn lords, the sentence attaches the wrong house (1st, not 10th); if it is Saturn's own placement, the house it rules is simply not stated. Under either reading this is unsupported. (The engine's own sentence repeats the same claim, but the facts behind it do not state it.)",
+     "variant 3 ('Your chart shows Saturn, the ruler of your 10th house, in a feeble state, judged by its degree in Taurus.') is not stated by the facts: facts list Saturn with role \"lord\" and house 1, not the 10th house; the data nowhere states Saturn rules the 10th house, so the sentence attaches the wrong house to the lordship"
+    ],
+    "weakness.mrita@career": [
+     "weakness.mrita@career: variant 1: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus, the ruler of your 10th house, is in the Mrita state, meaning dead, by its degree in Taurus, which tradition reads as lowering what is promised for your career.'",
+     "weakness.mrita@career: variant 2: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Classical texts read Venus, the ruler of your 10th house, in the Mrita or dead state of the age states as a sign that your career receives a lowered promise.'"
+    ],
+    "weakness.mrita@marriage": [
+     "weakness.mrita@marriage: variant 1: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'When Venus, the ruler of your 10th house, sits in Taurus in the Mrita state, the dead state of its age, texts traditionally read the promise of your your career as reduced.'"
+    ],
+    "weakness.mrita@wealth": [
+     "weakness.mrita@wealth: variant 1: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'When Venus, the ruler of your 10th house, sits in Taurus in the Mrita state, which means dead, texts traditionally read the promise of your your career as reduced.'",
+     "weakness.mrita@wealth: variant 2: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Tradition reads Venus in Taurus, in the dead state called Mrita because of its degree, as linked with a reduced promise for your your career.'"
+    ]
+   },
+   "usd": {
+    "writer": 0.8263,
+    "checker": 0.1996
+   },
+   "calls": 25,
+   "note": "the first run: 131 signatures; the checker was given the item's facts and the engine's sentence"
+  },
+  {
+   "date": "2026-11-15",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 27,
+   "rows_kept": 71,
+   "left_out": {
+    "family.panchanga.against.many": [
+     "variant 1 ('The rulers of the day you were born, Mercury and Saturn, lean unfavourably for your career.') is not stated by the facts: Saturn's derivation entry gives it only the role of yoga (the nitya yoga, one of the five limbs of the day), not vara or tithi. The data states Saturn rules the yoga, not the day itself; the sentence attaches 'ruler of the day' to Saturn on an ordinary reading.",
+     "variant 2 ('Mercury and Saturn, the rulers of the day you were born, lean unfavourably when it comes to your career.') is not stated by the facts: Saturn's role in the data is [\"yoga\"] only \u2014 the nitya yoga limb, not vara. Being the ruler of the day is what the glossary's vara entry describes, and Saturn is not given that role, so the appositive attaches to Saturn a detail the data does not state."
+    ],
+    "opening.why": [
+     "variant 1 ('Here is what in your chart lies behind what we have just said about your career, marriage and money.') is not stated by the facts: the data contains no area or finding saying the preceding material concerned career; the engine's sentence only says \"behind it\"; the data contains no area or finding saying the preceding material concerned marriage; the engine's sentence only says \"behind it\"; the data contains no area or finding saying the preceding material concerned money; the engine's sentence only says \"behind it\"",
+     "variant 2 ('Let us look at what in your chart lies behind this, as it touches your career, marriage and money.') is not stated by the facts: no data states it; no data states it; no data states it",
+     "variant 3 ('These are the parts of your chart that lie behind it, so far as your career, marriage and money goes.') is not stated by the facts: no data states the area is career; the engine's own sentence mentions no area, and the data has no area_houses or other area field; no data states the area is marriage; the engine's own sentence mentions no area, and the data has no area_houses or other area field; no data states the area is money; the engine's own sentence mentions no area, and the data has no area_houses or other area field"
+    ],
+    "rule.yoga.bhadra.full": [
+     "rule.yoga.bhadra.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career.'"
+    ],
+    "rule.yoga.bhadra.full.nohouse": [
+     "rule.yoga.bhadra.full.nohouse: variant 3: 'Bhadra' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Bearing on your career, Bhadra is in your chart: the combination of Venus and Mars in its own or exalted sign in an angular house.'"
+    ],
+    "rule.yoga.bhadra.reduced": [
+     "rule.yoga.bhadra.reduced: variant 1: 'Bhadra' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars in your 2nd and 10th house forms Bhadra, the combination of its own or exalted sign in an angular house, and Bhadra bears on your career, though Saturn's aspect on it lessens it.\"",
+     "rule.yoga.bhadra.reduced: variant 2: 'Bhadra' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"In your chart, Venus and Mars sits in your 2nd and 10th house to form Bhadra, the combination of its own or exalted sign in an angular house; Bhadra bears on your career, though Saturn's aspect on it lessens it.\"",
+     "rule.yoga.bhadra.reduced: variant 3: 'Bhadra' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Bhadra bears on your career, though Saturn's aspect on it lessens it; it is the combination of its own or exalted sign in an angular house, formed by Venus and Mars in your 2nd and 10th house.\""
+    ],
+    "rule.yoga.bhadra.reduced.nohouse": [
+     "rule.yoga.bhadra.reduced.nohouse: variant 3: 'Bhadra' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Bearing on your career, Bhadra is in your chart as the combination of Venus and Mars in its own or exalted sign in an angular house, though Saturn's aspect on it lessens it.\""
+    ],
+    "rule.yoga.gaja_kesari.full.nohouse": [
+     "rule.yoga.gaja_kesari.full.nohouse: variant 3: 'Kesari' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Bearing on your career, Kesari is in your chart: the combination of Venus and Mars in an angular house counted from the Moon.'"
+    ],
+    "rule.yoga.gaja_kesari.reduced.nohouse": [
+     "rule.yoga.gaja_kesari.reduced.nohouse: variant 3: 'Kesari' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Bearing on your career, Kesari is in your chart as the combination of Venus and Mars in an angular house counted from the Moon, though Saturn's aspect on it lessens it.\""
+    ],
+    "rule.yoga.gaja_kesari_bphs.full": [
+     "variant 1 ('Your chart holds Gajakesari, the combination of Jupiter in an angular house, and this combination bears on your career, with Jupiter in your 10th house.') is not stated by the facts: the glossary entry for 'Gaja Kesari yoga' reads 'The combination of Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon.' The sentence's gloss drops 'counted from the Moon', so as an ordinary reader would take it \u2014 Jupiter in an angular house simpliciter \u2014 it does not match the term's meaning",
+     "variant 2 ('In your chart Jupiter sits in your 10th house and forms Gajakesari, the combination of Jupiter in an angular house, a combination that bears on your career.') is not stated by the facts: the gloss does not match the term's glossary entry: the entry reads 'The combination of Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon.' The sentence drops the qualifier 'counted from the Moon', giving a broader meaning than the glossary states",
+     "variant 3 ('One combination in your chart is Gajakesari, which is Jupiter in an angular house, here in your 10th house, and it bears on your career.') is not stated by the facts: mismatched gloss: the glossary entry for \"Gaja Kesari yoga\" defines it as \"Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon\"; the sentence's gloss drops \"counted from the Moon\", so an ordinary reader takes it as Jupiter angular from the ascendant \u2014 which the glossary's meaning does not state"
+    ],
+    "rule.yoga.gaja_kesari_bphs.full.nohouse": [
+     "rule.yoga.gaja_kesari_bphs.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars forms Ruchaka in your chart, which is Venus and Mars in an angular house counted from the Moon, and this combination bears on your career.'"
+    ],
+    "rule.yoga.gaja_kesari_bphs.reduced": [
+     "variant 2 ('In your chart Jupiter sits in your 7th house and forms Gajakesari, which is Jupiter in an angular house; it bears on your career, though too little strength reduces it.') is not stated by the facts: the glossary entry for Gaja Kesari yoga reads 'The combination of Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon' \u2014 the sentence's gloss omits 'counted from the Moon', so it does not match the term's entry. It is also ambiguous: read as 'Jupiter is in an angular house [of the chart]' it would be supported (Jupiter is in the 7th, angular from the lagna basis), but read as the definition of the yoga it is not, and the cited fire's basis is lagna, so nothing shows the Moon-based condition. Ambiguity between a supported and an unsupported reading makes it unsupported"
+    ],
+    "rule.yoga.gaja_kesari_bphs.reduced.nohouse": [
+     "rule.yoga.gaja_kesari_bphs.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which is Venus and Mars in an angular house counted from the Moon; it bears on your career, though Saturn's aspect on it reduces it.\""
+    ],
+    "rule.yoga.hamsa.full.nohouse": [
+     "rule.yoga.hamsa.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars forms Ruchaka in your chart, which is Venus and Mars in its own or exaltation sign in an angular house, and this combination bears on your career.'"
+    ],
+    "rule.yoga.hamsa.reduced": [
+     "rule.yoga.hamsa.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.hamsa.reduced.nohouse": [
+     "rule.yoga.hamsa.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which bears on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.kendra_trikona_raja.full": [
+     "rule.yoga.kendra_trikona_raja.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career.'"
+    ],
+    "rule.yoga.malavya.full": [
+     "rule.yoga.malavya.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career.'"
+    ],
+    "rule.yoga.malavya.full.nohouse": [
+     "rule.yoga.malavya.full.nohouse: variant 3: 'Malavya' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Bearing on your career, Malavya is in your chart: the combination of Venus and Mars in its own or exalted sign in an angular house.'"
+    ],
+    "rule.yoga.malavya.reduced": [
+     "rule.yoga.malavya.reduced: variant 1: 'Malavya' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars in your 2nd and 10th house forms Malavya, the combination of its own or exalted sign in an angular house, and Malavya bears on your career, though Saturn's aspect on it lessens it.\"",
+     "rule.yoga.malavya.reduced: variant 2: 'Malavya' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"In your chart, Venus and Mars sits in your 2nd and 10th house to form Malavya, the combination of its own or exalted sign in an angular house; Malavya bears on your career, though Saturn's aspect on it lessens it.\"",
+     "rule.yoga.malavya.reduced: variant 3: 'Malavya' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Malavya bears on your career, though Saturn's aspect on it lessens it; it is the combination of its own or exalted sign in an angular house, formed by Venus and Mars in your 2nd and 10th house.\""
+    ],
+    "rule.yoga.malavya.reduced.nohouse": [
+     "rule.yoga.malavya.reduced.nohouse: variant 3: 'Malavya' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Bearing on your career, Malavya is in your chart as the combination of Venus and Mars in its own or exalted sign in an angular house, though Saturn's aspect on it lessens it.\""
+    ],
+    "rule.yoga.neecha_bhanga.reduced": [
+     "rule.yoga.neecha_bhanga.reduced: variant 1: 'Neecha Bhanga' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars in your 2nd and 10th house forms Neecha Bhanga, the cancellation of debilitation, and Neecha Bhanga bears on your career, though Saturn's aspect on it lessens it.\"",
+     "rule.yoga.neecha_bhanga.reduced: variant 2: 'Neecha Bhanga' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"In your chart, Venus and Mars sits in your 2nd and 10th house to form Neecha Bhanga, meaning the cancellation of debilitation; Neecha Bhanga bears on your career, though Saturn's aspect on it lessens it.\""
+    ],
+    "rule.yoga.ruchaka.full": [
+     "rule.yoga.ruchaka.full: variant 1: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars in your 2nd and 10th house forms Ruchaka, the combination of its own or exalted sign in an angular house, and Ruchaka bears on your career.'",
+     "rule.yoga.ruchaka.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Your chart holds Ruchaka, the combination of Venus and Mars in its own or exalted sign in an angular house, formed here in your 2nd and 10th house, and Ruchaka bears on your career.'",
+     "rule.yoga.ruchaka.full: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka bears on your career; it is the combination of its own or exalted sign in an angular house, formed in your chart by Venus and Mars in your 2nd and 10th house.'"
+    ],
+    "rule.yoga.ruchaka.full.nohouse": [
+     "rule.yoga.ruchaka.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is present in your chart, formed by Venus and Mars, and it bears on your career.'",
+     "rule.yoga.ruchaka.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Formed by Venus and Mars, the combination called Ruchaka sits in your chart and bears on your career.'"
+    ],
+    "rule.yoga.ruchaka.reduced": [
+     "rule.yoga.ruchaka.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.ruchaka.reduced.nohouse": [
+     "rule.yoga.ruchaka.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which bears on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.sasa.full": [
+     "rule.yoga.sasa.full: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career.'"
+    ],
+    "rule.yoga.sasa.full.nohouse": [
+     "rule.yoga.sasa.full.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Ruchaka is present in your chart, formed by Venus and Mars, and it bears on your career.'",
+     "rule.yoga.sasa.full.nohouse: variant 3: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Formed by Venus and Mars, the combination called Ruchaka sits in your chart and bears on your career.'"
+    ],
+    "rule.yoga.sasa.reduced": [
+     "rule.yoga.sasa.reduced: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars sits in your 2nd and 10th house and forms Ruchaka in your chart, which bears on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "rule.yoga.sasa.reduced.nohouse": [
+     "rule.yoga.sasa.reduced.nohouse: variant 2: 'Ruchaka' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Venus and Mars forms Ruchaka in your chart, which bears on your career, though it is reduced by Saturn's aspect on it.\""
+    ],
+    "weakness.mks@career": [
+     "weakness.mks@career: variant 2: 'marana karaka sthana' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: \"Texts link a planet in its draining house, the marana karaka sthana or place of the planet's undoing, with a reduced promise for your career.\""
+    ],
+    "weakness.mrita@career": [
+     "weakness.mrita@career: variant 1: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'A planet in the Mrita state, the dead state among the five age states, is traditionally read as giving a reduced promise for your career.'",
+     "weakness.mrita@career: variant 2: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Classical texts link the Mrita state, meaning the dead state, with a promise for your career that is read as reduced.'",
+     "weakness.mrita@career: variant 3: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'For your career, a planet whose degree puts it in the Mrita or dead age state is said to carry a reduced promise.'"
+    ],
+    "weakness.mrita@marriage": [
+     "weakness.mrita@marriage: variant 1: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'A planet in the Mrita state, the dead state among the five age states, is traditionally read as giving a reduced promise for your career.'",
+     "weakness.mrita@marriage: variant 2: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Classical texts link the Mrita state, meaning the dead state, with a promise for your career that is read as reduced.'",
+     "weakness.mrita@marriage: variant 3: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'For your career, a planet whose degree puts it in the Mrita or dead age state is said to carry a reduced promise.'"
+    ],
+    "weakness.mrita@wealth": [
+     "weakness.mrita@wealth: variant 1: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'A planet in the Mrita state, meaning the dead state among the five age states, is traditionally read as giving a reduced promise for your money.'",
+     "weakness.mrita@wealth: variant 2: 'Mrita' is a Sanskrit term: gloss it in the same sentence, right after it (', a \u2026' or '(\u2026)'), or use a plain phrase: 'Classical texts link the Mrita state, which means the dead state by degree, with a promise for your money that is read as reduced.'"
+    ]
+   },
+   "usd": {
+    "writer": 0.4635,
+    "checker": 0.097
+   },
+   "calls": 13,
+   "note": "the rows the first left out, the checker now given the area (its houses, main house, lord and significators), the dignity words and the glossary"
+  },
+  {
+   "date": "2026-11-15",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 28,
+   "rows_kept": 98,
+   "left_out": {
+    "rule.yoga.gaja_kesari_bphs.full": [
+     "variant 1 ('Your chart holds Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet), formed by Jupiter in your 10th house, and the combination bears on your career.') is not stated by the facts: the glossary entry for \"Gaja Kesari yoga\" defines it as \"Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon\"; it says nothing about the yoga being joined or aspected by a helpful planet, and it conditions the definition on being counted from the Moon, which the sentence's gloss omits \u2014 so the gloss does not match the term's entry",
+     "variant 2 ('In your chart Jupiter sits in your 10th house and forms Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet), a combination that bears on your career.') is not stated by the facts: the glossary's entry for 'Gaja Kesari yoga' defines it as Jupiter in an angular house counted from the Moon; the sentence's gloss omits the count from the Moon and adds a condition (joined or aspected by a helpful planet) that is not in the entry, so it does not match",
+     "variant 3 ('Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet) is present in your chart, made by Jupiter in your 10th house; the combination bears on your career.') is not stated by the facts: the glossary's entry for \"Gaja Kesari yoga\" defines it as Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon; it says nothing about the planet being joined or aspected by a helpful planet, so the gloss does not match the term's entry, and the data contains no finding of any companion or aspecting planet"
+    ],
+    "rule.yoga.gaja_kesari_bphs.full.nohouse": [
+     "variant 1 ('Your chart holds Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet), formed by Jupiter, and the combination bears on your career.') is not stated by the facts: Neither the glossary entry for \"Gaja Kesari yoga\" (which mentions only Jupiter in an angular house from the Moon) nor any fact in the data states anything about a planet joining or aspecting Jupiter. This clause of the gloss does not match the term's entry.",
+     "variant 2 ('Jupiter forms Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet) in your chart, a combination that bears on your career.') is not stated by the facts: The glossary entry for Gaja Kesari yoga defines it as Jupiter in an angular house counted from the Moon. The sentence's gloss omits 'counted from the Moon', so an ordinary reader would take 'an angular house' as counted from the ascendant \u2014 not the meaning of the term's entry.; The glossary entry for Gaja Kesari yoga says nothing about being joined or aspected by a helpful planet; this part of the gloss has no entry matching it.",
+     "variant 3 ('Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet) is present in your chart, made by Jupiter; the combination bears on your career.') is not stated by the facts: the glossary entry for Gaja Kesari yoga says only that Jupiter sits in an angular house counted from the Moon; it says nothing about being joined or aspected by a helpful planet, so this part of the gloss does not match the term's entry"
+    ],
+    "rule.yoga.gaja_kesari_bphs.reduced": [
+     "variant 1 ('Your chart holds Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet), formed by Jupiter in your 7th house; the combination bears on your career, though it is held back by too little strength.') is not stated by the facts: the glossary entry mentions only Jupiter in an angular house counted from the Moon and says nothing about being joined or aspected by a helpful planet; the gloss does not match the term's entry",
+     "variant 2 ('In your chart Jupiter sits in your 7th house and forms Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet), a combination that bears on your career but is held back by too little strength.') is not stated by the facts: the glossary entry for Gaja Kesari yoga says nothing about a joining or an aspect by a helpful planet; no fact states any conjunction or aspect on Jupiter",
+     "variant 3 ('Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet) is present in your chart, made by Jupiter in your 7th house; it bears on your career, though too little strength holds it back.') is not stated by the facts: the glossary entry for Gaja Kesari yoga mentions no such condition (it defines only Jupiter in an angular house counted from the Moon), and the fires cite no planet besides Jupiter; this detail is added by the sentence"
+    ],
+    "rule.yoga.gaja_kesari_bphs.reduced.nohouse": [
+     "variant 1 ('Your chart holds Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet), formed by Jupiter; the combination bears on your career, though it is held back by too little strength.') is not stated by the facts: The glossary entry for Gaja Kesari yoga defines it as \"Jupiter in an angular house (the 1st, 4th, 7th or 10th) counted from the Moon.\" The sentence's gloss drops \"counted from the Moon,\" so as an ordinary reader would take it \u2014 angular from the ascendant \u2014 it does not match the term's entry. It is at best ambiguous between a supported and an unsupported reading, so it is unsupported.; The glossary entry for Gaja Kesari yoga says only \"Jupiter in an angular house ... counted from the Moon\"; it says nothing about a joining or aspect by a helpful planet. No glossary entry supports this added detail, so the gloss does not match.",
+     "variant 2 ('Jupiter forms Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet) in your chart, a combination that bears on your career but is held back by too little strength.') is not stated by the facts: The glossary entry mentions only Jupiter in an angular house counted from the Moon; it says nothing about a join or aspect from a helpful planet, so this part of the parenthetical gloss does not match the entry",
+     "variant 3 ('Gajakesari (Jupiter in an angular house, joined or aspected by a helpful planet) is present in your chart, made by Jupiter; it bears on your career, though too little strength holds it back.') is not stated by the facts: the glossary entry for Gaja Kesari yoga mentions only Jupiter in an angular house counted from the Moon; it says nothing about joining or aspecting by a helpful planet"
+    ],
+    "rule.yoga.neecha_bhanga.reduced": [
+     "variant 1 (\"Your chart holds Neecha Bhanga (a planet's fall in its sign undone by the planets that rule that sign), formed by Mercury in your 5th house; the combination bears on your career, though it is held back by lying too close to the Sun.\") is not stated by the facts: the glossary entry reads 'The cancellation of a planet's debilitation by the placement of particular other planets' \u2014 it does not say the cancelling planets are the rulers of that sign, so the gloss narrows the term beyond its entry",
+     "variant 3 (\"Neecha Bhanga (a planet's fall in its sign undone by the planets that rule that sign) is present in your chart, made by Mercury in your 5th house; it bears on your career, though lying too close to the Sun holds it back.\") is not stated by the facts: The glossary entry reads: 'The cancellation of a planet's debilitation by the placement of particular other planets.' The sentence's gloss specifies the cancelling planets as the rulers of that sign, which the glossary's entry \u2014 'particular other planets' \u2014 does not say; the gloss does not match the term's entry."
+    ]
+   },
+   "usd": {
+    "writer": 0.1577,
+    "checker": 0.0576
+   },
+   "calls": 5,
+   "note": "the rows still out, every rule's name in the slot {named} with its plain meaning"
+  }
+ ],
+ "rows_in_bank": 126,
+ "usd_total": 1.8017
+}

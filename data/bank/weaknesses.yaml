@@ -1,0 +1,107 @@
+# The sentence bank: weaknesses (SPEC Layer 8, The layered answer). Drafted by scripts/draft_bank.py;
+# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.
+- signature: weakness.low_strength
+  kind: fact
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - '{role}, {planet}, has less strength than it needs to give fully what it promises for {area}.'
+  - In your chart, {role} is {planet}, and it holds less strength than it needs to deliver in full what it promises.
+  - '{planet}, {role}, falls short of the strength it needs to give fully what it promises.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: the ruler of your 10th house, Saturn, has less strength than it needs to give fully what it promises for your
+      career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: In your chart, the ruler of your 10th house is Saturn, and it holds less strength than it needs to deliver in
+      full what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Saturn, the ruler of your 10th house, falls short of the strength it needs to give fully what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: weakness.mks
+  kind: fact
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - '{role}, {planet}, sits in your {house} house, a house that drains it, whatever the sign says.'
+  - In your chart, {planet}, {role}, is placed in your {house} house, which drains it no matter what {sign} says.
+  - '{planet}, {role}, occupies your {house} house, a place that drains it, whatever its sign is.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: the ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: In your chart, Saturn, the ruler of your 10th house, is placed in your 1st house, which drains it no matter
+      what Taurus says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Saturn, the ruler of your 10th house, occupies your 1st house, a place that drains it, whatever its sign is.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: weakness.mrita
+  kind: fact
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - '{role}, {planet}, is in a feeble state by its degree in {sign}.'
+  - By its degree in {sign}, {planet}, {role}, falls into a feeble state.
+  - The degree {planet} holds in {sign} puts it, as {role}, in a feeble state.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: the ruler of your 10th house, Saturn, is in a feeble state by its degree in Taurus.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: By its degree in Taurus, Saturn, the ruler of your 10th house, falls into a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: The degree Saturn holds in Taurus puts it, as the ruler of your 10th house, in a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'

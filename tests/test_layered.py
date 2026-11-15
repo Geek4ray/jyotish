@@ -207,3 +207,58 @@ def test_2_coverage_counts_the_plan_items_that_find_a_row_whose_slots_they_fill(
     missing = dict(res["missing"])
     assert "family.lord.for" not in missing and "family.karaka.for" in missing    # a slot the plan does not fill
     assert 0 < res["by_part"]["helps"] < 1 and res["rows"] == 2 and res["approved_share"] == 0
+
+
+# --- 3. The drafted bank -----------------------------------------------------------------------------------------------
+
+def load_script(name):
+    import importlib.util
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    spec = importlib.util.spec_from_file_location(name, ROOT / "scripts" / f"{name}.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_3_the_drafted_rows_are_drafts_from_sonnet_and_every_fact_variant_was_checked_and_supported():
+    from jyotish.bank import load_bank
+    bank = load_bank()
+    assert len(bank) > 60
+    assert all(r.status == "draft" and r.drafted_by == "claude-sonnet-5-5" for r in bank.rows)
+    facts = [r for r in bank.rows if r.kind == "fact"]
+    assert all(sorted(c.variant for c in r.checks) == [0, 1, 2] and all(c.supported for c in r.checks) for r in facts)
+    assert all(c.model == "zai-org/GLM-5.3-Flash" for r in facts for c in r.checks)
+    meanings = [r for r in bank.rows if r.kind == "meaning"]
+    assert meanings and all(r.area in ("career", "marriage", "wealth") and r.source for r in meanings)
+    assert all(r.source.startswith(("BPHS", "Phaladeepika", "Marana", "Baladi", "Shadbala", "Saravali", "Jataka",
+                                    "Brihat")) for r in meanings), {r.source for r in meanings}
+    # The openings, the periods and the stretches were drafted with the three areas (the request of 2026-11-15).
+    sigs = {r.signature for r in facts}
+    assert {"opening.amount", "opening.when"} <= sigs and any(s.startswith("period.now") for s in sigs)
+    assert any(s.startswith("stretch.") for s in sigs)
+
+
+def test_3_the_drafting_script_prices_first_and_stops_above_its_budget(monkeypatch, capsys):
+    db = load_script("draft_bank")
+    found = db._signatures(4, 1)
+    kinds = {k[1] for k in found}
+    assert kinds == {"fact", "meaning"} and all(k[0].split("@")[1] in db.AREAS for k in found if k[1] == "meaning")
+    usd, parts = db.estimate(found)
+    assert usd > 0 and parts["rows"] == len(found)
+    import jyotish.envfile
+    monkeypatch.setattr(jyotish.envfile, "load", lambda path: [])
+    monkeypatch.setattr(db, "_signatures", lambda n, s: found)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "not-a-key")
+    monkeypatch.setattr(db, "draft", lambda *a, **k: (_ for _ in ()).throw(AssertionError("no model call")))
+    assert db.main(["--budget", "0.0001", "--redraft"]) == 2
+    out = capsys.readouterr().out
+    assert "over the budget" in out and "not-a-key" not in out
+
+
+def test_3_a_fact_variant_is_checked_against_its_facts_its_area_and_the_glossary(chart, data):
+    db = load_script("draft_bank")
+    item = next(i for i in career(chart, data).items if i.signature == "family.lord.for")
+    d = db.check_data({"facts": item.facts, "engine": item.engine, "slots": item.slots})
+    assert d["facts"]["about"]["main_house"] == 10 and d["facts"]["about"]["main_house_lord"] == "Saturn"
+    assert "the engine's own sentence (the row says this, in other words)" in d and "friend" in d["the engine's plain words for a dignity"]

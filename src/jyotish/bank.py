@@ -42,7 +42,8 @@ SLOT = re.compile(r"\{([A-Za-z_]+)\}")
 SAMPLE = {"planet": "Venus", "planets": "Venus and Mars", "helpers": "Jupiter", "sign": "Taurus", "signs": "Taurus and Leo",
           "house": "2nd", "houses": "2nd and 10th", "ruled_house": "10th", "area": "your career", "Area": "Your career",
           "areas": "your career and money", "lean": "favourably", "standing": "better supported than most",
-          "dignity": "in a friendly sign", "sits": "sits", "name": "Ruchaka", "reductions": "Saturn's aspect on it",
+          "dignity": "in a friendly sign", "sits": "sits", "name": "Ruchaka",
+          "named": "Ruchaka (Mars in its own or exalted sign in an angular house)", "reductions": "Saturn's aspect on it",
           "role": "the ruler of your 10th house", "maha": "Jupiter", "antar": "Mercury", "until": "November 2028",
           "touching": "Jupiter", "when": "from October 2029 to June 2032"}
 

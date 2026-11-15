@@ -1,0 +1,802 @@
+# The sentence bank: families (SPEC Layer 8, The layered answer). Drafted by scripts/draft_bank.py;
+# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.
+- signature: family.arudha.against.many.hard.alone
+  kind: fact
+  slots:
+  - area
+  - planets
+  - signs
+  - sits
+  variants:
+  - The signs that show how others see {area}, {signs}, lean unfavourably, and {planets} {sits} in one of these signs with
+    no helpful planet in any of them.
+  - 'When it comes to how others see {area}, the signs {signs} lean unfavourably: {planets} {sits} in one of them, and no
+    helpful planet sits in any.'
+  - Others' view of {area} is shown by {signs}, and these signs lean unfavourably, with {planets} that {sits} in one of them
+    and no helpful planet in any.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably, and Rahu sits in one
+      of these signs with no helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: 'When it comes to how others see marriage, the signs Gemini, Cancer and Leo lean unfavourably: Rahu sits in
+      one of them, and no helpful planet sits in any.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Others' view of marriage is shown by Gemini, Cancer and Leo, and these signs lean unfavourably, with Rahu that
+      sits in one of them and no helpful planet in any.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.arudha.against.many.hard.helped
+  kind: fact
+  slots:
+  - area
+  - helpers
+  - planets
+  - signs
+  - sits
+  variants:
+  - 'The signs that show how others see {area}, {signs}, lean unfavourably: {planets} {sits} there, though {helpers} is beside
+    to help.'
+  - Others' picture of {area} is shaped by {signs}, which lean unfavourably, as {planets} {sits} there with {helpers} beside
+    to help.
+  - '{planets} {sits} in {signs}, the signs showing how others see {area}, with {helpers} beside to help, and still these
+    signs lean unfavourably.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: 'The signs that show how others see marriage, Capricorn, Aquarius and Virgo, lean unfavourably: Rahu, the Sun
+      and the Moon sit there, though Venus is beside to help.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Others' picture of marriage is shaped by Capricorn, Aquarius and Virgo, which lean unfavourably, as Rahu, the
+      Sun and the Moon sit there with Venus beside to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Rahu, the Sun and the Moon sit in Capricorn, Aquarius and Virgo, the signs showing how others see marriage,
+      with Venus beside to help, and still these signs lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.arudha.against.one.hard.alone
+  kind: fact
+  slots:
+  - area
+  - planets
+  - signs
+  - sits
+  variants:
+  - The sign that shows how others see {area}, {signs}, leans unfavourably, because {planets} {sits} there and no helpful
+    planet is beside.
+  - Others' picture of {area} is shaped by {signs}, and this sign leans unfavourably, since {planets} {sits} there with no
+    helpful planet alongside.
+  - '{planets} {sits} in {signs}, the sign showing how others see {area}, with no helpful planet beside, so this sign leans
+    unfavourably.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The sign that shows how others see your career, Virgo, leans unfavourably, because Rahu sits there and no helpful
+      planet is beside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Virgo, and this sign leans unfavourably, since Rahu sits there with
+      no helpful planet alongside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Rahu sits in Virgo, the sign showing how others see your career, with no helpful planet beside, so this sign
+      leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.arudha.against.one.hard.helped
+  kind: fact
+  slots:
+  - area
+  - helpers
+  - planets
+  - signs
+  - sits
+  variants:
+  - 'The sign that shows how others see {area}, {signs}, leans unfavourably: {planets} {sits} there, though {helpers} is beside
+    to help.'
+  - How others see {area} is shown by {signs}, which leans unfavourably because {planets} {sits} there, with {helpers} beside
+    to help.
+  - In {signs}, the sign showing how others see {area}, the lean is unfavourable, as {planets} {sits} there, and {helpers}
+    stands beside to help.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: 'The sign that shows how others see your career, Scorpio, leans unfavourably: the Sun and Mercury sit there,
+      though Venus is beside to help.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: How others see your career is shown by Scorpio, which leans unfavourably because the Sun and Mercury sit there,
+      with Venus beside to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: In Scorpio, the sign showing how others see your career, the lean is unfavourable, as the Sun and Mercury sit
+      there, and Venus stands beside to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.arudha.for.many.helped
+  kind: fact
+  slots:
+  - area
+  - helpers
+  - signs
+  - sits
+  variants:
+  - 'The signs that show how others see {area}, {signs}, lean favourably: among them {helpers} {sits}.'
+  - Among {signs}, the signs that show how others see {area}, {helpers} {sits}, and together these signs lean favourably.
+  - How others see {area} is shown by {signs}, and these signs lean favourably; among them {helpers} {sits}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: 'The signs that show how others see money, Leo and Taurus, lean favourably: among them the Moon and Mercury
+      sit.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Among Leo and Taurus, the signs that show how others see money, the Moon and Mercury sit, and together these
+      signs lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: How others see money is shown by Leo and Taurus, and these signs lean favourably; among them the Moon and Mercury
+      sit.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.arudha.for.one.helped
+  kind: fact
+  slots:
+  - area
+  - helpers
+  - signs
+  - sits
+  variants:
+  - The sign that shows how others see {area}, {signs}, leans favourably, because {helpers} {sits} there.
+  - Others' picture of {area} is shaped by {signs}, and this sign leans favourably, since {helpers} {sits} there.
+  - '{helpers} {sits} in {signs}, the sign showing how others see {area}, so this sign leans favourably.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The sign that shows how others see your career, Aquarius, leans favourably, because Jupiter sits there.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Aquarius, and this sign leans favourably, since Jupiter sits there.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Jupiter sits in Aquarius, the sign showing how others see your career, so this sign leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.house.against.agrees
+  kind: fact
+  slots:
+  - area
+  - house
+  - sign
+  - standing
+  variants:
+  - 'Taken together, the houses that govern {area} lean unfavourably: the main one, your {house} house in {sign}, is {standing}
+    of your twelve houses.'
+  - The houses behind {area} lean unfavourably as a group, and the main one, your {house} house in {sign}, is {standing} among
+    your twelve houses.
+  - Looking at all the houses that govern {area}, the lean is unfavourable; the main one is your {house} house, in {sign},
+    which is {standing} of your twelve.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: 'Taken together, the houses that govern marriage lean unfavourably: the main one, your 7th house in Virgo, is
+      less supported than most of your twelve houses.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: The houses behind marriage lean unfavourably as a group, and the main one, your 7th house in Virgo, is less
+      supported than most among your twelve houses.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Looking at all the houses that govern marriage, the lean is unfavourable; the main one is your 7th house, in
+      Virgo, which is less supported than most of your twelve.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.house.against.though
+  kind: fact
+  slots:
+  - area
+  - house
+  - sign
+  - standing
+  variants:
+  - Taken together, the houses that govern {area} lean unfavourably, though the main one, your {house} house from your rising
+    sign, in {sign}, stands {standing}.
+  - The houses that govern {area} lean unfavourably as a group, yet the main one, your {house} house in {sign}, counted from
+    your rising sign, stands {standing}.
+  - Counted from your rising sign, your {house} house, in {sign}, is the main house for {area} and stands {standing}, although
+    the houses together lean unfavourably.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Taken together, the houses that govern your career lean unfavourably, though the main one, your 10th house from
+      your rising sign, in Sagittarius, stands better supported than most.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: The houses that govern your career lean unfavourably as a group, yet the main one, your 10th house in Sagittarius,
+      counted from your rising sign, stands better supported than most.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Counted from your rising sign, your 10th house, in Sagittarius, is the main house for your career and stands
+      better supported than most, although the houses together lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.house.for.agrees
+  kind: fact
+  slots:
+  - area
+  - house
+  - sign
+  - standing
+  variants:
+  - 'Taken together, the houses that govern {area} lean favourably: the main one, your {house} house in {sign}, is {standing}
+    of your twelve houses.'
+  - The houses behind {area} lean favourably as a group, and the main one, your {house} house in {sign}, is {standing} among
+    your twelve houses.
+  - Looking at all the houses that govern {area}, the lean is favourable; the main one is your {house} house, in {sign}, which
+    is {standing} of your twelve.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: 'Taken together, the houses that govern money lean favourably: the main one, your 2nd house in Gemini, is better
+      supported than most of your twelve houses.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported
+      than most among your twelve houses.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Looking at all the houses that govern money, the lean is favourable; the main one is your 2nd house, in Gemini,
+      which is better supported than most of your twelve.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.house.for.though
+  kind: fact
+  slots:
+  - area
+  - house
+  - sign
+  - standing
+  variants:
+  - Taken together, the houses that govern {area} lean favourably, though the main one, the {house} house from your rising
+    sign, in {sign}, is {standing} of your twelve houses.
+  - The houses that govern {area} lean favourably as a group, yet the main one, your {house} house in {sign}, counted from
+    your rising sign, is {standing} of your twelve houses.
+  - Looking at all the houses that govern {area}, they lean favourably, although the main one, the {house} house from your
+    rising sign, in {sign}, is {standing} of your twelve houses.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from
+      your rising sign, in Aquarius, is among the least supported of your twelve houses.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: The houses that govern your career lean favourably as a group, yet the main one, your 10th house in Aquarius,
+      counted from your rising sign, is among the least supported of your twelve houses.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Looking at all the houses that govern your career, they lean favourably, although the main one, the 10th house
+      from your rising sign, in Aquarius, is among the least supported of your twelve houses.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.karaka.against
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - house
+  - planet
+  - sign
+  variants:
+  - The planets that signify {area} lean unfavourably; the main one, {planet}, sits in {sign} in your {house} house, {dignity}.
+  - Looking at the planets that signify {area}, the lean is unfavourable, and the main one, {planet}, sits in your {house}
+    house in {sign}, {dignity}.
+  - 'For {area}, the planets that signify it lean unfavourably: the main one is {planet}, placed in {sign} in your {house}
+    house, {dignity}.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The planets that signify your career lean unfavourably; the main one, the Sun, sits in Libra in your 6th house,
+      debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the planets that signify your career, the lean is unfavourable, and the main one, the Sun, sits in
+      your 6th house in Libra, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: 'For your career, the planets that signify it lean unfavourably: the main one is the Sun, placed in Libra in
+      your 6th house, debilitated, where it is least at ease.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.karaka.for
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - house
+  - planet
+  - sign
+  variants:
+  - The planets that signify {area} lean favourably; among them, {planet} sits in {sign} in your {house} house, {dignity}.
+  - Looking at the planets that stand for {area}, they lean favourably, and among them {planet} is placed in {sign} in your
+    {house} house, {dignity}.
+  - Among the planets that signify {area}, {planet} sits in {sign} in your {house} house, {dignity}, and together these planets
+    lean favourably.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The planets that signify your career lean favourably; among them, the Sun sits in Aquarius in your 10th house,
+      in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the planets that stand for your career, they lean favourably, and among them the Sun is placed in
+      Aquarius in your 10th house, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Among the planets that signify your career, the Sun sits in Aquarius in your 10th house, in an unfriendly sign,
+      and together these planets lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.kp.against
+  kind: fact
+  slots:
+  - area
+  variants:
+  - The reading of the exact start of the house that governs {area} leans unfavourably.
+  - When the exact start of the house for {area} is read, it leans unfavourably.
+  - Reading the exact start of the house that governs {area}, the reading leans unfavourably.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The reading of the exact start of the house that governs marriage leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: When the exact start of the house for marriage is read, it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Reading the exact start of the house that governs marriage, the reading leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.kp.for
+  kind: fact
+  slots:
+  - area
+  variants:
+  - The reading of the exact start of each house leans favourably for {area}.
+  - When the exact start of each house is read, it leans favourably for {area}.
+  - For {area}, the reading of where each house exactly begins leans in a favourable direction.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The reading of the exact start of each house leans favourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: When the exact start of each house is read, it leans favourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: For your career, the reading of where each house exactly begins leans in a favourable direction.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.lord.against
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - house
+  - planet
+  - ruled_house
+  - sign
+  variants:
+  - The planets that rule the houses of {area} lean unfavourably; among them, {planet}, which rules the {ruled_house} house,
+    sits in {sign} in your {house} house, {dignity}.
+  - Looking at the planets that rule the houses of {area}, they lean unfavourably, and {planet}, ruler of the {ruled_house}
+    house, sits in {sign} in your {house} house, {dignity}.
+  - Among the rulers of the houses of {area}, {planet}, which rules the {ruled_house} house, sits in {sign} in your {house}
+    house, {dignity}, and together these rulers lean unfavourably.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The planets that rule the houses of your career lean unfavourably; among them, Saturn, which rules the 10th
+      house, sits in Cancer in your 3rd house, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the planets that rule the houses of your career, they lean unfavourably, and Saturn, ruler of the
+      10th house, sits in Cancer in your 3rd house, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Among the rulers of the houses of your career, Saturn, which rules the 10th house, sits in Cancer in your 3rd
+      house, in an unfriendly sign, and together these rulers lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.lord.for
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - house
+  - planet
+  - ruled_house
+  - sign
+  variants:
+  - The planets that rule the houses of {area} lean favourably; {planet}, which rules the {ruled_house} house, sits in {sign}
+    in your {house} house, {dignity}.
+  - Looking at the rulers of the houses of {area}, the lean is favourable, and {planet}, ruler of the {ruled_house} house,
+    sits in {sign} in your {house} house, {dignity}.
+  - 'The houses of {area} have rulers that lean favourably: {planet}, which rules the {ruled_house} house, is placed in {sign},
+    in your {house} house, {dignity}.'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The planets that rule the houses of your career lean favourably; Saturn, which rules the 10th house, sits in
+      Taurus in your 1st house, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the rulers of the houses of your career, the lean is favourable, and Saturn, ruler of the 10th house,
+      sits in Taurus in your 1st house, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: 'The houses of your career have rulers that lean favourably: Saturn, which rules the 10th house, is placed in
+      Taurus, in your 1st house, in a friendly sign.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.panchanga.against.many
+  kind: fact
+  slots:
+  - area
+  - planets
+  variants:
+  - The rulers of the day you were born, {planets}, lean unfavourably for {area}.
+  - Looking at the rulers of the day you were born, {planets}, they lean unfavourably where {area} is concerned.
+  - The day you were born is ruled by {planets}, and together they lean unfavourably for {area}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The rulers of the day you were born, Mercury and Saturn, lean unfavourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the rulers of the day you were born, Mercury and Saturn, they lean unfavourably where your career
+      is concerned.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: The day you were born is ruled by Mercury and Saturn, and together they lean unfavourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.panchanga.against.one
+  kind: fact
+  slots:
+  - area
+  - planets
+  variants:
+  - The planet {planets}, a ruler of the day you were born, leans unfavourably for {area}.
+  - Among the rulers of the day you were born, {planets} leans unfavourably when it comes to {area}.
+  - For {area}, one ruler of the day you were born, {planets}, leans in an unfavourable direction.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The planet the Sun, a ruler of the day you were born, leans unfavourably for marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Among the rulers of the day you were born, the Sun leans unfavourably when it comes to marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: For marriage, one ruler of the day you were born, the Sun, leans in an unfavourable direction.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.panchanga.for.many
+  kind: fact
+  slots:
+  - area
+  - planets
+  variants:
+  - The rulers of the day you were born, {planets}, lean favourably for {area}.
+  - Among the rulers of the day you were born, {planets} lean favourably when it comes to {area}.
+  - For {area}, the planets that rule the day you were born, {planets}, lean in a favourable direction.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The rulers of the day you were born, Saturn, Mars and Venus, lean favourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Among the rulers of the day you were born, Saturn, Mars and Venus lean favourably when it comes to your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: For your career, the planets that rule the day you were born, Saturn, Mars and Venus, lean in a favourable direction.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.panchanga.for.one
+  kind: fact
+  slots:
+  - area
+  - planets
+  variants:
+  - '{planets}, one of the planets linked with the day you were born, leans favourably for {area}.'
+  - Among the planets tied to the day of your birth, {planets} leans favourably for {area}.
+  - For {area}, {planets}, a planet linked with your birth day, leans favourably.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Saturn, one of the planets linked with the day you were born, leans favourably for money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Among the planets tied to the day of your birth, Saturn leans favourably for money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: For money, Saturn, a planet linked with your birth day, leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.varga.against
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - planet
+  - sign
+  variants:
+  - The divisional chart for {area} leans unfavourably; there {planet} falls in {sign}, {dignity}.
+  - Looking at the divisional chart that speaks to {area}, the lean is unfavourable, as {planet} falls in {sign}, {dignity}.
+  - In the divisional chart for {area}, which leans unfavourably, you find {planet} placed in {sign}, {dignity}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The divisional chart for money leans unfavourably; there Mars falls in Cancer, debilitated, where it is least
+      at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the divisional chart that speaks to money, the lean is unfavourable, as Mars falls in Cancer, debilitated,
+      where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: In the divisional chart for money, which leans unfavourably, you find Mars placed in Cancer, debilitated, where
+      it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: family.varga.for
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - planet
+  - sign
+  variants:
+  - The divisional chart for {area} leans favourably; there {planet} falls in {sign}, {dignity}.
+  - Looking at the divisional chart for {area}, it leans in your favour, with {planet} placed in {sign}, {dignity}.
+  - In the divisional chart for {area}, which leans favourably, {planet} sits in {sign}, {dignity}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The divisional chart for your career leans favourably; there the Sun falls in Aries, exalted, where it is at
+      its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at the divisional chart for your career, it leans in your favour, with the Sun placed in Aries, exalted,
+      where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: In the divisional chart for your career, which leans favourably, the Sun sits in Aries, exalted, where it is
+      at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'

@@ -1,0 +1,975 @@
+# The sentence bank: meanings (SPEC Layer 8, The layered answer). Drafted by scripts/draft_bank.py;
+# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.
+- signature: rule.yoga.bhadra.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the Mercury combination whose name means ''the excellent one'', is traditionally read as lending {area} a flavour
+    of sharp thinking, clear communication and a gift for trade.'
+  - Texts link {name}, the 'excellent one' formed by {planets}, with {area} through intellect, skilled speech and a talent
+    for commerce.
+  - In tradition, {name}, meaning 'the excellent one', is said to shape {area} with quick intellect, communication skills
+    and a head for business.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.full.nohouse@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the Mercury combination whose name means ''the excellent one'', is traditionally read as tying {area} to sharp
+    thinking, clear communication and a gift for trade.'
+  - Texts link {name}, the 'excellent one' formed by {planets}, with {area} through intellect, skilled speech and a talent
+    for commerce.
+  - In tradition, {name}, meaning 'the excellent one', is said to connect {area} with quick wits, persuasive communication
+    and a head for business.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the ''excellent one'' formed by {planets} in your {houses} house, is traditionally read as lending {area} sharp
+    thinking, clear communication and a gift for trade.'
+  - Texts link {name}, meaning 'the excellent one', with {area} through intellect, skilled speech and a talent for commerce,
+    here with {planets} in your {houses} house.
+  - With {planets} in your {houses} house, {name}, the 'excellent one', is said in tradition to shape {area} with quick intellect
+    and a head for business.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.full@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the ''excellent one'' formed by {planets} in your {houses} house, is traditionally read as tying {area} to sharp
+    thinking, clear communication and a gift for trade.'
+  - Texts link {name}, meaning 'the excellent one', with {area} through intellect, skilled speech and a talent for commerce,
+    here with {planets} in your {houses} house.
+  - With {planets} in your {houses} house, {name}, the 'excellent one', is said in tradition to connect {area} with quick
+    wits and a head for business.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the ''excellent one'' formed by {planets}, is traditionally read as linking {area} with sharp thinking and communication,
+    though its promise is read as reduced.'
+  - Texts tie {name}, meaning 'the excellent one', to {area} through intellect and skilled speech, but with its promise read
+    as reduced here.
+  - In tradition, {name}, the 'excellent one', is said to touch {area} with quick intellect and trade skill, though in a reduced
+    form.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.reduced.nohouse@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the ''excellent one'' formed by {planets}, is traditionally read as linking {area} with sharp thinking and a
+    gift for trade, though its promise is read as reduced.'
+  - Texts tie {name}, meaning 'the excellent one', to {area} through intellect and commerce, but with its promise read as
+    reduced here.
+  - In tradition, {name}, the 'excellent one', is said to touch {area} with quick wits and business sense, though in a reduced
+    form.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - Bhadra, the "excellent one" combination of {planets}, is traditionally read as supporting {area} through sharp thinking
+    and communication, though its promise is read as reduced by {reductions}.
+  - Texts link Bhadra, the "excellent one" formed by {planets}, with a good name in {area} through intellect and speech, while
+    {reductions} is said to lessen that promise.
+  - In tradition, Bhadra, meaning "excellent", is read as a gift of mind and communication for {area}, yet its promise is
+    said to be reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.bhadra.reduced@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - Bhadra, the "excellent one" combination of {planets}, is traditionally read as supporting {area} through commerce and
+    clever dealing, though its promise is read as reduced by {reductions}.
+  - Texts link Bhadra, the "excellent one" formed by {planets}, with skill in trade and {area}, while {reductions} is said
+    to lessen that promise.
+  - In tradition, Bhadra, meaning "excellent", is read as a gift for commerce that touches {area}, yet its promise is said
+    to be reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.budhaditya.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the pairing of Mercury and the Sun, is traditionally read as lending {area} a bright mind, clear expression and
+    a name for good judgment.'
+  - Texts link {name}, the Sun and Mercury sharing a sign, with intellect and communication that are said to lift your standing
+    in {area}.
+  - In tradition, {name}, meaning the Sun joined with Mercury, is said to bring thoughtful speech and some repute to {area}.
+  source: Phaladeepika, Sastri 1937, 18.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.budhaditya.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the pairing of Mercury and the Sun, is traditionally read as lending {area} a bright mind and clear speech, though
+    its promise is read as reduced by {reductions}.'
+  - Texts link {name}, the Sun and Mercury sharing a sign, with intellect and reputation in {area}, while {reductions} is
+    said to lessen that promise.
+  - In tradition, {name}, meaning the Sun joined with Mercury, is said to bring thoughtful speech to {area}, yet its promise
+    is read as reduced by {reductions}.
+  source: Phaladeepika, Sastri 1937, 18.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the lion combination, is traditionally read as lending good standing and reputation to {area}, since {planets}
+    stands at an angle from the Moon.'
+  - Texts link {name}, whose name means a lion, with a good reputation and wise standing in {area}, because {planets} sits
+    at an angle from the Moon.
+  - With {planets} at an angle from the Moon, {name}, the lion combination, is said to bring respect and a sound name to {area}.
+  source: Phaladeepika, Sastri 1937, 6.14; BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari.full.nohouse@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the lion combination, is traditionally read as supporting {area} with good standing and wisdom, since {planets}
+    stands at an angle from the Moon.'
+  - Texts link {name}, whose name means a lion, with prosperity in {area}, because {planets} sits at an angle from the Moon.
+  - With {planets} at an angle from the Moon, {name}, the lion combination, is said to favour {area} through reputation and
+    wise handling.
+  source: Phaladeepika, Sastri 1937, 6.14; BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - Tradition reads {name}, the lion combination formed by {planets}, as supporting good standing in {area}, though {reductions}
+    is said to reduce that promise.
+  - Texts link {name}, the lion combination, with reputation and status in {area}, yet with {reductions} the promise is read
+    as reduced.
+  - In {area}, {name}, meaning the lion combination of {planets}, is traditionally read as a source of good standing, but
+    one reduced by {reductions}.
+  source: Phaladeepika, Sastri 1937, 6.14; BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari.reduced.nohouse@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - Tradition reads {name}, the lion combination formed by {planets}, as linked with gains in {area}, though {reductions}
+    is said to reduce that promise.
+  - Texts link {name}, the lion combination, with prosperity around {area}, yet with {reductions} the promise is read as reduced.
+  - For {area}, {name}, meaning the lion combination of {planets}, is traditionally read as a sign of material comfort, but
+    one reduced by {reductions}.
+  source: Phaladeepika, Sastri 1937, 6.14; BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - Tradition reads {name}, the elephant-and-lion combination formed by {planets}, as linked with reputation and standing
+    in {area}.
+  - Texts link {name}, meaning the elephant and the lion together, with a respected name and good standing in {area}.
+  - In {area}, {name}, the elephant-and-lion combination of {planets}, is traditionally read as a sign of reputation and recognised
+    status.
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.full.nohouse@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - Tradition reads {name}, the elephant-and-lion combination formed by {planets}, as linked with prosperity in {area}.
+  - Texts link {name}, meaning the elephant and the lion together, with material comfort and good fortune around {area}.
+  - For {area}, {name}, the elephant-and-lion combination of {planets}, is traditionally read as a sign of lasting prosperity.
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - Tradition reads {name}, the elephant-and-lion combination formed by {planets}, as linked with reputation and standing
+    in {area}.
+  - Texts link {name}, meaning the elephant and the lion together, with a respected name and good standing in {area}.
+  - In {area}, {name}, the elephant-and-lion combination of {planets}, is traditionally read as a sign of reputation and recognised
+    status.
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.full@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - Tradition reads {name}, the elephant-and-lion combination formed by {planets}, as linked with prosperity in {area}.
+  - Texts link {name}, meaning the elephant and the lion together, with material comfort and good fortune around {area}.
+  - For {area}, {name}, the elephant-and-lion combination of {planets}, is traditionally read as a sign of lasting prosperity.
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the elephant-and-lion combination, is traditionally read as lending good standing to {area}, though its promise
+    is read as reduced here.'
+  - Texts link {name}, meaning the elephant-and-lion combination, with reputation in {area}, but in your chart that promise
+    is said to be reduced.
+  - With {planets} at an angle from the Moon, {name}, the elephant-and-lion combination, is said to favour {area}, though
+    only in a reduced way.
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.reduced.nohouse@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the elephant-and-lion combination, is traditionally read as supporting {area} through good standing, though its
+    promise is read as reduced here.'
+  - Texts link {name}, meaning the elephant-and-lion combination, with prosperity in {area}, but in your chart that promise
+    is said to be reduced.
+  - With {planets} at an angle from the Moon, {name}, the elephant-and-lion combination, is said to favour {area}, though
+    only in a reduced way.
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - In tradition, {name}, a pairing of {planets} in an angular house from the Moon, is read as supporting {area}, though its
+    promise is read as reduced by {reductions}.
+  - Texts link {name}, the combination of {planets} in the {houses} house, with standing in {area}, but because of {reductions}
+    its promise is said to be reduced.
+  - '{name}, which is {planets} in a key angle from the Moon, is traditionally read as lending {area} some standing, though
+    {reductions} is said to reduce what it offers.'
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.gaja_kesari_bphs.reduced@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - In tradition, {name}, a pairing of {planets} in an angular house from the Moon, is read as touching {area} with some gain,
+    though {reductions} means its promise is read as reduced.
+  - Texts link {name}, the combination of {planets} in the {houses} house, with gains in {area}, but because of {reductions}
+    its promise is said to be reduced.
+  - '{name}, which is {planets} in a key angle from the Moon, is traditionally read as supporting {area}, though {reductions}
+    is said to reduce what it offers.'
+  source: BPHS, Santhanam 1984, 36.3-4
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.hamsa.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the swan combination of {planets} in its own or exalted sign at an angle, is traditionally read as bringing wisdom
+    and good standing to {area}.'
+  - Texts link {name}, meaning the swan, formed by {planets} in its own or exalted sign in an angular place, with wise conduct
+    and reputation in {area}.
+  - In tradition, {name}, the swan combination, is said to give {area} a footing of wisdom, duty and good name.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.hamsa.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the swan combination of {planets} in its own or exalted sign in your {houses} house, is traditionally read as
+    bringing wisdom and good standing to {area}.'
+  - Texts link {name}, meaning the swan, formed by {planets} in your {houses} house, with wise conduct and reputation in {area}.
+  - In tradition, {name}, the swan combination, is said to give {area} a footing of wisdom, duty and good name.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.hamsa.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the swan combination of {planets}, is traditionally read as a sign of wisdom and good standing in {area}, though
+    that promise is read as reduced by {reductions}.'
+  - Texts link {name}, the swan combination formed by {planets}, with respect and standing in {area}, but with {reductions},
+    the promise is read as reduced.
+  - In {area}, {name}, the swan combination of {planets}, is said to point toward wisdom and reputation, yet the promise is
+    read as reduced because of {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.hamsa.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the swan combination of {planets} in your {houses} house, is traditionally read as a sign of wisdom and standing
+    in {area}, though the promise is read as reduced by {reductions}.'
+  - Texts link {name}, the swan combination formed by {planets} in your {houses} house, with respect in {area}, but with {reductions},
+    that promise is read as reduced.
+  - With {planets} in your {houses} house, {name}, the swan combination, is said to point toward wisdom and reputation in
+    {area}, yet the promise is read as reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.kendra_trikona_raja.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the royal combination, is traditionally read as a sign of authority and good standing in {area}, and texts link
+    it with a respected place in the world.'
+  - Texts link {name}, the royal combination, with authority and reputation, and it is said to lend {area} a measure of standing.
+  - In {area}, {name}, the royal combination, is traditionally read as pointing toward authority, recognition and a respected
+    position.
+  source: BPHS, Santhanam 1984, 34.11-12; BPHS, Santhanam 1984, 34.15; BPHS, Santhanam 1984, 7.33-36; BPHS, Santhanam 1984,
+    39.37
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.malavya.full.nohouse@marriage
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the Venus combination of comfort and refinement, is traditionally read as a sign of warmth and harmony in {area}.'
+  - Texts link {name}, the combination formed by {planets} at its best, with affection, comfort and gracious relationships
+    in {area}.
+  - In {area}, {name}, a Venus combination of comfort and grace, is said to point toward warmth and pleasant companionship.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.malavya.full@marriage
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the Venus combination of comfort and refinement, is traditionally read as a sign of warmth and harmony in {area}.'
+  - Texts link {name}, the combination formed by {planets} in your {houses} house, with affection, comfort and gracious relationships
+    in {area}.
+  - In {area}, {name}, a Venus combination of comfort and grace, is said to point toward warmth and pleasant companionship.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.malavya.reduced.nohouse@marriage
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - In tradition, {name}, the combination of comfort and beauty made by {planets}, is read as favouring {area}, though its
+    promise is read as reduced by {reductions}.
+  - Texts link {name}, a combination of comfort and beauty through {planets}, with ease in {area}, but {reductions} means
+    its promise is said to be reduced.
+  - '{name}, the comfort and beauty combination of {planets}, is traditionally read as supporting {area}, though {reductions}
+    is said to reduce what it offers.'
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.malavya.reduced@marriage
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - In tradition, {name}, the combination of comfort and beauty made by {planets} in your {houses} house, is read as favouring
+    {area}, though its promise is read as reduced by {reductions}.
+  - Texts link {name}, a combination of comfort and beauty through {planets} in the {houses} house, with ease in {area}, but
+    {reductions} means its promise is said to be reduced.
+  - '{name}, the comfort and beauty combination of {planets} in your {houses} house, is traditionally read as supporting {area},
+    though {reductions} is said to reduce what it offers.'
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.neecha_bhanga.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the cancellation of a planet''s debilitation, is traditionally read as a rise after struggle and a gain in standing
+    for {area}.'
+  - Texts link {name}, the cancelling of a planet's fall, with rising after early difficulty and with authority in {area}.
+  - For {area}, {name}, meaning cancellation of debilitation, is said to show a climb after struggle toward standing and authority.
+  source: Phaladeepika, Sastri 1937, 7.26
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.neecha_bhanga.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the cancellation of a planet''s debilitation, is traditionally read as a rise after struggle and a gain in standing
+    for {area}.'
+  - Texts link {name}, the cancelling of a planet's fall, with rising after early difficulty and with authority in {area}.
+  - For {area}, {name}, meaning cancellation of debilitation, is said to show a climb after struggle toward standing and authority.
+  source: Phaladeepika, Sastri 1937, 7.26
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.neecha_bhanga.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the cancellation of a planet''s debilitation, is traditionally read as a rise after struggle for {area}, with
+    that promise read as reduced by {reductions}.'
+  - Texts link {name}, the cancelling of a planet's fall, with rising after difficulty and authority in {area}, though here
+    the promise is read as reduced by {reductions}.
+  - For {area}, {name}, meaning cancellation of debilitation, is said to show a climb toward standing, but tradition reads
+    it as reduced because of {reductions}.
+  source: Phaladeepika, Sastri 1937, 7.26
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.neecha_bhanga.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the cancellation of a planet''s debilitation, is traditionally read as a rise after struggle for {area}, with
+    that promise read as reduced by {reductions}.'
+  - Texts link {name}, the cancelling of a planet's fall, with rising after difficulty and authority in {area}, though here
+    the promise is read as reduced by {reductions}.
+  - For {area}, {name}, meaning cancellation of debilitation, is said to show a climb toward standing, but tradition reads
+    it as reduced because of {reductions}.
+  source: Phaladeepika, Sastri 1937, 7.26
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.parivartana.full@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, an exchange of signs between {planets} in your {houses} houses, is traditionally read as a sign of fortune and
+    of linked houses for {area}.'
+  - Texts link {name}, an exchange of signs in which {planets} each sit in the other's sign, with fortune and with joining
+    your {houses} houses, as it touches {area}.
+  - When {planets} swap signs in {name}, an exchange of signs, it is said to join your {houses} houses and to carry fortune
+    toward {area}.
+  source: Phaladeepika, Sastri 1937, 6.32
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.parivartana.reduced@wealth
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, an exchange of signs between {planets}, is traditionally read as joining your {houses} houses with fortune for
+    {area}, though with {reductions} that promise is read as reduced.'
+  - Texts link {name}, an exchange of signs, with fortune for {area}, yet because of {reductions}, the promise of {planets}
+    joining your {houses} houses is read as reduced.
+  - Tradition reads {name}, an exchange of signs between {planets}, as bringing fortune toward {area} through your {houses}
+    houses, but with {reductions} that promise is said to be reduced.
+  source: Phaladeepika, Sastri 1937, 6.32
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.ruchaka.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the radiant Mars combination, is traditionally read as pointing to courage and leadership in {area}.'
+  - Texts link {name}, a Mars combination whose name means radiant, with courage and leadership as they touch {area}.
+  - When {planets} forms {name}, the radiant Mars combination, tradition says it lends a bold, leading quality to {area}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.ruchaka.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the radiant Mars combination, is traditionally read as pointing to courage and leadership in {area}, as {planets}
+    sits in your {houses} house.'
+  - Texts link {name}, a Mars combination whose name means radiant, with courage and leadership in {area}, here with {planets}
+    in your {houses} house.
+  - With {planets} in your {houses} house forming {name}, the radiant Mars combination, tradition says it lends a bold, leading
+    quality to {area}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.ruchaka.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the Mars combination named for courage and command, is traditionally read as lifting {area}, though that promise
+    is read as reduced by {reductions}.'
+  - Texts link {name}, formed by {planets}, with courage and leadership in {area}, and they read its promise as reduced by
+    {reductions}.
+  - When {planets} forms {name}, a combination said to bring boldness and standing to {area}, tradition reads that promise
+    as reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.ruchaka.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the combination of Mars in a position of power, is traditionally read as lending courage and leadership to {area},
+    though the promise is read as reduced by {reductions}.'
+  - Texts link {name}, formed by {planets} in your {houses} house, with boldness and standing in {area}, and they read that
+    promise as reduced by {reductions}.
+  - With {planets} in your {houses} house forming {name}, a combination said to favour leadership in {area}, tradition reads
+    the promise as reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.sasa.full.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the Saturn combination named for discipline and authority, is traditionally read as lending steady authority
+    and endurance to {area}.'
+  - Texts link {name}, formed by {planets}, with discipline, lasting effort and standing in {area}.
+  - When {planets} forms {name}, a combination said to give authority and staying power, tradition reads it as supporting
+    {area}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.sasa.full@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  variants:
+  - '{name}, the Saturn combination named for discipline and authority, is traditionally read as lending steady authority
+    and endurance to {area}.'
+  - Texts link {name}, formed by {planets} in your {houses} house, with discipline, lasting effort and standing in {area}.
+  - When {planets} sits in your {houses} house and forms {name}, a combination said to give authority and staying power, tradition
+    reads it as supporting {area}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.sasa.reduced.nohouse@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the Saturn combination named for discipline and authority, is traditionally read as supporting {area}, though
+    that promise is read as reduced by {reductions}.'
+  - Texts link {name}, formed by {planets}, with discipline and lasting standing in {area}, and they read the promise as reduced
+    by {reductions}.
+  - When {planets} forms {name}, a combination said to give authority and endurance, tradition reads its promise for {area}
+    as reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: rule.yoga.sasa.reduced@career
+  kind: meaning
+  slots:
+  - area
+  - houses
+  - name
+  - planets
+  - reductions
+  variants:
+  - '{name}, the Saturn combination named for discipline and authority, is traditionally read as supporting {area}, though
+    that promise is read as reduced by {reductions}.'
+  - Texts link {name}, formed by {planets} in your {houses} house, with discipline and lasting standing in {area}, and they
+    read the promise as reduced by {reductions}.
+  - When {planets} in your {houses} house forms {name}, a combination said to give authority and endurance, tradition reads
+    its promise for {area} as reduced by {reductions}.
+  source: BPHS, Santhanam 1984, 75.1-2; Phaladeepika, Sastri 1937, 6.1
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.low_strength@career
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {planet}, {role}, sits in {sign} in your {house} house, texts link its low measured strength with {area} giving less
+    fully than it promises.
+  - Tradition reads {planet}, {role}, as short of the strength it needs, so {area} is said to deliver its promise less than
+    fully.
+  - Classical texts say that when {planet}, {role}, falls below its required strength in {sign}, what it promises for {area}
+    is read as only partly given.
+  source: 'Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter 27'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.low_strength@marriage
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {planet}, {role}, sits in {sign} in your {house} house, texts link its low measured strength with {area} giving less
+    fully than it promises.
+  - Tradition reads {planet}, {role}, as short of the strength it needs, so {area} is said to deliver its promise less than
+    fully.
+  - Classical texts say that when {planet}, {role}, falls below its required strength in {sign}, what it promises for {area}
+    is read as only partly given.
+  source: 'Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter 27'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.low_strength@wealth
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {planet}, {role}, sits in {sign} in your {house} house, texts link its low measured strength with {area} giving less
+    fully than it promises.
+  - Tradition reads {planet}, {role}, as short of the strength it needs, so {area} is said to deliver its promise less than
+    fully.
+  - Classical texts say that when {planet}, {role}, falls below its required strength in {sign}, what it promises for {area}
+    is read as only partly given.
+  source: 'Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter 27'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.mks@career
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - With {planet}, {role}, placed in your {house} house, a house that drains it, texts traditionally read {area} as having
+    less strength behind it than it needs.
+  - When {planet}, {role}, sits in {sign} in a house that drains it, tradition is said to read {area} as supported by a planet
+    short of the strength it needs.
+  - Texts link {planet}, {role}, standing in your {house} house, a house that drains it whatever its sign, with {area} being
+    traditionally read as carrying less strength than it needs.
+  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA)'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.mks@marriage
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {role} sits in a house counted as draining it, whatever its sign, tradition reads this as a reduced promise for {area}.
+  - Texts link a planet placed in its marana karaka sthana, meaning the place of the planet's undoing, with a reduced promise
+    for {area}.
+  - For {area}, a planet that sits in a house said to drain it, whatever its sign, is traditionally read as giving less than
+    it promises.
+  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA)'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.mks@wealth
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {role} sits in a house counted as draining it, whatever its sign, tradition reads this as a reduced promise for {area}.
+  - Texts link a planet placed in its marana karaka sthana, meaning the place of the planet's undoing, with a reduced promise
+    for {area}.
+  - For {area}, a planet that sits in a house said to drain it, whatever its sign, is traditionally read as giving less than
+    it promises.
+  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA)'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.mrita@career
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {planet}, {role}, sits in {sign} in a feeble state by its degree, tradition reads {area} as having less strength
+    behind it than it needs.
+  - Texts link a planet in this feeble state, like {planet} as {role} in your {house} house, with {area} being read as carrying
+    less strength than it needs.
+  - '{planet} as {role} stands in {sign} in your {house} house in a feeble state, and tradition reads the support for {area}
+    as reduced.'
+  source: 'Baladi avastha, the Mrita state: BPHS (Santhanam 1984) 45.3-4'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.mrita@marriage
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {planet}, {role}, sits in {sign} in a feeble state by its degree, tradition reads {area} as having less strength
+    behind it than it needs.
+  - Texts link a planet in this feeble state, like {planet} as {role} in your {house} house, with {area} being read as carrying
+    less strength than it needs.
+  - '{planet} as {role} stands in {sign} in your {house} house in a feeble state, and tradition reads the support for {area}
+    as reduced.'
+  source: 'Baladi avastha, the Mrita state: BPHS (Santhanam 1984) 45.3-4'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+- signature: weakness.mrita@wealth
+  kind: meaning
+  slots:
+  - area
+  - house
+  - planet
+  - role
+  - sign
+  variants:
+  - When {planet}, {role}, sits in {sign} in a feeble state by its degree, tradition reads {area} as having less strength
+    behind it than it needs.
+  - Texts link a planet in this feeble state, like {planet} as {role} in your {house} house, with {area} being read as carrying
+    less strength than it needs.
+  - '{planet} as {role} stands in {sign} in your {house} house in a feeble state, and tradition reads the support for {area}
+    as reduced.'
+  source: 'Baladi avastha, the Mrita state: BPHS (Santhanam 1984) 45.3-4'
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft

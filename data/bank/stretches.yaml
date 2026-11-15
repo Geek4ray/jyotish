@@ -1,0 +1,155 @@
+# The sentence bank: stretches (SPEC Layer 8, The layered answer). Drafted by scripts/draft_bank.py;
+# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.
+- signature: stretch.caveat.two
+  kind: fact
+  slots: []
+  variants:
+  - Neither of these two stretches is a prediction of when you will act.
+  - Please read neither stretch as a prediction of the moment you will act.
+  - Neither stretch tells you when you will act, and neither is meant as a prediction of it.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Neither of these two stretches is a prediction of when you will act.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Please read neither stretch as a prediction of the moment you will act.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Neither stretch tells you when you will act, and neither is meant as a prediction of it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: stretch.least.first
+  kind: fact
+  slots:
+  - area
+  - when
+  variants:
+  - As the chart reads it, the least favourable stretch for {area} runs {when}.
+  - Looking at {area}, the chart places its least favourable stretch {when}.
+  - The stretch the chart reads as least favourable for {area} runs {when}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: As the chart reads it, the least favourable stretch for your career runs from November 2028 to August 2029.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Looking at your career, the chart places its least favourable stretch from November 2028 to August 2029.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: The stretch the chart reads as least favourable for your career runs from November 2028 to August 2029.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: stretch.least.second
+  kind: fact
+  slots:
+  - area
+  - when
+  variants:
+  - Looking at the stretches the chart shows, the least favourable one runs {when}.
+  - The least favourable stretch, as the chart reads it, is the one that runs {when}.
+  - Running {when}, this is the least favourable stretch in the chart.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Looking at the stretches the chart shows, the least favourable one runs from November 2028 to August 2029.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to August 2029.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Running from November 2028 to August 2029, this is the least favourable stretch in the chart.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: stretch.most.first
+  kind: fact
+  slots:
+  - area
+  - when
+  variants:
+  - The most favourable stretch for {area}, as the chart reads it, runs {when}.
+  - As the chart reads it, the most favourable stretch for {area} runs {when}.
+  - For {area}, the chart reads the most favourable stretch as running {when}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: As the chart reads it, the most favourable stretch for your career runs from October 2029 to June 2032.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: For your career, the chart reads the most favourable stretch as running from October 2029 to June 2032.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: stretch.most.second
+  kind: fact
+  slots:
+  - area
+  - when
+  variants:
+  - Looking at the stretches the chart shows, the most favourable one runs {when}.
+  - The most favourable stretch, as the chart reads it, is the one that runs {when}.
+  - Running {when}, this is the most favourable stretch in the chart.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Looking at the stretches the chart shows, the most favourable one runs from October 2029 to June 2032.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: The most favourable stretch, as the chart reads it, is the one that runs from October 2029 to June 2032.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Running from October 2029 to June 2032, this is the most favourable stretch in the chart.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'

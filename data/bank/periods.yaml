@@ -1,0 +1,74 @@
+# The sentence bank: periods (SPEC Layer 8, The layered answer). Drafted by scripts/draft_bank.py;
+# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.
+- signature: period.now.apart
+  kind: fact
+  slots:
+  - antar
+  - area
+  - maha
+  - until
+  variants:
+  - You are in the period of {maha}, within that of {antar}, until {until}; neither rules nor signifies {area}.
+  - Until {until} you are in the period of {maha}, within that of {antar}, and neither one rules nor signifies {area}.
+  - Your current period is that of {maha}, within that of {antar}, running until {until}; neither rules nor signifies {area}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: You are in the period of the Moon, within that of Rahu, until April 2027; neither rules nor signifies your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Until April 2027 you are in the period of the Moon, within that of Rahu, and neither one rules nor signifies
+      your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Your current period is that of the Moon, within that of Rahu, running until April 2027; neither rules nor signifies
+      your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+- signature: period.now.touches
+  kind: fact
+  slots:
+  - antar
+  - area
+  - maha
+  - touching
+  - until
+  variants:
+  - You are in the period of {maha}, within that of {antar}, until {until}; {touching} have a hand in {area}.
+  - Until {until} you are in the period of {maha}, within that of {antar}, and {touching} have a hand in {area}.
+  - Your current period is that of {maha}, within that of {antar}, running until {until}; {touching} have a hand in {area}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-15'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand
+      in your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 1
+    sentence: Until November 2028 you are in the period of Jupiter, within that of Mercury, and Jupiter and Mercury have a
+      hand in your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+  - variant: 2
+    sentence: Your current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury
+      have a hand in your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
