@@ -448,3 +448,46 @@ def test_m1_the_checker_is_asked_both_ways_and_an_omission_refuses_the_polish():
     out = polish(COMPOSED, backend=Polisher(), checker=ch)
     assert len(ch.asked) == 2 and ch.asked[1][0] == COMPOSED and "polished answer" in ch.asked[1][1]
     assert out["used"] is False and out["refusals"] == ["left out of the polished text: x (left out)"]
+
+
+# --- M2. The polisher is hard-wired to Anthropic, and its failure fails the turn ----------------------------------------
+
+def test_m2_with_no_anthropic_key_a_polished_turn_shows_the_composed_text(monkeypatch):
+    from jyotish.conversation import answer_turn, route_turn
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("JYOTISH_POLISHER_BACKEND", raising=False)
+    m = "how is my career"
+    doc = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="m2")
+    assert doc["source"] == "composer" and doc["shown"] and not doc["polish"]["used"]
+    assert doc["polish"]["refusals"][0].startswith("the polisher could not be reached")
+
+
+def test_m2_the_polisher_is_a_role_on_an_openai_compatible_host_and_health_reports_it(monkeypatch, tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    from jyotish.narrate import CONFIG, OpenAIBackend, make_backend
+    monkeypatch.setenv("JYOTISH_POLISHER_BACKEND", "openai:https://api.deepinfra.com/v1/openai:Qwen/Qwen3.6-35B-A3B")
+    monkeypatch.setenv("JYOTISH_POLISHER_KEY", "not-a-key")
+    b = make_backend(None, "polisher", CONFIG, model="claude-haiku-5-5")
+    assert isinstance(b, OpenAIBackend) and b.model == "Qwen/Qwen3.6-35B-A3B"
+    sent = {}
+
+    def structured(**kw):
+        sent.update(kw)
+        raise RuntimeError("stub: no call")
+    b.structured = structured
+    from jyotish.conversation import polish
+    out = polish("Your career leans favourably.", backend=b, checker=object())
+    assert isinstance(sent["system"], str) and out["refusals"][0].startswith("the polisher could not be reached")
+    with TestClient(create_app(f"sqlite:///{tmp_path / 'h.db'}")) as c:
+        assert "polisher" not in c.get("/health").json()
+        monkeypatch.setenv("JYOTISH_POLISH", "1")
+        h = c.get("/health").json()
+        assert h["polisher"] == {"provider": "openai-compatible", "host": "api.deepinfra.com",
+                                 "model": "Qwen/Qwen3.6-35B-A3B", "ready": True}
+        assert "not-a-key" not in json.dumps(h)

@@ -669,17 +669,28 @@ def composed_text(sentences: list[str], paragraphs: list[int]) -> str:
 def polish(text: str, *, backend=None, checker=None) -> dict[str, Any]:
     """The polisher's call and the checker's call on one composed answer; `used` says which text the client reads."""
     from .client import client_warnings, never_show
-    from .narrate import CONFIG, AnthropicBackend, ModelChecker, NarrationError, make_backend, sentences, TIER_WORDS
-    backend = backend or AnthropicBackend(POLISH_MODEL, CONFIG)
-    checker = checker or ModelChecker(make_backend(None, "checker", CONFIG), CONFIG)
+    from .narrate import CONFIG, ModelChecker, make_backend, sentences, TIER_WORDS
     out: dict[str, Any] = {"model": getattr(backend, "model", POLISH_MODEL), "composed": text, "text": None,
                            "used": False, "refusals": [], "verdict": None, "metas": {}}
-    system = [{"type": "text", "text": POLISH_SYSTEM, "cache_control": {"type": "ephemeral"}}]
+    # The polisher is a role (review 2026-11-15, M2): JYOTISH_POLISHER_BACKEND ("anthropic", the default, with
+    # POLISH_MODEL, or "openai:<base url>:<model>"), its key JYOTISH_POLISHER_KEY or JYOTISH_OPENAI_KEY. Anything
+    # that fails, the backend made, the call or the check, shows the composed text and says why; never the turn.
+    try:
+        backend = backend or make_backend(None, "polisher", CONFIG, model=POLISH_MODEL)
+        out["model"] = getattr(backend, "model", POLISH_MODEL)
+        out["backend"] = backend.describe() if hasattr(backend, "describe") else None
+        checker = checker or ModelChecker(make_backend(None, "checker", CONFIG), CONFIG)
+    except Exception as e:
+        out["refusals"].append(f"the polisher could not be reached: {type(e).__name__}")
+        return out
+    # Anthropic caches the stable prefix as a marked system block; an OpenAI-compatible host is sent it as text.
+    anthropic = (backend.describe().get("provider") if hasattr(backend, "describe") else "anthropic") == "anthropic"
+    system = [{"type": "text", "text": POLISH_SYSTEM, "cache_control": {"type": "ephemeral"}}] if anthropic else POLISH_SYSTEM
     try:
         done = backend.structured(system=system, messages=[{"role": "user", "content": text}], schema=PolishDraft,
                                   kind="polish", effort="low", thinking=None, max_tokens=4000)
-    except NarrationError as e:
-        out["refusals"].append(f"the polisher could not be reached: {e}")
+    except Exception as e:                       # NarrationError, or the SDK's own (no key: a TypeError)
+        out["refusals"].append(f"the polisher could not be reached: {type(e).__name__}: {str(e)[:200]}")
         return out
     out["metas"]["polisher"] = done.meta
     polished = unbullet(done.parsed.text).strip() if done.parsed is not None else None
@@ -696,8 +707,12 @@ def polish(text: str, *, backend=None, checker=None) -> dict[str, Any]:
         return out
     # Both ways (review M1): nothing in the polished text the composed text does not state, and nothing of the
     # composed text left out of the polished one.
-    result, meta = checker.ask_one(polished, json.dumps({POLISH_CHECK: text}, indent=1))
-    back, meta_back = checker.ask_one(text, json.dumps({POLISH_CHECK_BACK: polished}, indent=1))
+    try:
+        result, meta = checker.ask_one(polished, json.dumps({POLISH_CHECK: text}, indent=1))
+        back, meta_back = checker.ask_one(text, json.dumps({POLISH_CHECK_BACK: polished}, indent=1))
+    except Exception as e:
+        out["refusals"].append(f"the polisher could not be reached: the check failed ({type(e).__name__})")
+        return out
     out["metas"]["checker"], out["metas"]["checker_back"] = meta, meta_back
     out["verdict"] = [p.model_dump() for p in result.propositions]
     out["verdict_back"] = [p.model_dump() for p in back.propositions]
@@ -780,7 +795,8 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
         p = polish(composed_text(shown, paras), backend=polisher, checker=checker)
         mark("polished")
         metas = p.pop("metas")
-        extra = {"polish": p, "polisher": {"model": p["model"], **_backend_of_backend(polisher, p["model"])},
+        extra = {"polish": p, "polisher": {"model": p["model"], **({"backend": p["backend"]} if p.get("backend")
+                                                                   else _backend_of_backend(polisher, p["model"]))},
                  "checker": (_checker_role(checker) if checker is not None else _default_checker_role())
                             if metas.get("checker") else {},
                  "usage_extra": {"polisher": _usage([metas.get("polisher")]),

@@ -1378,6 +1378,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                               else "no key"),
                 "backends": backends,
                 "source": os.environ.get("JYOTISH_SOURCE_URL") or None}
+        from .conversation import polish_on
+        if polish_on():                         # the polisher's role (review M2); a turn it fails shows the composed text
+            from .narrate import role_status
+            body["polisher"] = role_status("polisher")
         return JSONResponse(body, status_code=200 if db["ok"] else 503)
 
     @app.get("/source", include_in_schema=False)

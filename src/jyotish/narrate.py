@@ -2017,24 +2017,24 @@ def backends_status() -> dict[str, dict]:
     """Each role's configured backend as /health reports it: provider, host, model, and whether it
     has what it needs to run (a key for Anthropic or a hosted server; nothing for a local one). Never
     a key."""
+    return {role: role_status(role) for role in ROLES}
+
+
+def role_status(role: str) -> dict:
+    """One role's configured backend (backends_status): provider, host, model and readiness, never a key. The
+    polisher (conversation.polish) is a role of its own too, reported apart by /health when JYOTISH_POLISH is on."""
     import os
-    out = {}
-    for role in ROLES:
-        spec = backend_spec(role)
-        if spec == "anthropic":
-            out[role] = {"provider": "anthropic", "ready": bool(os.environ.get("ANTHROPIC_API_KEY"))}
-            continue
-        m = BACKEND_SPEC.match(spec)
-        if not m:
-            out[role] = {"provider": "invalid", "ready": False}
-            continue
-        from .costs import is_local
-        from urllib.parse import urlparse
-        host = urlparse(m.group(1)).netloc
-        keyed = bool(os.environ.get(f"JYOTISH_{role.upper()}_KEY") or os.environ.get("JYOTISH_OPENAI_KEY"))
-        out[role] = {"provider": "openai-compatible", "host": host, "model": m.group(2),
-                     "ready": keyed or is_local(host)}
-    return out
+    spec = backend_spec(role)
+    if spec == "anthropic":
+        return {"provider": "anthropic", "ready": bool(os.environ.get("ANTHROPIC_API_KEY"))}
+    m = BACKEND_SPEC.match(spec)
+    if not m:
+        return {"provider": "invalid", "ready": False}
+    from .costs import is_local
+    from urllib.parse import urlparse
+    host = urlparse(m.group(1)).netloc
+    keyed = bool(os.environ.get(f"JYOTISH_{role.upper()}_KEY") or os.environ.get("JYOTISH_OPENAI_KEY"))
+    return {"provider": "openai-compatible", "host": host, "model": m.group(2), "ready": keyed or is_local(host)}
 
 
 class ModelDrafter:
