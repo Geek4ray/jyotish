@@ -392,5 +392,8 @@ and what it left out); the sentence bank (`jyotish.bank`, `data/bank/*.yaml` and
 three variants with slots, drafted_by/on, draft or approved; every variant refused at load for a never-show, client or
 tier word; `jyotish bank check|coverage`, the share of plan items on 1,000 random charts that find a row);
 `scripts/draft_bank.py` drafted its 126 rows with claude-sonnet-5-5, every fact variant checked once by the gate
-checker (docs/bank_draft_2026-11-15.json; coverage 99.7%, all rows draft).
+checker (docs/bank_draft_2026-11-15.json; coverage 99.7%, all rows draft); the composer (`conversation.compose`,
+answer_turn's default for a placed turn, JYOTISH_LAYERED; no model: the plan filled from the bank, the variant by a
+hash of the session, a draft meaning only with JYOTISH_SHOW_DRAFT_MEANINGS; the suite runs JYOTISH_LAYERED=0 for the
+writer loop's tests; frozen seven turns in tests/fixtures/layered_seven_turns.json).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

@@ -10,6 +10,10 @@ def _chart_cache_dir(tmp_path_factory):
     mp.setenv("JYOTISH_CACHE_DIR", str(tmp_path_factory.mktemp("chart-cache")))
     # Candidate rules (the [tradition:] sentences of a live reading) go to a temporary file too.
     mp.setenv("JYOTISH_CANDIDATE_RULES", str(tmp_path_factory.mktemp("candidates") / "candidate_rules.jsonl"))
+    # The layered answer (SPEC Layer 8 rev 134) is answer_turn's default in the service; the writer loop it keeps for
+    # a question the route cannot place is what the conversation's earlier tests drive, so the suite runs them with
+    # it, and tests/test_layered.py turns the composer on (and tests the default with the variable unset).
+    mp.setenv("JYOTISH_LAYERED", "0")
     yield
     mp.undo()
 

@@ -451,5 +451,52 @@ def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str
             items.append(it)
         if when:
             items += _stretch_items(area, label, data, sheet, hard_first=direction == "against")
+    items, left = _once(items, left, labels)
     return AnswerPlan(question=question, areas=list(areas), direction=direction, kinds=list(kinds), when=when,
                       as_of=as_of.isoformat(), items=items, left_out=left)
+
+
+def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tuple[list[PlanItem], list[dict]]:
+    """A turn over several areas says each rule, each hidden weakness and the period once (2026-11-15: the weakest
+    areas' answer told Saturn's three weaknesses twice and the period three times). A rule names every area it bears
+    on; a weakness is said for its first area; the period is one item, with every area its lords touch."""
+    from .narrate import _and as n_and
+    out: list[PlanItem] = []
+    rules: dict[str, PlanItem] = {}
+    weak: set[tuple] = set()
+    periods = [i for i in items if i.part == "period"]
+    for i in items:
+        if i.part == "rule":
+            key = i.facts.get("rule_id"), tuple(i.facts.get("planets") or []), tuple(i.facts.get("houses") or [])
+            if key in rules:
+                first = rules[key]
+                first.facts.setdefault("areas", [first.area]).append(i.area)
+                first.slots["area"] = n_and([labels[a] for a in first.facts["areas"]])
+                continue
+            rules[key] = i
+        elif i.part == "weakness":
+            key = i.facts.get("planet"), i.signature
+            if key in weak:
+                left.append({"area": i.area, "what": f"{i.signature}:{i.facts.get('planet')}",
+                             "why": "said for an earlier area of this answer"})
+                continue
+            weak.add(key)
+        elif i.part == "period" and len(periods) > 1:
+            continue
+        out.append(i)
+    if len(periods) > 1:
+        p0 = periods[0]
+        touched = [p.area for p in periods if p.signature == "period.now.touches"]
+        lords = [x for p in periods for x in (p.facts.get("touching") or [])]
+        slots = dict(p0.slots) | {"area": n_and([labels[a] for a in (touched or [p.area for p in periods])])}
+        if touched:
+            slots["touching"] = n_and([("the " + x if x in ("Sun", "Moon") else x) for x in dict.fromkeys(lords)])
+        sig = "period.now.touches" if touched else "period.now.apart"
+        engine = (f"You are in the period of {slots['maha']}, within that of {slots['antar']}, until {slots['until']}; "
+                  + (f"{slots['touching']} {'have' if ' and ' in slots['touching'] else 'has'} a hand in {slots['area']}."
+                     if touched else f"neither rules nor signifies {slots['area']}."))
+        item = p0.model_copy(update={"signature": sig, "slots": slots, "engine": engine, "area": p0.area,
+                                     "facts": p0.facts | {"areas": [p.area for p in periods], "touched_areas": touched}})
+        at = next(k for k, i in enumerate(out) if i.part in ("stretch",)) if any(i.part == "stretch" for i in out) else len(out)
+        out.insert(at, item)
+    return out, left

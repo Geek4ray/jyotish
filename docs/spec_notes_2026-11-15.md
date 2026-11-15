@@ -103,4 +103,42 @@ during the build.
    - **"Batch where possible".** About ten signatures to a call, rather than the Message Batches API: the gate
      checker is on DeepInfra, and the drafting wanted the redraft loop within one run.
    - **The cost limit.** USD 2 is applied per run, to the printed estimate.
+4. **The composer** (`conversation.compose`, `answer_turn`).
+   - **What it does.** It fills the plan from the bank: for each item, its fact row's variant with the chart's
+     values, else the engine's sentence. After a rule or a weakness comes its meaning row for the area, where the
+     row is approved, or where JYOTISH_SHOW_DRAFT_MEANINGS is on; no public client sees an unapproved meaning.
+   - **Paragraphs.** Three short paragraphs, then the timing: the answer as asked (openings, verdict, stability),
+     what helps (families, rules), what is hard (families, weaknesses), then the period now and the stretches. A
+     question asking what is against puts the hard paragraph before what helps.
+   - **The variant.** It is `sha256(session | signature) mod 3`. One client's answers vary across signatures and
+     stay the same for a signature from turn to turn.
+   - **A follow-up.** One that carries the last turn's areas repeats nothing, the stretches' caveat excepted. A
+     why or how turn with nothing new says so.
+   - **In `answer_turn`.** It is the default for every turn the route placed (named, carried or weakest areas).
+     A question the route could not place keeps the writer loop, as does `JYOTISH_LAYERED=0`. No model is called:
+     the turn's document records the plan, the composed sentences with their rows, and the bank's version.
+
+   *Readings settled:*
+   - **A row is used only when the item fills its slots and the gate checker supported every variant.** Anything
+     else falls back to the engine's sentence.
+   - **"A question the route cannot place".** A turn whose areas the route took from the chart's top areas by
+     default (`areas_from == "top"`).
+   - **The test suite.** It runs with JYOTISH_LAYERED=0 (tests/conftest.py), so the conversation's earlier tests
+     still drive the writer loop that the service keeps. tests/test_layered.py turns the composer on and tests the
+     default with the variable unset.
+   - **Fixes the frozen texts showed.**
+     - A verb right after a slot now agrees with the slot's value (`bank.agree`): "the Sun and Mercury sit",
+       "Jupiter has a hand".
+     - A row is not filled where the item leaves one of its slots empty.
+     - The composed path makes the payload when it is given none, so the stretches have their dates.
+     - A turn over several areas says each rule once, naming every area it bears on. It says each hidden weakness
+       once, and the period once with every area its lords touch (`plan._once`).
+   - **Frozen.** The seven-turn conversation of tests/test_conversation.py is frozen composed, with the bank version,
+     in tests/fixtures/layered_seven_turns.json. Six turns are composed and the death question gets its fixed reply.
+
+   *Open, for the review:*
+   - **Length.** The weakest-areas turn ("what are the challanges in my life") over three areas is 25 sentences,
+     not three short paragraphs.
+   - **A second verb.** A coordinated verb after the first is not made to agree ("the Sun and Mercury sit … and
+     forms").
 

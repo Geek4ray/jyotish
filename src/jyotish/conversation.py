@@ -547,6 +547,125 @@ def plan_turn(chart, message: str, route: Route, *, as_of: date, data: dict | No
                 weakest=route.areas_from == "weakest" and not (route.why or route.how), data=data)
 
 
+# --- the composer (SPEC Layer 8, "The layered answer", step 4) -------------------------------------------------------
+
+def layered_on() -> bool:
+    """JYOTISH_LAYERED (on by default): a placed turn is answered by the composer; "0" keeps the writer loop for
+    every turn."""
+    import os
+    return os.environ.get("JYOTISH_LAYERED", "1").lower() not in ("0", "false", "no", "off")
+
+
+def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline, session_key, bank):
+    """A turn answered by the composer: the plan, the bank's sentences in their paragraphs, emitted as they are."""
+    if data is None:                                 # the stretches and the sheet's notes need the payload
+        from .fullchart import cached_payload
+        from .narrate import full_range
+        data = cached_payload(chart, as_of, *full_range(as_of), list(route.areas))
+    plan = plan_turn(chart, message, route, as_of=as_of, data=data, kinds=kinds)
+    mark("plan")
+    c = compose(plan, bank, session_key, said)
+    shown = [s["text"] for s in c["sentences"]]
+    paras = list(c["paragraphs"])
+    if route.third_party:
+        shown.append(THIRD_PARTY_LINE)
+        paras.append(len(shown) - 1)
+    for i, text in enumerate(shown):
+        mark("first_verified")
+        emit({"type": "text", "i": i, "text": text, "para": i in paras})
+        tagged = c["sentences"][i]["tagged"] if i < len(c["sentences"]) else text
+        f = focus_of(tagged, chart)
+        if f["planets"] or f["houses"]:
+            emit({"type": "light", "stage": "sentence", **f})
+    mark("done")
+    emit({"type": "done", "status": "done", "source": "composer"})
+    opening = [s for s in c["sentences"] if s["part"] == "opening"]
+    return doc | {"source": "composer", "shown": shown, "paragraphs": paras,
+                  "accepted": [s["tagged"] for s in c["sentences"]], "attempts": 0, "timeline": timeline,
+                  "opened_by": "composer" if opening else None, "plan": plan.model_dump(),
+                  "composed": {k: v for k, v in c.items()}, "bank": c["bank"],
+                  "writer": {}, "checker": {}, "usage": {"wall_seconds": timeline["done"]}}
+
+
+# The plan's parts as the composer orders them: the answer to the question as asked, what helps, what is hard, then
+# the timing (the period running now and, on a "when" turn, the stretches). A question asking what is against puts
+# the hard part before what helps.
+PARAGRAPHS = {"answer": ("opening", "verdict", "stability"), "helps": ("helps", "rule"), "hard": ("hard", "weakness"),
+              "timing": ("period", "stretch")}
+
+
+def show_draft_meanings() -> bool:
+    """JYOTISH_SHOW_DRAFT_MEANINGS (Ray's and the astrologer's testing): an unapproved meaning row is shown; off, the
+    default, no client sees one."""
+    import os
+    return os.environ.get("JYOTISH_SHOW_DRAFT_MEANINGS", "").lower() in ("1", "true", "yes", "on")
+
+
+def variant_of(session_key: str, signature: str) -> int:
+    """The variant a session reads for a signature: a hash of the two, so one client's answers vary across signatures
+    and stay the same for a signature across turns."""
+    import hashlib
+    return int(hashlib.sha256(f"{session_key}|{signature}".encode()).hexdigest(), 16) % 3
+
+
+def _usable(row, item) -> bool:
+    """A fact row the item can fill: its slots are the item's and each has a value (a dignity may be empty), and none
+    of its variants was refused by the checker."""
+    return (row is not None and set(row.slots) <= set(item.slots) and all(c.supported for c in row.checks)
+            and all(item.slots[s] for s in row.slots if s != "dignity"))
+
+
+def compose(plan, bank=None, session_key: str = "", said_before: list[str] | None = None,
+            draft_meanings: bool | None = None) -> dict[str, Any]:
+    """The plan filled from the bank (SPEC Layer 8, "The layered answer"): per item its fact row's variant for this
+    session with the chart's values, else the engine's sentence; after a rule's or a weakness's fact, its meaning row
+    for the area where approved (or where JYOTISH_SHOW_DRAFT_MEANINGS is on); ordered as PARAGRAPHS. No model call.
+    `said_before`: a follow-up's earlier answers as the client read them; a sentence one of them holds is left out
+    (the caveat closing a set of stretches excepted), and a why or how turn whose reasons were all given says so.
+    Returns the sentences ({text, tagged, signature, part, area, row, tags, notes}), the paragraph starts, the
+    plan and the bank's version."""
+    from .bank import default_bank
+    from .narrate import OPENING_SAID, _cap
+    bank = bank if bank is not None else default_bank()
+    draft_meanings = show_draft_meanings() if draft_meanings is None else draft_meanings
+    said_before = said_before or []
+    out: list[dict[str, Any]] = []
+
+    def sentence(item, row, text: str) -> dict[str, Any]:
+        text = _cap(text)
+        tags = " ".join(f"[{t}]" for t in item.tags)
+        return {"text": text, "tagged": f"{text[:-1]} {tags}{text[-1]}" if tags and text[-1:] in ".!?" else text,
+                "signature": item.signature, "part": item.part, "area": item.area, "tags": item.tags,
+                "notes": item.notes, "row": None if row is None else
+                {"signature": row.signature, "kind": row.kind, "variant": variant_of(session_key, row.signature),
+                 "status": row.status, "file": row.file}}
+    for item in plan.items:
+        row = bank.fact(item.signature)
+        if _usable(row, item):
+            out.append(sentence(item, row, row.fill(variant_of(session_key, row.signature), item.slots)))
+        elif item.engine:
+            out.append(sentence(item, None, item.engine))
+        else:
+            continue
+        meaning = bank.meaning(item.signature, item.area) if item.part in ("rule", "weakness") else None
+        if meaning is not None and set(meaning.slots) <= set(item.slots) and (meaning.status == "approved" or draft_meanings):
+            out.append(sentence(item, meaning, meaning.fill(variant_of(session_key, meaning.signature), item.slots)))
+    if said_before:
+        keep = ("Neither stretch is", "This stretch is not")
+        out = [s for s in out if s["part"] == "stretch" and s["signature"].startswith("stretch.caveat")
+               or s["text"].startswith(keep) or not any(s["text"] in x for x in said_before)]
+        if "why" in plan.kinds and not any(s["part"] in ("helps", "hard", "rule", "weakness") for s in out):
+            for s in out:
+                if s["signature"] == "opening.why":
+                    s.update(text=OPENING_SAID, tagged=OPENING_SAID, signature="opening.said", row=None)
+    order = ["answer", "hard", "helps", "timing"] if plan.direction == "against" else ["answer", "helps", "hard", "timing"]
+    rank = {part: n for n, para in enumerate(order) for part in PARAGRAPHS[para]}
+    out.sort(key=lambda s: rank[s["part"]])                     # stable: the plan's order within a paragraph
+    paras = [i for i, s in enumerate(out) if i == 0 or rank[s["part"]] != rank[out[i - 1]["part"]]]
+    return {"sentences": out, "paragraphs": paras, "bank": bank.version,
+            "from_bank": sum(1 for s in out if s["row"] is not None), "from_engine": sum(1 for s in out if s["row"] is None)}
+
+
 def history_of(earlier: list[dict], keep: int = 3) -> list[dict]:
     """The earlier turns the writer is given: the last `keep` turns' accepted text, as the client read it (review
     L1: the whole conversation made every turn dearer than the last)."""
@@ -970,7 +1089,8 @@ def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, c
 
 def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list[dict] | None = None,
                 drafter=None, checker=None, emit=None, config=None, data: dict | None = None,
-                word_rules: str | None = None) -> dict[str, Any]:
+                word_rules: str | None = None, layered: bool | None = None, session_key: str = "",
+                bank=None) -> dict[str, Any]:
     """One turn, answered (the section above): returns the turn's document, the record the turns table keeps —
     the route, the engine's answer, the writer's answer as the client read it (`shown`) with its source, every
     removed sentence with its reasons, the warnings, the checks, the settings and usage of each role, and the
@@ -1013,6 +1133,11 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     mark("engine")
     doc["engine"] = engine.model_dump()
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})
+    # The layered answer (SPEC Layer 8, rev 134): a turn the route placed is answered from the plan and the bank, no
+    # model; a question the route could not place (its areas the chart's top ones by default) keeps the writer loop.
+    if (layered_on() if layered is None else layered) and route.areas and route.areas_from != "top":
+        return _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline,
+                              session_key, bank)
     user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data,
                                                                  kinds)
     drafter = drafter or ModelDrafter(make_backend(None, "writer", config), config, schema=TurnDraft)

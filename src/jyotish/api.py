@@ -755,7 +755,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             doc = answer_turn(chart, message, route, as_of=as_of, history=history, data=data,
                               drafter=turn_writer() if turn_writer and not route.off_limits else None,
                               checker=turn_checker() if turn_checker and not route.off_limits else None,
-                              emit=LIVE.writer(turn_id))
+                              emit=LIVE.writer(turn_id), session_key=t.session_id)
             if model_fixture:
                 doc["narration_source"] = f"fixture:{model_fixture}"
             with Session.begin() as s:

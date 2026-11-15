@@ -87,7 +87,38 @@ class BankRow(BaseModel):
         return self.signature.split("@", 1)[1] if "@" in self.signature else None
 
     def fill(self, i: int, slots: dict[str, str]) -> str:
-        return tidy(SLOT.sub(lambda m: slots.get(m.group(1), m.group(0)), self.variants[i]))
+        return tidy(SLOT.sub(lambda m: slots.get(m.group(1), m.group(0)), agree(self.variants[i], slots)))
+
+
+# A verb right after a slot agrees with the slot's value (2026-11-15: "The Sun and Mercury sits", "Jupiter have a hand"):
+# a list ("the Sun and Mercury", "Saturn's aspect, an unhelpful star and a house") takes the plural, one value the
+# singular. Only these verbs are changed, so a noun after a slot is never touched.
+VERBS = {"sits": "sit", "has": "have", "is": "are", "was": "were", "holds": "hold", "reduces": "reduce",
+         "weakens": "weaken", "lessens": "lessen", "leans": "lean", "bears": "bear", "forms": "form", "gives": "give",
+         "lies": "lie", "falls": "fall", "stands": "stand", "rules": "rule", "brings": "bring", "makes": "make",
+         "supports": "support", "works": "work", "dims": "dim", "tempers": "temper", "softens": "soften",
+         "limits": "limit", "cuts": "cut", "takes": "take", "keeps": "keep", "draws": "draw", "shows": "show"}
+PLURAL_OF = {s: p for s, p in VERBS.items()}
+SINGULAR_OF = {p: s for s, p in VERBS.items()}
+_AFTER_SLOT = re.compile(r"\{([A-Za-z_]+)\}(\s+)([a-z]+)\b")
+
+
+def plural(value: str) -> bool:
+    return bool(re.search(r"\band\b|,", value or ""))
+
+
+def agree(template: str, slots: dict[str, str]) -> str:
+    def fix(m):
+        name, space, verb = m.group(1), m.group(2), m.group(3)
+        if name not in slots or name in ("dignity", "area", "Area", "areas", "named", "name", "when", "until"):
+            return m.group(0)
+        many = plural(slots[name])
+        if many and verb in PLURAL_OF:
+            verb = PLURAL_OF[verb]
+        elif not many and verb in SINGULAR_OF:
+            verb = SINGULAR_OF[verb]
+        return "{" + name + "}" + space + verb
+    return _AFTER_SLOT.sub(fix, template)
 
 
 def tidy(text: str) -> str:

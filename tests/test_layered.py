@@ -262,3 +262,161 @@ def test_3_a_fact_variant_is_checked_against_its_facts_its_area_and_the_glossary
     d = db.check_data({"facts": item.facts, "engine": item.engine, "slots": item.slots})
     assert d["facts"]["about"]["main_house"] == 10 and d["facts"]["about"]["main_house_lord"] == "Saturn"
     assert "the engine's own sentence (the row says this, in other words)" in d and "friend" in d["the engine's plain words for a dignity"]
+
+
+# --- 4. The composer ---------------------------------------------------------------------------------------------------
+
+def ruchaka_rows():
+    fact = row(signature="rule.yoga.ruchaka.reduced", slots=["area", "name", "planets", "houses", "reductions"],
+               variants=["{name}, a combination of Mars, is in your chart: {planets} in your {houses} house, weakened "
+                         "by {reductions}.",
+                         "Your chart holds {name} (a combination of Mars), with {planets} in your {houses} house, though "
+                         "{reductions} weaken it.",
+                         "{planets} in your {houses} house forms {name}, a combination of Mars, weakened by {reductions}."])
+    meaning = row(signature="rule.yoga.ruchaka.reduced@career", kind="meaning", slots=["area"], source="BPHS 75.1-2",
+                  variants=["Ruchaka, a combination of Mars, is traditionally read as courage in {area}, here less so.",
+                            "Texts link Ruchaka, Mars's combination, with drive in {area}; reduced here.",
+                            "Ruchaka, a combination of Mars, is said to lend {area} vigour, held back here."])
+    return [fact, meaning]
+
+
+def test_4_the_composer_fills_the_plan_from_the_bank_and_falls_back_to_the_engines_sentence(chart, data, tmp_path):
+    from jyotish.bank import load_bank
+    from jyotish.conversation import compose, variant_of
+    bank = load_bank(write_bank(tmp_path, ruchaka_rows()))
+    p = career(chart, data)
+    c = compose(p, bank, session_key="s1", draft_meanings=False)
+    by = {s["signature"]: s for s in c["sentences"]}
+    r = by["rule.yoga.ruchaka.reduced"]
+    v = variant_of("s1", "rule.yoga.ruchaka.reduced")
+    assert r["row"] == {"signature": "rule.yoga.ruchaka.reduced", "kind": "fact", "variant": v, "status": "draft",
+                        "file": "family.yaml"}
+    assert "Mars in your 7th house" in r["text"] and "a house that drains it" in r["text"]
+    assert r["tagged"].endswith("[rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2] "
+                                "[text:Phaladeepika/Sastri-1937/6/1].") or "[rule:yoga.ruchaka]" in r["tagged"]
+    # No row: the engine's sentence. A draft meaning is not shown unless JYOTISH_SHOW_DRAFT_MEANINGS is on.
+    assert by["weakness.mks"]["row"] is None and by["weakness.mks"]["text"] == next(
+        i.engine for i in p.items if i.signature == "weakness.mks")
+    assert not [s for s in c["sentences"] if (s["row"] or {}).get("kind") == "meaning"]
+    shown = compose(p, bank, session_key="s1", draft_meanings=True)
+    meant = [s for s in shown["sentences"] if (s["row"] or {}).get("kind") == "meaning"]
+    assert [s["signature"] for s in meant] == ["rule.yoga.ruchaka.reduced"] and "Ruchaka" in meant[0]["text"]
+    i = [s["signature"] for s in shown["sentences"]].index("rule.yoga.ruchaka.reduced")
+    assert shown["sentences"][i + 1] is meant[0]                     # the meaning follows its fact
+    assert c["from_bank"] == 1 and c["from_engine"] == len(c["sentences"]) - 1
+
+
+def test_4_the_variant_is_a_hash_of_the_session_stable_across_turns(chart, data, tmp_path):
+    from jyotish.bank import load_bank
+    from jyotish.conversation import compose, variant_of
+    bank = load_bank(write_bank(tmp_path, ruchaka_rows()))
+    p = career(chart, data)
+    texts = lambda key: [s["text"] for s in compose(p, bank, session_key=key)["sentences"]]
+    assert texts("a") == texts("a")
+    keys = [f"s{n}" for n in range(12)]
+    assert len({variant_of(k, "rule.yoga.ruchaka.reduced") for k in keys}) == 3
+    assert len({tuple(texts(k)) for k in keys}) == 3
+
+
+def test_4_a_row_refused_by_the_checker_or_wanting_a_slot_is_not_used(chart, data, tmp_path):
+    from jyotish.bank import load_bank
+    from jyotish.conversation import compose
+    fact, _ = ruchaka_rows()
+    refused = fact | {"checks": [{"variant": 0, "sentence": "x", "supported": False, "evidence": "no", "model": "m",
+                                  "on": "2026-11-15"}]}
+    for bad in (refused, fact | {"slots": fact["slots"] + ["dignity"]}):
+        c = compose(career(chart, data), load_bank(write_bank(tmp_path, [bad])), session_key="s1")
+        assert next(s for s in c["sentences"] if s["signature"] == "rule.yoga.ruchaka.reduced")["row"] is None
+
+
+def test_4_paragraphs_are_the_answer_what_helps_what_is_hard_then_the_timing(chart, data):
+    from jyotish.conversation import PARAGRAPHS, compose
+    m = "when will my career rise"
+    c = compose(plan_turn(chart, m, route_turn(m, chart), as_of=AS_OF, data=data), session_key="s")
+    parts = [s["part"] for s in c["sentences"]]
+    groups = [next(k for k, v in PARAGRAPHS.items() if p in v) for p in parts]
+    starts = [i for i in range(len(groups)) if i == 0 or groups[i] != groups[i - 1]]
+    assert c["paragraphs"] == starts and [groups[i] for i in starts] == ["answer", "helps", "hard", "timing"]
+    assert parts[-1] == "stretch" and c["sentences"][-1]["signature"] == "stretch.caveat.two"
+    against = compose(plan_turn(chart, "what is hard in my career", route_turn("what is hard in my career", chart),
+                                as_of=AS_OF, data=data))
+    order = list(dict.fromkeys(next(k for k, v in PARAGRAPHS.items() if s["part"] in v) for s in against["sentences"]))
+    assert order.index("hard") < order.index("helps")
+
+
+def test_4_answer_turn_composes_by_default_and_keeps_the_writer_for_an_unplaced_question(chart, monkeypatch):
+    from jyotish.conversation import OfflineTurnWriter, answer_turn
+    monkeypatch.delenv("JYOTISH_LAYERED", raising=False)
+    calls = []
+
+    class Writer(OfflineTurnWriter):
+        def __call__(self, *a):
+            calls.append(1)
+            return super().__call__(*a)
+
+    def passes(s, d):
+        from jyotish.narrate import CheckResult, Proposition
+        return CheckResult(propositions=[Proposition(text=s, supported=True, evidence="stub")])
+    m = "how is my career"
+    doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, drafter=Writer(), checker=passes, session_key="s")
+    assert doc["source"] == "composer" and not calls and doc["plan"]["areas"] == ["career"]
+    assert doc["usage"] == {"wall_seconds": doc["timeline"]["done"]} and doc["removed"] == []
+    unplaced = route_turn("tell me something", chart)
+    assert unplaced.areas_from == "top"
+    doc = answer_turn(chart, "tell me something", unplaced, as_of=AS_OF, drafter=Writer(), checker=passes)
+    assert doc["source"] in ("writer", "engine") and calls
+    monkeypatch.setenv("JYOTISH_LAYERED", "0")
+    assert answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, drafter=Writer(), checker=passes)["source"] != "composer"
+
+
+def test_4_a_follow_up_repeats_nothing_and_a_why_with_nothing_new_says_so(chart, data):
+    from jyotish.conversation import compose
+    from jyotish.narrate import OPENING_SAID
+    m = "how much money will i earn in my life, will i be rich"
+    first = compose(plan_turn(chart, m, route_turn(m, chart), as_of=AS_OF, data=data), session_key="s")
+    said = [" ".join(s["text"] for s in first["sentences"])]
+    last = route_turn(m, chart)
+    r = route_turn("whan and how", chart, last)
+    again = compose(plan_turn(chart, "whan and how", r, as_of=AS_OF, data=data), session_key="s", said_before=said)
+    texts = [s["text"] for s in again["sentences"]]
+    assert again["sentences"][-1]["signature"] == "stretch.caveat.two"
+    assert not set(texts) & {s["text"] for s in first["sentences"]} - {texts[-1]}
+    assert OPENING_SAID in texts
+
+
+SEVEN = ["what are the challanges in my life", "and marriage?", "when?", "why do you say that?", "will I die early?",
+         "how much money will i earn in my life, will i be rich", "whan and how"]
+FROZEN = ROOT / "tests" / "fixtures" / "layered_seven_turns.json"
+
+
+def seven_turns(chart, monkeypatch, **kw):
+    """The seven-turn conversation of tests/test_conversation.py, composed (session key "seven"), each turn given the
+    earlier turns as the client read them."""
+    from jyotish.conversation import answer_turn
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    out, last, history = [], None, []
+    for m in SEVEN:
+        route = route_turn(m, chart, last)
+        doc = answer_turn(chart, m, route, as_of=date(2026, 10, 21), history=list(history), session_key="seven", **kw)
+        out.append(doc)
+        history.append({"question": m, "answer": " ".join(doc["shown"])})
+        if not route.off_limits:
+            last = route
+    return out
+
+
+def test_4_the_seven_turns_composed_are_frozen(chart, monkeypatch):
+    """The composed answers of the seven turns on the reference chart with the committed bank (its version is in the
+    file): a change to the plan, the bank or the composer shows here. JYOTISH_RECORD_FIXTURE=1 writes them anew."""
+    import os
+    from jyotish.bank import default_bank
+    docs = seven_turns(chart, monkeypatch)
+    got = {"bank": default_bank().version, "turns": [{"question": m, "source": d["source"], "shown": d["shown"],
+                                                      "paragraphs": d["paragraphs"]} for m, d in zip(SEVEN, docs)]}
+    if os.environ.get("JYOTISH_RECORD_FIXTURE"):
+        FROZEN.write_text(json.dumps(got, indent=1, ensure_ascii=False) + "\n")
+    frozen = json.loads(FROZEN.read_text())
+    assert got == frozen
+    assert [d["source"] for d in docs] == ["composer"] * 4 + ["fixed"] + ["composer"] * 2
+    from jyotish.client import never_show
+    assert not [s for d in docs for s in d["shown"] if never_show(s)]
