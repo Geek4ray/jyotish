@@ -274,8 +274,9 @@ def test_3_a_fact_variant_is_checked_against_its_facts_its_area_and_the_glossary
 def ruchaka_rows():
     fact = row(signature="rule.yoga.ruchaka.reduced", slots=["area", "name", "placed", "reductions"],
                variants=["{name}, a combination of Mars, is in your chart: {placed}, weakened by {reductions} for {area}.",
-                         "Your chart holds {name} (a combination of Mars), with {placed}, though {reductions} weaken it.",
-                         "{placed} forms {name}, a combination of Mars, weakened by {reductions}."])
+                         "Your chart holds {name} (a combination of Mars), with {placed}, though {reductions} weaken it "
+                         "for {area}.",
+                         "{placed} forms {name}, a combination of Mars, weakened by {reductions} for {area}."])
     meaning = row(signature="rule.yoga.ruchaka.reduced@career", kind="meaning", slots=["area"], source="BPHS 75.1-2",
                   variants=["Ruchaka, a combination of Mars, is traditionally read as courage in {area}, here less so.",
                             "Texts link Ruchaka, Mars's combination, with drive in {area}; reduced here.",
@@ -633,7 +634,7 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     fact = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
     slots = fact["looked_at"]["slots"]
     rewrite = (f"{slots['name']}, a combination of courage, is in your chart, with {slots['placed']}, though "
-               f"{slots['reductions']} hold it back.")
+               f"{slots['reductions']} hold it back for {slots['area']}.")
     c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
            json={"i": fact["i"], "verdict": "change", "words": rewrite})
     checker = StubChecker()                                    # a rewritten fact sentence is checked (review H4)
@@ -644,7 +645,7 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     row = load_bank(ws_bank).fact("rule.yoga.ruchaka.reduced")
     v = fact["bank_row"]["variant"]
     assert row.variants[v] == ("{name}, a combination of courage, is in your chart, with {placed}, though "
-                               "{reductions} hold it back.")
+                               "{reductions} hold it back for {area}.")
     # The variant he rewrote is approved; the other two are not, as he never read them (review H3).
     assert row.approved_variants == [v] and row.status == "draft"
     assert row.approved_by == row.rewritten_by == "astrologer-1"
