@@ -297,7 +297,7 @@ def test_4_the_composer_fills_the_plan_from_the_bank_and_falls_back_to_the_engin
                         "file": "family.yaml"}
     assert "Mars in your 7th house" in r["text"] and "a house that drains it" in r["text"]
     assert r["tagged"].endswith("[rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2] "
-                                "[text:Phaladeepika/Sastri-1937/6/1].") or "[rule:yoga.ruchaka]" in r["tagged"]
+                                "[text:Phaladeepika/Sastri-1937/6/1].")
     # No row: the engine's sentence. A draft meaning is not shown unless JYOTISH_SHOW_DRAFT_MEANINGS is on.
     assert by["weakness.mks"]["row"] is None and by["weakness.mks"]["text"] == next(
         i.engine for i in p.items if i.signature == "weakness.mks")
@@ -420,19 +420,24 @@ def seven_turns(chart, monkeypatch, **kw):
 
 def test_4_the_seven_turns_composed_are_frozen(chart, monkeypatch):
     """The composed answers of the seven turns on the reference chart with the committed bank (its version is in the
-    file): a change to the plan, the bank or the composer shows here. JYOTISH_RECORD_FIXTURE=1 writes them anew."""
+    file), once with every row's variant 1, 2 and 3 (review M10: one session key froze one variant per row, and a
+    fault in the other two never showed): a change to the plan, the bank or the composer shows here.
+    JYOTISH_RECORD_FIXTURE=1 writes them anew; a change is read, not only recorded."""
     import os
+    import jyotish.conversation as conv
     from jyotish.bank import default_bank
-    docs = seven_turns(chart, monkeypatch)
-    got = {"bank": default_bank().version, "turns": [{"question": m, "source": d["source"], "shown": d["shown"],
-                                                      "paragraphs": d["paragraphs"]} for m, d in zip(SEVEN, docs)]}
+    from jyotish.client import never_show
+    got = {"bank": default_bank().version, "variants": {}}
+    for v in range(3):
+        monkeypatch.setattr(conv, "variant_of", lambda key, signature, v=v: v)
+        docs = seven_turns(chart, monkeypatch)
+        got["variants"][str(v)] = [{"question": m, "source": d["source"], "shown": d["shown"],
+                                    "paragraphs": d["paragraphs"]} for m, d in zip(SEVEN, docs)]
+        assert [d["source"] for d in docs] == ["composer"] * 4 + ["fixed"] + ["composer"] * 2
+        assert not [s for d in docs for s in d["shown"] if never_show(s) or "{" in s or "}" in s]
     if os.environ.get("JYOTISH_RECORD_FIXTURE"):
         FROZEN.write_text(json.dumps(got, indent=1, ensure_ascii=False) + "\n")
-    frozen = json.loads(FROZEN.read_text())
-    assert got == frozen
-    assert [d["source"] for d in docs] == ["composer"] * 4 + ["fixed"] + ["composer"] * 2
-    from jyotish.client import never_show
-    assert not [s for d in docs for s in d["shown"] if never_show(s)]
+    assert got == json.loads(FROZEN.read_text())
 
 
 # --- 5. The polisher ---------------------------------------------------------------------------------------------------

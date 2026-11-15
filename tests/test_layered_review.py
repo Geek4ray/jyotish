@@ -17,7 +17,6 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 AS_OF = date(2026, 11, 15)
 N_CHARTS = 40
-KEYS = ("k0", "k1", "k2")
 
 
 @pytest.fixture(scope="module")
@@ -39,15 +38,18 @@ def plans():
 
 @pytest.fixture(scope="module")
 def composed(plans):
-    """Every sentence the composer writes for those plans, under each key, draft meanings on."""
+    """Every sentence the composer writes for those plans with every row's variant 1, 2 and 3 in turn (the session's
+    pick fixed, review M10), draft meanings on."""
+    import jyotish.conversation as conv
     from jyotish.bank import default_bank
-    from jyotish.conversation import compose
     bank = default_bank()
     out = []
-    for c, p in plans:
-        for k in KEYS:
-            for s in compose(p, bank, session_key=k, draft_meanings=True)["sentences"]:
-                out.append((c, p, s))
+    with pytest.MonkeyPatch.context() as mp:
+        for v in range(3):
+            mp.setattr(conv, "variant_of", lambda key, signature, v=v: v)
+            for c, p in plans:
+                for s in conv.compose(p, bank, session_key=f"v{v}", draft_meanings=True)["sentences"]:
+                    out.append((c, p, s))
     return out
 
 
@@ -732,3 +734,22 @@ def test_m9_a_meaning_row_with_a_house_never_counts_a_rising_sign_rule_from_the_
     assert any("counts from the Moon" in e for e in row_errors(mk("rule.yoga.gaja_kesari_bphs.full@career")))
     assert not row_errors(mk("rule.yoga.gaja_kesari_bphs.full.nohouse@career"))      # fired from the Moon only
     assert not row_errors(mk("rule.yoga.gaja_kesari.full.nohouse@career"))           # counted from the Moon alone
+
+
+# --- M10. The frozen texts and the tests would not catch these regressions ------------------------------------------
+
+def test_m10_no_composed_sentence_on_any_variant_carries_a_slot_or_a_never_show_word(composed):
+    from jyotish.client import never_show
+    from jyotish.narrate import TIER_WORDS
+    variants = {s["row"]["variant"] for c, p, s in composed if s["row"]}
+    assert variants == {0, 1, 2}
+    for c, p, s in composed:
+        assert "{" not in s["text"] and "}" not in s["text"], s["text"]
+        assert not never_show(s["text"]) and not TIER_WORDS.search(s["text"]), s["text"]
+        assert s["text"][:1].isupper() and s["text"].endswith((".", "?")), s["text"]
+
+
+def test_m10_the_frozen_turns_hold_every_variant():
+    frozen = json.loads((ROOT / "tests" / "fixtures" / "layered_seven_turns.json").read_text())
+    assert sorted(frozen["variants"]) == ["0", "1", "2"]
+    assert len({json.dumps(t) for t in frozen["variants"].values()}) == 3        # three different answers
