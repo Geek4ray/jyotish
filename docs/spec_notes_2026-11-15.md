@@ -240,3 +240,79 @@ during the build.
 - **Gloss disagreements.** Gaja Kesari's BPHS form and Neecha Bhanga disagree between `RULE_PLAIN` and the
   glossary. Their 5 rule rows are left out until the astrologer settles them.
 - **Length.** A weakest-areas turn over three areas is long.
+
+## The review of the layered answer, fixed
+
+The independent review (DoD 9) is docs/review_2026-11-15_layered.md: 5 high, 11 medium and 7 low findings, each
+reproduced, while the 42 layered tests passed. Each is fixed in its own commit ("Review H1: …" to "Review L7: …"),
+with its tests in tests/test_layered_review.py, which fail on the code the review read. For the living doc:
+
+- **Fact rows are checked per slot shape, not on one chart (H1).** A shape is, per slot, empty, one value or
+  several, a node, the Sun or Moon (`bank.shape_of`). `scripts/draft_bank.py --recheck [--signatures]` checks every
+  fact variant on up to four shapes the random charts give its signature, and each check records its shape. A
+  variant is shown only if a check supported it and none refused it on any shape; a variant never checked counts as
+  refused (L6), so a row no sample reaches is the engine's sentence. A call that returns no verdict is asked again
+  once. The rechecks of this round: 72 rows, then the rewritten ones; USD 0.41 in all on the gate checker.
+- **Several planets are named with their own sign or house (H1, H2).** An arudha item over several signs has
+  {placed}: each hard planet with its pada sign. A rule item has {placed}: each planet with its house from the
+  rising sign, or one house for them all. The rule rows say {placed}, never "{planets} in your {houses} house".
+- **A raja yoga says how its rulers are related (H2).** `plan.RELATION_PLAIN` from the fire's recorded relations:
+  together in one sign, aspecting each other, each in the other's sign. A gloss whose angle is counted from several
+  points says "from your Moon" (or Sun) when no fire is from the rising sign.
+- **Approval is per variant (H3).** `approved_variants`; a row is `approved` only when all three are. A public client
+  reads only an approved variant of a meaning row, the session's pick or an approved sibling. The worksheet shows
+  all three and says that "Right" approves only the one read.
+- **A rewrite is held to its slots and checked (H4).** Sentences keep their plan item's index; templating matches
+  a value capitalised; a rewrite whose slots are not the replaced variant's is refused; a verdict keeps the item's
+  facts, and `apply-reviews` has the gate checker check a rewritten fact variant before writing it. An erasure keeps
+  a verdict's slots and words (chart values, never the birth) and drops the facts, so a fact rewrite after an
+  erasure is refused.
+- **A subject's erasure takes the verdicts off its turns and removes its stored answers (H5).** Found with it and
+  fixed apart: the outcomes import inserted an event before its new subject, which a foreign key refuses.
+- **The polish is checked both ways (M1).** Code first (`conversation.polish_errors`: a date, planet, sign, house
+  or lean dropped or added; the opening moved; the caveat moved; an added causal connective), then the checker on
+  the polished text against the composed and the composed against the polished. The polished career turn of
+  2026-11-15 is a benchmark row (187).
+- **The polisher is a role (M2).** JYOTISH_POLISHER_BACKEND, its key JYOTISH_POLISHER_KEY or JYOTISH_OPENAI_KEY;
+  any failure shows the composed text; /health reports it when JYOTISH_POLISH is on.
+- **A stored answer is per conversation (M3)** and keeps no question. A follow-up leaves out what earlier turns
+  composed, by key (signature, area, slots), polished or not (M4).
+- **A row declares only the slots its variants use (M5)**; the composer's rule (`bank.fills`) is the coverage
+  tool's.
+- **Grammar (M6).** Doubled commas collapse; a role is one planet; a coordinated second verb agrees.
+- **A merged period names each lord with its own areas** (`period.now.touches.each`), and a merged rule reads each
+  area's own meaning row (M7).
+- **Verdicts are written back oldest first** and a later right or change brings a withdrawn row back (M8); the
+  written bank is checked in a staged copy before anything moves (L3).
+- **Meaning rows rewritten (M9):** Gaja Kesari is the elephant and the lion; the BPHS form's rows with a house never
+  say "from the Moon", which the loader now refuses where the rule also fires from the rising sign; Sasa's and
+  Ruchaka's false etymologies are gone; the marana karaka sthana rows name the planet.
+- **Every variant is frozen and property-tested (M10)**: the seven turns with the pick fixed to each variant, and
+  every area of 40 random charts on each.
+- **Bank verdicts are the astrologer's (M11):** a credential kind `astrologer` (`jyotish astrologer add`).
+- **Families are ranked by percentile (L1)**, a vote with no term at the middle (50). On the reference career turn
+  the helps are now varga, karaka and house; the lord is left out with its reason.
+- **Polished sentences light from their own words (L2); a polish refused for want of a verdict is not stored (L4);
+  a served answer lights the wheel (L7).**
+- **New numbers (L5), reported and not gated:** `layered.composer_share.messages`, the composer's share of twenty
+  varied first questions (12 of 20); `bank.composed_supported`, the gate checker on 120 composed sentences from 60
+  random charts (docs/composed_check_2026-11-16.json: 118, 98.3%).
+- **Wordings (L6):** "the main planet for {area}"; a lord in its own sub-period is `period.now.*.same`; no verdict
+  row opens on {Area}.
+
+Found while fixing, and not fixed here:
+- **Divisional chart for the area.** `family.varga.*` names "the divisional chart for {area}" from the row of the
+  greatest score, which can be another varga than the area's own (the H1 recheck refused one variant for it). The
+  plan should take the planet from the area's own varga, or name the varga.
+- **"The rulers of the day you were born"** includes the nakshatra's lord in the panchanga family's sentence (the
+  engine's and the bank's); the L5 check refused one for it.
+- **A short message after a turn is carried as a follow-up**: "hi" or "what should I know" after a health turn is
+  answered as a health follow-up. The router's, not the composer's.
+- **A flaky test.** tests/test_validate.py's sequestered cohort draws a new random salt every run; 400 draws at a
+  quarter landed exactly on its bound of 0.32 once (one run in about 1,500).
+
+For Ray to settle (the review's L7): are a lord's or significator's hidden weaknesses said always, or only when the
+area's lean is favourable ("what the lean does not show")? The plan says them always.
+
+The numbers of docs/layered_2026-11-15.md are the live run before these fixes; the composed texts have changed
+since (H1, H2, M6, M7, L1, L6), and the next live run re-measures them.

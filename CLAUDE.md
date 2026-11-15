@@ -405,4 +405,15 @@ Alembic 0008, `conversation.answer_key`: chart, route, kinds, date, bank version
 no plan or call; erased with the conversation by its birth key). Measured in docs/layered_2026-11-15.md
 (`live_timing.py --turn --layered on [--polish]`; composed 0.09 s and USD 0 a turn, polished 20.8 s and USD 0.0017,
 the polished text shown on 5 of 6; the scorecard's "The layered answer"; the polish rows of the benchmark, 186).
+The review of the layered answer (docs/review_2026-11-15_layered.md, H1-H5, M1-M11, L1-L7) is fixed, one commit each,
+tests in tests/test_layered_review.py (the heading "The review of the layered answer, fixed" of the spec notes): a
+fact variant is checked on each slot shape (`bank.shape_of`, `draft_bank.py --recheck`) and shown only if a check
+supported it and none refused it; several planets are named with their own sign or house ({placed}); a raja yoga
+says how its rulers are related; approval is per variant (`approved_variants`); a rewrite is held to its slots and
+checked by the gate checker in `apply-reviews`, which writes a staged copy first and applies verdicts oldest first;
+the polish is checked in code and both ways (`polish_errors`), the polisher is a role (JYOTISH_POLISHER_BACKEND); a
+stored answer is per conversation; a follow-up leaves out by key what was composed; families are ranked by
+percentile; bank verdicts need an `astrologer` credential (`jyotish astrologer add`); the scorecard reports
+`layered.composer_share.messages` and `bank.composed_supported` (scripts/composed_check.py,
+docs/composed_check_<date>.json). 129 rows, all draft; benchmark 187 rows.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.
