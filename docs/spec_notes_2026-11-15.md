@@ -171,4 +171,12 @@ during the build.
      becomes the slot ("Mars's" in a gloss of a Mars rule becomes `{planets}'s`), which is right only where the
      value is the rule's own. The rewritten row passes `row_errors` before it is written. A browser test opens the
      worksheet on the session review page and saves a verdict.
+7. **The stored answer** (`answers`, Alembic 0008; `conversation.answer_key`, `db.AnswerStore`).
+   - **The key.** The birth, the conventions and the engine's hash; the route as read and the question's kinds;
+     the date; the bank's version; what an earlier answer already said; and whether the answer is polished and
+     shows draft meanings.
+   - **What it saves.** A turn with the same key is served the stored answer: no plan and no polisher call.
+   - **Erasure.** It keeps the birth key, and erasing the conversation removes its stored answers.
 
+   *Reading settled:* the key leaves out the session. "Same chart, same routed question, same bank version" is
+   read literally, so a second conversation on one chart reads the first one's variants.

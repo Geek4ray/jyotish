@@ -400,5 +400,7 @@ JYOTISH_POLISH, off by default: claude-haiku-5-5 with its cached prefix, then th
 text, else the composed text is shown; priced in jyotish.costs, cache reads at 0.1 x input); the worksheet
 (`conversation.worksheet`, GET /sessions/{id}/turns/{n}/worksheet and the session review page: per sentence looked at,
 derived, told, bank row; a verdict right|change|wrong stored in `bank_reviews`, Alembic 0007, exported;
-`jyotish bank apply-reviews` writes approvals, rewrites and withdrawals back to the YAML).
+`jyotish bank apply-reviews` writes approvals, rewrites and withdrawals back to the YAML); the stored answer (`answers`,
+Alembic 0008, `conversation.answer_key`: chart, route, kinds, date, bank version, what was said, polish; served with
+no plan or call; erased with the conversation by its birth key).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

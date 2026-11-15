@@ -147,7 +147,7 @@ def test_document_columns_are_jsonb_under_postgres():
     assert "JSON" in str(CreateTable(ChartRow.__table__).compile(dialect=sqlite.dialect()))
     assert set(Base.metadata.tables) == {"charts", "readings", "reviews", "exclusions", "consents", "subjects", "events",
                                          "erasures", "comparisons", "credentials", "ledger", "sessions", "turns",
-                                         "bank_reviews"}
+                                         "bank_reviews", "answers"}
 
 
 def test_places_endpoint(client):

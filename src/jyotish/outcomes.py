@@ -312,6 +312,11 @@ def erase_sessions(session, session_ids: list[str], erased_by: str) -> dict[str,
     for r in session.query(ReviewRow).filter(ReviewRow.target.in_([f"session:{i}" for i in ids])):
         r.target, r.chart_id = "session:<erased>", None
     counts["turns"] = session.query(TurnRow).filter(TurnRow.session_id.in_(ids)).delete(synchronize_session=False)
+    # The stored answers of the chart (SPEC Layer 8, "The layered answer"), by its birth key.
+    from .db import AnswerRow
+    keys = {r.birth_key for r in rows if r.birth_key}
+    counts["answers"] = (session.query(AnswerRow).filter(AnswerRow.birth_key.in_(keys)).delete(synchronize_session=False)
+                         if keys else 0)
     charts = {r.chart_id for r in rows if r.chart_id}
     counts["sessions"] = session.query(SessionRow).filter(SessionRow.id.in_(ids)).delete(synchronize_session=False)
     session.flush()

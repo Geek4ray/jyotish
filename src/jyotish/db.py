@@ -327,6 +327,39 @@ class BankReviewRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+class AnswerRow(Base):
+    """A stored composed answer (SPEC Layer 8, "The layered answer"; revision 0008): the same chart, the same routed
+    question and the same bank version are served this answer (conversation.answer_key), the polisher's call made
+    once. Kept with the birth key, by which an erasure removes it."""
+    __tablename__ = "answers"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    bank_version: Mapped[str] = mapped_column(String(16))
+    document: Mapped[dict] = mapped_column(DOCUMENT)
+    hits: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class AnswerStore:
+    """The stored answers of a database: `get(key)` counts a hit, `put(key, ...)` keeps the first."""
+
+    def __init__(self, Session):
+        self.Session = Session
+
+    def get(self, key: str) -> dict | None:
+        with self.Session.begin() as s:
+            row = s.get(AnswerRow, key)
+            if row is None:
+                return None
+            row.hits = (row.hits or 0) + 1
+            return dict(row.document)
+
+    def put(self, key: str, document: dict, *, bank_version: str, birth_key: str | None = None) -> None:
+        with self.Session.begin() as s:
+            if s.get(AnswerRow, key) is None:
+                s.add(AnswerRow(key=key, birth_key=birth_key, bank_version=bank_version, document=document))
+
+
 class LedgerRow(Base):
     """A finished reading's or turn's tokens and cost (jyotish.costs, from the usage it records): the owner's
     ledger and, summed by `day` (UTC), the daily totals. `reading_id` is the reading's id, or the turn's when

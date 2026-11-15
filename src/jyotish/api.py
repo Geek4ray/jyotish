@@ -57,7 +57,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 # The tables live in db.py; they are imported here too, where scripts and tests have always found them.
-from .db import (DOCUMENT, Base, ChartRow, ComparisonRow, ConsentRow, ErasureRow, EventRow, ExclusionRow,  # noqa: F401
+from .db import (DOCUMENT, AnswerStore, Base, ChartRow, ComparisonRow, ConsentRow, ErasureRow, EventRow, ExclusionRow,  # noqa: F401
                  ReadingRow, ReviewRow, SessionRow, SubjectRow, TurnRow, _add_missing_columns, _now, add_comparison,
                  compared_with, excluded_charts)
 from .service import BirthInput
@@ -764,7 +764,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             doc = answer_turn(chart, message, route, as_of=as_of, history=history, data=data,
                               drafter=turn_writer() if turn_writer and not route.off_limits else None,
                               checker=turn_checker() if turn_checker and not route.off_limits else None,
-                              emit=LIVE.writer(turn_id), session_key=t.session_id)
+                              emit=LIVE.writer(turn_id), session_key=t.session_id,
+                              store=AnswerStore(Session), birth_key=t.birth_key)
             if model_fixture:
                 doc["narration_source"] = f"fixture:{model_fixture}"
             with Session.begin() as s:

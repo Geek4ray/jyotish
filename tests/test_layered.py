@@ -707,3 +707,62 @@ def test_6_the_session_review_page_opens_the_worksheet_and_saves_a_verdict(tmp_p
         server.should_exit = True
         thread.join(5)
         mp.undo()
+
+
+# --- 7. The stored answer ---------------------------------------------------------------------------------------------
+
+class DictStore:
+    def __init__(self):
+        self.rows, self.hits = {}, 0
+
+    def get(self, key):
+        if key in self.rows:
+            self.hits += 1
+            return dict(self.rows[key]["document"])
+        return None
+
+    def put(self, key, document, *, bank_version, birth_key=None):
+        self.rows.setdefault(key, {"document": document, "bank": bank_version, "birth_key": birth_key})
+
+
+def test_7_the_same_chart_routed_question_and_bank_are_served_the_stored_answer(chart, monkeypatch, tmp_path):
+    from jyotish.bank import load_bank
+    from jyotish.conversation import answer_turn
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    store = DictStore()
+    m = "how is my career"
+    first = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="a", store=store, birth_key="bk")
+    assert first["stored"] == {"key": first["stored"]["key"], "served": False} and len(store.rows) == 1
+    assert store.rows[first["stored"]["key"]]["birth_key"] == "bk"
+    # Another session, the same question in other words routed the same way: the stored answer, no plan made.
+    again = answer_turn(chart, "career?", route_turn("career?", chart), as_of=AS_OF, session_key="b", store=store)
+    assert again["stored"]["served"] and again["shown"] == first["shown"] and "plan" in again
+    assert "plan" not in again["timeline"] and store.hits == 1
+    # Another day, another bank or another question: answered afresh.
+    other_day = answer_turn(chart, m, route_turn(m, chart), as_of=date(2026, 12, 1), store=store)
+    assert not other_day["stored"]["served"]
+    bank = load_bank(write_bank(tmp_path, ruchaka_rows()))
+    assert not answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, store=store, bank=bank)["stored"]["served"]
+    mar = "how is my marriage"
+    assert not answer_turn(chart, mar, route_turn(mar, chart), as_of=AS_OF, store=store)["stored"]["served"]
+    assert len(store.rows) == 4
+
+
+def test_7_the_database_store_counts_hits_and_an_erasure_removes_the_charts_answers(chart, monkeypatch, tmp_path):
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.conversation import answer_turn
+    from jyotish.db import AnswerRow, AnswerStore, SessionRow, migrate
+    from jyotish.outcomes import erase_sessions
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    S = sessionmaker(migrate(f"sqlite:///{tmp_path / 'a.db'}"))
+    store = AnswerStore(S)
+    m = "how is my career"
+    for _ in range(3):
+        doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, store=store, birth_key="bk-1")
+    with S.begin() as s:
+        row = s.get(AnswerRow, doc["stored"]["key"])
+        assert row.hits == 2 and row.birth_key == "bk-1" and row.document["shown"] == doc["shown"]
+        s.add(SessionRow(id="s1", birth_key="bk-1", birth={}, as_of=AS_OF.isoformat()))
+    with S.begin() as s:
+        counts = erase_sessions(s, ["s1"], "test")
+        assert counts["answers"] == 1 and s.query(AnswerRow).count() == 0

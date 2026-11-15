@@ -666,10 +666,52 @@ def polish(text: str, *, backend=None, checker=None) -> dict[str, Any]:
     return out
 
 
+_ENGINE: dict[str, str] = {}
+
+
+def answer_key(chart, route, kinds: list[str], as_of: date, bank_version: str, said: list[str],
+               polish: bool, draft_meanings: bool) -> str:
+    """The key of a stored answer (SPEC Layer 8, "The layered answer": same chart, same routed question, same bank
+    version): the birth and the conventions with the engine's hash; the route as read (areas, direction, when, why,
+    how, where its areas came from) and the question's kinds; the date (the period running and the stretches depend
+    on it); the bank's version; what an earlier answer already said (a follow-up leaves it out); and whether the
+    answer is polished and shows draft meanings. Not the session: one chart asked one question reads one answer."""
+    import hashlib
+    from .cache import engine_hash
+    if "h" not in _ENGINE:
+        _ENGINE["h"] = engine_hash()
+    b = chart.birth
+    body = {"birth": {"utc": b.utc.isoformat() if hasattr(b.utc, "isoformat") else str(b.utc), "lat": b.lat, "lon": b.lon},
+            "meta": chart.meta.model_dump(mode="json"), "engine": _ENGINE["h"],
+            "route": {k: getattr(route, k) for k in ("areas", "direction", "when", "why", "how", "areas_from",
+                                                     "third_party")},
+            "kinds": kinds, "as_of": as_of.isoformat(), "bank": bank_version,
+            "said": hashlib.sha256("\n".join(said).encode()).hexdigest() if said else None,
+            "polish": polish, "draft_meanings": draft_meanings}
+    return hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()
+
+
+STORED = ("source", "shown", "paragraphs", "accepted", "opened_by", "plan", "composed", "bank", "polish", "polisher")
+
+
 def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline, session_key, bank,
-                   polisher=None, checker=None):
-    """A turn answered by the composer: the plan, the bank's sentences in their paragraphs, emitted as they are; with
-    JYOTISH_POLISH, polished for flow and checked against the composed text."""
+                   polisher=None, checker=None, store=None, birth_key=None):
+    """A turn answered by the composer: the plan, the bank's sentences in their paragraphs, emitted as they are. With
+    a `store`, the stored answer for the same chart, routed question and bank version is served (no plan, no call)."""
+    from .bank import default_bank
+    bank = bank if bank is not None else default_bank()
+    key = None
+    if store is not None:
+        key = answer_key(chart, route, kinds, as_of, bank.version, said, polish_on(), show_draft_meanings())
+        hit = store.get(key)
+        if hit is not None:
+            for i, text in enumerate(hit["shown"]):
+                mark("first_verified")
+                emit({"type": "text", "i": i, "text": text, "para": i in hit["paragraphs"]})
+            mark("done")
+            emit({"type": "done", "status": "done", "source": hit["source"]})
+            return doc | hit | {"stored": {"key": key, "served": True}, "attempts": 0, "timeline": timeline,
+                                "writer": {}, "checker": {}, "usage": {"wall_seconds": timeline["done"]}}
     if data is None:                                 # the stretches and the sheet's notes need the payload
         from .fullchart import cached_payload
         from .narrate import full_range
@@ -707,11 +749,17 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     opening = [s for s in c["sentences"] if s["part"] == "opening"]
     usage = {"wall_seconds": timeline["done"]} | {k: v for k, v in extra.pop("usage_extra", {}).items() if v}
     polished = bool(extra.get("polish", {}).get("used"))
-    return doc | {"source": "polished" if polished else "composer", "shown": shown, "paragraphs": paras,
-                  "accepted": [s["tagged"] for s in c["sentences"]], "attempts": 0, "timeline": timeline,
-                  "opened_by": "composer" if opening else None, "plan": plan.model_dump(),
-                  "composed": {k: v for k, v in c.items()}, "bank": c["bank"],
-                  "writer": {}, "checker": {}, "usage": usage} | extra
+    out = doc | {"source": "polished" if polished else "composer", "shown": shown, "paragraphs": paras,
+                 "accepted": [s["tagged"] for s in c["sentences"]], "attempts": 0, "timeline": timeline,
+                 "opened_by": "composer" if opening else None, "plan": plan.model_dump(),
+                 "composed": {k: v for k, v in c.items()}, "bank": c["bank"],
+                 "writer": {}, "checker": {}, "usage": usage} | extra
+    if store is not None and not (extra.get("polish") and not polished and extra["polish"].get("refusals", [""])[0]
+                                  .startswith("the polisher could not be reached")):
+        # A polisher that could not be reached is not stored: the next asking tries it again.
+        store.put(key, {k: out[k] for k in STORED if k in out}, bank_version=bank.version, birth_key=birth_key)
+        out["stored"] = {"key": key, "served": False}
+    return out
 
 
 def _backend_of_backend(backend, model: str) -> dict:
@@ -1240,7 +1288,7 @@ def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, c
 def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list[dict] | None = None,
                 drafter=None, checker=None, emit=None, config=None, data: dict | None = None,
                 word_rules: str | None = None, layered: bool | None = None, session_key: str = "",
-                bank=None, polisher=None) -> dict[str, Any]:
+                bank=None, polisher=None, store=None, birth_key: str | None = None) -> dict[str, Any]:
     """One turn, answered (the section above): returns the turn's document, the record the turns table keeps —
     the route, the engine's answer, the writer's answer as the client read it (`shown`) with its source, every
     removed sentence with its reasons, the warnings, the checks, the settings and usage of each role, and the
@@ -1287,7 +1335,8 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     # model; a question the route could not place (its areas the chart's top ones by default) keeps the writer loop.
     if (layered_on() if layered is None else layered) and route.areas and route.areas_from != "top":
         return _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline,
-                              session_key, bank, polisher=polisher, checker=checker)
+                              session_key, bank, polisher=polisher, checker=checker, store=store,
+                              birth_key=birth_key)
     user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data,
                                                                  kinds)
     drafter = drafter or ModelDrafter(make_backend(None, "writer", config), config, schema=TurnDraft)
