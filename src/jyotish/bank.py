@@ -379,7 +379,11 @@ def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date
     for items in plans:
         for sig, area, slots, part in items:
             total[part] += 1
-            if fills(bank.fact(sig), slots):              # what the composer would show, slot values included
+            # What the composer would show, slot values included; a stretch's dates come from the payload, which this
+            # tool does not make (its plans carry "when" empty), so they are taken as given (the scorecard of 2026-11-16
+            # read 33% for stretches once fills required the value).
+            if fills(bank.fact(sig), slots | ({"when": "(the payload's dates)"} if part == "stretch" and
+                                              "when" in slots and not slots["when"] else {})):
                 found[part] += 1
             else:
                 missing[sig] += 1

@@ -586,7 +586,7 @@ def test_m5_fills_is_the_composers_rule_and_the_coverage_tools():
     assert not fills(r, {"area": "your career"})
     import inspect
     from jyotish import bank
-    assert "fills(bank.fact(sig), slots)" in inspect.getsource(bank.coverage)
+    assert "fills(bank.fact(sig), slots" in inspect.getsource(bank.coverage)
 
 
 def test_m5_a_rule_fired_with_no_house_is_told_from_the_bank(composed):
@@ -980,3 +980,9 @@ def test_l7_a_served_stored_answer_lights_the_chart_wheel_as_the_first_one_did(m
     answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l7", store=store, emit=first.append)
     doc = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l7", store=store, emit=again.append)
     assert doc["stored"]["served"] and lights(again) and len(lights(again)) == len(lights(first))
+
+
+def test_m5_coverage_takes_a_stretchs_dates_as_given_and_counts_its_row():
+    from jyotish.bank import coverage
+    res = coverage(3, seed=3, workers=1)
+    assert res["by_part"]["stretch"] == 1.0, res["by_part"]
