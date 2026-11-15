@@ -812,10 +812,13 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     if route.third_party:
         shown.append(THIRD_PARTY_LINE)
         paras.append(len(shown) - 1)
+    polished_now = bool(extra.get("polish", {}).get("used"))
     for i, text in enumerate(shown):
         mark("first_verified")
         emit({"type": "text", "i": i, "text": text, "para": i in paras})
-        tagged = c["sentences"][i]["tagged"] if i < len(c["sentences"]) else text
+        # A polished sentence is lit from its own words: the polisher merges sentences, so composed sentence i is not
+        # polished sentence i (review 2026-11-15, L2).
+        tagged = text if polished_now or i >= len(c["sentences"]) else c["sentences"][i]["tagged"]
         f = focus_of(tagged, chart)
         if f["planets"] or f["houses"]:
             emit({"type": "light", "stage": "sentence", **f})
@@ -1693,7 +1696,9 @@ def worksheet(doc: dict, bank=None, verdicts: list[dict] | None = None) -> dict[
                         "derived": notes.get(text, []), "bank_row": None, "engine": None,
                         "verdicts": [v for v in verdicts if v.get("i") == i]})
     polish = doc.get("polish") or {}
-    return {"source": doc.get("source"), "question": doc.get("question"), "route": doc.get("route"),
+    # Once polished, the client read the polished text, not these sentences (review L2): the page says which.
+    return {"told_is": "composed" if polish.get("used") else "shown",
+            "source": doc.get("source"), "question": doc.get("question"), "route": doc.get("route"),
             "bank": doc.get("bank"), "sentences": out, "left_out": plan.get("left_out") or [],
             "polished": {"text": polish.get("text"), "used": polish.get("used"), "refusals": polish.get("refusals")}
             if polish else None}

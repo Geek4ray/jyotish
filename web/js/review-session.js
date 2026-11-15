@@ -78,7 +78,7 @@ function factsLine(facts) {
   return keys.length ? `<code class="small">${esc(JSON.stringify(facts)).slice(0, 600)}</code>` : "";
 }
 
-function wsSentence(s, n) {
+function wsSentence(s, n, toldIs) {
   const row = s.bank_row;
   const rowLine = row ? `${esc(t("ws.row_line", { signature: row.signature, kind: row.kind, variant: row.variant + 1, status: row.status }))}`
     + (row.source ? `<br><span class="muted">${esc(row.source)}</span>` : "") : esc(t("ws.engine_row"));
@@ -89,7 +89,7 @@ function wsSentence(s, n) {
   const derived = (s.derived || []).map((d) => `<li>${esc((d.area || "").replace("_", " "))}, point ${d.point}${d.row ? ` (${esc(d.row)})` : ""}: ${esc(d.text)}</li>`).join("");
   const verdicts = (s.verdicts || []).length ? `<p class="small muted">${esc(t("ws.verdicts", { list: s.verdicts.map((v) => `${v.verdict} (${v.reviewer})${v.words ? `: ${v.words}` : ""}`).join("; ") }))}</p>` : "";
   return `<li class="ws-sentence" data-i="${s.i}">
-    <p><strong>${esc(t("ws.told"))}:</strong> ${esc(s.told)}</p>
+    <p><strong>${esc(t(toldIs === "composed" ? "ws.composed" : "ws.told"))}:</strong> ${esc(s.told)}</p>
     <p class="small"><strong>${esc(t("ws.looked"))}:</strong> ${esc(s.looked_at.signature || "")} ${esc((s.looked_at.tags || []).join(" "))} ${factsLine(s.looked_at.facts)}</p>
     ${derived ? `<p class="small"><strong>${esc(t("ws.derived"))}:</strong></p><ul class="small">${derived}</ul>` : ""}
     <p class="small"><strong>${esc(t("ws.row"))}:</strong> ${rowLine}</p>
@@ -107,7 +107,7 @@ function wsBlock(ws) {
   const left = (ws.left_out || []).map((x) => `<li>${esc(x.what)}: <span class="muted">${esc(x.why)}</span></li>`).join("");
   const pol = ws.polished ? (ws.polished.used ? `<p class="small"><strong>${esc(t("ws.polished"))}:</strong> ${esc(ws.polished.text || "")}</p>`
     : `<p class="small muted">${esc(t("ws.polished_refused", { why: (ws.polished.refusals || []).join("; ") }))}</p>`) : "";
-  return `${pol}<ol class="ws-sentences">${ws.sentences.map((s) => wsSentence(s, ws.n)).join("")}</ol>
+  return `${pol}<ol class="ws-sentences">${ws.sentences.map((s) => wsSentence(s, ws.n, ws.told_is)).join("")}</ol>
     <details><summary>${esc(t("ws.left_out"))} (${(ws.left_out || []).length})</summary><ul class="small">${left}</ul></details>`;
 }
 

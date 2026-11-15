@@ -243,6 +243,7 @@ export const STRINGS = {
     "session.source.polished": "Composed, then polished for flow (every proposition checked against the composed text)",
     "ws.open": "Worksheet",
     "ws.told": "What the client was told",
+    "ws.composed": "What was composed (the client read the polished text above)",
     "ws.looked": "What was looked at",
     "ws.derived": "How it was derived (the sheet)",
     "ws.row": "The bank row behind it",

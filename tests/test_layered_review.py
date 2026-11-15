@@ -815,3 +815,27 @@ def test_l1_families_are_ranked_by_percentile_and_a_vote_with_no_term_at_the_mid
                     assert i.facts["ranked_at"] == NO_TERM_PERCENTILE
                     seen += 1
     assert seen > 5                                  # arudha and KP are said, by percentile, not hidden by scale
+
+
+# --- L2. Once polished, the worksheet and the chart wheel point at the wrong sentences --------------------------------
+
+def test_l2_a_polished_sentence_lights_what_its_own_words_name_and_the_worksheet_says_it_is_composed(monkeypatch):
+    from jyotish.conversation import answer_turn, focus_of, route_turn, worksheet
+    c = _reference()
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+    events = []
+    m = "how is my career"
+    doc = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l2", polisher=_JoinPolisher(),
+                      checker=_Checker(True), emit=events.append)
+    assert doc["source"] == "polished" and len(doc["shown"]) < len(doc["composed"]["sentences"])
+    texts = [e["text"] for e in events if e["type"] == "text"]
+    lit = iter([e for e in events if e["type"] == "light" and e.get("stage") == "sentence"])
+    for t in texts:
+        f = focus_of(t, c)
+        if f["planets"] or f["houses"]:
+            e = next(lit)
+            assert (e["planets"], e["houses"]) == (f["planets"], f["houses"])
+    assert worksheet(doc)["told_is"] == "composed"
+    js = (ROOT / "web" / "js" / "review-session.js").read_text()
+    assert 'toldIs === "composed" ? "ws.composed"' in js
