@@ -518,9 +518,20 @@ def apply_reviews(database_url: str | None = None, directory: Path | str | None 
             changed.add(row.file)
             report[what].append({"signature": v.signature, "variant": v.variant, "by": v.reviewer_id})
             v.applied_at = datetime.now(timezone.utc)
-        for name in sorted(changed):
-            path = directory / name
-            head = "".join(line for line in path.read_text().splitlines(keepends=True) if line.startswith("#"))
-            path.write_text(head + dump_rows(by_file[name]))
-        load_bank(directory)                             # the written bank must stand, or nothing is committed
+        # Written to a copy of the bank first and loaded there; only a bank that stands is moved into place, and the
+        # verdicts are marked applied only then (review 2026-11-15, L3: the files were rewritten before the check, so
+        # a failing check left them rewritten with the verdicts unapplied, and the next run applied them twice).
+        import shutil
+        import tempfile
+        if changed:
+            with tempfile.TemporaryDirectory(dir=directory.parent) as tmp:
+                staged = Path(tmp) / directory.name
+                shutil.copytree(directory, staged)
+                for name in sorted(changed):
+                    head = "".join(line for line in (directory / name).read_text().splitlines(keepends=True)
+                                   if line.startswith("#"))
+                    (staged / name).write_text(head + dump_rows(by_file[name]))
+                load_bank(staged)                        # the written bank must stand, or nothing is written or marked
+                for name in sorted(changed):
+                    os.replace(staged / name, directory / name)
     return report

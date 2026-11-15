@@ -839,3 +839,30 @@ def test_l2_a_polished_sentence_lights_what_its_own_words_name_and_the_worksheet
     assert worksheet(doc)["told_is"] == "composed"
     js = (ROOT / "web" / "js" / "review-session.js").read_text()
     assert 'toldIs === "composed" ? "ws.composed"' in js
+
+
+# --- L3. apply-reviews writes the bank inside the database transaction ---------------------------------------------------
+
+def test_l3_a_bank_that_would_not_load_is_never_written_and_its_verdicts_stay_pending(tmp_path, monkeypatch):
+    import jyotish.bank as bank
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.db import BankReviewRow, migrate
+    d, url = _verdict_db(tmp_path, [(1, "right", None)])
+    before = {p.name: p.read_text() for p in d.glob("*.yaml")}
+    real = bank.load_bank
+    calls = []
+
+    def failing(directory=None, strict=True):
+        calls.append(Path(directory) if directory is not None else None)
+        if len(calls) > 1:                                         # the first load is the bank read; then the check
+            raise bank.BankError("the written bank does not stand")
+        return real(directory, strict)
+    monkeypatch.setattr(bank, "load_bank", failing)
+    with pytest.raises(bank.BankError):
+        bank.apply_reviews(url, d, today=AS_OF)
+    assert {p.name: p.read_text() for p in d.glob("*.yaml")} == before        # nothing written in place
+    assert calls[1] != d                                                       # the check read a staged copy
+    with sessionmaker(migrate(url))() as s:
+        assert s.query(BankReviewRow).one().applied_at is None                 # still pending: applied once, later
+    monkeypatch.setattr(bank, "load_bank", real)
+    assert bank.apply_reviews(url, d, today=AS_OF)["approved"]
