@@ -503,6 +503,14 @@ def cmd_bank(args) -> int:
             return 1
         print(f"{len(bank)} rows, version {bank.version}: every row stands")
         return 0
+    if args.bcmd == "apply-reviews":
+        import os
+        from .bank import apply_reviews
+        rep = apply_reviews(args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db"))
+        for k, v in rep.items():
+            print(f"{k}: {len(v)}" + "".join(f"\n  {x['signature']} ({x.get('verdict') or x.get('by')})"
+                                             + (f": {'; '.join(x['why'])}" if x.get("why") else "") for x in v))
+        return 1 if rep["refused"] else 0
     if args.bcmd == "coverage":
         res = coverage(args.n, args.seed)
         if args.json:
@@ -602,6 +610,8 @@ def main(argv: list[str] | None = None) -> None:
     bk = sub.add_parser("bank", help="the sentence bank (data/bank/*.yaml, SPEC Layer 8 'The layered answer')")
     bksub = bk.add_subparsers(dest="bcmd", required=True)
     bksub.add_parser("check", help="load the bank and print every row that cannot stand, with why")
+    bap = bksub.add_parser("apply-reviews", help="write the astrologer's verdicts (the worksheet) back to data/bank")
+    bap.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
     bcv = bksub.add_parser("coverage", help="the share of plan items on random charts that find a row")
     bcv.add_argument("--n", type=int, default=1000, help="random charts (synthetic births, no one's data)")
     bcv.add_argument("--seed", type=int, default=0)
@@ -627,7 +637,8 @@ def main(argv: list[str] | None = None) -> None:
         from .export import export_reviews
         url = args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db")
         n = export_reviews(url, args.out, with_birth_data=args.with_birth_data)
-        print(f"{n['rewrites']} accepted rewrites, {n['judgements']} judgement rows, {n['turns']} reviewed turns -> {args.out} "
+        print(f"{n['rewrites']} accepted rewrites, {n['judgements']} judgement rows, {n['turns']} reviewed turns, "
+              f"{n['bank']} bank verdicts -> {args.out} "
               f"(judgements, not outcomes{'; with birth data' if args.with_birth_data else '; no birth data'})")
         raise SystemExit(0)
     if args.cmd == "page":

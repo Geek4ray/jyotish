@@ -67,8 +67,69 @@ function turnBlock(turn) {
     ${engineBlock(turn.engine)}
     <details><summary>${esc(t("session.removed"))} (${turn.removed.length})</summary>${removed}</details>
     <details><summary>${esc(t("session.warnings"))} (${turn.warnings.length})</summary>${warnings}</details>
+    ${turn.status === "done" && turn.source !== "fixed" ? `<details class="worksheet" data-ws="${turn.n}"><summary>${esc(t("ws.open"))}</summary><div class="ws-body"></div></details>` : ""}
   </article>`;
 }
+
+// The worksheet (SPEC Layer 8, "The layered answer"): per sentence what was looked at, how it was derived, what the
+// client was told and the bank row behind it, with the reviewer's verdict stored against that row.
+function factsLine(facts) {
+  const keys = Object.keys(facts || {});
+  return keys.length ? `<code class="small">${esc(JSON.stringify(facts)).slice(0, 600)}</code>` : "";
+}
+
+function wsSentence(s, n) {
+  const row = s.bank_row;
+  const rowLine = row ? `${esc(t("ws.row_line", { signature: row.signature, kind: row.kind, variant: row.variant + 1, status: row.status }))}`
+    + (row.source ? `<br><span class="muted">${esc(row.source)}</span>` : "") : esc(t("ws.engine_row"));
+  const derived = (s.derived || []).map((d) => `<li>${esc((d.area || "").replace("_", " "))}, point ${d.point}${d.row ? ` (${esc(d.row)})` : ""}: ${esc(d.text)}</li>`).join("");
+  const verdicts = (s.verdicts || []).length ? `<p class="small muted">${esc(t("ws.verdicts", { list: s.verdicts.map((v) => `${v.verdict} (${v.reviewer})${v.words ? `: ${v.words}` : ""}`).join("; ") }))}</p>` : "";
+  return `<li class="ws-sentence" data-i="${s.i}">
+    <p><strong>${esc(t("ws.told"))}:</strong> ${esc(s.told)}</p>
+    <p class="small"><strong>${esc(t("ws.looked"))}:</strong> ${esc(s.looked_at.signature || "")} ${esc((s.looked_at.tags || []).join(" "))} ${factsLine(s.looked_at.facts)}</p>
+    ${derived ? `<p class="small"><strong>${esc(t("ws.derived"))}:</strong></p><ul class="small">${derived}</ul>` : ""}
+    <p class="small"><strong>${esc(t("ws.row"))}:</strong> ${rowLine}</p>
+    ${verdicts}
+    <form class="ws-verdict small" data-turn="${n}" data-i="${s.i}">
+      <span>${esc(t("ws.verdict"))}:</span>
+      ${["right", "change", "wrong"].map((v) => `<label><input type="radio" name="v-${n}-${s.i}" value="${v}"${v === "right" ? " checked" : ""}> ${esc(t(`ws.${v}`))}</label>`).join(" ")}
+      <textarea rows="2" placeholder="${esc(t("ws.words"))}"></textarea>
+      <button class="button small" type="submit">${esc(t("ws.send"))}</button><span role="status"></span>
+    </form></li>`;
+}
+
+function wsBlock(ws) {
+  const left = (ws.left_out || []).map((x) => `<li>${esc(x.what)}: <span class="muted">${esc(x.why)}</span></li>`).join("");
+  const pol = ws.polished ? (ws.polished.used ? `<p class="small"><strong>${esc(t("ws.polished"))}:</strong> ${esc(ws.polished.text || "")}</p>`
+    : `<p class="small muted">${esc(t("ws.polished_refused", { why: (ws.polished.refusals || []).join("; ") }))}</p>`) : "";
+  return `${pol}<ol class="ws-sentences">${ws.sentences.map((s) => wsSentence(s, ws.n)).join("")}</ol>
+    <details><summary>${esc(t("ws.left_out"))} (${(ws.left_out || []).length})</summary><ul class="small">${left}</ul></details>`;
+}
+
+document.querySelector("#turns").addEventListener("toggle", async (e) => {
+  const d = e.target.closest && e.target.closest("details.worksheet");
+  if (!d || !d.open || d.dataset.loaded) return;
+  try {
+    const ws = await api(`/sessions/${encodeURIComponent(sid)}/turns/${d.dataset.ws}/worksheet`);
+    d.querySelector(".ws-body").innerHTML = wsBlock(ws);
+    d.dataset.loaded = "1";
+  } catch (err) { d.querySelector(".ws-body").textContent = err.message; }
+}, true);
+
+document.querySelector("#turns").addEventListener("submit", async (e) => {
+  const f = e.target.closest("form.ws-verdict");
+  if (!f) return;
+  e.preventDefault();
+  const verdict = f.querySelector("input[type=radio]:checked").value;
+  const status = f.querySelector("[role=status]");
+  try {
+    const ws = await api(`/sessions/${encodeURIComponent(sid)}/turns/${f.dataset.turn}/worksheet/verdict`,
+      { i: Number(f.dataset.i), verdict, words: f.querySelector("textarea").value || null });
+    const d = f.closest("details.worksheet");
+    d.querySelector(".ws-body").innerHTML = wsBlock(ws);
+    d.querySelector(`.ws-sentence[data-i="${f.dataset.i}"] [role=status]`).textContent = t("ws.saved", { verdict });
+  } catch (err) { status.textContent = err.message; }
+}, true);
 
 function render(view) {
   document.querySelector("#token-form").hidden = true;

@@ -520,3 +520,190 @@ def test_5_the_polisher_and_its_cache_tokens_are_priced(chart, monkeypatch):
     assert v["backends"]["polisher"]["model"] == "claude-haiku-5-5"
     monkeypatch.delenv("JYOTISH_POLISH")
     assert reading_cost(answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF))["cost_usd"] == 0
+
+
+# --- 6. The worksheet ----------------------------------------------------------------------------------------------------
+
+AUTH = {"Authorization": "Bearer tok-ws"}
+BIRTH = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": REFERENCE_LAT, "lon": REFERENCE_LON,
+         "node": "mean", "place": "Rewari, Haryana"}
+
+
+@pytest.fixture(scope="module")
+def ws_bank(tmp_path_factory):
+    import shutil
+    import yaml
+    d = tmp_path_factory.mktemp("ws-bank")
+    shutil.copy(ROOT / "data" / "bank" / "bank.schema.json", d)
+    (d / "rules.yaml").write_text("# the test bank\n" + yaml.safe_dump(ruchaka_rows(), sort_keys=False))
+    return d
+
+
+@pytest.fixture(scope="module")
+def ws_app(tmp_path_factory, ws_bank):
+    from jyotish.api import create_app
+    from jyotish.conversation import OfflineTurnWriter
+    mp = pytest.MonkeyPatch()
+    mp.setenv("JYOTISH_LAYERED", "1")
+    import jyotish.bank
+    mp.setattr(jyotish.bank, "BANK_DIR", ws_bank)
+    db = tmp_path_factory.mktemp("ws") / "jyotish.db"
+
+    def passes(s, d):
+        from jyotish.narrate import CheckResult, Proposition
+        return CheckResult(propositions=[Proposition(text=s, supported=True, evidence="stub")])
+    app = create_app(f"sqlite:///{db}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+                     reviewers={"tok-ws": "astrologer-1"}, review_checker=passes, today=lambda: AS_OF)
+    yield app, f"sqlite:///{db}"
+    mp.undo()
+
+
+@pytest.fixture(scope="module")
+def ws_client(ws_app):
+    from fastapi.testclient import TestClient
+    import time
+    app, _ = ws_app
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=BIRTH).json()["id"]
+        for m in ("how is my career", "will I die early?"):
+            n = c.post(f"/sessions/{sid}/turns", json={"message": m}).json()["n"]
+            t = time.monotonic()
+            while c.get(f"/sessions/{sid}/turns/{n}").json()["status"] not in ("done", "failed"):
+                assert time.monotonic() - t < 90
+                time.sleep(0.05)
+        yield c, sid
+
+
+def test_6_the_worksheet_shows_per_sentence_what_was_looked_at_derived_told_and_the_row(ws_client):
+    c, sid = ws_client
+    assert c.get(f"/sessions/{sid}/turns/1/worksheet").status_code == 401
+    ws = c.get(f"/sessions/{sid}/turns/1/worksheet", headers=AUTH).json()
+    assert ws["source"] == "composer" and ws["n"] == 1
+    told = [s["told"] for s in ws["sentences"]]
+    assert told == c.get(f"/sessions/{sid}/turns/1").json()["answer"]
+    r = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
+    assert r["bank_row"]["kind"] == "fact" and len(r["bank_row"]["variants"]) == 3 and r["bank_row"]["status"] == "draft"
+    assert r["looked_at"]["facts"]["reductions"] and r["looked_at"]["tags"][0] == "rule:yoga.ruchaka"
+    mks = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.mks")
+    assert mks["bank_row"] is None and mks["engine"] == mks["told"] and mks["derived"]          # the sheet's points
+    lord = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "family.lord.for")
+    assert any(d["point"] == 10 for d in lord["derived"])
+    assert {x["what"] for x in ws["left_out"]} >= {"vote:career.kp", "place.sun_h10@lagna"}
+    fixed = c.get(f"/sessions/{sid}/turns/2/worksheet", headers=AUTH).json()
+    assert fixed["source"] == "fixed" and fixed["sentences"][0]["bank_row"] is None
+
+
+def test_6_a_verdict_is_stored_against_the_bank_row_and_exported(ws_client, ws_app, tmp_path):
+    from jyotish.export import export_reviews
+    c, sid = ws_client
+    _, url = ws_app
+    ws = c.get(f"/sessions/{sid}/turns/1/worksheet", headers=AUTH).json()
+    i = next(s["i"] for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
+    bad = c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", json={"i": i, "verdict": "change"}, headers=AUTH)
+    assert bad.status_code == 422 and "needs your words" in bad.json()["detail"]
+    j = next(s["i"] for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.mks")
+    out = c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
+                 json={"i": j, "verdict": "right"}).json()
+    assert out["sentences"][j]["verdicts"][0]["verdict"] == "right"
+    n = export_reviews(url, tmp_path)
+    rows = [json.loads(x) for x in (tmp_path / "bank_reviews.jsonl").read_text().splitlines()][1:]
+    assert n["bank"] == 1 and rows[0]["signature"] == "weakness.mks" and rows[0]["kind"] is None
+    assert rows[0]["reviewer"] == "astrologer-1" and "_i" not in rows[0]["slots"]
+
+
+def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_bank(ws_client, ws_app, ws_bank):
+    from jyotish.bank import apply_reviews, load_bank
+    c, sid = ws_client
+    _, url = ws_app
+    ws = c.get(f"/sessions/{sid}/turns/1/worksheet", headers=AUTH).json()
+    fact = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
+    slots = fact["looked_at"]["slots"]
+    rewrite = (f"{slots['name']}, a combination of courage, is in your chart, with {slots['planets']} in your "
+               f"{slots['houses']} house, though {slots['reductions']} hold it back.")
+    c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
+           json={"i": fact["i"], "verdict": "change", "words": rewrite})
+    rep = apply_reviews(url, ws_bank, today=AS_OF)
+    assert [x["signature"] for x in rep["rewritten"]] == ["rule.yoga.ruchaka.reduced"]
+    assert [x["signature"] for x in rep["no_row"]] == ["weakness.mks"]          # the engine's sentence: for drafting
+    row = load_bank(ws_bank).fact("rule.yoga.ruchaka.reduced")
+    v = fact["bank_row"]["variant"]
+    assert row.variants[v] == ("{name}, a combination of courage, is in your chart, with {planets} in your "
+                               "{houses} house, though {reductions} hold it back.")
+    assert row.status == "approved" and row.approved_by == row.rewritten_by == "astrologer-1"
+    assert (ws_bank / "rules.yaml").read_text().startswith("# the test bank")
+    assert apply_reviews(url, ws_bank, today=AS_OF) == {k: [] for k in rep} | {"no_row": rep["no_row"]}
+    # Wrong: the row is withdrawn and never shown again; the next turn falls back to the engine's sentence.
+    c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
+           json={"i": fact["i"], "verdict": "wrong", "words": "Ruchaka does not bear on career here."})
+    assert [x["signature"] for x in apply_reviews(url, ws_bank, today=AS_OF)["withdrawn"]] == ["rule.yoga.ruchaka.reduced"]
+    assert load_bank(ws_bank).fact("rule.yoga.ruchaka.reduced") is None
+    assert load_bank(ws_bank).row("rule.yoga.ruchaka.reduced", "fact").withdrawn_why.startswith("Ruchaka does not")
+
+
+def test_6_a_rewrite_that_would_not_stand_is_refused_and_left_as_it_was(tmp_path):
+    from jyotish.bank import template
+    assert template("Mars sits in your 7th house.", {"planet": "Mars", "house": "7th"}) == "{planet} sits in your {house} house."
+    assert template("Mars and Mars's aspect", {"planets": "Mars", "reductions": "Mars's aspect"}) == "{planets} and {reductions}"
+
+
+def test_6_erasing_the_conversation_keeps_the_verdict_without_its_turn(ws_client, ws_app):
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.db import BankReviewRow, migrate
+    from jyotish.outcomes import erase_sessions
+    c, sid = ws_client
+    _, url = ws_app
+    S = sessionmaker(migrate(url))
+    with S.begin() as s:
+        assert s.query(BankReviewRow).filter(BankReviewRow.turn_id.isnot(None)).count()
+        erase_sessions(s, [sid], "test")
+    with S.begin() as s:
+        rows = s.query(BankReviewRow).all()
+        assert rows and all(r.turn_id is None and r.slots is None for r in rows)
+
+
+def test_6_the_session_review_page_opens_the_worksheet_and_saves_a_verdict(tmp_path):
+    """The astrologer's page (DoD 8 is still his first hour; this is the page working): the worksheet under a composed
+    turn, per sentence what was told and the row behind it, and a verdict saved from it."""
+    playwright = pytest.importorskip("playwright.sync_api")
+    import httpx
+    import sys
+    sys.path.insert(0, str(ROOT / "tests"))
+    from test_web import _serve
+    mp = pytest.MonkeyPatch()
+    mp.setenv("JYOTISH_LAYERED", "1")
+    server, thread, base = _serve(tmp_path / "ws.db", str(ROOT / "tests" / "fixtures" / "narration_career_edited.json"),
+                                  reviewers={"tok-page": "astrologer-1"}, today=lambda: AS_OF)
+    try:
+        with httpx.Client(base_url=base, timeout=90) as c:
+            sid = c.post("/sessions", json=BIRTH).json()["id"]
+            n = c.post(f"/sessions/{sid}/turns", json={"message": "how is my career"}).json()["n"]
+            import time
+            t = time.monotonic()
+            while c.get(f"/sessions/{sid}/turns/{n}").json()["status"] != "done":
+                assert time.monotonic() - t < 90
+                time.sleep(0.1)
+        with playwright.sync_playwright() as p:
+            try:
+                b = p.chromium.launch()
+            except Exception as e:
+                pytest.skip(f"Chromium for Playwright is not installed: {e}")
+            page = b.new_page()
+            page.goto(f"{base}/review/sessions/{sid}")
+            page.fill("#token", "tok-page")
+            page.click("#token-open")
+            page.wait_for_selector("details.worksheet")
+            page.click("details.worksheet summary")
+            page.wait_for_selector(".ws-sentence")
+            assert page.locator(".ws-sentence").count() >= 5
+            assert "The bank row behind it" in page.inner_text(".ws-sentence >> nth=1")
+            page.click(".ws-sentence >> nth=1 >> button[type=submit]")
+            page.wait_for_function("document.querySelector('.ws-sentence:nth-child(2) [role=status]')"
+                                   ".textContent.startsWith('Saved')")
+            b.close()
+        with httpx.Client(base_url=base) as c:
+            ws = c.get(f"/sessions/{sid}/turns/1/worksheet", headers={"Authorization": "Bearer tok-page"}).json()
+            assert ws["sentences"][1]["verdicts"][0]["verdict"] == "right"
+    finally:
+        server.should_exit = True
+        thread.join(5)
+        mp.undo()

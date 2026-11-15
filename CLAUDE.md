@@ -397,5 +397,8 @@ answer_turn's default for a placed turn, JYOTISH_LAYERED; no model: the plan fil
 hash of the session, a draft meaning only with JYOTISH_SHOW_DRAFT_MEANINGS; the suite runs JYOTISH_LAYERED=0 for the
 writer loop's tests; frozen seven turns in tests/fixtures/layered_seven_turns.json); the polisher (`conversation.polish`,
 JYOTISH_POLISH, off by default: claude-haiku-5-5 with its cached prefix, then the gate checker against the composed
-text, else the composed text is shown; priced in jyotish.costs, cache reads at 0.1 x input).
+text, else the composed text is shown; priced in jyotish.costs, cache reads at 0.1 x input); the worksheet
+(`conversation.worksheet`, GET /sessions/{id}/turns/{n}/worksheet and the session review page: per sentence looked at,
+derived, told, bank row; a verdict right|change|wrong stored in `bank_reviews`, Alembic 0007, exported;
+`jyotish bank apply-reviews` writes approvals, rewrites and withdrawals back to the YAML).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

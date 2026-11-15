@@ -103,6 +103,15 @@ class EditRequest(BaseModel):
     keep_tags: bool = False             # a rewrite in plain words carries the old sentence's tags
 
 
+class BankVerdictRequest(BaseModel):
+    """The astrologer's verdict on a sentence of a composed turn, stored against its bank row (SPEC Layer 8, "The
+    layered answer"): right, change (`words`: the sentence in his own words) or wrong (`words`: why)."""
+    model_config = ConfigDict(extra="forbid")
+    i: int = Field(ge=0)
+    verdict: Literal["right", "change", "wrong"]
+    words: str | None = Field(default=None, max_length=2000)
+
+
 class AnswerRequest(BaseModel):
     """One answer of the guided review (review.check_answer says which answers a step takes)."""
     model_config = ConfigDict(extra="forbid")
@@ -1021,6 +1030,63 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                 t.document = apply_turn_edit(t.document, int(req.target.split(":")[1]), text_.strip(), who)
             s.flush()
             return dict(result, review=session_review_view(s, srow, who))
+
+    # The worksheet (SPEC Layer 8, "The layered answer"): every answer's other face, for a reviewer; a verdict on a
+    # sentence is stored against the bank row behind it (`bank_reviews`) and logged as a review row (action verdict).
+
+    def bank_verdicts(s, t) -> list[dict]:
+        from .db import BankReviewRow
+        return [{"i": int((r.slots or {}).get("_i", -1)), "verdict": r.verdict, "words": r.words, "reviewer": r.reviewer_id,
+                 "signature": r.signature, "variant": r.variant, "applied": r.applied_at is not None,
+                 "at": r.created_at.isoformat()}
+                for r in s.query(BankReviewRow).filter_by(turn_id=t.id).order_by(BankReviewRow.id)]
+
+    def turn_of(s, sid: str, n: int):
+        t = s.query(TurnRow).filter_by(session_id=sid, n=n).first()
+        if t is None:
+            raise HTTPException(status_code=404, detail="no such turn")
+        if t.status != "done" or not t.document:
+            raise HTTPException(status_code=409, detail="this turn has no answer yet")
+        return t
+
+    @app.get("/sessions/{sid}/turns/{n}/worksheet")
+    def get_worksheet(sid: str, n: int, request: Request) -> dict:
+        """Per sentence of the turn's answer: what was looked at, how it was derived, what the client was told, the
+        bank row behind it and its verdicts; and what the plan left out (a reviewer's token)."""
+        from .conversation import worksheet
+        who = reviewer(request)
+        with Session.begin() as s:
+            srow = session_of(s, sid)
+            t = turn_of(s, sid, n)
+            log_turn(s, srow, who, "open", turn_id=t.id, target=f"worksheet:{n}")
+            return worksheet(t.document, verdicts=bank_verdicts(s, t)) | {"n": n}
+
+    @app.post("/sessions/{sid}/turns/{n}/worksheet/verdict")
+    def post_worksheet_verdict(sid: str, n: int, req: BankVerdictRequest, request: Request) -> dict:
+        """A verdict on sentence `i`: stored against its bank row (`bank_reviews`), so `jyotish bank apply-reviews`
+        can write it back to the bank and every later client reads the correction."""
+        from .conversation import worksheet
+        from .db import BankReviewRow
+        who = reviewer(request)
+        if req.verdict in ("change", "wrong") and not (req.words or "").strip():
+            raise HTTPException(status_code=422, detail=f"a verdict '{req.verdict}' needs your words "
+                                                        f"({'the sentence as it should read' if req.verdict == 'change' else 'why'})")
+        with Session.begin() as s:
+            srow = session_of(s, sid)
+            t = turn_of(s, sid, n)
+            sheet = worksheet(t.document)
+            if req.i >= len(sheet["sentences"]):
+                raise HTTPException(status_code=404, detail=f"no sentence {req.i} in this turn")
+            sent = sheet["sentences"][req.i]
+            row = sent["bank_row"] or {}
+            s.add(BankReviewRow(signature=row.get("signature") or sent["looked_at"]["signature"] or f"turn:{t.id}:{req.i}",
+                                kind=row.get("kind"), variant=row.get("variant"), bank_version=t.document.get("bank"),
+                                verdict=req.verdict, words=(req.words or "").strip() or None, sentence=sent["told"],
+                                slots=sent["looked_at"]["slots"] | {"_i": req.i}, turn_id=t.id, reviewer_id=who))
+            log_turn(s, srow, who, "verdict", turn_id=t.id, target=f"worksheet:{n}:{req.i}", before=sent["told"],
+                     after=(req.words or None), verdict=req.verdict, area=sent.get("area"))
+            s.flush()
+            return worksheet(t.document, verdicts=bank_verdicts(s, t)) | {"n": n}
 
     @app.get("/review/{reading_id}", include_in_schema=False)
     def review_page(reading_id: str):

@@ -152,3 +152,23 @@ during the build.
    - **Prices.** The polisher's tokens, cache reads included, are priced in `jyotish.costs` and counted in a
      turn's ledger total, with its backend under `backends`. Haiku 5.5's cache reads are now priced at 0.1 times
      input; the bake-off of 2026-11-02 priced them at input for want of the figure.
+6. **The worksheet** (`conversation.worksheet`; `GET /sessions/{id}/turns/{n}/worksheet`, a reviewer's token).
+   - **Per sentence.** What was looked at (the plan item's signature, tags, facts and slots), how it was derived
+     (its notes into the sheet's points), what the client was told, the bank row behind it (variants, source,
+     status, the checker's verdicts) or "the engine's own sentence", and the verdicts given. Then what the plan
+     left out, with why. The session review page opens it under each turn.
+   - **A verdict.** `POST …/worksheet/verdict` takes right, change (with the sentence in his words) or wrong (with
+     why). It is stored against the bank row (`bank_reviews`, Alembic 0007), logged as a review row and exported
+     (`bank_reviews.jsonl`).
+   - **`jyotish bank apply-reviews`.** It writes each verdict not yet written back, the latest per row and variant:
+     right approves the row; change puts his words in place of the variant he read, the chart's values turned back
+     into slots, approved and `rewritten_by` him; wrong withdraws the row, which no client is shown again. A row
+     that would no longer stand is left as it was and reported. A verdict on an engine sentence is reported as a
+     row to draft.
+   - **Erasing a conversation.** The verdicts stay, as review rows do, with their turn and the chart's values
+     taken off.
+   - **Templating a rewrite.** Putting the slots back into his words is literal: every occurrence of a slot's value
+     becomes the slot ("Mars's" in a gloss of a Mars rule becomes `{planets}'s`), which is right only where the
+     value is the rule's own. The rewritten row passes `row_errors` before it is written. A browser test opens the
+     worksheet on the session review page and saves a verdict.
+

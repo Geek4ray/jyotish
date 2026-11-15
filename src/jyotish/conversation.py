@@ -1483,6 +1483,54 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
         "usage": {"writer": _usage(writer_metas), "checker": _usage(checker_metas), "wall_seconds": timeline["done"]}}
 
 
+# --- the worksheet (SPEC Layer 8, "The layered answer", step 6) ------------------------------------------------------
+
+VERDICTS = ("right", "change", "wrong")
+
+
+def worksheet(doc: dict, bank=None, verdicts: list[dict] | None = None) -> dict[str, Any]:
+    """Every answer's other face: per sentence of a composed turn what was looked at (the plan item's signature,
+    tags and facts), how it was derived (its notes into the sheet's points), what the client was told, the bank row
+    behind it (or "the engine's own sentence") and the verdicts on it; and what the plan left out. A turn answered
+    otherwise (the writer, the engine, a fixed reply) lists its shown sentences with the engine's notes."""
+    from .bank import default_bank
+    bank = bank if bank is not None else default_bank()
+    verdicts = verdicts or []
+    plan = doc.get("plan") or {}
+    items = {(i["signature"], i.get("area")): i for i in plan.get("items", [])}
+    out: list[dict[str, Any]] = []
+    if doc.get("composed"):
+        for i, s in enumerate(doc["composed"]["sentences"]):
+            item = items.get((s["signature"], s.get("area"))) or {}
+            r = s.get("row")
+            row = bank.row(r["signature"], r["kind"]) if r else None
+            out.append({"i": i, "told": s["text"], "part": s["part"], "area": s.get("area"),
+                        "looked_at": {"signature": s["signature"], "tags": s.get("tags") or [],
+                                      "facts": item.get("facts") or {}, "slots": item.get("slots") or {}},
+                        "derived": s.get("notes") or [],
+                        "bank_row": None if r is None else r | {
+                            "variants": row.variants if row else None, "source": row.source if row else None,
+                            "drafted_by": row.drafted_by if row else None,
+                            "approved_by": row.approved_by if row else None,
+                            "withdrawn_by": row.withdrawn_by if row else None,
+                            "checks": [c.model_dump(mode="json") for c in row.checks] if row else []},
+                        "engine": item.get("engine"),
+                        "verdicts": [v for v in verdicts if v.get("i") == i]})
+    else:
+        engine = (doc.get("engine") or {}).get("sentences") or []
+        notes = {e["text"]: e.get("notes") or [] for e in engine}
+        for i, text in enumerate(doc.get("shown") or []):
+            out.append({"i": i, "told": text, "part": None, "area": None,
+                        "looked_at": {"signature": None, "tags": [], "facts": {}, "slots": {}},
+                        "derived": notes.get(text, []), "bank_row": None, "engine": None,
+                        "verdicts": [v for v in verdicts if v.get("i") == i]})
+    polish = doc.get("polish") or {}
+    return {"source": doc.get("source"), "question": doc.get("question"), "route": doc.get("route"),
+            "bank": doc.get("bank"), "sentences": out, "left_out": plan.get("left_out") or [],
+            "polished": {"text": polish.get("text"), "used": polish.get("used"), "refusals": polish.get("refusals")}
+            if polish else None}
+
+
 # --- the astrologer's review of a turn (SPEC Layer 8) -------------------------------------------------------------
 
 def turn_units(doc: dict) -> list[dict]:

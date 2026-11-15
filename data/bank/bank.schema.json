@@ -6,34 +6,140 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["signature", "kind", "slots", "variants", "drafted_by", "drafted_on", "status"],
+    "required": [
+      "signature",
+      "kind",
+      "slots",
+      "variants",
+      "drafted_by",
+      "drafted_on",
+      "status"
+    ],
     "properties": {
-      "signature": {"type": "string", "pattern": "^[a-z_]+(\\.[A-Za-z0-9_]+)*(@[a-z_]+)?$",
-                    "description": "the plan signature; a meaning row adds @<area>"},
-      "kind": {"enum": ["fact", "meaning"]},
-      "slots": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z_]+$"}, "uniqueItems": true},
-      "variants": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 3, "maxItems": 3},
-      "source": {"type": ["string", "null"], "description": "a meaning row's citation: the rule's text, edition, chapter and verse"},
-      "drafted_by": {"type": "string", "description": "the model (or person) that drafted the row"},
-      "drafted_on": {"type": "string", "format": "date"},
-      "status": {"enum": ["draft", "approved"]},
-      "approved_by": {"type": ["string", "null"]},
-      "approved_on": {"type": ["string", "null"], "format": "date"},
-      "rewritten_by": {"type": ["string", "null"], "description": "the astrologer whose own words the variants are"},
+      "signature": {
+        "type": "string",
+        "pattern": "^[a-z_]+(\\.[A-Za-z0-9_]+)*(@[a-z_]+)?$",
+        "description": "the plan signature; a meaning row adds @<area>"
+      },
+      "kind": {
+        "enum": [
+          "fact",
+          "meaning"
+        ]
+      },
+      "slots": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^[A-Za-z_]+$"
+        },
+        "uniqueItems": true
+      },
+      "variants": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "source": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "a meaning row's citation: the rule's text, edition, chapter and verse"
+      },
+      "drafted_by": {
+        "type": "string",
+        "description": "the model (or person) that drafted the row"
+      },
+      "drafted_on": {
+        "type": "string",
+        "format": "date"
+      },
+      "status": {
+        "enum": [
+          "draft",
+          "approved"
+        ]
+      },
+      "approved_by": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "approved_on": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date"
+      },
+      "rewritten_by": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "the astrologer whose own words the variants are"
+      },
+      "withdrawn_by": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "the astrologer who judged the row wrong: it is never shown again"
+      },
+      "withdrawn_on": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date"
+      },
+      "withdrawn_why": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
       "checks": {
         "type": "array",
         "description": "the gate checker's verdict on each fact variant, filled with a chart's values for its signature",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["variant", "sentence", "supported", "model", "on"],
+          "required": [
+            "variant",
+            "sentence",
+            "supported",
+            "model",
+            "on"
+          ],
           "properties": {
-            "variant": {"type": "integer", "minimum": 0, "maximum": 2},
-            "sentence": {"type": "string"},
-            "supported": {"type": "boolean"},
-            "evidence": {"type": "string"},
-            "model": {"type": "string"},
-            "on": {"type": "string", "format": "date"}
+            "variant": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
+            },
+            "sentence": {
+              "type": "string"
+            },
+            "supported": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "on": {
+              "type": "string",
+              "format": "date"
+            }
           }
         }
       }

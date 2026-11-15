@@ -302,6 +302,12 @@ def erase_sessions(session, session_ids: list[str], erased_by: str) -> dict[str,
             r.turn_id, r.chart_id = None, None
             r.target = "session:<erased>" if (r.target or "").startswith("session:") else r.target
             counts["reviews_kept"] += 1
+        # The astrologer's verdicts on the bank (SPEC Layer 8, "The layered answer") are kept as his judgement of a
+        # sentence, as review rows are: their turn is taken off, and with it the chart's values they carried.
+        from .db import BankReviewRow
+        for r in session.query(BankReviewRow).filter(BankReviewRow.turn_id.in_(turn_ids)):
+            r.turn_id, r.slots = None, None
+            counts["reviews_kept"] += 1
         session.flush()
     for r in session.query(ReviewRow).filter(ReviewRow.target.in_([f"session:{i}" for i in ids])):
         r.target, r.chart_id = "session:<erased>", None

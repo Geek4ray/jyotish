@@ -74,6 +74,9 @@ class BankRow(BaseModel):
     approved_by: str | None = None
     approved_on: date | None = None
     rewritten_by: str | None = None
+    withdrawn_by: str | None = None              # judged wrong by the astrologer: never shown again
+    withdrawn_on: date | None = None
+    withdrawn_why: str | None = None
     checks: list[Check] = Field(default_factory=list)
     file: str | None = Field(default=None, exclude=True)
 
@@ -165,10 +168,17 @@ class Bank:
         self._by = {(r.signature, r.kind): r for r in rows}
 
     def fact(self, signature: str) -> BankRow | None:
-        return self._by.get((signature, "fact"))
+        """The fact row a composer may use (none once the astrologer withdrew it)."""
+        r = self._by.get((signature, "fact"))
+        return None if r is None or r.withdrawn_by else r
 
     def meaning(self, signature: str, area: str | None) -> BankRow | None:
-        return self._by.get((f"{signature}@{area}", "meaning")) if area else None
+        r = self._by.get((f"{signature}@{area}", "meaning")) if area else None
+        return None if r is None or r.withdrawn_by else r
+
+    def row(self, signature: str, kind: str) -> BankRow | None:
+        """Any row, withdrawn or not (the worksheet and apply-reviews)."""
+        return self._by.get((signature, kind))
 
     def __len__(self) -> int:
         return len(self.rows)
@@ -287,3 +297,79 @@ def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date
             "meaning_share": round(meant / can_mean, 4) if can_mean else None,
             "approved_share": round(sum(r.status == "approved" for r in bank.rows) / len(bank), 4) if len(bank) else 0.0,
             "rows": len(bank), "version": bank.version, "missing": missing.most_common(25)}
+
+
+# --- the astrologer's verdicts, written back (`jyotish bank apply-reviews`) --------------------------------------
+
+def template(sentence: str, slots: dict[str, str]) -> str:
+    """A sentence in the astrologer's own words with the chart's values put back as slots ({planet}, {house}, ...),
+    the longest value first, so his rewrite serves every later chart."""
+    out = sentence.strip()
+    for name, value in sorted(((k, v) for k, v in slots.items() if v and not k.startswith("_")),
+                              key=lambda kv: -len(kv[1])):
+        out = re.sub(rf"(?<![{{\w]){re.escape(value)}(?![\w}}])", "{" + name + "}", out)
+    return out
+
+
+def apply_reviews(database_url: str | None = None, directory: Path | str | None = None,
+                  today: date | None = None) -> dict[str, Any]:
+    """Every verdict not yet written back, the latest first per (row, variant): right approves the row (approved_by,
+    approved_on); change puts the astrologer's words, with the chart's values as slots, in place of the variant he
+    read, approved and `rewritten_by` him; wrong withdraws the row (never shown again). A row that would no longer
+    stand (`row_errors`) is left as it was and reported; a verdict on a sentence with no row (the engine's own) is
+    reported for drafting. Each file is rewritten once, and every verdict written back is marked applied."""
+    from datetime import datetime, timezone
+    from sqlalchemy.orm import sessionmaker
+    from .db import BankReviewRow, migrate
+    directory = Path(directory) if directory is not None else BANK_DIR
+    today = today or date.today()
+    bank = load_bank(directory)
+    by_file: dict[str, list[BankRow]] = {}
+    for r in bank.rows:
+        by_file.setdefault(r.file, []).append(r)
+    report = {"approved": [], "rewritten": [], "withdrawn": [], "refused": [], "no_row": []}
+    Session = sessionmaker(migrate(database_url))
+    changed: set[str] = set()
+    with Session.begin() as s:
+        pending = s.query(BankReviewRow).filter(BankReviewRow.applied_at.is_(None)).order_by(BankReviewRow.id.desc()).all()
+        seen: set[tuple] = set()
+        for v in pending:
+            key = (v.signature, v.kind, v.variant)
+            if key in seen:                              # an older verdict on the same variant: the latest stands
+                v.applied_at = datetime.now(timezone.utc)
+                continue
+            seen.add(key)
+            row = bank.row(v.signature, v.kind) if v.kind else None
+            if row is None:
+                report["no_row"].append({"signature": v.signature, "verdict": v.verdict, "words": v.words})
+                continue
+            new = row.model_copy(deep=True)
+            if v.verdict == "right":
+                new.status, new.approved_by, new.approved_on = "approved", v.reviewer_id, today
+                what = "approved"
+            elif v.verdict == "change":
+                variants = list(new.variants)
+                variants[v.variant or 0] = template(v.words or v.sentence, v.slots or {})
+                new.variants = variants
+                new.status, new.approved_by, new.approved_on, new.rewritten_by = "approved", v.reviewer_id, today, v.reviewer_id
+                new.checks = [c for c in new.checks if c.variant != (v.variant or 0)]
+                what = "rewritten"
+            else:
+                new.withdrawn_by, new.withdrawn_on, new.withdrawn_why = v.reviewer_id, today, v.words
+                what = "withdrawn"
+            errs = row_errors(new)
+            if errs:
+                report["refused"].append({"signature": v.signature, "verdict": v.verdict, "why": errs})
+                continue
+            rows = by_file[row.file]
+            rows[rows.index(row)] = new
+            bank._by[(new.signature, new.kind)] = new
+            changed.add(row.file)
+            report[what].append({"signature": v.signature, "variant": v.variant, "by": v.reviewer_id})
+            v.applied_at = datetime.now(timezone.utc)
+        for name in sorted(changed):
+            path = directory / name
+            head = "".join(line for line in path.read_text().splitlines(keepends=True) if line.startswith("#"))
+            path.write_text(head + dump_rows(by_file[name]))
+        load_bank(directory)                             # the written bank must stand, or nothing is committed
+    return report

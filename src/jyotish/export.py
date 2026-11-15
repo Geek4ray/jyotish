@@ -161,7 +161,17 @@ def export_reviews(database_url: str, out_dir: Path | str = OUT, with_birth_data
                  "edits": doc.get("edits") or []}
             turns_out.append(x)
 
-    for name, rows in (("rewrites.jsonl", rewrites), ("judgements.jsonl", judgements), ("turns.jsonl", turns_out)):
+        # The astrologer's verdicts on the sentence bank (SPEC Layer 8, "The layered answer"): what each was said of.
+        from .db import BankReviewRow
+        bank_out = [{"signature": r.signature, "kind": r.kind, "variant": r.variant, "bank_version": r.bank_version,
+                     "verdict": r.verdict, "words": r.words, "sentence": r.sentence,
+                     "slots": {k: v for k, v in (r.slots or {}).items() if not k.startswith("_")},
+                     "turn_id": r.turn_id, "reviewer": r.reviewer_id,
+                     "applied": r.applied_at.isoformat() if r.applied_at else None, "at": r.created_at.isoformat()}
+                    for r in s.query(BankReviewRow).order_by(BankReviewRow.id)]
+
+    for name, rows in (("rewrites.jsonl", rewrites), ("judgements.jsonl", judgements), ("turns.jsonl", turns_out),
+                       ("bank_reviews.jsonl", bank_out)):
         lines = [_header(name, with_birth_data)] + rows
         (out / name).write_text("".join(json.dumps(r, ensure_ascii=False, default=str) + "\n" for r in lines))
-    return {"rewrites": len(rewrites), "judgements": len(judgements), "turns": len(turns_out)}
+    return {"rewrites": len(rewrites), "judgements": len(judgements), "turns": len(turns_out), "bank": len(bank_out)}

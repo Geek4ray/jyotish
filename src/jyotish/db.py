@@ -306,6 +306,27 @@ class TurnRow(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
 
 
+class BankReviewRow(Base):
+    """The astrologer's verdict on a sentence of a composed turn, stored against the bank row behind it (SPEC Layer 8,
+    "The layered answer"; revision 0007): right, change (with his own words for the sentence) or wrong (with why).
+    `jyotish bank apply-reviews` writes approved rows, rewrites and withdrawals back to data/bank/*.yaml, so one
+    correction reaches every later client; `applied_at` marks a verdict written back."""
+    __tablename__ = "bank_reviews"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    signature: Mapped[str] = mapped_column(String(200), index=True)     # the row's (a meaning row's carries @<area>)
+    kind: Mapped[str | None] = mapped_column(String(8), nullable=True)  # fact | meaning; null: no row (the engine's sentence)
+    variant: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    bank_version: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    verdict: Mapped[str] = mapped_column(String(8))                     # right | change | wrong
+    words: Mapped[str | None] = mapped_column(Text, nullable=True)      # his words: the rewrite, or why
+    sentence: Mapped[str] = mapped_column(Text)                         # what the client was told
+    slots: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)  # the chart's values in it (for a rewrite's slots)
+    turn_id: Mapped[str | None] = mapped_column(ForeignKey("turns.id"), nullable=True)
+    reviewer_id: Mapped[str] = mapped_column(String(64))
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class LedgerRow(Base):
     """A finished reading's or turn's tokens and cost (jyotish.costs, from the usage it records): the owner's
     ledger and, summed by `day` (UTC), the daily totals. `reading_id` is the reading's id, or the turn's when
