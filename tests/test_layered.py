@@ -203,7 +203,7 @@ def test_2_coverage_counts_the_plan_items_that_find_a_row_whose_slots_they_fill(
     assert empty["items"] > 100 and empty["share"] == 0 and empty["missing"]
     lord = row()
     narrow = row(signature="family.karaka.for", slots=["area", "nakshatra"],
-                 variants=["It supports {area}.", "It is good for {area}.", "{area} gains from it."])
+                 variants=["It supports {area} from {nakshatra}.", "It is good for {area}.", "{area} gains from it."])
     res = coverage(6, seed=3, bank=load_bank(write_bank(tmp_path, [lord, narrow])), workers=1)
     missing = dict(res["missing"])
     assert "family.lord.for" not in missing and "family.karaka.for" in missing    # a slot the plan does not fill
@@ -273,7 +273,7 @@ def test_3_a_fact_variant_is_checked_against_its_facts_its_area_and_the_glossary
 
 def ruchaka_rows():
     fact = row(signature="rule.yoga.ruchaka.reduced", slots=["area", "name", "placed", "reductions"],
-               variants=["{name}, a combination of Mars, is in your chart: {placed}, weakened by {reductions}.",
+               variants=["{name}, a combination of Mars, is in your chart: {placed}, weakened by {reductions} for {area}.",
                          "Your chart holds {name} (a combination of Mars), with {placed}, though {reductions} weaken it.",
                          "{placed} forms {name}, a combination of Mars, weakened by {reductions}."])
     meaning = row(signature="rule.yoga.ruchaka.reduced@career", kind="meaning", slots=["area"], source="BPHS 75.1-2",
@@ -330,7 +330,9 @@ def test_4_a_row_refused_by_the_checker_or_wanting_a_slot_is_not_used(chart, dat
     # All three variants refused, or a slot the item does not fill: the engine's sentence. One refused variant: the
     # next variant is shown in its place (the review of 2026-11-15, H1).
     every = fact | {"checks": [refused["checks"][0] | {"variant": v} for v in range(3)]}
-    for bad in (every, fact | {"slots": fact["slots"] + ["dignity"]}):
+    wants = fact | {"slots": fact["slots"] + ["nakshatra"],                    # a slot the item does not fill
+                    "variants": [v.replace("{placed}", "{placed} in {nakshatra}") for v in fact["variants"]]}
+    for bad in (every, wants):
         c = compose(career(chart, data), load_bank(write_bank(tmp_path, [bad])), session_key="s1")
         assert next(s for s in c["sentences"] if s["signature"] == "rule.yoga.ruchaka.reduced")["row"] is None
     from jyotish.conversation import variant_of
@@ -805,6 +807,9 @@ def test_8_live_timing_times_the_seven_turns_composed_and_polished(tmp_path, mon
     lt = load_script("live_timing")
     import jyotish.conversation as conv
     import jyotish.envfile
+    # live_timing sets JYOTISH_LAYERED and JYOTISH_POLISH in os.environ: set here first, so the test restores them.
+    monkeypatch.setenv("JYOTISH_LAYERED", "0")
+    monkeypatch.setenv("JYOTISH_POLISH", "")
     monkeypatch.setattr(jyotish.envfile, "load", lambda path: [])
     monkeypatch.setattr(lt, "ROWS", tmp_path / "rows.jsonl")
     real = conv.answer_turn

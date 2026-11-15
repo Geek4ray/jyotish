@@ -42,8 +42,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   variants:
@@ -55,26 +53,53 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house), formed by Mercury, and it
-      bears on your career.
+    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Sun), formed by Mercury,
+      and it bears on your career and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 1
-    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house) in your chart, and this combination
-      bears on your career.
+    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Sun) in your chart, and
+      this combination bears on your career and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 2
-    sentence: Bearing on your career, your chart holds Bhadra (Mercury in its own or exalted sign in an angular house), which
-      comes from Mercury.
+    sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
+      house from your Sun), which comes from Mercury.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one
+  - variant: 0
+    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Mercury, and it bears on your career and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 1
+    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun) in
+      your chart, and this combination bears on your career and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
+      house from your Moon and your Sun), which comes from Mercury.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one
 - signature: rule.yoga.bhadra.reduced
   kind: fact
   slots:
@@ -144,8 +169,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   - reductions
@@ -158,26 +181,109 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house), formed by Mercury, and it
-      bears on your career, though it is reduced by lying too close to the Sun.
+    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Sun), formed by Mercury,
+      and it bears on your career and money, though it is reduced by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 1
-    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house) in your chart, bearing on your
-      career, though lying too close to the Sun reduces it.
+    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Sun) in your chart, bearing
+      on your career and money, though lying too close to the Sun reduces it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 2
-    sentence: Bearing on your career, your chart holds Bhadra (Mercury in its own or exalted sign in an angular house), which
-      comes from Mercury, though it is held back by lying too close to the Sun.
+    sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
+      house from your Sun), which comes from Mercury, though it is held back by lying too close to the Sun.
+    supported: false
+    evidence: the glossary's Bhadra entry says only "in an angular house" with no mention of counting from the Sun, and the
+      chart fact places Mercury in house 12, which is not angular from the ascendant — the "from your Sun" attachment is not
+      stated anywhere in the data
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
+  - variant: 0
+    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Mercury, and it bears on your career and money, though it is reduced by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:one+lum
+  - variant: 1
+    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun) in
+      your chart, bearing on your career and money, though lying too close to the Sun reduces it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:one+lum
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
+      house from your Moon and your Sun), which comes from Mercury, though it is held back by lying too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:one+lum
+  - variant: 0
+    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Mercury, and it bears on your career and money, though it is reduced by too little strength and lying too
+      close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 1
+    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun) in
+      your chart, bearing on your career and money, though too little strength and lying too close to the Sun reduce it.
+    supported: false
+    evidence: The glossary entry for Bhadra says only 'in an angular house', with no reference to the Moon or the Sun; the
+      gloss as written does not match the term's entry. (The chart-level claim — that the yoga was measured from the Moon
+      and the Sun, with Mercury in H7 from the Moon and H1 from the Sun per the fired rows — is supported, but as a definition
+      the added clause is not in the glossary.)
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
+      house from your Moon and your Sun), which comes from Mercury, though it is held back by too little strength and lying
+      too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 0
+    sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Sun), formed by Mercury,
+      and it bears on your career and money, though it is reduced by too little strength and lying too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many+lum
+  - variant: 1
+    sentence: Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Sun) in your chart, bearing
+      on your career and money, though too little strength and lying too close to the Sun reduce it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many+lum
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
+      house from your Sun), which comes from Mercury, though it is held back by too little strength and lying too close to
+      the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many+lum
 - signature: rule.yoga.budhaditya.full
   kind: fact
   slots:
@@ -309,8 +415,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   variants:
@@ -323,31 +427,32 @@
   checks:
   - variant: 0
     sentence: Your chart holds Kesari (Jupiter in an angular house from the Moon), formed by Jupiter, and it bears on your
-      career.
+      career and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one
   - variant: 1
     sentence: Jupiter forms Kesari (Jupiter in an angular house from the Moon) in your chart, and this combination bears on
-      your career.
+      your career and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one
   - variant: 2
-    sentence: Bearing on your career, your chart holds Kesari (Jupiter in an angular house from the Moon), which comes from
-      Jupiter.
+    sentence: Bearing on your career and money, your chart holds Kesari (Jupiter in an angular house from the Moon), which
+      comes from Jupiter.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one
 - signature: rule.yoga.gaja_kesari.reduced.nohouse
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   - reductions
@@ -361,25 +466,100 @@
   checks:
   - variant: 0
     sentence: Your chart holds Kesari (Jupiter in an angular house from the Moon), formed by Jupiter, and it bears on your
-      career, though it is reduced by too little strength.
+      career and money, though it is reduced by too little strength.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:one
   - variant: 1
-    sentence: Jupiter forms Kesari (Jupiter in an angular house from the Moon) in your chart, bearing on your career, though
-      too little strength reduces it.
+    sentence: Jupiter forms Kesari (Jupiter in an angular house from the Moon) in your chart, bearing on your career and money,
+      though too little strength reduces it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:one
   - variant: 2
-    sentence: Bearing on your career, your chart holds Kesari (Jupiter in an angular house from the Moon), which comes from
-      Jupiter, though it is held back by too little strength.
+    sentence: Bearing on your career and money, your chart holds Kesari (Jupiter in an angular house from the Moon), which
+      comes from Jupiter, though it is held back by too little strength.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:one
+  - variant: 0
+    sentence: Your chart holds Kesari (Jupiter in an angular house from the Moon), formed by Jupiter, and it bears on your
+      career and money, though it is reduced by a sign where it is least at ease and too little strength.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:many
+  - variant: 1
+    sentence: Jupiter forms Kesari (Jupiter in an angular house from the Moon) in your chart, bearing on your career and money,
+      though a sign where it is least at ease and too little strength reduce it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:many
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Kesari (Jupiter in an angular house from the Moon), which
+      comes from Jupiter, though it is held back by a sign where it is least at ease and too little strength.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:many
+  - variant: 0
+    sentence: Your chart holds Kesari (Jupiter in an angular house from the Moon), formed by Jupiter, and it bears on your
+      career and money, though it is reduced by lying too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:one+lum
+  - variant: 1
+    sentence: Jupiter forms Kesari (Jupiter in an angular house from the Moon) in your chart, bearing on your career and money,
+      though lying too close to the Sun reduces it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:one+lum
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Kesari (Jupiter in an angular house from the Moon), which
+      comes from Jupiter, though it is held back by lying too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:one+lum
+  - variant: 0
+    sentence: Your chart holds Kesari (Jupiter in an angular house from the Moon), formed by Jupiter, and it bears on your
+      career and money, though it is reduced by lying too close to the Sun and too little strength.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:many+lum
+  - variant: 1
+    sentence: Jupiter forms Kesari (Jupiter in an angular house from the Moon) in your chart, bearing on your career and money,
+      though lying too close to the Sun and too little strength reduce it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:many+lum
+  - variant: 2
+    sentence: Bearing on your career and money, your chart holds Kesari (Jupiter in an angular house from the Moon), which
+      comes from Jupiter, though it is held back by lying too close to the Sun and too little strength.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,houses:empty,name:one,named:one+lum,placed:empty,planets:one,reductions:many+lum
 - signature: rule.yoga.hamsa.full
   kind: fact
   slots:
@@ -426,8 +606,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   variants:
@@ -439,26 +617,54 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house), formed by Jupiter and bearing
-      on your career.
+    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon), formed by Jupiter
+      and bearing on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 1
-    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house) is present in your chart, made by Jupiter, and
-      it relates to your career.
-    supported: true
-    evidence: ''
+    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon) is present in your chart, made
+      by Jupiter, and it relates to your career.
+    supported: false
+    evidence: the glossary entry for 'Hamsa yoga' says only 'in an angular house' and does not mention the Moon; the added
+      'from your Moon' clause does not match the term's entry
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 2
-    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house) in your chart, and this bears on
-      your career.
+    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon) in your chart, and
+      this bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
+  - variant: 0
+    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Jupiter and bearing on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 1
+    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Jupiter, and it relates to your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 2
+    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon and your Sun) in
+      your chart, and this bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
 - signature: rule.yoga.hamsa.reduced
   kind: fact
   slots:
@@ -502,8 +708,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   - reductions
@@ -516,26 +720,102 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house), formed by Jupiter and bearing
-      on your career, but reduced by too little strength and lying too close to the Sun.
+    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house from your Sun), formed by Jupiter
+      and bearing on your career, but reduced by too little strength and lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many+lum
   - variant: 1
-    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house) is present in your chart, made by Jupiter; it
-      relates to your career and is held back by too little strength and lying too close to the Sun.
+    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house from your Sun) is present in your chart, made
+      by Jupiter; it relates to your career and is held back by too little strength and lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many+lum
   - variant: 2
-    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house) in your chart, which bears on your
-      career, though too little strength and lying too close to the Sun reduces it.
+    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house from your Sun) in your chart, which
+      bears on your career, though too little strength and lying too close to the Sun reduce it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many+lum
+  - variant: 0
+    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Jupiter and bearing on your career, but reduced by lying too close to the Sun and a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 1
+    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Jupiter; it relates to your career and is held back by lying too close to the Sun and a house that drains
+      it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 2
+    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon and your Sun) in
+      your chart, which bears on your career, though lying too close to the Sun and a house that drains it reduce it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 0
+    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house from your Sun), formed by Jupiter
+      and bearing on your career, but reduced by a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 1
+    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house from your Sun) is present in your chart, made
+      by Jupiter; it relates to your career and is held back by a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 2
+    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house from your Sun) in your chart, which
+      bears on your career, though a house that drains it reduces it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 0
+    sentence: Your chart holds Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon), formed by Jupiter
+      and bearing on your career, but reduced by too little strength and a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many
+  - variant: 1
+    sentence: Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon) is present in your chart, made
+      by Jupiter; it relates to your career and is held back by too little strength and a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many
+  - variant: 2
+    sentence: Jupiter forms Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon) in your chart, which
+      bears on your career, though too little strength and a house that drains it reduce it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many
 - signature: rule.yoga.kendra_trikona_raja.full
   kind: fact
   slots:
@@ -688,8 +968,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   variants:
@@ -701,26 +979,53 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house), formed by Venus and bearing
-      on marriage.
+    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house from your Moon), formed by Venus
+      and bearing on marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 1
-    sentence: Malavya (Venus in its own or exalted sign in an angular house) is present in your chart, made by Venus, and
-      it relates to marriage.
+    sentence: Malavya (Venus in its own or exalted sign in an angular house from your Moon) is present in your chart, made
+      by Venus, and it relates to marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 2
-    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house) in your chart, and this bears on
-      marriage.
+    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house from your Moon) in your chart, and
+      this bears on marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
+  - variant: 0
+    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Venus and bearing on marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 1
+    sentence: Malavya (Venus in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Venus, and it relates to marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 2
+    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house from your Moon and your Sun) in your
+      chart, and this bears on marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
 - signature: rule.yoga.malavya.reduced
   kind: fact
   slots:
@@ -788,8 +1093,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   - reductions
@@ -802,26 +1105,104 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house), formed by Venus and bearing
-      on marriage, but reduced by lying too close to the Sun.
+    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house from your Sun), formed by Venus
+      and bearing on marriage, but reduced by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 1
-    sentence: Malavya (Venus in its own or exalted sign in an angular house) is present in your chart, made by Venus; it relates
-      to marriage and is held back by lying too close to the Sun.
+    sentence: Malavya (Venus in its own or exalted sign in an angular house from your Sun) is present in your chart, made
+      by Venus; it relates to marriage and is held back by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 2
-    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house) in your chart, which bears on marriage,
-      though lying too close to the Sun reduces it.
+    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house from your Sun) in your chart, which
+      bears on marriage, though lying too close to the Sun reduces it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
+  - variant: 0
+    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house from your Sun), formed by Venus
+      and bearing on marriage, but reduced by a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 1
+    sentence: Malavya (Venus in its own or exalted sign in an angular house from your Sun) is present in your chart, made
+      by Venus; it relates to marriage and is held back by a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 2
+    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house from your Sun) in your chart, which
+      bears on marriage, though a house that drains it reduces it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 0
+    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Venus and bearing on marriage, but reduced by too little strength, lying too close to the Sun and a house
+      that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 1
+    sentence: Malavya (Venus in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Venus; it relates to marriage and is held back by too little strength, lying too close to the Sun and
+      a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 2
+    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house from your Moon and your Sun) in your
+      chart, which bears on marriage, though too little strength, lying too close to the Sun and a house that drains it reduce
+      it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many+lum
+  - variant: 0
+    sentence: Your chart holds Malavya (Venus in its own or exalted sign in an angular house from your Moon), formed by Venus
+      and bearing on marriage, but reduced by too little strength and a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many
+  - variant: 1
+    sentence: Malavya (Venus in its own or exalted sign in an angular house from your Moon) is present in your chart, made
+      by Venus; it relates to marriage and is held back by too little strength and a house that drains it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many
+  - variant: 2
+    sentence: Venus forms Malavya (Venus in its own or exalted sign in an angular house from your Moon) in your chart, which
+      bears on marriage, though too little strength and a house that drains it reduce it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:many
 - signature: rule.yoga.neecha_bhanga.full
   kind: fact
   slots:
@@ -888,7 +1269,6 @@
   kind: fact
   slots:
   - area
-  - houses
   - name
   - planets
   variants:
@@ -906,26 +1286,52 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 1
     sentence: Neecha Bhanga, which means the cancellation of debilitation, is present in your chart, formed by Mercury, and
       it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 2
     sentence: Formed by Mercury, the pattern called Neecha Bhanga, a cancellation of debilitation, sits in your chart and
       bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
+  - variant: 0
+    sentence: Your chart holds Neecha Bhanga, the cancellation of a low placement, formed by the Sun, and it bears on your
+      career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one+lum
+  - variant: 1
+    sentence: Neecha Bhanga, which means the cancellation of debilitation, is present in your chart, formed by the Sun, and
+      it bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one+lum
+  - variant: 2
+    sentence: Formed by the Sun, the pattern called Neecha Bhanga, a cancellation of debilitation, sits in your chart and
+      bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one+lum
 - signature: rule.yoga.neecha_bhanga.reduced.nohouse
   kind: fact
   slots:
   - area
-  - houses
   - name
   - planets
   - reductions
@@ -943,24 +1349,54 @@
   - variant: 0
     sentence: Your chart holds Neecha Bhanga, the cancellation of debilitation, formed by Mars, which bears on your career,
       though it is weakened by lying too close to the Sun.
-    supported: true
-    evidence: ''
+    supported: false
+    evidence: 'An ordinary reader takes "which" as referring to Mars. Nothing states Mars bears on career: the data''s career
+      area belongs to the yoga as a whole, its career houses (10, 6, 2, 11) do not include Mars''s house (Mars sits in the
+      12th), and Mars is not among the significators (Sun, Saturn, Mercury). If read instead as the yoga bearing on the career,
+      it would be supported by about.area "career" — so th'
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 1
     sentence: Formed by Mars, Neecha Bhanga, a cancellation of debilitation, sits in your chart and bears on your career,
       though lying too close to the Sun weakens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 2
     sentence: Neecha Bhanga, meaning the cancellation of debilitation, appears in your chart through Mars and bears on your
       career, though it is weakened by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
+  - variant: 0
+    sentence: Your chart holds Neecha Bhanga, the cancellation of debilitation, formed by the Moon, which bears on your career,
+      though it is weakened by lying too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one+lum,reductions:one+lum
+  - variant: 1
+    sentence: Formed by the Moon, Neecha Bhanga, a cancellation of debilitation, sits in your chart and bears on your career,
+      though lying too close to the Sun weakens it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one+lum,reductions:one+lum
+  - variant: 2
+    sentence: Neecha Bhanga, meaning the cancellation of debilitation, appears in your chart through the Moon and bears on
+      your career, though it is weakened by lying too close to the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one+lum,reductions:one+lum
 - signature: rule.yoga.parivartana.full
   kind: fact
   slots:
@@ -1131,8 +1567,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   variants:
@@ -1144,26 +1578,53 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars, which bears
-      on your career.
+    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Sun), formed by Mars,
+      which bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 1
-    sentence: Ruchaka (Mars in its own or exalted sign in an angular house) is present in your chart, made by Mars and bearing
-      on your career.
+    sentence: Ruchaka (Mars in its own or exalted sign in an angular house from your Sun) is present in your chart, made by
+      Mars and bearing on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 2
-    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), and it bears on
-      your career.
+    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Sun),
+      and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
+  - variant: 0
+    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Mars, which bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 1
+    sentence: Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Mars and bearing on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 2
+    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and
+      your Sun), and it bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
 - signature: rule.yoga.ruchaka.reduced
   kind: fact
   slots:
@@ -1234,8 +1695,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   - reductions
@@ -1248,26 +1707,83 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars, which bears
-      on your career, though it is weakened by too little strength.
+    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon), formed by Mars,
+      which bears on your career, though it is weakened by too little strength.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
   - variant: 1
-    sentence: Ruchaka (Mars in its own or exalted sign in an angular house) is present in your chart, made by Mars and bearing
-      on your career, though too little strength weakens it.
+    sentence: Ruchaka (Mars in its own or exalted sign in an angular house from your Moon) is present in your chart, made
+      by Mars and bearing on your career, though too little strength weakens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
   - variant: 2
-    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), which bears on
-      your career, though it is weakened by too little strength.
+    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon),
+      which bears on your career, though it is weakened by too little strength.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one
+  - variant: 0
+    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Mars, which bears on your career, though it is weakened by too little strength.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:one
+  - variant: 1
+    sentence: Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Mars and bearing on your career, though too little strength weakens it.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:one
+  - variant: 2
+    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and
+      your Sun), which bears on your career, though it is weakened by too little strength.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:one
+  - variant: 0
+    sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun),
+      formed by Mars, which bears on your career, though it is weakened by Saturn's aspect on it and an unhelpful star counted
+      from your Moon.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many
+  - variant: 1
+    sentence: Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Mars and bearing on your career, though Saturn's aspect on it and an unhelpful star counted from your
+      Moon weaken it.
+    supported: false
+    evidence: 'gloss mismatch: the glossary entry says only "in an angular house" and never mentions counting from the Moon
+      or the Sun; the firings'' moon/sun bases support a chart-level reading, but read as a parenthetical definition (the
+      ordinary reading of a gloss) the added clause does not match the entry — ambiguous between a supported and an unsupported
+      reading, so unsupported'
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many
+  - variant: 2
+    sentence: Through Mars, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and
+      your Sun), which bears on your career, though it is weakened by Saturn's aspect on it and an unhelpful star counted
+      from your Moon.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one,reductions:many
 - signature: rule.yoga.sasa.full
   kind: fact
   slots:
@@ -1310,8 +1826,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   variants:
@@ -1323,26 +1837,53 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house), formed by Saturn, which bears
-      on your career.
+    sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house from your Moon), formed by Saturn,
+      which bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 1
-    sentence: Sasa (Saturn in its own or exalted sign in an angular house) is present in your chart, made by Saturn and bearing
-      on your career.
+    sentence: Sasa (Saturn in its own or exalted sign in an angular house from your Moon) is present in your chart, made by
+      Saturn and bearing on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
   - variant: 2
-    sentence: Through Saturn, your chart holds Sasa (Saturn in its own or exalted sign in an angular house), and it bears
-      on your career.
+    sentence: Through Saturn, your chart holds Sasa (Saturn in its own or exalted sign in an angular house from your Moon),
+      and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one
+  - variant: 0
+    sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house from your Moon and your Sun), formed
+      by Saturn, which bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 1
+    sentence: Sasa (Saturn in its own or exalted sign in an angular house from your Moon and your Sun) is present in your
+      chart, made by Saturn and bearing on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
+  - variant: 2
+    sentence: Through Saturn, your chart holds Sasa (Saturn in its own or exalted sign in an angular house from your Moon
+      and your Sun), and it bears on your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:many,placed:empty,planets:one
 - signature: rule.yoga.sasa.reduced
   kind: fact
   slots:
@@ -1435,8 +1976,6 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
   - planets
   - reductions
@@ -1449,23 +1988,26 @@
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house), formed by Saturn, which bears
-      on your career, though it is weakened by lying too close to the Sun.
+    sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house from your Sun), formed by Saturn,
+      which bears on your career, though it is weakened by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 1
-    sentence: Sasa (Saturn in its own or exalted sign in an angular house) is present in your chart, made by Saturn and bearing
-      on your career, though lying too close to the Sun weakens it.
+    sentence: Sasa (Saturn in its own or exalted sign in an angular house from your Sun) is present in your chart, made by
+      Saturn and bearing on your career, though lying too close to the Sun weakens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum
   - variant: 2
-    sentence: Through Saturn, your chart holds Sasa (Saturn in its own or exalted sign in an angular house), which bears on
-      your career, though it is weakened by lying too close to the Sun.
+    sentence: Through Saturn, your chart holds Sasa (Saturn in its own or exalted sign in an angular house from your Sun),
+      which bears on your career, though it is weakened by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
+    shape: area:one,houses:empty,name:one,named:one,placed:empty,planets:one,reductions:one+lum

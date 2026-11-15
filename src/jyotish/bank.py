@@ -177,6 +177,10 @@ def row_errors(row: BankRow) -> list[str]:
     used = {s for v in row.variants for s in SLOT.findall(v)}
     if used - set(row.slots):
         out.append(f"{row.signature}: a variant uses a slot the row does not declare: {sorted(used - set(row.slots))}")
+    if set(row.slots) - used:
+        # A declared slot is one the composer requires a value for (review 2026-11-15, M5: every .nohouse row declared
+        # `houses`, empty by construction, and none was ever shown).
+        out.append(f"{row.signature}: the row declares a slot no variant uses: {sorted(set(row.slots) - used)}")
     for i, v in enumerate(row.variants):
         if re.search(r"\{[^}]*$|^[^{]*\}|\{\}", v):
             out.append(f"{row.signature}: variant {i + 1} has a broken slot: {v!r}")
@@ -200,6 +204,13 @@ def row_errors(row: BankRow) -> list[str]:
         if (m := TIER_WORDS.search(filled)):
             out.append(f"{row.signature}: variant {i + 1}: a tier word ({m.group(0)!r}): {filled!r}")
     return out
+
+
+def fills(row: BankRow | None, slots: dict[str, str]) -> bool:
+    """A fact row the composer can fill from an item's slots: every slot it declares has a value (a dignity may be
+    empty), and a variant no check refused is left. The composer's rule, and the coverage tool's (review M5)."""
+    return (row is not None and set(row.slots) <= set(slots) and len(row.refused()) < 3
+            and all(slots[s] for s in row.slots if s != "dignity"))
 
 
 class Bank:
@@ -293,8 +304,8 @@ def dump_rows(rows: list[BankRow]) -> str:
 KINDS = ["amount", "yes_no", "when", "why"]
 
 
-def _plan_for(birth: dict, as_of: date) -> list[tuple[str, str | None, list[str], str]]:
-    """(signature, area, slot names, part) of every item of one random chart's plan over all its areas, every question
+def _plan_for(birth: dict, as_of: date) -> list[tuple[str, str | None, dict, str]]:
+    """(signature, area, slots, part) of every item of one random chart's plan over all its areas, every question
     kind and a "when" turn."""
     from datetime import datetime
     from .chart import compute
@@ -302,13 +313,13 @@ def _plan_for(birth: dict, as_of: date) -> list[tuple[str, str | None, list[str]
     c = compute(datetime.fromisoformat(f"{birth['date']}T{birth['time']}"), birth["lat"], birth["lon"], true_node=False)
     areas = [a for a in c.scored.areas if a != "synastry"]
     p = plan(c, "coverage", areas, "both", KINDS, as_of=as_of, when=True)
-    return [(i.signature, i.area, sorted(i.slots), i.part) for i in p.items]
+    return [(i.signature, i.area, dict(i.slots), i.part) for i in p.items]
 
 
 def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date = date(2026, 11, 15),
              workers: int | None = None) -> dict[str, Any]:
     """The share of plan items on `n` random charts (scripts/synthetic_cohort.births: synthetic, no one's data) that
-    find a fact row whose slots the item fills, overall and by part, the meaning rows' share among items that can take
+    find a fact row the composer can fill from the item's slot values (`fills`), overall and by part, the meaning rows' share among items that can take
     one (rules and weaknesses), and the signatures most often missing."""
     import sys
     from concurrent.futures import ProcessPoolExecutor
@@ -326,8 +337,7 @@ def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date
     for items in plans:
         for sig, area, slots, part in items:
             total[part] += 1
-            row = bank.fact(sig)
-            if row is not None and set(row.slots) <= set(slots):
+            if fills(bank.fact(sig), slots):              # what the composer would show, slot values included
                 found[part] += 1
             else:
                 missing[sig] += 1

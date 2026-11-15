@@ -460,8 +460,34 @@
    "usd": {
     "checker": 0.047
    }
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 14,
+   "checks": 105,
+   "refused": {
+    "rule.yoga.bhadra.reduced.nohouse": [
+     "variant 3 ('Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular house from your Sun), which comes from Mercury, though it is held back by lying too close to the Sun.') is not stated by the facts: the glossary's Bhadra entry says only \"in an angular house\" with no mention of counting from the Sun, and the chart fact places Mercury in house 12, which is not angular from the ascendant \u2014 the \"from your Sun\" attachment is not stated anywhere in the data",
+     "variant 2 ('Mercury forms Bhadra (Mercury in its own or exalted sign in an angular house from your Moon and your Sun) in your chart, bearing on your career and money, though too little strength and lying too close to the Sun reduce it.') is not stated by the facts: The glossary entry for Bhadra says only 'in an angular house', with no reference to the Moon or the Sun; the gloss as written does not match the term's entry. (The chart-level claim \u2014 that the yoga was measured from the Moon and the Sun, with Mercury in H7 from the Moon and H1 from the Sun per the fired rows \u2014 is supported, but as a definition the added clause is not in the glossary.)"
+    ],
+    "rule.yoga.hamsa.full.nohouse": [
+     "variant 2 ('Hamsa (Jupiter in its own or exalted sign in an angular house from your Moon) is present in your chart, made by Jupiter, and it relates to your career.') is not stated by the facts: the glossary entry for 'Hamsa yoga' says only 'in an angular house' and does not mention the Moon; the added 'from your Moon' clause does not match the term's entry"
+    ],
+    "rule.yoga.neecha_bhanga.reduced.nohouse": [
+     "variant 1 ('Your chart holds Neecha Bhanga, the cancellation of debilitation, formed by Mars, which bears on your career, though it is weakened by lying too close to the Sun.') is not stated by the facts: An ordinary reader takes \"which\" as referring to Mars. Nothing states Mars bears on career: the data's career area belongs to the yoga as a whole, its career houses (10, 6, 2, 11) do not include Mars's house (Mars sits in the 12th), and Mars is not among the significators (Sun, Saturn, Mercury). If read instead as the yoga bearing on the career, it would be supported by about.area \"career\" \u2014 so the sentence is ambiguous between a supported and an unsupported reading, and is unsupported on the ordinary reading."
+    ],
+    "rule.yoga.ruchaka.reduced.nohouse": [
+     "variant 2 (\"Ruchaka (Mars in its own or exalted sign in an angular house from your Moon and your Sun) is present in your chart, made by Mars and bearing on your career, though Saturn's aspect on it and an unhelpful star counted from your Moon weaken it.\") is not stated by the facts: gloss mismatch: the glossary entry says only \"in an angular house\" and never mentions counting from the Moon or the Sun; the firings' moon/sun bases support a chart-level reading, but read as a parenthetical definition (the ordinary reading of a gloss) the added clause does not match the entry \u2014 ambiguous between a supported and an unsupported reading, so unsupported"
+    ]
+   },
+   "no_sample": [],
+   "usd": {
+    "checker": 0.073
+   }
   }
  ],
  "rows_in_bank": 126,
- "usd_total": 2.0198
+ "usd_total": 2.0928
 }

@@ -4,10 +4,8 @@
   kind: fact
   slots:
   - area
-  - house
   - planet
   - role
-  - sign
   variants:
   - '{role}, {planet}, has less strength than it needs to give fully what it promises for {area}.'
   - In your chart, {role} is {planet}, and it holds less strength than it needs to deliver in full what it promises.
@@ -113,7 +111,6 @@
 - signature: weakness.mks
   kind: fact
   slots:
-  - area
   - house
   - planet
   - role
@@ -223,8 +220,6 @@
 - signature: weakness.mrita
   kind: fact
   slots:
-  - area
-  - house
   - planet
   - role
   - sign

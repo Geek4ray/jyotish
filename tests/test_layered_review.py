@@ -75,8 +75,7 @@ def test_h1_every_fact_variant_is_checked_on_each_shape_its_slots_take():
     """The recheck of 2026-11-15 (draft_bank.py --recheck): each fact row's checks carry the shape of the values they
     were filled with, and a row whose signature the random charts give several shapes was checked on more than one."""
     from jyotish.bank import load_bank
-    # The .nohouse rule rows declare a slot no sample fills (M5): no shape can be had for them, and their checks stand.
-    facts = [r for r in load_bank().rows if r.kind == "fact" and not r.signature.endswith(".nohouse")]
+    facts = [r for r in load_bank().rows if r.kind == "fact"]
     assert all(c.shape is not None for r in facts for c in r.checks)
     assert all({c.variant for c in r.checks} == {0, 1, 2} for r in facts if r.checks)
     many = [r for r in facts if len({c.shape for c in r.checks}) > 1]
@@ -563,3 +562,30 @@ def test_m4_a_follow_up_after_a_polished_turn_leaves_out_what_was_composed(monke
     assert len(base["shown"]) <= 2
     assert len(after(pol, keys=False)["shown"]) >= len(base["shown"]) + 3   # the fault: the text filter misses it
     assert after(pol, keys=True)["shown"] == base["shown"]
+
+
+# --- M5. The ".nohouse" rule rows are never used, and the coverage figure counts them as found -----------------------
+
+def test_m5_a_row_declaring_a_slot_no_variant_uses_does_not_load():
+    from jyotish.bank import BankRow, row_errors
+    r = BankRow(signature="rule.yoga.sasa.full.nohouse", kind="fact", slots=["area", "houses", "named", "planets"],
+                drafted_by="t", drafted_on=AS_OF, variants=["Your chart holds {named}, formed by {planets}, for {area}."] * 3)
+    assert any("declares a slot no variant uses: ['houses']" in e for e in row_errors(r))
+
+
+def test_m5_fills_is_the_composers_rule_and_the_coverage_tools():
+    from jyotish.bank import BankRow, fills
+    r = BankRow(signature="x.y", kind="fact", slots=["area", "dignity", "planets"], drafted_by="t", drafted_on=AS_OF,
+                variants=["{planets} for {area}{dignity}."] * 3)
+    assert fills(r, {"area": "your career", "planets": "Mars", "dignity": ""})
+    assert not fills(r, {"area": "your career", "planets": "", "dignity": ""})      # an empty slot: the engine's
+    assert not fills(r, {"area": "your career"})
+    import inspect
+    from jyotish import bank
+    assert "fills(bank.fact(sig), slots)" in inspect.getsource(bank.coverage)
+
+
+def test_m5_a_rule_fired_with_no_house_is_told_from_the_bank(composed):
+    nohouse = [s for c, p, s in composed if s["part"] == "rule" and s["signature"].endswith(".nohouse")]
+    assert nohouse and sum(s["row"] is not None for s in nohouse) / len(nohouse) > 0.9
+

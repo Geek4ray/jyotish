@@ -884,10 +884,10 @@ def variant_of(session_key: str, signature: str) -> int:
 
 
 def _usable(row, item) -> bool:
-    """A fact row the item can fill: its slots are the item's and each has a value (a dignity may be empty), and at
-    least one of its variants was refused by no check."""
-    return (row is not None and set(row.slots) <= set(item.slots) and len(row.refused()) < 3
-            and all(item.slots[s] for s in row.slots if s != "dignity"))
+    """A fact row the item can fill (bank.fills: each declared slot has a value, a dignity may be empty, and a variant
+    no check refused is left)."""
+    from .bank import fills
+    return fills(row, item.slots)
 
 
 def said_key(signature: str, area: str | None, kind: str, slots: dict) -> str:

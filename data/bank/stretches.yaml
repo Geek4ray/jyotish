@@ -69,7 +69,6 @@
 - signature: stretch.least.second
   kind: fact
   slots:
-  - area
   - when
   variants:
   - Looking at the stretches the chart shows, the least favourable one runs {when}.
@@ -137,7 +136,6 @@
 - signature: stretch.most.second
   kind: fact
   slots:
-  - area
   - when
   variants:
   - Looking at the stretches the chart shows, the most favourable one runs {when}.
