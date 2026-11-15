@@ -536,6 +536,17 @@ WHY_REPLIES = {
 }
 
 
+def plan_turn(chart, message: str, route: Route, *, as_of: date, data: dict | None = None,
+              kinds: list[str] | None = None):
+    """The answer plan for a routed turn (SPEC Layer 8, "The layered answer"; jyotish.plan): its areas, direction
+    ("both" on a why or how turn, as the engine's answer reads it) and question kinds."""
+    from .plan import plan
+    kinds = kinds_of(message, route) if kinds is None else kinds
+    direction = "both" if (route.why or route.how) else route.direction
+    return plan(chart, message, route.areas, direction, kinds, as_of=as_of, when=route.when,
+                weakest=route.areas_from == "weakest" and not (route.why or route.how), data=data)
+
+
 def history_of(earlier: list[dict], keep: int = 3) -> list[dict]:
     """The earlier turns the writer is given: the last `keep` turns' accepted text, as the client read it (review
     L1: the whole conversation made every turn dearer than the last)."""
