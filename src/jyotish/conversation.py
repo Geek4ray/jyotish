@@ -790,7 +790,8 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
         data = cached_payload(chart, as_of, *full_range(as_of), list(route.areas))
     plan = plan_turn(chart, message, route, as_of=as_of, data=data, kinds=kinds)
     mark("plan")
-    c = compose(plan, bank, session_key, said)
+    c = compose(plan, bank, session_key, [x for x in said if not x.startswith("key:")],
+                said_keys=[x[4:] for x in said if x.startswith("key:")])
     shown = [s["text"] for s in c["sentences"]]
     paras = list(c["paragraphs"])
     extra: dict[str, Any] = {}
@@ -889,8 +890,20 @@ def _usable(row, item) -> bool:
             and all(item.slots[s] for s in row.slots if s != "dignity"))
 
 
+def said_key(signature: str, area: str | None, kind: str, slots: dict) -> str:
+    """What a composed sentence says, apart from its words: its item's signature, area and slot values, and whether it
+    is the fact or the meaning. A follow-up leaves out every key an earlier turn composed (review 2026-11-15, M4:
+    after a polished turn no composed sentence matched the text the client read, and everything was repeated)."""
+    return f"{signature}|{area}|{kind}|{json.dumps(slots, sort_keys=True)}"
+
+
+def said_keys_of(doc: dict) -> list[str]:
+    """The keys of what a turn's document composed (none for a writer's or a fixed answer)."""
+    return [s["key"] for s in ((doc or {}).get("composed") or {}).get("sentences", []) if s.get("key")]
+
+
 def compose(plan, bank=None, session_key: str = "", said_before: list[str] | None = None,
-            draft_meanings: bool | None = None) -> dict[str, Any]:
+            draft_meanings: bool | None = None, said_keys: list[str] | None = None) -> dict[str, Any]:
     """The plan filled from the bank (SPEC Layer 8, "The layered answer"): per item its fact row's variant for this
     session with the chart's values, else the engine's sentence; after a rule's or a weakness's fact, its meaning row
     for the area where approved (or where JYOTISH_SHOW_DRAFT_MEANINGS is on); ordered as PARAGRAPHS. No model call.
@@ -911,6 +924,9 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
         return {"text": text, "tagged": f"{text[:-1]} {tags}{text[-1]}" if tags and text[-1:] in ".!?" else text,
                 "signature": item.signature, "part": item.part, "area": item.area, "tags": item.tags,
                 "item": index[id(item)],
+                # The engine's sentence and the fact row say one thing: one key; the meaning is another.
+                "key": said_key(item.signature, item.area,
+                                "meaning" if row is not None and row.kind == "meaning" else "fact", item.slots),
                 "notes": item.notes, "row": None if row is None else
                 {"signature": row.signature, "kind": row.kind, "variant": variant,
                  "status": row.status, "file": row.file}}
@@ -932,10 +948,12 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
             i = pick if draft_meanings else meaning.approved_pick(pick)
             if i is not None:
                 out.append(sentence(item, meaning, meaning.fill(i, item.slots), i))
-    if said_before:
+    said_keys = set(said_keys or [])
+    if said_before or said_keys:
         keep = ("Neither stretch is", "This stretch is not")
         out = [s for s in out if s["part"] == "stretch" and s["signature"].startswith("stretch.caveat")
-               or s["text"].startswith(keep) or not any(s["text"] in x for x in said_before)]
+               or s["text"].startswith(keep)
+               or not (s["key"] in said_keys or any(s["text"] in x for x in said_before))]
         if "why" in plan.kinds and not any(s["part"] in ("helps", "hard", "rule", "weakness") for s in out):
             for s in out:
                 if s["signature"] == "opening.why":
@@ -1407,6 +1425,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     # does not repeat the last answers (2026-11-02): the engine leaves out what they already said, and a writer's
     # sentence restating one is refused. A follow-up naming an area ("and marriage?") is new by its area.
     said = [h["answer"] for h in history] if route.follow_up and "areas" in route.carried else []
+    said_k = [k for h in history for k in h.get("said_keys") or []] if said else []
     kinds = kinds_of(message, route)
     doc["kinds"] = kinds
     engine = engine_reading(chart, message, "both" if reason else route.direction, route.areas, as_of=as_of,
@@ -1418,7 +1437,8 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     # The layered answer (SPEC Layer 8, rev 134): a turn the route placed is answered from the plan and the bank, no
     # model; a question the route could not place (its areas the chart's top ones by default) keeps the writer loop.
     if (layered_on() if layered is None else layered) and route.areas and route.areas_from != "top":
-        return _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline,
+        return _composed_turn(chart, message, route, doc, kinds, said + [f"key:{k}" for k in said_k], as_of, data,
+                              emit, mark, timeline,
                               session_key, bank, polisher=polisher, checker=checker, store=store,
                               birth_key=birth_key)
     user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data,

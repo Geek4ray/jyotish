@@ -523,3 +523,43 @@ def test_m3_a_second_conversation_reads_its_own_variants_and_its_follow_up_repea
     why = answer_turn(c, "why?", route_turn("why?", c, last), as_of=AS_OF, session_key="conv-b", store=store,
                       history=[{"question": m, "answer": " ".join(b1["shown"])}])
     assert len(why["shown"]) <= 2, why["shown"]
+
+
+# --- M4. A follow-up after a polished turn repeats everything --------------------------------------------------------
+
+class _JoinPolisher:
+    """A polish that joins each paragraph's first two sentences: the client reads none of the composed sentences as
+    they were composed."""
+    model = "stub"
+
+    def describe(self):
+        return {"provider": "anthropic", "host": "api.anthropic.com", "model": "stub"}
+
+    def structured(self, *, messages, schema, **kw):
+        from jyotish.narrate import Completion
+        text = "\n\n".join(re.sub(r"^([^.]+)\. ([A-Z])", lambda m: m.group(1) + "; " + m.group(2).lower(), p, count=1)
+                           for p in messages[0]["content"].split("\n\n"))
+        return Completion(parsed=schema(text=text), assistant={}, stop_reason="end_turn", meta={})
+
+
+def test_m4_a_follow_up_after_a_polished_turn_leaves_out_what_was_composed(monkeypatch):
+    from jyotish.conversation import answer_turn, route_turn, said_keys_of
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    m = "how is my career"
+    plain = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="m4")
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+    pol = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="m4", polisher=_JoinPolisher(),
+                      checker=_Checker(True))
+    assert pol["source"] == "polished" and said_keys_of(pol) == said_keys_of(plain)
+    monkeypatch.delenv("JYOTISH_POLISH")
+    last = route_turn(m, c)
+    after = lambda first, keys: answer_turn(c, "why?", route_turn("why?", c, last), as_of=AS_OF, session_key="m4",
+                                            history=[{"question": m, "answer": " ".join(first["shown"]),
+                                                      **({"said_keys": said_keys_of(first)} if keys else {})}])
+    base = after(plain, keys=False)                       # the text filter, after a plain turn
+    assert len(base["shown"]) <= 2
+    assert len(after(pol, keys=False)["shown"]) >= len(base["shown"]) + 3   # the fault: the text filter misses it
+    assert after(pol, keys=True)["shown"] == base["shown"]

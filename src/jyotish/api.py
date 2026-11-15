@@ -746,8 +746,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             last = next((x.route for x in reversed(earlier) if x.route and not x.route.get("off_limits")), None)
             refused = (earlier[-1].route or {}).get("off_limits") if earlier else None
             # The writer is given the accepted text of the last three earlier turns only: what the client read.
-            history = history_of([{"question": x.question, "answer": " ".join((x.document or {}).get("shown") or [])}
-                                  for x in earlier])
+            # Each with what it composed (review M4), so a follow-up leaves out what it said, polished or not.
+            from .conversation import said_keys_of
+            history = history_of([{"question": x.question, "answer": " ".join((x.document or {}).get("shown") or []),
+                                   "said_keys": said_keys_of(x.document)} for x in earlier])
         try:
             with Session.begin() as s:
                 row = s.get(TurnRow, turn_id)

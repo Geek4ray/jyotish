@@ -217,7 +217,7 @@ def turn_row(label: str, doc: dict, cost: dict, session_s: float | None, n: int 
 def local_turn(args) -> int:
     """A conversation on the reference chart, on the environment's backends, each turn timed (the module docstring)."""
     from datetime import date as _date
-    from jyotish.conversation import answer_turn, route_turn
+    from jyotish.conversation import answer_turn, said_keys_of, route_turn
     from jyotish.costs import reading_cost
     from jyotish.fullchart import cached_payload
     from jyotish.narrate import full_range
@@ -257,7 +257,8 @@ def local_turn(args) -> int:
             (out / f"{label}.turn.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
             with ROWS.open("a") as f:
                 f.write(json.dumps(row) + "\n")
-        history.append({"question": message, "answer": " ".join(doc["shown"])})     # what the client read
+        history.append({"question": message, "answer": " ".join(doc["shown"]),        # what the client read,
+                        "said_keys": said_keys_of(doc)})                              # and what it composed (M4)
         if not route.off_limits:
             last = route
     return 0
