@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-15",
-  "commit": "8c1ae83",
+  "date": "2026-11-16",
+  "commit": "a04471a",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.3391,
+      "value": 0.3362,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.5065,
+      "value": 0.5032,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,7 +255,7 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 186,
+      "value": 187,
       "better": null,
       "unit": "",
       "gate": false
@@ -2763,7 +2763,7 @@
       "gate": false
     },
     "bank.rows": {
-      "value": 126,
+      "value": 129,
       "better": null,
       "unit": "",
       "gate": false
@@ -2855,6 +2855,18 @@
     "layered.polished.done_s": {
       "value": 20.808167,
       "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "layered.composer_share.messages": {
+      "value": 0.6,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.composed_supported": {
+      "value": 0.9833,
+      "better": "higher",
       "unit": "",
       "gate": false
     },
