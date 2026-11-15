@@ -866,3 +866,36 @@ def test_l3_a_bank_that_would_not_load_is_never_written_and_its_verdicts_stay_pe
         assert s.query(BankReviewRow).one().applied_at is None                 # still pending: applied once, later
     monkeypatch.setattr(bank, "load_bank", real)
     assert bank.apply_reviews(url, d, today=AS_OF)["approved"]
+
+
+# --- L4. A transient checker failure on the polished text is stored for the day ---------------------------------------
+
+def test_l4_a_polish_refused_for_want_of_a_verdict_is_not_stored(monkeypatch):
+    from jyotish.conversation import answer_turn, route_turn
+    from jyotish.narrate import CheckResult, Proposition
+    c = _reference()
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+
+    class Unchecked:                                    # what ModelChecker returns after its retries fail
+        def ask_one(self, sentence, data):
+            return CheckResult(propositions=[Proposition(text="(unchecked)", supported=False, evidence="timeout")]), \
+                {"kind": "checker", "unchecked": True}
+
+    class Store:
+        def __init__(self):
+            self.rows = {}
+
+        def get(self, key):
+            return self.rows.get(key)
+
+        def put(self, key, document, *, bank_version, birth_key=None):
+            self.rows[key] = document
+    store = Store()
+    m = "how is my career"
+    doc = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l4", polisher=_JoinPolisher(),
+                      checker=Unchecked(), store=store)
+    assert doc["source"] == "composer" and "stored" not in doc and store.rows == {}
+    refused = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l4", polisher=_JoinPolisher(),
+                          checker=_Checker(False), store=store)                    # a real refusal is stored
+    assert refused["source"] == "composer" and refused["stored"]["served"] is False and len(store.rows) == 1

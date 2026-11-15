@@ -795,11 +795,18 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     shown = [s["text"] for s in c["sentences"]]
     paras = list(c["paragraphs"])
     extra: dict[str, Any] = {}
+    transient = False
     if polish_on() and shown:
         from .narrate import _usage
         p = polish(composed_text(shown, paras), backend=polisher, checker=checker)
         mark("polished")
         metas = p.pop("metas")
+        # A refusal that is no verdict at all (the polisher or the checker unreached, a check that failed after its
+        # retries, a check with no result) is not stored: the next asking tries again (review 2026-11-15, L4).
+        missed = lambda props: any(x.get("text") in ("(unchecked)", "(no verdict)") for x in props or [])
+        transient = (not p["used"] and ((p["refusals"] or [""])[0].startswith("the polisher could not be reached")
+                     or any((metas.get(k) or {}).get("unchecked") for k in ("checker", "checker_back"))
+                     or missed(p.get("verdict")) or missed(p.get("verdict_back"))))
         extra = {"polish": p, "polisher": {"model": p["model"], **({"backend": p["backend"]} if p.get("backend")
                                                                    else _backend_of_backend(polisher, p["model"]))},
                  "checker": (_checker_role(checker) if checker is not None else _default_checker_role())
@@ -832,9 +839,7 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
                  "opened_by": "composer" if opening else None, "plan": plan.model_dump(),
                  "composed": {k: v for k, v in c.items()}, "bank": c["bank"],
                  "writer": {}, "checker": {}, "usage": usage} | extra
-    if store is not None and not (extra.get("polish") and not polished and extra["polish"].get("refusals", [""])[0]
-                                  .startswith("the polisher could not be reached")):
-        # A polisher that could not be reached is not stored: the next asking tries it again.
+    if store is not None and not transient:
         kept = {k: out[k] for k in STORED if k in out}
         kept["plan"] = {k: v for k, v in kept["plan"].items() if k != "question"}   # the client's words stay in the turn
         store.put(key, kept, bank_version=bank.version, birth_key=birth_key)
