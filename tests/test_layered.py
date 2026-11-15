@@ -638,7 +638,9 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     v = fact["bank_row"]["variant"]
     assert row.variants[v] == ("{name}, a combination of courage, is in your chart, with {placed}, though "
                                "{reductions} hold it back.")
-    assert row.status == "approved" and row.approved_by == row.rewritten_by == "astrologer-1"
+    # The variant he rewrote is approved; the other two are not, as he never read them (review H3).
+    assert row.approved_variants == [v] and row.status == "draft"
+    assert row.approved_by == row.rewritten_by == "astrologer-1"
     assert (ws_bank / "rules.yaml").read_text().startswith("# the test bank")
     assert apply_reviews(url, ws_bank, today=AS_OF) == {k: [] for k in rep} | {"no_row": rep["no_row"]}
     # Wrong: the row is withdrawn and never shown again; the next turn falls back to the engine's sentence.

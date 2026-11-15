@@ -82,6 +82,10 @@ function wsSentence(s, n) {
   const row = s.bank_row;
   const rowLine = row ? `${esc(t("ws.row_line", { signature: row.signature, kind: row.kind, variant: row.variant + 1, status: row.status }))}`
     + (row.source ? `<br><span class="muted">${esc(row.source)}</span>` : "") : esc(t("ws.engine_row"));
+  // Every variant of the row, the one the client read marked, each with whether it is approved: "Right" approves
+  // only the variant read (review 2026-11-15, H3).
+  const variants = row && row.variants ? `<ol class="small ws-variants">${row.variants.map((v, k) =>
+    `<li${k === row.variant ? ' class="read"' : ""}>${esc(v)} <span class="muted">${esc(t(k === row.variant ? "ws.variant_read" : "ws.variant_other"))}${(row.approved_variants || []).includes(k) ? ` · ${esc(t("ws.variant_approved"))}` : ""}</span></li>`).join("")}</ol>` : "";
   const derived = (s.derived || []).map((d) => `<li>${esc((d.area || "").replace("_", " "))}, point ${d.point}${d.row ? ` (${esc(d.row)})` : ""}: ${esc(d.text)}</li>`).join("");
   const verdicts = (s.verdicts || []).length ? `<p class="small muted">${esc(t("ws.verdicts", { list: s.verdicts.map((v) => `${v.verdict} (${v.reviewer})${v.words ? `: ${v.words}` : ""}`).join("; ") }))}</p>` : "";
   return `<li class="ws-sentence" data-i="${s.i}">
@@ -89,6 +93,7 @@ function wsSentence(s, n) {
     <p class="small"><strong>${esc(t("ws.looked"))}:</strong> ${esc(s.looked_at.signature || "")} ${esc((s.looked_at.tags || []).join(" "))} ${factsLine(s.looked_at.facts)}</p>
     ${derived ? `<p class="small"><strong>${esc(t("ws.derived"))}:</strong></p><ul class="small">${derived}</ul>` : ""}
     <p class="small"><strong>${esc(t("ws.row"))}:</strong> ${rowLine}</p>
+    ${variants}${row ? `<p class="small muted">${esc(t("ws.right_scope"))}</p>` : ""}
     ${verdicts}
     <form class="ws-verdict small" data-turn="${n}" data-i="${s.i}">
       <span>${esc(t("ws.verdict"))}:</span>

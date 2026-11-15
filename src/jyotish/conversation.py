@@ -847,9 +847,13 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
         else:
             continue
         meaning = bank.meaning(item.signature, item.area) if item.part in ("rule", "weakness") else None
-        if meaning is not None and set(meaning.slots) <= set(item.slots) and (meaning.status == "approved" or draft_meanings):
-            i = variant_of(session_key, meaning.signature)
-            out.append(sentence(item, meaning, meaning.fill(i, item.slots), i))
+        if meaning is not None and set(meaning.slots) <= set(item.slots):
+            # A public client reads only a variant the astrologer approved as he read it (review H3): the session's
+            # pick, else an approved sibling; with draft meanings on, the pick itself.
+            pick = variant_of(session_key, meaning.signature)
+            i = pick if draft_meanings else meaning.approved_pick(pick)
+            if i is not None:
+                out.append(sentence(item, meaning, meaning.fill(i, item.slots), i))
     if said_before:
         keep = ("Neither stretch is", "This stretch is not")
         out = [s for s in out if s["part"] == "stretch" and s["signature"].startswith("stretch.caveat")
@@ -1561,6 +1565,7 @@ def worksheet(doc: dict, bank=None, verdicts: list[dict] | None = None) -> dict[
                         "derived": s.get("notes") or [],
                         "bank_row": None if r is None else r | {
                             "variants": row.variants if row else None, "source": row.source if row else None,
+                            "approved_variants": [i for i in range(3) if row.approved(i)] if row else [],
                             "drafted_by": row.drafted_by if row else None,
                             "approved_by": row.approved_by if row else None,
                             "withdrawn_by": row.withdrawn_by if row else None,

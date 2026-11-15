@@ -71,7 +71,8 @@ class BankRow(BaseModel):
     source: str | None = None
     drafted_by: str
     drafted_on: date
-    status: Literal["draft", "approved"] = "draft"
+    status: Literal["draft", "approved"] = "draft"   # approved: all three variants approved
+    approved_variants: list[int] = Field(default_factory=list)   # the variants the astrologer approved (H3)
     approved_by: str | None = None
     approved_on: date | None = None
     rewritten_by: str | None = None
@@ -89,6 +90,17 @@ class BankRow(BaseModel):
     @property
     def area(self) -> str | None:
         return self.signature.split("@", 1)[1] if "@" in self.signature else None
+
+    def approved(self, i: int) -> bool:
+        """Variant i approved: the astrologer approved it as he read it (review 2026-11-15, H3: one "right" approved
+        all three variants of a row, two of them never shown to him). A row approved before approval was per
+        variant (status approved, no list) counts as all three."""
+        return i in self.approved_variants or (self.status == "approved" and not self.approved_variants)
+
+    def approved_pick(self, i: int) -> int | None:
+        """The variant a public client reads of a meaning row for the session's pick i: i if approved, else the next
+        approved variant, else none."""
+        return next((j for j in ((i + k) % 3 for k in range(3)) if self.approved(j)), None)
 
     def refused(self) -> set[int]:
         """The variants a check found unsupported on any shape: the composer never shows them."""
@@ -175,8 +187,12 @@ def row_errors(row: BankRow) -> list[str]:
             out.append(f"{row.signature}: a meaning row carries its source (the rule's citation)")
     elif "@" in row.signature:
         out.append(f"{row.signature}: a fact row is the same for every area; only a meaning row names one")
-    if row.status == "approved" and not (row.approved_by and row.approved_on):
+    if (row.status == "approved" or row.approved_variants) and not (row.approved_by and row.approved_on):
         out.append(f"{row.signature}: an approved row names who approved it and when")
+    if any(i not in (0, 1, 2) for i in row.approved_variants) or len(set(row.approved_variants)) != len(row.approved_variants):
+        out.append(f"{row.signature}: approved_variants are distinct variant numbers 0-2")
+    if row.approved_variants and (row.status == "approved") != (sorted(row.approved_variants) == [0, 1, 2]):
+        out.append(f"{row.signature}: a row is approved when, and only when, all three variants are")
     for i, v in enumerate(row.variants):
         filled = tidy(SLOT.sub(lambda m: SAMPLE.get(m.group(1), "Venus"), v))
         for e in never_show(filled) + client_warnings(filled, conversation=True):
@@ -265,8 +281,9 @@ def dump_rows(rows: list[BankRow]) -> str:
     out = []
     for r in rows:
         d = r.model_dump(mode="json", exclude_none=True)
-        if not d.get("checks"):
-            d.pop("checks", None)
+        for k in ("checks", "approved_variants"):
+            if not d.get(k):
+                d.pop(k, None)
         out.append(d)
     return yaml.safe_dump(out, sort_keys=False, allow_unicode=True, width=120)
 
@@ -323,6 +340,8 @@ def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date
             "by_part": {p: round(found[p] / total[p], 4) for p in sorted(total)},
             "meaning_share": round(meant / can_mean, 4) if can_mean else None,
             "approved_share": round(sum(r.status == "approved" for r in bank.rows) / len(bank), 4) if len(bank) else 0.0,
+            "approved_variant_share": round(sum(r.approved(i) for r in bank.rows for i in range(3)) / (3 * len(bank)), 4)
+            if len(bank) else 0.0,
             "rows": len(bank), "version": bank.version, "missing": missing.most_common(25)}
 
 
@@ -336,6 +355,13 @@ def template(sentence: str, slots: dict[str, str]) -> str:
                               key=lambda kv: -len(kv[1])):
         out = re.sub(rf"(?<![{{\w]){re.escape(value)}(?![\w}}])", "{" + name + "}", out)
     return out
+
+
+def approve(row: BankRow, i: int, by: str, today: date) -> None:
+    """Variant i approved by `by` (only the variant he read, review H3); the row is approved once all three are."""
+    row.approved_variants = sorted(set(row.approved_variants) | {i})
+    row.approved_by, row.approved_on = by, today
+    row.status = "approved" if row.approved_variants == [0, 1, 2] else "draft"
 
 
 def apply_reviews(database_url: str | None = None, directory: Path | str | None = None,
@@ -371,15 +397,17 @@ def apply_reviews(database_url: str | None = None, directory: Path | str | None 
                 report["no_row"].append({"signature": v.signature, "verdict": v.verdict, "words": v.words})
                 continue
             new = row.model_copy(deep=True)
+            i = v.variant or 0
             if v.verdict == "right":
-                new.status, new.approved_by, new.approved_on = "approved", v.reviewer_id, today
+                approve(new, i, v.reviewer_id, today)
                 what = "approved"
             elif v.verdict == "change":
                 variants = list(new.variants)
-                variants[v.variant or 0] = template(v.words or v.sentence, v.slots or {})
+                variants[i] = template(v.words or v.sentence, v.slots or {})
                 new.variants = variants
-                new.status, new.approved_by, new.approved_on, new.rewritten_by = "approved", v.reviewer_id, today, v.reviewer_id
-                new.checks = [c for c in new.checks if c.variant != (v.variant or 0)]
+                new.rewritten_by = v.reviewer_id
+                new.checks = [c for c in new.checks if c.variant != i]
+                approve(new, i, v.reviewer_id, today)
                 what = "rewritten"
             else:
                 new.withdrawn_by, new.withdrawn_on, new.withdrawn_why = v.reviewer_id, today, v.words

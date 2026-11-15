@@ -189,3 +189,60 @@ def test_h2_a_rule_fired_only_from_the_moon_says_its_angle_is_counted_from_the_m
     item, _ = _rule_item(c, f, "career", "your career")
     assert item.signature == "rule.yoga.ruchaka.full.nohouse"
     assert item.slots["named"] == "Ruchaka (Mars in its own or exalted sign in an angular house from your Moon)"
+
+
+# --- H3. "Right" on one variant approves all three, and the worksheet shows only one --------------------------------
+
+def _meaning_row(**kw):
+    from jyotish.bank import BankRow
+    return BankRow(**{"signature": "rule.yoga.ruchaka.reduced@career", "kind": "meaning", "slots": ["area"],
+                      "source": "BPHS 75.1-2", "drafted_by": "t", "drafted_on": AS_OF,
+                      "variants": ["Zero for {area}.", "One for {area}.", "Two for {area}."]} | kw)
+
+
+def test_h3_right_on_one_variant_approves_that_variant_only():
+    from jyotish.bank import approve, row_errors
+    r = _meaning_row()
+    approve(r, 1, "astrologer-1", AS_OF)
+    assert r.approved_variants == [1] and r.status == "draft" and not row_errors(r)
+    assert [r.approved(i) for i in range(3)] == [False, True, False]
+    for i in (0, 2):
+        approve(r, i, "astrologer-1", AS_OF)
+    assert r.status == "approved" and not row_errors(r)
+    assert row_errors(_meaning_row(approved_variants=[0, 1, 2], status="draft", approved_by="a", approved_on=AS_OF))
+
+
+def test_h3_a_public_client_reads_only_an_approved_variant_or_an_approved_sibling(tmp_path):
+    from jyotish.bank import Bank
+    from jyotish.conversation import compose, plan_turn, route_turn, variant_of
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    p = plan_turn(c, "how is my career", route_turn("how is my career", c), as_of=AS_OF)
+    sig = "rule.yoga.ruchaka.reduced@career"
+    keys = {variant_of(k, sig): k for k in (f"k{n}" for n in range(30))}
+    meaning = lambda bank, key: [s for s in compose(p, bank, session_key=key, draft_meanings=False)["sentences"]
+                                 if s["row"] and s["row"]["kind"] == "meaning"]
+    none = Bank([_meaning_row()], "v")
+    assert all(meaning(none, keys[i]) == [] for i in range(3))                 # nothing approved: nothing shown
+    one = Bank([_meaning_row(approved_variants=[2], approved_by="a", approved_on=AS_OF)], "v")
+    for i in range(3):                                                         # every session reads variant 2
+        got = meaning(one, keys[i])
+        assert [s["row"]["variant"] for s in got] == [2] and got[0]["text"] == "Two for your career."
+    shown = [s["row"]["variant"] for s in compose(p, none, session_key=keys[0], draft_meanings=True)["sentences"]
+             if s["row"] and s["row"]["kind"] == "meaning"]
+    assert shown == [0]                                                        # testing: the session's own pick
+
+
+def test_h3_the_worksheet_shows_every_variant_and_which_are_approved():
+    from jyotish.bank import Bank
+    from jyotish.conversation import worksheet
+    row = _meaning_row(approved_variants=[0], approved_by="a", approved_on=AS_OF, file="meanings.yaml")
+    doc = {"source": "composer", "plan": {"items": [{"signature": "rule.yoga.ruchaka.reduced", "area": "career"}]},
+           "composed": {"sentences": [{"text": "Two for your career.", "signature": "rule.yoga.ruchaka.reduced",
+                                       "part": "rule", "area": "career", "item": 0,
+                                       "row": {"signature": row.signature, "kind": "meaning", "variant": 2}}]}}
+    s = worksheet(doc, Bank([row], "v"))["sentences"][0]
+    assert s["bank_row"]["variants"] == row.variants and s["bank_row"]["approved_variants"] == [0]
+    js = (ROOT / "web" / "js" / "review-session.js").read_text()
+    assert "ws.right_scope" in js and "approved_variants" in js
