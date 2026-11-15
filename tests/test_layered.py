@@ -271,12 +271,10 @@ def test_3_a_fact_variant_is_checked_against_its_facts_its_area_and_the_glossary
 # --- 4. The composer ---------------------------------------------------------------------------------------------------
 
 def ruchaka_rows():
-    fact = row(signature="rule.yoga.ruchaka.reduced", slots=["area", "name", "planets", "houses", "reductions"],
-               variants=["{name}, a combination of Mars, is in your chart: {planets} in your {houses} house, weakened "
-                         "by {reductions}.",
-                         "Your chart holds {name} (a combination of Mars), with {planets} in your {houses} house, though "
-                         "{reductions} weaken it.",
-                         "{planets} in your {houses} house forms {name}, a combination of Mars, weakened by {reductions}."])
+    fact = row(signature="rule.yoga.ruchaka.reduced", slots=["area", "name", "placed", "reductions"],
+               variants=["{name}, a combination of Mars, is in your chart: {placed}, weakened by {reductions}.",
+                         "Your chart holds {name} (a combination of Mars), with {placed}, though {reductions} weaken it.",
+                         "{placed} forms {name}, a combination of Mars, weakened by {reductions}."])
     meaning = row(signature="rule.yoga.ruchaka.reduced@career", kind="meaning", slots=["area"], source="BPHS 75.1-2",
                   variants=["Ruchaka, a combination of Mars, is traditionally read as courage in {area}, here less so.",
                             "Texts link Ruchaka, Mars's combination, with drive in {area}; reduced here.",
@@ -629,8 +627,8 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     ws = c.get(f"/sessions/{sid}/turns/1/worksheet", headers=AUTH).json()
     fact = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
     slots = fact["looked_at"]["slots"]
-    rewrite = (f"{slots['name']}, a combination of courage, is in your chart, with {slots['planets']} in your "
-               f"{slots['houses']} house, though {slots['reductions']} hold it back.")
+    rewrite = (f"{slots['name']}, a combination of courage, is in your chart, with {slots['placed']}, though "
+               f"{slots['reductions']} hold it back.")
     c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
            json={"i": fact["i"], "verdict": "change", "words": rewrite})
     rep = apply_reviews(url, ws_bank, today=AS_OF)
@@ -638,8 +636,8 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     assert [x["signature"] for x in rep["no_row"]] == ["weakness.mks"]          # the engine's sentence: for drafting
     row = load_bank(ws_bank).fact("rule.yoga.ruchaka.reduced")
     v = fact["bank_row"]["variant"]
-    assert row.variants[v] == ("{name}, a combination of courage, is in your chart, with {planets} in your "
-                               "{houses} house, though {reductions} hold it back.")
+    assert row.variants[v] == ("{name}, a combination of courage, is in your chart, with {placed}, though "
+                               "{reductions} hold it back.")
     assert row.status == "approved" and row.approved_by == row.rewritten_by == "astrologer-1"
     assert (ws_bank / "rules.yaml").read_text().startswith("# the test bank")
     assert apply_reviews(url, ws_bank, today=AS_OF) == {k: [] for k in rep} | {"no_row": rep["no_row"]}

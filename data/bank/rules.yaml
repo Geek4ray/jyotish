@@ -4,15 +4,13 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house, and it bears on {area}.
-  - '{planets} in your {houses} house forms {named} in your chart, and this bears on {area}.'
-  - Bearing on {area}, your chart holds {named}, which comes from {planets} sitting in your {houses} house.
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}, and it bears on {area}.
+  - '{placed} forms {named} in your chart, and this bears on {area}.'
+  - Bearing on {area}, your chart holds {named}, which comes from {placed}.
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -23,7 +21,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 1
     sentence: Mercury in your 1st house forms Bhadra (Mercury in its own or exalted sign in an angular house) in your chart,
       and this bears on your career and money.
@@ -31,15 +29,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 2
     sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
-      house), which comes from Mercury sitting in your 1st house.
+      house), which comes from Mercury in your 1st house.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one
 - signature: rule.yoga.bhadra.full.nohouse
   kind: fact
   slots:
@@ -81,17 +79,14 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   - reductions
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house, and it bears on {area}, though it is reduced by
-    {reductions}.
-  - '{planets} in your {houses} house forms {named} in your chart, bearing on {area}, though {reductions} reduces it.'
-  - Bearing on {area}, your chart holds {named}, from {planets} in your {houses} house, though it is held back by {reductions}.
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}, and it bears on {area}, though it is reduced by {reductions}.
+  - '{placed} forms {named} in your chart, bearing on {area}, though {reductions} reduces it.'
+  - Bearing on {area}, your chart holds {named}, from {placed}, though it is held back by {reductions}.
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -102,7 +97,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 1
     sentence: Mercury in your 1st house forms Bhadra (Mercury in its own or exalted sign in an angular house) in your chart,
       bearing on your career and money, though lying too close to the Sun reduces it.
@@ -110,7 +105,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 2
     sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
       house), from Mercury in your 1st house, though it is held back by lying too close to the Sun.
@@ -118,7 +113,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 0
     sentence: Your chart holds Bhadra (Mercury in its own or exalted sign in an angular house), formed by Mercury in your
       7th house, and it bears on your career and money, though it is reduced by lying too close to the Sun and a house that
@@ -127,7 +122,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
   - variant: 1
     sentence: Mercury in your 7th house forms Bhadra (Mercury in its own or exalted sign in an angular house) in your chart,
       bearing on your career and money, though lying too close to the Sun and a house that drains it reduce it.
@@ -135,7 +130,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
   - variant: 2
     sentence: Bearing on your career and money, your chart holds Bhadra (Mercury in its own or exalted sign in an angular
       house), from Mercury in your 7th house, though it is held back by lying too close to the Sun and a house that drains
@@ -144,7 +139,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:many,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:many,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
 - signature: rule.yoga.bhadra.reduced.nohouse
   kind: fact
   slots:
@@ -187,16 +182,13 @@
   kind: fact
   slots:
   - area
-  - houses
   - name
-  - planets
+  - placed
   variants:
-  - Your chart holds {name}, the Mercury-and-Sun combination, formed by {planets} in your {houses} house, and it bears on
-    {area}.
-  - '{planets} in your {houses} house form {name}, a combination whose name joins Mercury and the Sun, and it bears on {area}.'
-  - Bearing on {area}, {name}, the combination named for Mercury and the Sun, is present in your chart through {planets} in
-    your {houses} house.
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {name}, the Mercury-and-Sun combination, formed by {placed}, and it bears on {area}.
+  - '{placed} form {name}, a combination whose name joins Mercury and the Sun, and it bears on {area}.'
+  - Bearing on {area}, {name}, the combination named for Mercury and the Sun, is present in your chart through {placed}.
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -207,7 +199,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum
   - variant: 1
     sentence: the Sun and Mercury in your 8th house form Budhaditya, a combination whose name joins Mercury and the Sun, and
       it bears on your career.
@@ -215,7 +207,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum
   - variant: 2
     sentence: Bearing on your career, Budhaditya, the combination named for Mercury and the Sun, is present in your chart
       through the Sun and Mercury in your 8th house.
@@ -223,23 +215,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum
 - signature: rule.yoga.budhaditya.reduced
   kind: fact
   slots:
   - area
-  - houses
   - name
-  - planets
+  - placed
   - reductions
   variants:
-  - Your chart holds {name}, the Sun-and-Mercury pairing, formed by {planets} in your {houses} house and bearing on {area},
-    though it is lessened by {reductions}.
-  - '{name}, the combination of the Sun and Mercury, is in your chart: {planets} in your {houses} house bear on {area}, with
-    {reductions} softening it.'
-  - In your {houses} house, {planets} form {name}, the Sun-and-Mercury pairing, which bears on {area}, though {reductions}
-    lessens it.
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {name}, the Sun-and-Mercury pairing, formed by {placed} and bearing on {area}, though it is lessened
+    by {reductions}.
+  - '{name}, the combination of the Sun and Mercury, is in your chart: {placed} bear on {area}, with {reductions} softening
+    it.'
+  - '{placed} form {name}, the Sun-and-Mercury pairing, which bears on {area}, though {reductions} lessens it.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -250,7 +240,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:one
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:one
   - variant: 1
     sentence: 'Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house
       bear on your career, with Mercury being in a feeble state softening it.'
@@ -258,15 +248,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:one
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:one
   - variant: 2
-    sentence: In your 10th house, the Sun and Mercury form Budhaditya, the Sun-and-Mercury pairing, which bears on your career,
+    sentence: the Sun and Mercury in your 10th house form Budhaditya, the Sun-and-Mercury pairing, which bears on your career,
       though Mercury being in a feeble state lessens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:one
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:one
   - variant: 0
     sentence: Your chart holds Budhaditya, the Sun-and-Mercury pairing, formed by the Sun and Mercury in your 6th house and
       bearing on your career, though it is lessened by lying too close to the Sun.
@@ -274,7 +264,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:one+lum
   - variant: 1
     sentence: 'Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 6th house
       bear on your career, with lying too close to the Sun softening it.'
@@ -282,15 +272,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:one+lum
   - variant: 2
-    sentence: In your 6th house, the Sun and Mercury form Budhaditya, the Sun-and-Mercury pairing, which bears on your career,
+    sentence: the Sun and Mercury in your 6th house form Budhaditya, the Sun-and-Mercury pairing, which bears on your career,
       though lying too close to the Sun lessens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:one+lum
   - variant: 0
     sentence: Your chart holds Budhaditya, the Sun-and-Mercury pairing, formed by the Sun and Mercury in your 7th house and
       bearing on your career, though it is lessened by lying too close to the Sun and Mercury being in a feeble state.
@@ -298,7 +288,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:many+lum
   - variant: 1
     sentence: 'Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 7th house
       bear on your career, with lying too close to the Sun and Mercury being in a feeble state softening it.'
@@ -306,15 +296,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:many+lum
   - variant: 2
-    sentence: In your 7th house, the Sun and Mercury form Budhaditya, the Sun-and-Mercury pairing, which bears on your career,
+    sentence: the Sun and Mercury in your 7th house form Budhaditya, the Sun-and-Mercury pairing, which bears on your career,
       though lying too close to the Sun and Mercury being in a feeble state lessen it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many+lum,planets:many+lum,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:many+lum,placed:many+lum,planets:many+lum,reductions:many+lum
 - signature: rule.yoga.gaja_kesari.full.nohouse
   kind: fact
   slots:
@@ -394,17 +384,17 @@
   kind: fact
   slots:
   - area
-  - houses
   - name
+  - placed
   - planets
   variants:
   - Your chart holds {name}, the combination of {planets} in its own or exaltation sign in an angular house, and this combination
-    bears on {area}, with {planets} in your {houses} house.
-  - In your chart {planets} sits in your {houses} house and forms {name}, which is {planets} in its own or exaltation sign
-    in an angular house, and it bears on {area}.
-  - One combination in your chart is {name}, meaning {planets} in its own or exaltation sign in an angular house, here your
-    {houses} house, and it bears on {area}.
-  drafted_by: claude-sonnet-5-5
+    bears on {area}, with {placed}.
+  - In your chart {placed} forms {name}, which is {planets} in its own or exaltation sign in an angular house, and it bears
+    on {area}.
+  - One combination in your chart is {name}, meaning {planets} in its own or exaltation sign in an angular house, here {placed},
+    and it bears on {area}.
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -415,23 +405,23 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 1
-    sentence: In your chart Jupiter sits in your 10th house and forms Hamsa, which is Jupiter in its own or exaltation sign
-      in an angular house, and it bears on your career.
+    sentence: In your chart Jupiter in your 10th house forms Hamsa, which is Jupiter in its own or exaltation sign in an angular
+      house, and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 2
     sentence: One combination in your chart is Hamsa, meaning Jupiter in its own or exaltation sign in an angular house, here
-      your 10th house, and it bears on your career.
+      Jupiter in your 10th house, and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
 - signature: rule.yoga.hamsa.full.nohouse
   kind: fact
   slots:
@@ -473,17 +463,14 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   - reductions
   variants:
-  - 'Your chart holds {named}: {planets} in your {houses} house, bearing on {area}, but reduced by {reductions}.'
-  - '{named} is present in your chart, made by {planets} in your {houses} house; it relates to {area} and is held back by
-    {reductions}.'
-  - '{planets} sits in your {houses} house and forms {named}, which bears on {area}, though {reductions} reduces it.'
-  drafted_by: claude-sonnet-5-5
+  - 'Your chart holds {named}: {placed}, bearing on {area}, but reduced by {reductions}.'
+  - '{named} is present in your chart, made by {placed}; it relates to {area} and is held back by {reductions}.'
+  - '{placed} forms {named}, which bears on {area}, though {reductions} reduces it.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -494,7 +481,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 1
     sentence: Hamsa (Jupiter in its own or exalted sign in an angular house) is present in your chart, made by Jupiter in
       your 1st house; it relates to your career and is held back by lying too close to the Sun.
@@ -502,15 +489,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 2
-    sentence: Jupiter sits in your 1st house and forms Hamsa (Jupiter in its own or exalted sign in an angular house), which
-      bears on your career, though lying too close to the Sun reduces it.
+    sentence: Jupiter in your 1st house forms Hamsa (Jupiter in its own or exalted sign in an angular house), which bears
+      on your career, though lying too close to the Sun reduces it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
 - signature: rule.yoga.hamsa.reduced.nohouse
   kind: fact
   slots:
@@ -553,127 +540,123 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house, and it bears on {area}.
-  - '{named} is present in your chart, made by {planets} in your {houses} house, and it relates to {area}.'
-  - '{planets} sits in your {houses} house and forms {named}, which bears on {area}.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}, and it bears on {area}.
+  - '{named} is present in your chart, made by {placed}, and it relates to {area}.'
+  - '{placed} forms {named}, which bears on {area}.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and
-      Mercury in your 10th house, and it bears on your career.
+    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house, together in one sign), formed
+      by the Sun and Mercury in your 10th house, and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many,planets:many+lum
+    shape: area:one,houses:one,name:one,named:many,placed:many+lum,planets:many+lum
   - variant: 1
-    sentence: raja yoga (the rulers of an angular house and of a trine house joined) is present in your chart, made by the
-      Sun and Mercury in your 10th house, and it relates to your career.
+    sentence: raja yoga (the rulers of an angular house and of a trine house, together in one sign) is present in your chart,
+      made by the Sun and Mercury in your 10th house, and it relates to your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many,planets:many+lum
+    shape: area:one,houses:one,name:one,named:many,placed:many+lum,planets:many+lum
   - variant: 2
-    sentence: the Sun and Mercury sit in your 10th house and forms raja yoga (the rulers of an angular house and of a trine
-      house joined), which bears on your career.
+    sentence: the Sun and Mercury in your 10th house form raja yoga (the rulers of an angular house and of a trine house,
+      together in one sign), which bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many,planets:many+lum
+    shape: area:one,houses:one,name:one,named:many,placed:many+lum,planets:many+lum
   - variant: 0
-    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by Jupiter and
-      Mars in your 4th and 10th house, and it bears on your career.
+    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house, aspecting each other), formed
+      by Jupiter in your 10th house and Mars in your 4th house, and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:many,planets:many
+    shape: area:one,houses:many,name:one,named:many,placed:many,planets:many
   - variant: 1
-    sentence: raja yoga (the rulers of an angular house and of a trine house joined) is present in your chart, made by Jupiter
-      and Mars in your 4th and 10th house, and it relates to your career.
+    sentence: raja yoga (the rulers of an angular house and of a trine house, aspecting each other) is present in your chart,
+      made by Jupiter in your 10th house and Mars in your 4th house, and it relates to your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:many,planets:many
+    shape: area:one,houses:many,name:one,named:many,placed:many,planets:many
   - variant: 2
-    sentence: Jupiter and Mars sit in your 4th and 10th house and forms raja yoga (the rulers of an angular house and of a
-      trine house joined), which bears on your career.
+    sentence: Jupiter in your 10th house and Mars in your 4th house form raja yoga (the rulers of an angular house and of
+      a trine house, aspecting each other), which bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:many,planets:many
+    shape: area:one,houses:many,name:one,named:many,placed:many,planets:many
   - variant: 0
-    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by Mars and
-      Saturn in your 7th house, and it bears on your career.
+    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house, together in one sign), formed
+      by Mars and Saturn in your 7th house, and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many,planets:many
+    shape: area:one,houses:one,name:one,named:many,placed:many,planets:many
   - variant: 1
-    sentence: raja yoga (the rulers of an angular house and of a trine house joined) is present in your chart, made by Mars
-      and Saturn in your 7th house, and it relates to your career.
+    sentence: raja yoga (the rulers of an angular house and of a trine house, together in one sign) is present in your chart,
+      made by Mars and Saturn in your 7th house, and it relates to your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many,planets:many
+    shape: area:one,houses:one,name:one,named:many,placed:many,planets:many
   - variant: 2
-    sentence: Mars and Saturn sit in your 7th house and forms raja yoga (the rulers of an angular house and of a trine house
-      joined), which bears on your career.
+    sentence: Mars and Saturn in your 7th house form raja yoga (the rulers of an angular house and of a trine house, together
+      in one sign), which bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:many,planets:many
+    shape: area:one,houses:one,name:one,named:many,placed:many,planets:many
   - variant: 0
-    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by Saturn and
-      the Moon in your 4th and 10th house, and it bears on your career.
+    sentence: Your chart holds raja yoga (the rulers of an angular house and of a trine house, aspecting each other), formed
+      by Saturn in your 10th house and the Moon in your 4th house, and it bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:many,planets:many+lum
+    shape: area:one,houses:many,name:one,named:many,placed:many+lum,planets:many+lum
   - variant: 1
-    sentence: raja yoga (the rulers of an angular house and of a trine house joined) is present in your chart, made by Saturn
-      and the Moon in your 4th and 10th house, and it relates to your career.
+    sentence: raja yoga (the rulers of an angular house and of a trine house, aspecting each other) is present in your chart,
+      made by Saturn in your 10th house and the Moon in your 4th house, and it relates to your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:many,planets:many+lum
+    shape: area:one,houses:many,name:one,named:many,placed:many+lum,planets:many+lum
   - variant: 2
-    sentence: Saturn and the Moon sit in your 4th and 10th house and forms raja yoga (the rulers of an angular house and of
-      a trine house joined), which bears on your career.
+    sentence: Saturn in your 10th house and the Moon in your 4th house form raja yoga (the rulers of an angular house and
+      of a trine house, aspecting each other), which bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:many,planets:many+lum
+    shape: area:one,houses:many,name:one,named:many,placed:many+lum,planets:many+lum
 - signature: rule.yoga.malavya.full
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house, and it bears on {area}.
-  - '{named} is present in your chart, made by {planets} in your {houses} house, and it relates to {area}.'
-  - '{planets} sits in your {houses} house and forms {named}, which bears on {area}.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}, and it bears on {area}.
+  - '{named} is present in your chart, made by {placed}, and it relates to {area}.'
+  - '{placed} forms {named}, which bears on {area}.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -684,7 +667,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 1
     sentence: Malavya (Venus in its own or exalted sign in an angular house) is present in your chart, made by Venus in your
       10th house, and it relates to marriage.
@@ -692,15 +675,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 2
-    sentence: Venus sits in your 10th house and forms Malavya (Venus in its own or exalted sign in an angular house), which
-      bears on marriage.
+    sentence: Venus in your 10th house forms Malavya (Venus in its own or exalted sign in an angular house), which bears on
+      marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
 - signature: rule.yoga.malavya.full.nohouse
   kind: fact
   slots:
@@ -742,17 +725,14 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   - reductions
   variants:
-  - 'Your chart holds {named}: {planets} in your {houses} house, bearing on {area}, but reduced by {reductions}.'
-  - '{named} is present in your chart, made by {planets} in your {houses} house; it relates to {area} and is held back by
-    {reductions}.'
-  - '{planets} sits in your {houses} house and forms {named}, which bears on {area}, though {reductions} reduces it.'
-  drafted_by: claude-sonnet-5-5
+  - 'Your chart holds {named}: {placed}, bearing on {area}, but reduced by {reductions}.'
+  - '{named} is present in your chart, made by {placed}; it relates to {area} and is held back by {reductions}.'
+  - '{placed} forms {named}, which bears on {area}, though {reductions} reduces it.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -763,7 +743,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 1
     sentence: Malavya (Venus in its own or exalted sign in an angular house) is present in your chart, made by Venus in your
       4th house; it relates to marriage and is held back by lying too close to the Sun.
@@ -771,15 +751,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 2
-    sentence: Venus sits in your 4th house and forms Malavya (Venus in its own or exalted sign in an angular house), which
-      bears on marriage, though lying too close to the Sun reduces it.
+    sentence: Venus in your 4th house forms Malavya (Venus in its own or exalted sign in an angular house), which bears on
+      marriage, though lying too close to the Sun reduces it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 0
     sentence: 'Your chart holds Malavya (Venus in its own or exalted sign in an angular house): Venus in your 1st house, bearing
       on marriage, but reduced by too little strength and lying too close to the Sun.'
@@ -787,7 +767,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
   - variant: 1
     sentence: Malavya (Venus in its own or exalted sign in an angular house) is present in your chart, made by Venus in your
       1st house; it relates to marriage and is held back by too little strength and lying too close to the Sun.
@@ -795,15 +775,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
   - variant: 2
-    sentence: Venus sits in your 1st house and forms Malavya (Venus in its own or exalted sign in an angular house), which
-      bears on marriage, though too little strength and lying too close to the Sun reduce it.
+    sentence: Venus in your 1st house forms Malavya (Venus in its own or exalted sign in an angular house), which bears on
+      marriage, though too little strength and lying too close to the Sun reduce it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
 - signature: rule.yoga.malavya.reduced.nohouse
   kind: fact
   slots:
@@ -846,17 +826,13 @@
   kind: fact
   slots:
   - area
-  - houses
   - name
-  - planets
+  - placed
   variants:
-  - Your chart holds {name}, the cancellation of a low placement, formed by {planets} in your {houses} house, and it bears
-    on {area}.
-  - '{name}, which means the cancellation of debilitation, is present in your chart, formed by {planets} in your {houses}
-    house, and it bears on {area}.'
-  - Formed by {planets} in your {houses} house, the pattern called {name}, a cancellation of debilitation, sits in your chart
-    and bears on {area}.
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {name}, the cancellation of a low placement, formed by {placed}, and it bears on {area}.
+  - '{name}, which means the cancellation of debilitation, is present in your chart, formed by {placed}, and it bears on {area}.'
+  - Formed by {placed}, the pattern called {name}, a cancellation of debilitation, sits in your chart and bears on {area}.
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -867,7 +843,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one+lum,planets:one+lum
   - variant: 1
     sentence: Neecha Bhanga, which means the cancellation of debilitation, is present in your chart, formed by the Sun in
       your 6th house, and it bears on your career.
@@ -875,7 +851,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one+lum,planets:one+lum
   - variant: 2
     sentence: Formed by the Sun in your 6th house, the pattern called Neecha Bhanga, a cancellation of debilitation, sits
       in your chart and bears on your career.
@@ -883,7 +859,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one+lum,planets:one+lum
   - variant: 0
     sentence: Your chart holds Neecha Bhanga, the cancellation of a low placement, formed by Mars in your 3rd house, and it
       bears on your career.
@@ -891,7 +867,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 1
     sentence: Neecha Bhanga, which means the cancellation of debilitation, is present in your chart, formed by Mars in your
       3rd house, and it bears on your career.
@@ -899,7 +875,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 2
     sentence: Formed by Mars in your 3rd house, the pattern called Neecha Bhanga, a cancellation of debilitation, sits in
       your chart and bears on your career.
@@ -907,7 +883,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
 - signature: rule.yoga.neecha_bhanga.full.nohouse
   kind: fact
   slots:
@@ -989,157 +965,152 @@
   kind: fact
   slots:
   - area
-  - houses
   - name
-  - planets
+  - placed
   variants:
-  - Your chart holds {name}, a planetary exchange, formed by {planets} in your {houses} houses, which bears on {area}.
-  - Formed by {planets} in your {houses} houses, {name}, meaning an exchange, sits in your chart and bears on {area}.
-  - '{name}, an exchange between two planets, appears in your chart through {planets} in your {houses} houses and bears on
-    {area}.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {name}, a planetary exchange, formed by {placed}, which bears on {area}.
+  - Formed by {placed}, {name}, meaning an exchange, sits in your chart and bears on {area}.
+  - '{name}, an exchange between two planets, appears in your chart through {placed} and bears on {area}.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Parivartana, a planetary exchange, formed by Mercury and Saturn in your 5th and 10th houses,
-      which bears on money.
+    sentence: Your chart holds Parivartana, a planetary exchange, formed by Mercury in your 10th house and Saturn in your
+      5th house, which bears on money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many
+    shape: area:one,houses:many,name:one,named:one,placed:many,planets:many
   - variant: 1
-    sentence: Formed by Mercury and Saturn in your 5th and 10th houses, Parivartana, meaning an exchange, sits in your chart
-      and bears on money.
+    sentence: Formed by Mercury in your 10th house and Saturn in your 5th house, Parivartana, meaning an exchange, sits in
+      your chart and bears on money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many
+    shape: area:one,houses:many,name:one,named:one,placed:many,planets:many
   - variant: 2
-    sentence: Parivartana, an exchange between two planets, appears in your chart through Mercury and Saturn in your 5th and
-      10th houses and bears on money.
+    sentence: Parivartana, an exchange between two planets, appears in your chart through Mercury in your 10th house and Saturn
+      in your 5th house and bears on money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many
+    shape: area:one,houses:many,name:one,named:one,placed:many,planets:many
   - variant: 0
-    sentence: Your chart holds Parivartana, a planetary exchange, formed by the Sun and the Moon in your 9th and 10th houses,
-      which bears on money.
+    sentence: Your chart holds Parivartana, a planetary exchange, formed by the Sun in your 9th house and the Moon in your
+      10th house, which bears on money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many+lum
+    shape: area:one,houses:many,name:one,named:one,placed:many+lum,planets:many+lum
   - variant: 1
-    sentence: Formed by the Sun and the Moon in your 9th and 10th houses, Parivartana, meaning an exchange, sits in your chart
-      and bears on money.
+    sentence: Formed by the Sun in your 9th house and the Moon in your 10th house, Parivartana, meaning an exchange, sits
+      in your chart and bears on money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many+lum
+    shape: area:one,houses:many,name:one,named:one,placed:many+lum,planets:many+lum
   - variant: 2
-    sentence: Parivartana, an exchange between two planets, appears in your chart through the Sun and the Moon in your 9th
-      and 10th houses and bears on money.
+    sentence: Parivartana, an exchange between two planets, appears in your chart through the Sun in your 9th house and the
+      Moon in your 10th house and bears on money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many+lum
+    shape: area:one,houses:many,name:one,named:one,placed:many+lum,planets:many+lum
 - signature: rule.yoga.parivartana.reduced
   kind: fact
   slots:
   - area
-  - houses
   - name
-  - planets
+  - placed
   - reductions
   variants:
-  - Your chart holds {name}, a planetary exchange, formed by {planets} in your {houses} houses, which bears on {area}, though
-    it is weakened by {reductions}.
-  - Formed by {planets} in your {houses} houses, {name}, meaning an exchange, sits in your chart and bears on {area}, though
-    {reductions} weakens it.
-  - '{name}, an exchange between two planets, appears in your chart through {planets} in your {houses} houses and bears on
-    {area}, though it is weakened by {reductions}.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {name}, a planetary exchange, formed by {placed}, which bears on {area}, though it is weakened by {reductions}.
+  - Formed by {placed}, {name}, meaning an exchange, sits in your chart and bears on {area}, though {reductions} weakens it.
+  - '{name}, an exchange between two planets, appears in your chart through {placed} and bears on {area}, though it is weakened
+    by {reductions}.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
-    sentence: Your chart holds Parivartana, a planetary exchange, formed by Jupiter and Venus in your 1st and 11th houses,
-      which bears on money, though it is weakened by a difficult house in the exchange.
+    sentence: Your chart holds Parivartana, a planetary exchange, formed by Jupiter in your 1st house and Venus in your 11th
+      house, which bears on money, though it is weakened by a difficult house in the exchange.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many,reductions:one
+    shape: area:one,houses:many,name:one,named:one,placed:many,planets:many,reductions:one
   - variant: 1
-    sentence: Formed by Jupiter and Venus in your 1st and 11th houses, Parivartana, meaning an exchange, sits in your chart
-      and bears on money, though a difficult house in the exchange weakens it.
+    sentence: Formed by Jupiter in your 1st house and Venus in your 11th house, Parivartana, meaning an exchange, sits in
+      your chart and bears on money, though a difficult house in the exchange weakens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many,reductions:one
+    shape: area:one,houses:many,name:one,named:one,placed:many,planets:many,reductions:one
   - variant: 2
-    sentence: Parivartana, an exchange between two planets, appears in your chart through Jupiter and Venus in your 1st and
-      11th houses and bears on money, though it is weakened by a difficult house in the exchange.
+    sentence: Parivartana, an exchange between two planets, appears in your chart through Jupiter in your 1st house and Venus
+      in your 11th house and bears on money, though it is weakened by a difficult house in the exchange.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many,reductions:one
+    shape: area:one,houses:many,name:one,named:one,placed:many,planets:many,reductions:one
   - variant: 0
-    sentence: Your chart holds Parivartana, a planetary exchange, formed by the Sun and the Moon in your 5th and 6th houses,
-      which bears on money, though it is weakened by a difficult house in the exchange.
+    sentence: Your chart holds Parivartana, a planetary exchange, formed by the Sun in your 5th house and the Moon in your
+      6th house, which bears on money, though it is weakened by a difficult house in the exchange.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many+lum,reductions:one
+    shape: area:one,houses:many,name:one,named:one,placed:many+lum,planets:many+lum,reductions:one
   - variant: 1
-    sentence: Formed by the Sun and the Moon in your 5th and 6th houses, Parivartana, meaning an exchange, sits in your chart
-      and bears on money, though a difficult house in the exchange weakens it.
+    sentence: Formed by the Sun in your 5th house and the Moon in your 6th house, Parivartana, meaning an exchange, sits in
+      your chart and bears on money, though a difficult house in the exchange weakens it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many+lum,reductions:one
+    shape: area:one,houses:many,name:one,named:one,placed:many+lum,planets:many+lum,reductions:one
   - variant: 2
-    sentence: Parivartana, an exchange between two planets, appears in your chart through the Sun and the Moon in your 5th
-      and 6th houses and bears on money, though it is weakened by a difficult house in the exchange.
+    sentence: Parivartana, an exchange between two planets, appears in your chart through the Sun in your 5th house and the
+      Moon in your 6th house and bears on money, though it is weakened by a difficult house in the exchange.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:many,name:one,named:one,planets:many+lum,reductions:one
+    shape: area:one,houses:many,name:one,named:one,placed:many+lum,planets:many+lum,reductions:one
 - signature: rule.yoga.ruchaka.full
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house, which bears on {area}.
-  - '{named} is present in your chart, made by {planets} in your {houses} house and bearing on {area}.'
-  - Through {planets} in your {houses} house, your chart holds {named}, and it bears on {area}.
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}, which bears on {area}.
+  - '{named} is present in your chart, made by {placed} and bearing on {area}.'
+  - Through {placed}, your chart holds {named}, and it bears on {area}.
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
     sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 4th house,
       which bears on your career.
-    supported: true
-    evidence: ''
+    supported: false
+    evidence: The data's area is 'career', but its area_houses list the 10th, 6th, 2nd and 11th houses — not the 4th. If 'which'
+      is instead read as attaching to the whole Ruchaka yoga, the career bearing would be supported by the data's area_words
+      'your career'; the sentence is ambiguous between a supported and an unsupported reading, so it is marked unsupported.
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 1
     sentence: Ruchaka (Mars in its own or exalted sign in an angular house) is present in your chart, made by Mars in your
       4th house and bearing on your career.
@@ -1147,7 +1118,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 2
     sentence: Through Mars in your 4th house, your chart holds Ruchaka (Mars in its own or exalted sign in an angular house),
       and it bears on your career.
@@ -1155,7 +1126,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
 - signature: rule.yoga.ruchaka.full.nohouse
   kind: fact
   slots:
@@ -1197,19 +1168,14 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   - reductions
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house; the combination bears on {area}, though it is held
-    back by {reductions}.
-  - In your chart {planets} sits in your {houses} house and forms {named}, a combination that bears on {area} but is held
-    back by {reductions}.
-  - '{named} is present in your chart, made by {planets} in your {houses} house; it bears on {area}, though {reductions} holds
-    it back.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}; the combination bears on {area}, though it is held back by {reductions}.
+  - In your chart {placed} forms {named}, a combination that bears on {area} but is held back by {reductions}.
+  - '{named} is present in your chart, made by {placed}; it bears on {area}, though {reductions} holds it back.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -1221,16 +1187,16 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many
   - variant: 1
-    sentence: In your chart Mars sits in your 7th house and forms Ruchaka (Mars in its own or exalted sign in an angular house),
-      a combination that bears on your career but is held back by Saturn's aspect on it, an unhelpful star counted from your
+    sentence: In your chart Mars in your 7th house forms Ruchaka (Mars in its own or exalted sign in an angular house), a
+      combination that bears on your career but is held back by Saturn's aspect on it, an unhelpful star counted from your
       Moon and a house that drains it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many
   - variant: 2
     sentence: Ruchaka (Mars in its own or exalted sign in an angular house) is present in your chart, made by Mars in your
       7th house; it bears on your career, though Saturn's aspect on it, an unhelpful star counted from your Moon and a house
@@ -1239,7 +1205,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many
   - variant: 0
     sentence: Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 1st house;
       the combination bears on your career, though it is held back by an unhelpful star counted from your Moon.
@@ -1247,15 +1213,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one
   - variant: 1
-    sentence: In your chart Mars sits in your 1st house and forms Ruchaka (Mars in its own or exalted sign in an angular house),
-      a combination that bears on your career but is held back by an unhelpful star counted from your Moon.
+    sentence: In your chart Mars in your 1st house forms Ruchaka (Mars in its own or exalted sign in an angular house), a
+      combination that bears on your career but is held back by an unhelpful star counted from your Moon.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one
   - variant: 2
     sentence: Ruchaka (Mars in its own or exalted sign in an angular house) is present in your chart, made by Mars in your
       1st house; it bears on your career, though an unhelpful star counted from your Moon holds it back.
@@ -1263,7 +1229,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one
 - signature: rule.yoga.ruchaka.reduced.nohouse
   kind: fact
   slots:
@@ -1306,15 +1272,13 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house, and the combination bears on {area}.
-  - In your chart {planets} sits in your {houses} house and forms {named}, a combination that bears on {area}.
-  - '{named} is present in your chart, made by {planets} in your {houses} house; the combination bears on {area}.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}, and the combination bears on {area}.
+  - In your chart {placed} forms {named}, a combination that bears on {area}.
+  - '{named} is present in your chart, made by {placed}; the combination bears on {area}.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -1325,15 +1289,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 1
-    sentence: In your chart Saturn sits in your 4th house and forms Sasa (Saturn in its own or exalted sign in an angular
-      house), a combination that bears on your career.
+    sentence: In your chart Saturn in your 4th house forms Sasa (Saturn in its own or exalted sign in an angular house), a
+      combination that bears on your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
   - variant: 2
     sentence: Sasa (Saturn in its own or exalted sign in an angular house) is present in your chart, made by Saturn in your
       4th house; the combination bears on your career.
@@ -1341,7 +1305,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one
 - signature: rule.yoga.sasa.full.nohouse
   kind: fact
   slots:
@@ -1383,19 +1347,14 @@
   kind: fact
   slots:
   - area
-  - houses
-  - name
   - named
-  - planets
+  - placed
   - reductions
   variants:
-  - Your chart holds {named}, formed by {planets} in your {houses} house; the combination bears on {area}, though it is held
-    back by {reductions}.
-  - In your chart {planets} sits in your {houses} house and forms {named}, a combination that bears on {area} but is held
-    back by {reductions}.
-  - '{named} is present in your chart, made by {planets} in your {houses} house; it bears on {area}, though {reductions} holds
-    it back.'
-  drafted_by: claude-sonnet-5-5
+  - Your chart holds {named}, formed by {placed}; the combination bears on {area}, though it is held back by {reductions}.
+  - In your chart {placed} forms {named}, a combination that bears on {area} but is held back by {reductions}.
+  - '{named} is present in your chart, made by {placed}; it bears on {area}, though {reductions} holds it back.'
+  drafted_by: claude-opus-5-5 (rewritten for review H2)
   drafted_on: '2026-11-15'
   status: draft
   checks:
@@ -1406,15 +1365,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 1
-    sentence: In your chart Saturn sits in your 7th house and forms Sasa (Saturn in its own or exalted sign in an angular
-      house), a combination that bears on your career but is held back by lying too close to the Sun.
+    sentence: In your chart Saturn in your 7th house forms Sasa (Saturn in its own or exalted sign in an angular house), a
+      combination that bears on your career but is held back by lying too close to the Sun.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 2
     sentence: Sasa (Saturn in its own or exalted sign in an angular house) is present in your chart, made by Saturn in your
       7th house; it bears on your career, though lying too close to the Sun holds it back.
@@ -1422,7 +1381,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one+lum
   - variant: 0
     sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house), formed by Saturn in your 1st
       house; the combination bears on your career, though it is held back by a house that drains it.
@@ -1430,15 +1389,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one
   - variant: 1
-    sentence: In your chart Saturn sits in your 1st house and forms Sasa (Saturn in its own or exalted sign in an angular
-      house), a combination that bears on your career but is held back by a house that drains it.
+    sentence: In your chart Saturn in your 1st house forms Sasa (Saturn in its own or exalted sign in an angular house), a
+      combination that bears on your career but is held back by a house that drains it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one
   - variant: 2
     sentence: Sasa (Saturn in its own or exalted sign in an angular house) is present in your chart, made by Saturn in your
       1st house; it bears on your career, though a house that drains it holds it back.
@@ -1446,7 +1405,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:one
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:one
   - variant: 0
     sentence: Your chart holds Sasa (Saturn in its own or exalted sign in an angular house), formed by Saturn in your 1st
       house; the combination bears on your career, though it is held back by lying too close to the Sun and a house that drains
@@ -1455,16 +1414,15 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
   - variant: 1
-    sentence: In your chart Saturn sits in your 1st house and forms Sasa (Saturn in its own or exalted sign in an angular
-      house), a combination that bears on your career but is held back by lying too close to the Sun and a house that drains
-      it.
+    sentence: In your chart Saturn in your 1st house forms Sasa (Saturn in its own or exalted sign in an angular house), a
+      combination that bears on your career but is held back by lying too close to the Sun and a house that drains it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
   - variant: 2
     sentence: Sasa (Saturn in its own or exalted sign in an angular house) is present in your chart, made by Saturn in your
       1st house; it bears on your career, though lying too close to the Sun and a house that drains it hold it back.
@@ -1472,7 +1430,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
-    shape: area:one,houses:one,name:one,named:one,planets:one,reductions:many+lum
+    shape: area:one,houses:one,name:one,named:one,placed:one,planets:one,reductions:many+lum
 - signature: rule.yoga.sasa.reduced.nohouse
   kind: fact
   slots:

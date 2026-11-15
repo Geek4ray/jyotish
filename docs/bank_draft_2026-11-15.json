@@ -444,8 +444,24 @@
     "checker": 0.1711
    },
    "note": "the .nohouse rule rows: no sample fills their declared slot houses (review M5); their checks stand"
+  },
+  {
+   "date": "2026-11-15",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 16,
+   "checks": 87,
+   "refused": {
+    "rule.yoga.ruchaka.full": [
+     "variant 1 ('Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 4th house, which bears on your career.') is not stated by the facts: The data's area is 'career', but its area_houses list the 10th, 6th, 2nd and 11th houses \u2014 not the 4th. If 'which' is instead read as attaching to the whole Ruchaka yoga, the career bearing would be supported by the data's area_words 'your career'; the sentence is ambiguous between a supported and an unsupported reading, so it is marked unsupported."
+    ]
+   },
+   "no_sample": [],
+   "usd": {
+    "checker": 0.047
+   }
   }
  ],
  "rows_in_bank": 126,
- "usd_total": 1.9728
+ "usd_total": 2.0198
 }

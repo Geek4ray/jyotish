@@ -127,3 +127,65 @@ def test_h1_the_recheck_fills_each_shape_and_records_it(monkeypatch):
     assert len(row.checks) == 6 and {c.shape for c in row.checks} == {"area:one,planets:one", "area:one,planets:many+node+lum"}
     assert "the Sun and Rahu lean favourably for your career." in [c.sentence for c in row.checks]   # agreement
     assert row.refused() == {2} and list(bad) == [row.signature]
+
+
+# --- H2. "Raja yoga (… joined)" is told for a yoga formed by aspect or exchange -------------------------------------
+
+PLACED = re.compile(r"\b(?:the )?(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu) in your (\d+)(?:st|nd|rd|th) house")
+
+
+def test_h2_the_raja_yoga_says_how_its_rulers_are_related_on_the_reference_chart():
+    from jyotish.conversation import plan_turn, route_turn
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    p = plan_turn(c, "how is my career", route_turn("how is my career", c), as_of=AS_OF)
+    raja = next(i for i in p.items if i.signature.startswith("rule.yoga.kendra_trikona_raja"))
+    assert raja.slots["named"] == "raja yoga (the rulers of an angular house and of a trine house, together in one sign)"
+    assert raja.slots["placed"] == "the Sun and Mercury in your 10th house" and raja.facts["relations"] == ["conjunction"]
+
+
+def test_h2_no_rule_sentence_tells_a_relation_or_a_house_its_fire_does_not_have(composed):
+    """Over the random charts: a raja yoga's gloss names the relations its fires record, never "joined"; every planet
+    a rule sentence places is in that house; no list of houses is followed by a singular "house"."""
+    from jyotish.plan import RELATION_PLAIN
+    seen = {"raja": 0, "placed": 0}
+    for c, p, s in composed:
+        if s["part"] != "rule":
+            continue
+        assert not re.search(r"\b\d+(?:st|nd|rd|th) and (?:your )?\d+(?:st|nd|rd|th) house\b", s["text"]), s["text"]
+        item = next(i for i in p.items if i.signature == s["signature"] and i.area == s["area"])
+        if item.facts["rule_id"].startswith("yoga.kendra_trikona_raja"):
+            seen["raja"] += 1
+            assert "joined" not in s["text"]
+            for r in item.facts["relations"]:
+                assert RELATION_PLAIN[r] in item.slots["named"]
+        if s["row"] and item.slots.get("placed"):
+            for planet, house in PLACED.findall(s["text"]):
+                seen["placed"] += 1
+                assert c.bodies[planet].house == int(house), s["text"]
+    assert seen["raja"] > 5 and seen["placed"] > 20, seen
+
+
+def test_h2_a_relation_with_no_plain_words_keeps_the_rule_out():
+    from jyotish.plan import _rule_item
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    f = {"rule_id": "yoga.kendra_trikona_raja", "planets": ["Sun", "Mercury"], "allowed_tags": [],
+         "fires": [{"basis": "lagna", "nodes": ["Sun", "Mercury", "H10"], "modifiers_applied": [],
+                    "details": {"relations": ["dristi_by_sign"]}}]}
+    item, why = _rule_item(c, f, "career", "your career")
+    assert item is None and "dristi_by_sign" in why
+
+
+def test_h2_a_rule_fired_only_from_the_moon_says_its_angle_is_counted_from_the_moon():
+    from jyotish.plan import _rule_item
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    f = {"rule_id": "yoga.ruchaka", "planets": ["Mars"], "allowed_tags": [],
+         "fires": [{"basis": "moon", "nodes": ["Mars"], "modifiers_applied": [], "details": {}}]}
+    item, _ = _rule_item(c, f, "career", "your career")
+    assert item.signature == "rule.yoga.ruchaka.full.nohouse"
+    assert item.slots["named"] == "Ruchaka (Mars in its own or exalted sign in an angular house from your Moon)"

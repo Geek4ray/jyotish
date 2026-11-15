@@ -62,12 +62,16 @@ RULE_PLAIN = {
     "yoga.budhaditya": "the Sun and Mercury together in one sign",
     "yoga.gaja_kesari": "Jupiter in an angular house from the Moon",
     "yoga.gaja_kesari_bphs": "Jupiter in an angular house, joined or aspected by a helpful planet",
-    "yoga.kendra_trikona_raja": "the rulers of an angular house and of a trine house joined",
-    "yoga.kendra_trikona_raja_weak": "the rulers of an angular house and of a trine house joined, one also ruling a "
-                                     "difficult house",
+    "yoga.kendra_trikona_raja": "the rulers of an angular house and of a trine house, {relation}",
+    "yoga.kendra_trikona_raja_weak": "the rulers of an angular house and of a trine house, {relation}, one also "
+                                     "ruling a difficult house",
     "yoga.neecha_bhanga": "a planet's fall in its sign undone by the planets that rule that sign",
     "yoga.parivartana": "two planets each in the other's sign",
 }
+# How a pair rule's two planets are related, as its fire records it (rules.py `details.relations`): the gloss of a
+# Kendra-Trikona raja yoga says which (review 2026-11-15, H2: "joined" was told for a yoga formed by aspect).
+RELATION_PLAIN = {"conjunction": "together in one sign", "mutual_aspect": "aspecting each other",
+                  "exchange": "each in the other's sign"}
 # A hidden weakness of the main lord or significator: the body field, and its signature.
 WEAKNESSES = ("mks", "mrita", "low_strength")
 
@@ -247,13 +251,33 @@ def _rule_item(chart, f: dict, area: str, label: str) -> tuple[PlanItem | None, 
     name = rule_names(f["rule_id"])[0]
     houses = sorted({int(n[1:]) for x in f["fires"] if x["basis"] == "lagna" for n in x["nodes"] if n.startswith("H")})
     planets = [_the(p) for p in f["planets"]]
-    named = f"{name} ({RULE_PLAIN[f['rule_id']]})" if f["rule_id"] in RULE_PLAIN else name
+    relations = list(dict.fromkeys(r for x in f["fires"] for r in (x.get("details") or {}).get("relations") or []))
+    gloss = RULE_PLAIN.get(f["rule_id"])
+    if gloss and "{relation}" in gloss:
+        if not relations or any(r not in RELATION_PLAIN for r in relations):
+            return None, f"a relation with no plain words yet ({', '.join(relations) or 'none recorded'})"
+        gloss = gloss.format(relation=_and([RELATION_PLAIN[r] for r in relations]))
+    # A rule counted from several points (the rising sign, the Moon, the Sun) whose fires here are none from the
+    # rising sign: the gloss says what the angle is counted from (review H2: the gloss holds for every basis).
+    bases = [x["basis"] for x in f["fires"]]
+    if gloss and "angular house" in gloss and "from the Moon" not in gloss and "lagna" not in bases:
+        froms = _and([{"moon": "your Moon", "sun": "your Sun"}.get(b, b) for b in dict.fromkeys(bases)])
+        gloss = gloss.replace("an angular house", f"an angular house from {froms}", 1)
+    named = f"{name} ({gloss})" if gloss else name
+    # Each planet with its own house from the rising sign, or one house for them all ({placed}): "Mercury in your 1st
+    # house and Jupiter in your 7th house", never "Mercury and Jupiter in your 1st and 7th house" (review H2).
+    placed = ""
+    if houses and f["planets"] and all(p in chart.bodies for p in f["planets"]):
+        at = {p: chart.bodies[p].house for p in f["planets"]}
+        if len(set(at.values())) == 1:
+            placed = f"{_and(planets)} in your {_ORD[next(iter(at.values()))]} house"
+        else:
+            placed = _and([f"{_the(p)} in your {_ORD[h]} house" for p, h in at.items()])
     slots = {"area": label, "name": name, "named": named, "planets": _and(planets) if planets else "",
-             "houses": _and([_ORD[h] for h in houses]) if houses else ""}
+             "houses": _and([_ORD[h] for h in houses]) if houses else "", "placed": placed}
     if plain:
         slots["reductions"] = _and(plain)
-    where = f" in your {slots['houses']} {'house' if len(houses) == 1 else 'houses'}" if houses else ""
-    who = f", formed by {slots['planets']}{where}," if planets else ""
+    who = (f", formed by {placed}," if placed else f", formed by {slots['planets']}," if planets else "")
     engine = (f"Your chart holds {named}{who} which bears on {label}"
               + (f", though it is weakened by {slots['reductions']}." if plain else "."))
     sig = f"rule.{f['rule_id']}.{'reduced' if plain else 'full'}"
@@ -261,7 +285,8 @@ def _rule_item(chart, f: dict, area: str, label: str) -> tuple[PlanItem | None, 
         sig += ".nohouse"
     return PlanItem(part="rule", signature=sig, area=area, slots=slots, tags=list(f["allowed_tags"]),
                     facts={"rule_id": f["rule_id"], "names": rule_names(f["rule_id"]), "fires": f["fires"],
-                           "planets": f["planets"], "houses": houses, "reductions": plain,
+                           "planets": f["planets"], "houses": houses, "reductions": plain, "relations": relations,
+                           "planet_houses": {p: chart.bodies[p].house for p in f["planets"] if p in chart.bodies},
                            "about": about(chart, area, label)}, engine=engine), None
 
 
