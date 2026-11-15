@@ -190,6 +190,9 @@ def import_rows(session, rows: list[dict], entered_by: str, today: date | None =
                               household_key=row.get("household_key") or None,
                               birthplace_cluster=row.get("birthplace_cluster") or None)
             session.add(subj)
+            # Written before its first event: the unit of work did not order the subject's insert before the event's,
+            # which Postgres's foreign key refuses (found 2026-11-16 testing review H5 under foreign keys).
+            session.flush()
             res.subjects_created += 1
         elif (subj.birth_key or birth_key_of_record(subj.birth)) != bkey:
             res.refused.append({"row": i, "subject_id": sid, "reasons": ["the birth data differs from this subject's earlier rows"]})

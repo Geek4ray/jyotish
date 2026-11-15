@@ -362,12 +362,12 @@ def test_h5_a_subjects_erasure_with_a_bank_verdict_and_a_stored_answer_holds_und
     from jyotish.db import AnswerRow, BankReviewRow, SessionRow, TurnRow, migrate
     url = f"sqlite:///{tmp_path / 'fk.db'}"
     rows = oc.read_sheet(ROOT / "docs" / "intake_template.csv")
-    with sessionmaker(migrate(url)).begin() as s:            # the import, without foreign keys (its own fault, apart)
-        oc.add_consent(s, "C-0001", "S-0001", "v1", "backlog", "clerk-1")
-        assert oc.import_rows(s, rows, entered_by="clerk-1", today=AS_OF).accepted
     engine = create_engine(url)
     event.listen(engine, "connect", lambda conn, _: conn.execute("PRAGMA foreign_keys=ON"))
     S = sessionmaker(migrate(engine))
+    with S.begin() as s:                                      # the import too, under foreign keys
+        oc.add_consent(s, "C-0001", "S-0001", "v1", "backlog", "clerk-1")
+        assert oc.import_rows(s, rows, entered_by="clerk-1", today=AS_OF).accepted
     with S.begin() as s:
         bkey = s.get(SubjectRow, "S-0001").birth_key
         s.add(SessionRow(id="s" * 32, birth_key=bkey, birth={}, as_of=AS_OF.isoformat()))
