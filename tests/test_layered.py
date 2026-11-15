@@ -121,3 +121,89 @@ def test_1_a_reduction_with_no_plain_words_keeps_the_rule_out_and_says_so():
         ["a house that drains it", "Saturn's aspect on it"], [])
     assert reductions_plain(["kp_sub_lord in [6, 8] -> x0.7"]) == ([], ["kp_sub_lord in [6, 8]"])
     assert reductions_plain(["dignity: friend -> x1.1"]) == ([], [])          # a boost is not a reduction
+
+
+# --- 2. The sentence bank ----------------------------------------------------------------------------------------------
+
+def row(**kw):
+    base = {"signature": "family.lord.for", "kind": "fact", "slots": ["area", "planet", "ruled_house", "sign", "house", "dignity"],
+            "variants": ["{planet}, which rules your {ruled_house} house, sits in {sign} in your {house} house, {dignity}, "
+                         "and supports {area}.",
+                         "The ruler of your {ruled_house} house, {planet}, is in {sign} in your {house} house, {dignity}; "
+                         "it supports {area}.",
+                         "Supporting {area}: {planet}, ruler of the {ruled_house} house, placed in {sign} in your "
+                         "{house} house, {dignity}."],
+            "drafted_by": "test", "drafted_on": "2026-11-15", "status": "draft"}
+    return base | kw
+
+
+def write_bank(tmp_path, rows, name="family.yaml"):
+    import shutil
+    import yaml
+    d = tmp_path / "bank"
+    d.mkdir(exist_ok=True)
+    shutil.copy(ROOT / "data" / "bank" / "bank.schema.json", d)
+    (d / name).write_text(yaml.safe_dump(rows, sort_keys=False))
+    return d
+
+
+def test_2_a_good_row_loads_and_fills_with_the_charts_values(tmp_path):
+    from jyotish.bank import load_bank
+    bank = load_bank(write_bank(tmp_path, [row()]))
+    r = bank.fact("family.lord.for")
+    assert len(bank) == 1 and r.status == "draft" and len(bank.version) == 12
+    slots = {"area": "your career", "planet": "Saturn", "ruled_house": "10th", "sign": "Taurus", "house": "1st",
+             "dignity": "in a friendly sign"}
+    assert r.fill(0, slots) == ("Saturn, which rules your 10th house, sits in Taurus in your 1st house, in a friendly "
+                                "sign, and supports your career.")
+    assert r.fill(1, slots | {"dignity": ""}) == ("The ruler of your 10th house, Saturn, is in Taurus in your 1st "
+                                                  "house; it supports your career.")
+
+
+@pytest.mark.parametrize("bad,why", [
+    (row(variants=["{planet} sits in {nakshatra}.", "a.", "b."]), "does not declare"),
+    (row(variants=["The vote of {planet} supports {area}.", "a.", "b."]), "never shown to the client ('vote')"),
+    (row(variants=["{planet} is a strong support for {area}.", "a.", "b."]), "tier word"),
+    (row(variants=["The KP reading favours {area}.", "a.", "b."]), "never shown"),
+    (row(signature="rule.yoga.ruchaka.full@career", kind="meaning", slots=[], variants=["a.", "b.", "c."]),
+     "carries its source"),
+    (row(signature="rule.yoga.ruchaka.full", kind="meaning", source="BPHS 75.1", slots=[], variants=["a.", "b.", "c."]),
+     "names its area"),
+    (row(signature="family.lord.for@career"), "only a meaning row names one"),
+    (row(status="approved"), "names who approved it"),
+    (row(variants=["{planet sits.", "a.", "b."]), "broken slot"),
+])
+def test_2_a_row_that_cannot_stand_is_a_load_error_with_its_reason(tmp_path, bad, why):
+    from jyotish.bank import BankError, load_bank
+    with pytest.raises(BankError, match=why.replace("(", r"\(").replace(")", r"\)")):
+        load_bank(write_bank(tmp_path, [bad]))
+    assert len(load_bank(write_bank(tmp_path, [bad, row(signature="family.karaka.for", slots=["area"],
+                                                         variants=["It supports {area}.", "b.", "c."])]),
+                         strict=False)) == 1
+
+
+def test_2_the_schema_refuses_two_variants_and_a_second_row_is_refused(tmp_path):
+    from jyotish.bank import BankError, load_bank
+    with pytest.raises(BankError, match="too short|should be non-empty|at least"):
+        load_bank(write_bank(tmp_path, [row(variants=["a.", "b."])]))
+    with pytest.raises(BankError, match="a second fact row"):
+        load_bank(write_bank(tmp_path, [row(), row()]))
+
+
+def test_2_the_committed_bank_loads_with_every_row_standing():
+    from jyotish.bank import load_bank
+    bank = load_bank()
+    assert all(r.kind == "fact" or r.source for r in bank.rows)
+
+
+def test_2_coverage_counts_the_plan_items_that_find_a_row_whose_slots_they_fill(tmp_path):
+    from jyotish.bank import coverage, load_bank
+    empty = coverage(6, seed=3, bank=load_bank(write_bank(tmp_path, [])), workers=1)
+    assert empty["items"] > 100 and empty["share"] == 0 and empty["missing"]
+    lord = row()
+    narrow = row(signature="family.karaka.for", slots=["area", "nakshatra"],
+                 variants=["It supports {area}.", "It is good for {area}.", "{area} gains from it."])
+    res = coverage(6, seed=3, bank=load_bank(write_bank(tmp_path, [lord, narrow])), workers=1)
+    missing = dict(res["missing"])
+    assert "family.lord.for" not in missing and "family.karaka.for" in missing    # a slot the plan does not fill
+    assert 0 < res["by_part"]["helps"] < 1 and res["rows"] == 2 and res["approved_share"] == 0

@@ -493,6 +493,30 @@ def cmd_outcomes(args) -> int:
     return 1 if res.refused else 0
 
 
+def cmd_bank(args) -> int:
+    from .bank import BankError, coverage, load_bank
+    if args.bcmd == "check":
+        try:
+            bank = load_bank()
+        except BankError as e:
+            print("\n".join(str(e).split("; ")))
+            return 1
+        print(f"{len(bank)} rows, version {bank.version}: every row stands")
+        return 0
+    if args.bcmd == "coverage":
+        res = coverage(args.n, args.seed)
+        if args.json:
+            print(json.dumps(res, indent=1))
+        else:
+            print(f"{res['found']} of {res['items']} plan items on {res['charts']} random charts find a row "
+                  f"({res['share']:.1%}); bank {res['version']}, {res['rows']} rows, {res['approved_share']:.0%} approved")
+            for part, share in res["by_part"].items():
+                print(f"  {part}: {share:.1%}")
+            print("  missing most often: " + ", ".join(f"{s} ({n})" for s, n in res["missing"][:10]))
+        return 0
+    return 2
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="jyotish")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -575,6 +599,13 @@ def main(argv: list[str] | None = None) -> None:
         ksub.add_parser("list", help=f"the {kind}s and whether each token is active")
         for x in (ka, kr, ksub.choices["list"]):
             x.add_argument("--database", help="database URL (default JYOTISH_DATABASE_URL, else sqlite:///jyotish.db)")
+    bk = sub.add_parser("bank", help="the sentence bank (data/bank/*.yaml, SPEC Layer 8 'The layered answer')")
+    bksub = bk.add_subparsers(dest="bcmd", required=True)
+    bksub.add_parser("check", help="load the bank and print every row that cannot stand, with why")
+    bcv = bksub.add_parser("coverage", help="the share of plan items on random charts that find a row")
+    bcv.add_argument("--n", type=int, default=1000, help="random charts (synthetic births, no one's data)")
+    bcv.add_argument("--seed", type=int, default=0)
+    bcv.add_argument("--json", action="store_true")
     r = sub.add_parser("recover", help="find the UTC instant matching printed Sun/Moon (and slow planets)")
     r.add_argument("--sun", type=float, required=True, help="sidereal longitude 0-360")
     r.add_argument("--moon", type=float, required=True)
@@ -601,6 +632,8 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(0)
     if args.cmd == "page":
         raise SystemExit(cmd_page(args))
+    if args.cmd == "bank":
+        raise SystemExit(cmd_bank(args))
     if args.cmd == "reference":
         from .reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
         from .uncertainty import assess

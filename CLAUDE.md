@@ -388,5 +388,7 @@ The layered answer (SPEC Layer 8 rev 134, 2026-11-15, docs/spec_notes_2026-11-15
 the answer plan (`jyotish.plan`, `conversation.plan_turn`: per area the verdict, the strongest helping and hard
 families, every fired cited rule with its reductions in plain words, the main lord's and significator's hidden
 weaknesses, the period now, the stretches; each item a bank signature with slots, tags, facts, the engine's sentence,
-and what it left out).
+and what it left out); the sentence bank (`jyotish.bank`, `data/bank/*.yaml` and its schema: fact and meaning rows,
+three variants with slots, drafted_by/on, draft or approved; every variant refused at load for a never-show, client or
+tier word; `jyotish bank check|coverage`, the share of plan items on 1,000 random charts that find a row).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

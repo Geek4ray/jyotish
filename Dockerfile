@@ -25,11 +25,12 @@ RUN useradd --create-home --uid 1000 jyotish && mkdir -p /data && chown jyotish 
 WORKDIR /app
 COPY --from=build /wheels /wheels
 RUN pip install --no-cache-dir /wheels/*.whl && rm -rf /wheels
-# The engine finds its rules, website and examples beside its source (rules.RULES_DIR, api.REPO),
-# so the checkout is installed in place.
+# The engine finds its rules, sentence bank, website and examples beside its source (rules.RULES_DIR,
+# bank.BANK_DIR, api.REPO), so the checkout is installed in place.
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY rules ./rules
+COPY data/bank ./data/bank
 COPY web ./web
 COPY examples ./examples
 COPY scripts/pg_backup.sh ./scripts/pg_backup.sh

@@ -5,6 +5,8 @@
 .pytest_cache
 *.db
 data/
+# The sentence bank is the engine's data, like rules/: shipped (bank.BANK_DIR)
+!data/bank
 reading.json
 reading.md
 tests/
