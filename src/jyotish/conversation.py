@@ -738,12 +738,15 @@ _ENGINE: dict[str, str] = {}
 
 
 def answer_key(chart, route, kinds: list[str], as_of: date, bank_version: str, said: list[str],
-               polish: bool, draft_meanings: bool) -> str:
+               polish: bool, draft_meanings: bool, session_key: str = "") -> str:
     """The key of a stored answer (SPEC Layer 8, "The layered answer": same chart, same routed question, same bank
     version): the birth and the conventions with the engine's hash; the route as read (areas, direction, when, why,
     how, where its areas came from) and the question's kinds; the date (the period running and the stretches depend
-    on it); the bank's version; what an earlier answer already said (a follow-up leaves it out); and whether the
-    answer is polished and shows draft meanings. Not the session: one chart asked one question reads one answer."""
+    on it); the bank's version; what an earlier answer already said (a follow-up leaves it out); whether the
+    answer is polished and shows draft meanings; and the session. Within a conversation a question asked again is
+    served what it was told (no second polisher call); across conversations nothing is shared (review 2026-11-15,
+    M3: a second conversation was served the first one's variants, its follow-ups then repeated everything, and its
+    turn kept the first client's question)."""
     import hashlib
     from .cache import engine_hash
     if "h" not in _ENGINE:
@@ -755,7 +758,7 @@ def answer_key(chart, route, kinds: list[str], as_of: date, bank_version: str, s
                                                      "third_party")},
             "kinds": kinds, "as_of": as_of.isoformat(), "bank": bank_version,
             "said": hashlib.sha256("\n".join(said).encode()).hexdigest() if said else None,
-            "polish": polish, "draft_meanings": draft_meanings}
+            "polish": polish, "draft_meanings": draft_meanings, "session": session_key}
     return hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()
 
 
@@ -770,7 +773,8 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     bank = bank if bank is not None else default_bank()
     key = None
     if store is not None:
-        key = answer_key(chart, route, kinds, as_of, bank.version, said, polish_on(), show_draft_meanings())
+        key = answer_key(chart, route, kinds, as_of, bank.version, said, polish_on(), show_draft_meanings(),
+                         session_key)
         hit = store.get(key)
         if hit is not None:
             for i, text in enumerate(hit["shown"]):
@@ -827,7 +831,9 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     if store is not None and not (extra.get("polish") and not polished and extra["polish"].get("refusals", [""])[0]
                                   .startswith("the polisher could not be reached")):
         # A polisher that could not be reached is not stored: the next asking tries it again.
-        store.put(key, {k: out[k] for k in STORED if k in out}, bank_version=bank.version, birth_key=birth_key)
+        kept = {k: out[k] for k in STORED if k in out}
+        kept["plan"] = {k: v for k, v in kept["plan"].items() if k != "question"}   # the client's words stay in the turn
+        store.put(key, kept, bank_version=bank.version, birth_key=birth_key)
         out["stored"] = {"key": key, "served": False}
     return out
 

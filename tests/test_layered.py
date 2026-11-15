@@ -752,10 +752,14 @@ def test_7_the_same_chart_routed_question_and_bank_are_served_the_stored_answer(
     first = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="a", store=store, birth_key="bk")
     assert first["stored"] == {"key": first["stored"]["key"], "served": False} and len(store.rows) == 1
     assert store.rows[first["stored"]["key"]]["birth_key"] == "bk"
-    # Another session, the same question in other words routed the same way: the stored answer, no plan made.
-    again = answer_turn(chart, "career?", route_turn("career?", chart), as_of=AS_OF, session_key="b", store=store)
+    # The same session, the same question in other words routed the same way: the stored answer, no plan made.
+    again = answer_turn(chart, "career?", route_turn("career?", chart), as_of=AS_OF, session_key="a", store=store)
     assert again["stored"]["served"] and again["shown"] == first["shown"] and "plan" in again
     assert "plan" not in again["timeline"] and store.hits == 1
+    assert again["question"] == "career?" and "question" not in again["plan"]       # the asker's own words only
+    # Another session is never served it (review M3): its own variants, its own answer.
+    other = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="b", store=store)
+    assert not other["stored"]["served"] and store.hits == 1
     # Another day, another bank or another question: answered afresh.
     other_day = answer_turn(chart, m, route_turn(m, chart), as_of=date(2026, 12, 1), store=store)
     assert not other_day["stored"]["served"]
@@ -763,7 +767,7 @@ def test_7_the_same_chart_routed_question_and_bank_are_served_the_stored_answer(
     assert not answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, store=store, bank=bank)["stored"]["served"]
     mar = "how is my marriage"
     assert not answer_turn(chart, mar, route_turn(mar, chart), as_of=AS_OF, store=store)["stored"]["served"]
-    assert len(store.rows) == 4
+    assert len(store.rows) == 5
 
 
 def test_7_the_database_store_counts_hits_and_an_erasure_removes_the_charts_answers(chart, monkeypatch, tmp_path):

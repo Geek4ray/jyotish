@@ -491,3 +491,35 @@ def test_m2_the_polisher_is_a_role_on_an_openai_compatible_host_and_health_repor
         assert h["polisher"] == {"provider": "openai-compatible", "host": "api.deepinfra.com",
                                  "model": "Qwen/Qwen3.6-35B-A3B", "ready": True}
         assert "not-a-key" not in json.dumps(h)
+
+
+# --- M3. A stored answer crosses conversations ------------------------------------------------------------------------
+
+def test_m3_a_second_conversation_reads_its_own_variants_and_its_follow_up_repeats_nothing(monkeypatch):
+    """The review's reproduction on the reference chart: "how is my career" then "why?". With turn 1 served from
+    another conversation's store the "why?" restated every reason; now each conversation's turn 1 is its own."""
+    from jyotish.conversation import answer_turn, route_turn
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+
+    class Store:
+        def __init__(self):
+            self.rows = {}
+
+        def get(self, key):
+            return dict(self.rows[key]) if key in self.rows else None
+
+        def put(self, key, document, *, bank_version, birth_key=None):
+            self.rows.setdefault(key, document)
+    store = Store()
+    m = "how is my career"
+    a1 = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="conv-a", store=store, birth_key="bk")
+    b1 = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="conv-b", store=store, birth_key="bk")
+    assert not b1["stored"]["served"] and b1["shown"] != a1["shown"]          # B's own variants
+    assert all("question" not in d.get("plan", {}) for d in store.rows.values())
+    last = route_turn(m, c)
+    why = answer_turn(c, "why?", route_turn("why?", c, last), as_of=AS_OF, session_key="conv-b", store=store,
+                      history=[{"question": m, "answer": " ".join(b1["shown"])}])
+    assert len(why["shown"]) <= 2, why["shown"]
