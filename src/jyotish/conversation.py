@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from datetime import date
 from typing import Any
 
@@ -604,6 +605,49 @@ Return the polished answer in `text`: paragraphs separated by one blank line, ea
 If the answer already reads well, return it unchanged."""
 POLISH_CHECK = ("composed answer: every proposition of the sentence (the polished answer) must be stated in this text, "
                 "with the same lean and strength; a proposition it does not state, or states differently, is not supported")
+# The check the other way (review 2026-11-15, M1): a polished text that dropped a paragraph, a reduction, the opening
+# or the caveat passed the one-way check, since every proposition left was in the composed text.
+POLISH_CHECK_BACK = ("polished answer: every proposition of the sentence (the composed answer) must be stated in this "
+                     "text, with the same lean and strength; a proposition it leaves out, or states differently, is not "
+                     "supported")
+# A connective stating a cause the composed text does not (polished-1 of 2026-11-15: "a feeble state, so it has less
+# strength than it needs" made the strength a consequence of the Mrita state, which the engine never derives).
+CAUSAL = re.compile(r"\b(?:so|because|therefore|thus|hence|consequently|since|as a result|which is why|which means|"
+                    r"due to|owing to|leading to|results? in)\b", re.I)
+_DATES = re.compile(r"\bfrom [A-Z][a-z]+ \d{4} to [A-Z][a-z]+ \d{4}\b|\b(?:January|February|March|April|May|June|July|"
+                    r"August|September|October|November|December) \d{4}\b")
+_LEANS = re.compile(r"\b(?:un)?favourabl[ey]\b", re.I)
+_CAVEAT = ("Neither stretch", "Neither of these two stretches", "Please read neither stretch", "This stretch is not")
+
+
+def polish_errors(composed: str, polished: str) -> list[str]:
+    """What the code refuses in a polished text before any call (review M1): a date, planet, sign, house or lean the
+    composed text has and the polished one lacks, or the reverse; an opening sentence no longer first; a caveat no
+    longer closing its paragraph; a causal connective the composed text does not have."""
+    from .narrate import sentences
+    out = []
+    pick = lambda rx, t: [m.group(0).lower() for m in rx.finditer(t)]
+    for name, rx in (("date", _DATES), ("planet", _PLANET), ("sign", _SIGN), ("house", _HOUSE_NO), ("lean", _LEANS)):
+        a, b = set(pick(rx, composed)), set(pick(rx, polished))
+        if a - b:
+            out.append(f"the polished text leaves out the {name} {sorted(a - b)}")
+        if b - a:
+            out.append(f"the polished text adds the {name} {sorted(b - a)}")
+    first_c = (sentences(composed.split("\n\n")[0]) or [""])[0]
+    first_p = (sentences(polished.split("\n\n")[0]) or [""])[0]
+    opening = [k for k in OPENS_ON if opens_on(first_c, [k])]
+    if (opening or _opening_line(first_c)) and not (opens_on(first_p, opening) if opening else _opening_line(first_p)):
+        out.append("the opening sentence (what a chart cannot give) is no longer the first")
+    if any(c in composed for c in _CAVEAT):
+        ends = [(sentences(para) or [""])[-1] for para in polished.split("\n\n")]
+        if not any(e.startswith(_CAVEAT) for e in ends):
+            out.append("the caveat on the stretches no longer closes its paragraph")
+    a = Counter(m.group(0).lower() for m in CAUSAL.finditer(composed))
+    b = Counter(m.group(0).lower() for m in CAUSAL.finditer(polished))
+    added = sorted(w for w in b if b[w] > a.get(w, 0))
+    if added:
+        out.append(f"the polished text adds a cause the composed text does not state ({', '.join(added)})")
+    return out
 
 
 class PolishDraft(BaseModel):
@@ -646,15 +690,24 @@ def polish(text: str, *, backend=None, checker=None) -> dict[str, Any]:
     words = never_show(polished) + client_warnings(polished, conversation=True)
     words += [f"a tier word ({m.group(0)!r})" for m in [TIER_WORDS.search(polished)] if m]
     words += ["markdown or HTML" for _ in [1] if re.search(r"[*#`<>]", polished)]
+    words += polish_errors(text, polished)
     if words:
         out["refusals"] += words
         return out
+    # Both ways (review M1): nothing in the polished text the composed text does not state, and nothing of the
+    # composed text left out of the polished one.
     result, meta = checker.ask_one(polished, json.dumps({POLISH_CHECK: text}, indent=1))
-    out["metas"]["checker"] = meta
+    back, meta_back = checker.ask_one(text, json.dumps({POLISH_CHECK_BACK: polished}, indent=1))
+    out["metas"]["checker"], out["metas"]["checker_back"] = meta, meta_back
     out["verdict"] = [p.model_dump() for p in result.propositions]
+    out["verdict_back"] = [p.model_dump() for p in back.propositions]
     if not all(p.supported for p in result.propositions):
         out["refusals"] += [f"not in the composed text: {p.text} ({p.evidence})" for p in result.propositions
                             if not p.supported]
+    if not all(p.supported for p in back.propositions):
+        out["refusals"] += [f"left out of the polished text: {p.text} ({p.evidence})" for p in back.propositions
+                            if not p.supported]
+    if out["refusals"]:
         return out
     out["used"] = True
     out["sentences"] = [x for para in polished.split("\n\n") for x in sentences(para)]
@@ -731,7 +784,8 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
                  "checker": (_checker_role(checker) if checker is not None else _default_checker_role())
                             if metas.get("checker") else {},
                  "usage_extra": {"polisher": _usage([metas.get("polisher")]),
-                                 "checker": _usage([metas.get("checker")]) if metas.get("checker") else {}}}
+                                 "checker": _usage([m for m in (metas.get("checker"), metas.get("checker_back")) if m])
+                                 if metas.get("checker") else {}}}
         if p["used"]:
             shown, paras = p["sentences"], p["paragraphs"]
     if route.third_party:

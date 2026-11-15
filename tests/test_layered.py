@@ -3,6 +3,7 @@ the sentence bank, the composer, the polisher, the worksheet and the stored answ
 reference chart first."""
 
 import json
+import re
 from datetime import date, datetime
 from pathlib import Path
 
@@ -489,13 +490,15 @@ def test_5_the_polisher_is_off_by_default_and_used_only_when_the_checker_finds_e
     sys_block = pol.calls[0]["system"][0]
     assert sys_block["cache_control"] == {"type": "ephemeral"} and pol.calls[0]["effort"] == "low"
     assert pol.calls[0]["messages"][0]["content"] == doc["polish"]["composed"]
-    assert len(chk.asked) == 1 and doc["polish"]["composed"] in json.loads(chk.asked[0][1]).values()
+    # Asked both ways (review M1): the polished text against the composed, and the composed against the polished.
+    assert len(chk.asked) == 2 and doc["polish"]["composed"] in json.loads(chk.asked[0][1]).values()
+    assert chk.asked[1][0] == doc["polish"]["composed"]
     # Refused by the checker: the composed text is shown, and both calls are still recorded and priced.
     bad = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="s", polisher=StubPolisher(joined),
                       checker=StubChecker(ok=False))
     assert bad["source"] == "composer" and bad["shown"] == plain["shown"] and not bad["polish"]["used"]
     assert bad["polish"]["refusals"][0].startswith("not in the composed text")
-    assert bad["usage"]["polisher"]["cache_read_input_tokens"] == 800 and bad["usage"]["checker"]["calls"] == 1
+    assert bad["usage"]["polisher"]["cache_read_input_tokens"] == 800 and bad["usage"]["checker"]["calls"] == 2
 
 
 def test_5_a_polished_text_with_an_engine_word_or_markdown_is_refused_before_the_checker(chart, monkeypatch):
@@ -510,8 +513,8 @@ def test_5_a_polished_text_with_an_engine_word_or_markdown_is_refused_before_the
         assert doc["source"] == "composer" and not chk.asked and any(why in r for r in doc["polish"]["refusals"])
     # Markdown and HTML are taken off before anything is checked (conversation.unbullet): never shown as marks.
     doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, checker=StubChecker(),
-                      polisher=StubPolisher(lambda t: "**Your** career <b>leans</b> favourably."))
-    assert doc["shown"] == ["Your career leans favourably."]
+                      polisher=StubPolisher(lambda t: "**" + joined(t).replace(" leans ", " <b>leans</b> ", 1)))
+    assert doc["source"] == "polished" and not [x for x in doc["shown"] if re.search(r"[*<>]", x)]
 
 
 def test_5_the_polisher_and_its_cache_tokens_are_priced(chart, monkeypatch):
@@ -525,7 +528,7 @@ def test_5_the_polisher_and_its_cache_tokens_are_priced(chart, monkeypatch):
     haiku = cost("claude-haiku-5-5", {"input_tokens": 300, "output_tokens": 200, "cache_read_input_tokens": 800})
     glm = cost("zai-org/GLM-5.3-Flash", {"input_tokens": 1000, "output_tokens": 400}, "api.deepinfra.com")
     assert haiku == pytest.approx((300 * 0.10 + 200 * 0.50 + 800 * 0.01) / 1e6)     # cache reads at 0.1 x input
-    assert v["cost_usd"] == pytest.approx(haiku + glm, abs=1e-6)
+    assert v["cost_usd"] == pytest.approx(haiku + 2 * glm, abs=1e-6)               # the check both ways (M1)
     assert v["backends"]["polisher"]["model"] == "claude-haiku-5-5"
     monkeypatch.delenv("JYOTISH_POLISH")
     assert reading_cost(answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF))["cost_usd"] == 0

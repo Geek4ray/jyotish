@@ -382,3 +382,69 @@ def test_h5_a_subjects_erasure_with_a_bank_verdict_and_a_stored_answer_holds_und
         assert s.query(TurnRow).count() == 0 and s.query(AnswerRow).count() == 0
         v = s.query(BankReviewRow).one()
         assert v.turn_id is None and v.verdict == "right"
+
+
+# --- M1. The polisher's check misses omissions and invented causes ----------------------------------------------------
+
+COMPOSED = ("No chart can name an amount or promise anything to you; it shows how well it supports your career. "
+            "For your career, most of what the chart shows agrees, and on balance it leans favourably.\n\n"
+            "The ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it. Saturn has less "
+            "strength than it needs to give fully what it promises.\n\n"
+            "The most favourable stretch for your career runs from October 2029 to June 2032. Neither stretch is a "
+            "prediction of when you will act.")
+
+
+@pytest.mark.parametrize("polished,why", [
+    (COMPOSED.replace("Saturn, sits in your 1st house, a house that drains it. Saturn has", "Saturn, sits in your 1st "
+                      "house, a house that drains it, so it has"), "adds a cause"),
+    (COMPOSED.replace(" from October 2029 to June 2032", " soon"), "leaves out the date"),
+    (COMPOSED.replace("leans favourably", "is good"), "leaves out the lean"),
+    (COMPOSED.replace("No chart can name an amount or promise anything to you; it shows how well it supports your "
+                      "career. For your career", "For your career").replace("leans favourably.", "leans favourably. "
+                      "No chart can name an amount or promise anything to you; it shows how well it supports your "
+                      "career."), "opening sentence"),
+    (COMPOSED.replace(" Neither stretch is a prediction of when you will act.", "").replace(
+        "The most favourable", "Neither stretch is a prediction of when you will act. The most favourable"), "caveat"),
+    (COMPOSED.replace("Saturn", "Jupiter", 1), "adds the planet"),
+])
+def test_m1_the_code_refuses_a_polished_text_that_drops_moves_or_adds_before_any_call(polished, why):
+    from jyotish.conversation import polish_errors
+    assert polish_errors(COMPOSED, COMPOSED) == []
+    errs = polish_errors(COMPOSED, polished)
+    assert any(why in e for e in errs), errs
+
+
+def test_m1_the_committed_polished_career_turn_is_refused_for_its_invented_cause():
+    from jyotish.conversation import polish_errors
+    doc = json.loads((ROOT / "docs" / "layered_2026-11-15" / "layered-polished-1.turn.json").read_text())
+    assert doc["polish"]["used"] is True                                   # shown live, before this fix
+    assert polish_errors(doc["polish"]["composed"], doc["polish"]["text"]) == [
+        "the polished text adds a cause the composed text does not state (so)"]
+    bench = [json.loads(x) for x in (ROOT / "tests" / "fixtures" / "checker_bench.jsonl").read_text().splitlines()]
+    row = next(r for r in bench if r["id"] == "live-polish-career-saturn-cause")
+    assert row["label"] == "reject" and row["where"] == "polish" and row["sentence"] == doc["polish"]["text"]
+
+
+def test_m1_the_checker_is_asked_both_ways_and_an_omission_refuses_the_polish():
+    from jyotish.conversation import polish
+    from jyotish.narrate import CheckResult, Completion, Proposition
+
+    class Polisher:
+        model = "stub"
+
+        def structured(self, **kw):
+            from jyotish.conversation import PolishDraft
+            return Completion(parsed=PolishDraft(text=COMPOSED), assistant={}, stop_reason="end_turn", meta={})
+
+    class Checker:
+        def __init__(self):
+            self.asked = []
+
+        def ask_one(self, sentence, data):
+            self.asked.append((sentence, data))
+            back = next(iter(json.loads(data))).startswith("polished answer")
+            return CheckResult(propositions=[Proposition(text="x", supported=not back, evidence="left out")]), {}
+    ch = Checker()
+    out = polish(COMPOSED, backend=Polisher(), checker=ch)
+    assert len(ch.asked) == 2 and ch.asked[1][0] == COMPOSED and "polished answer" in ch.asked[1][1]
+    assert out["used"] is False and out["refusals"] == ["left out of the polished text: x (left out)"]

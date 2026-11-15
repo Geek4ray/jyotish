@@ -761,13 +761,17 @@ def polish_rows() -> list[dict]:
     answer as the sentence, the composed answer as the facts (every proposition of the sentence must be stated
     there), from the live seven-turn run of 2026-11-15 (docs/layered_2026-11-15/layered-polished-*). The money turn's
     polished text, refused live (it put Mercury among the planets that signify money; the composed answer gives it
-    as the ruler of the 2nd house), and the marriage turn's, shown."""
+    as the ruler of the 2nd house), the marriage turn's, shown, and the career turn's, shown though it made the
+    strength a consequence of the Mrita state (review M1)."""
     from jyotish.conversation import POLISH_CHECK
     rows = []
     for rid, n, label, cat, why in (
             ("live-polish-money-mercury", 6, "reject", "misattached_detail",
              "refused live by the gate checker: Mercury put among the planets that signify money"),
-            ("live-polish-marriage", 2, "accept", "accepted", "shown live: every proposition in the composed answer")):
+            ("live-polish-marriage", 2, "accept", "accepted", "shown live: every proposition in the composed answer"),
+            ("live-polish-career-saturn-cause", 1, "reject", "unstated_claim",
+             "shown live, wrongly (review 2026-11-15, M1): 'a feeble state, so it has less strength' states a cause "
+             "the composed answer does not; conversation.polish_errors now refuses its 'so' before any call")):
         doc = json.loads((POLISHED / f"layered-polished-{n}.turn.json").read_text())
         rows.append({"id": rid, "where": "polish", "area": (doc["route"]["areas"] or [None])[0], "finding_id": None,
                      "section": None, "sentence": doc["polish"]["text"], "label": label, "category": cat,
