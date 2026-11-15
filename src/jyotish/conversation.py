@@ -551,6 +551,13 @@ def plan_turn(chart, message: str, route: Route, *, as_of: date, data: dict | No
 
 # --- the composer (SPEC Layer 8, "The layered answer", step 4) -------------------------------------------------------
 
+def composes(route) -> bool:
+    """A turn the composer answers: one the route placed (areas of its own, or carried, or the weakest), not off limits
+    and not a "why?" after a fixed reply. A question with no area of its own goes to the chart's top areas and keeps
+    the writer loop."""
+    return bool(route.areas) and route.areas_from != "top" and not route.off_limits and not route.explains
+
+
 def layered_on() -> bool:
     """JYOTISH_LAYERED (on by default): a placed turn is answered by the composer; "0" keeps the writer loop for
     every turn."""
@@ -1452,7 +1459,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     emit({"type": "light", "stage": "route", **route_focus(chart, route.areas)})
     # The layered answer (SPEC Layer 8, rev 134): a turn the route placed is answered from the plan and the bank, no
     # model; a question the route could not place (its areas the chart's top ones by default) keeps the writer loop.
-    if (layered_on() if layered is None else layered) and route.areas and route.areas_from != "top":
+    if (layered_on() if layered is None else layered) and composes(route):
         return _composed_turn(chart, message, route, doc, kinds, said + [f"key:{k}" for k in said_k], as_of, data,
                               emit, mark, timeline,
                               session_key, bank, polisher=polisher, checker=checker, store=store,

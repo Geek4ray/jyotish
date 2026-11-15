@@ -899,3 +899,25 @@ def test_l4_a_polish_refused_for_want_of_a_verdict_is_not_stored(monkeypatch):
     refused = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l4", polisher=_JoinPolisher(),
                           checker=_Checker(False), store=store)                    # a real refusal is stored
     assert refused["source"] == "composer" and refused["stored"]["served"] is False and len(store.rows) == 1
+
+
+# --- L5. The scorecard's composer share is 100% by construction, and composed sentences have no correctness figure ----
+
+def test_l5_the_composed_check_samples_bank_sentences_with_their_facts_and_its_report_is_committed():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("composed_check", ROOT / "scripts" / "composed_check.py")
+    cc = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cc)
+    rows = cc.sample(4, 2, 21)
+    assert rows and all(r["sentence"] and r["data"]["facts"] and r["signature"] for r in rows)
+    assert cc.sample(4, 2, 21) == rows                                       # the same sentences for the same seed
+    report = json.loads(sorted((ROOT / "docs").glob("composed_check_*.json"))[-1].read_text())
+    assert report["checked"] >= 100 and 0 < report["share"] <= 1 and report["checker"]
+
+
+def test_l5_composes_is_the_turns_rule_and_a_question_with_no_area_keeps_the_writer():
+    from jyotish.conversation import composes, route_turn
+    c = _reference()
+    assert composes(route_turn("how is my career", c))
+    assert not composes(route_turn("what should I know", c))
+    assert not composes(route_turn("will I die early?", c))

@@ -850,9 +850,13 @@ def test_8_the_scorecard_reports_the_layered_answer_never_gated(monkeypatch, tmp
         {"kind": "turn", "date": "2026-11-15", "label": "p-1", "source": "polished", "from_bank": 8, "polished": True,
          "cost_usd": 0.002, "done_s": 9.0},
         {"kind": "turn", "date": "2026-11-15", "label": "w-1", "source": "writer", "cost_usd": 0.01, "done_s": 60}]))
+    (tmp_path / "composed_check_2026-11-16.json").write_text(json.dumps(
+        {"checker": "zai-org/GLM-5.3-Flash", "charts": 60, "checked": 120, "supported": 118, "share": 0.9833}))
     card = ev.Card()
     ev.layered(card, charts=4)
     n = card.numbers
+    assert n["bank.composed_supported"]["value"] == 0.9833                      # review L5
+    assert 0 < n["layered.composer_share.messages"]["value"] < 1
     from jyotish.bank import load_bank
     assert 0 < n["bank.coverage"]["value"] <= 1 and n["bank.rows"]["value"] == len(load_bank())
     assert n["layered.composer_share"]["value"] == 1.0 and n["layered.polished.cost_usd"]["value"] == 0.002

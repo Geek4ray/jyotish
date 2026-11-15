@@ -1,0 +1,28 @@
+{
+ "date": "2026-11-16",
+ "checker": "zai-org/GLM-5.3-Flash",
+ "charts": 60,
+ "seed": 21,
+ "sentences": 120,
+ "checked": 120,
+ "unchecked": 0,
+ "supported": 118,
+ "share": 0.9833,
+ "refused": [
+  {
+   "signature": "family.panchanga.for.many",
+   "variant": 2,
+   "area": "mind",
+   "sentence": "For your mind and feelings, the planets that rule the day you were born, the Moon and Venus, lean in a favourable direction.",
+   "evidence": "The derivation gives Venus only the role \"nakshatra\" (a lunar mansion), not vara, the weekday of birth. It is supported only on a loose reading of \"the day\" as the whole panchanga, and unsupported on the ordinary reading of \"the day you were born\" as the weekday, so the sentence attaches the weekday rulership to the wrong planet."
+  },
+  {
+   "signature": "opening.why",
+   "variant": 1,
+   "area": "foreign",
+   "sentence": "Let us look together at what in your chart lies behind it.",
+   "evidence": "the sentence never names the area, and \"it\" only points back to the prior question; the data's area (\"foreign\", \"travel and life abroad\") is not asserted by this sentence"
+  }
+ ],
+ "usd": 0.052
+}

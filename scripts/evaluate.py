@@ -273,6 +273,17 @@ def turn_timings(card: Card):
         "removed by the checks. Each is one run on a shared provider, so it is reported and never gated.", ""] + lines))
 
 
+# Questions as clients put them (review 2026-11-15, L5): the composer's share of turns is measured over these, placed
+# and not, on the reference chart, the route alone deciding; the live turns of docs/live_timings.jsonl are the seven
+# scripted turns, every one placed.
+COMPOSER_MESSAGES = (
+    "how is my career", "will I get married", "what about money", "when will I buy a house", "and my health?",
+    "tell me about my life", "what should I know", "hi", "is this a good year for me", "what are my strengths",
+    "what are the challenges in my life", "why?", "will I travel abroad", "how are my children", "kab shaadi hogi",
+    "what does my chart say", "will my business do well", "how is my relationship with my father", "am I lucky",
+    "what will happen next year")
+
+
 def layered(card: Card, charts: int = 1000):
     """The layered answer (SPEC Layer 8 rev 134, 2026-11-15): the bank's coverage of plan items on `charts` random
     synthetic charts (bank.coverage), its rows and approved share; and, from the turn rows of docs/live_timings.jsonl
@@ -320,6 +331,31 @@ def layered(card: Card, charts: int = 1000):
     else:
         card.skip("layered turns", "no composed turn row in docs/live_timings.jsonl; run scripts/live_timing.py --turn "
                                    "--layered on")
+    # The share of varied questions the composer would answer (the route alone, no model), and how often a composed
+    # sentence is true of its chart (the gate checker on a fixed sample, scripts/composed_check.py): review L5.
+    from jyotish.conversation import composes, route_turn
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    ref = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    placed, asked = 0, 0
+    for m in COMPOSER_MESSAGES:                      # each as a conversation's first turn: no follow-up carries
+        route = route_turn(m, ref)
+        if route.off_limits:
+            continue
+        asked += 1
+        placed += composes(route)
+    card.num("layered.composer_share.messages", round(placed / asked, 4), "higher", gate=False)
+    lines.append(f"Of {asked} varied questions on the reference chart, each a first turn (scripts/evaluate.py "
+                 f"COMPOSER_MESSAGES; off-limits ones left out), the composer answers {placed} ({placed / asked:.0%}); "
+                 "the rest have no area of their own and keep the writer loop.")
+    checks = sorted(DOCS.glob("composed_check_*.json"))
+    if checks:
+        cc = json.loads(checks[-1].read_text())
+        card.num("bank.composed_supported", cc["share"], "higher", gate=False)
+        lines.append(f"Composed sentences true of their chart ({checks[-1].name}, the gate checker {cc['checker']}): "
+                     f"{cc['supported']} of {cc['checked']} on {cc['charts']} random charts ({cc['share']:.1%}).")
+    else:
+        card.skip("bank.composed_supported", "no docs/composed_check_*.json; run scripts/composed_check.py")
     card.sections.append(("The layered answer (reported, not gated)", lines))
 
 
