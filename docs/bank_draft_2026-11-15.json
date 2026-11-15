@@ -486,8 +486,20 @@
    "usd": {
     "checker": 0.073
    }
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 1,
+   "checks": 3,
+   "refused": {},
+   "no_sample": [],
+   "usd": {
+    "checker": 0.0014
+   }
   }
  ],
  "rows_in_bank": 126,
- "usd_total": 2.0928
+ "usd_total": 2.0942
 }

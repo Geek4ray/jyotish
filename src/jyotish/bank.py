@@ -133,18 +133,37 @@ def plural(value: str) -> bool:
     return bool(re.search(r"\band\b|,", value or ""))
 
 
+# Slots whose value is one thing whatever its words: a role ("the ruler of your 2nd house and the main planet for
+# money") is one planet (review 2026-11-15, M6: "...are the Sun"), an area or a name is one subject.
+ONE_THING = ("dignity", "area", "Area", "areas", "named", "name", "when", "until", "role")
+# A verb coordinated with the slot's own verb in the same clause ("{planets} sit in your 10th house and forms", M6).
+_SECOND_VERB = re.compile(r"^([^,;:.]*?\band\s+)([a-z]+)\b")
+
+
 def agree(template: str, slots: dict[str, str]) -> str:
-    def fix(m):
-        name, space, verb = m.group(1), m.group(2), m.group(3)
-        if name not in slots or name in ("dignity", "area", "Area", "areas", "named", "name", "when", "until"):
-            return m.group(0)
-        many = plural(slots[name])
+    def number(verb: str, many: bool) -> str:
         if many and verb in PLURAL_OF:
-            verb = PLURAL_OF[verb]
-        elif not many and verb in SINGULAR_OF:
-            verb = SINGULAR_OF[verb]
-        return "{" + name + "}" + space + verb
-    return _AFTER_SLOT.sub(fix, template)
+            return PLURAL_OF[verb]
+        if not many and verb in SINGULAR_OF:
+            return SINGULAR_OF[verb]
+        return verb
+
+    out, at = [], 0
+    for m in _AFTER_SLOT.finditer(template):
+        name, space, verb = m.group(1), m.group(2), m.group(3)
+        out.append(template[at:m.start()])
+        at = m.end()
+        if name not in slots or name in ONE_THING or (verb not in PLURAL_OF and verb not in SINGULAR_OF):
+            out.append(m.group(0))
+            continue
+        many = plural(slots[name])
+        out.append("{" + name + "}" + space + number(verb, many))
+        rest = _SECOND_VERB.match(template[at:])
+        if rest and (rest.group(2) in PLURAL_OF or rest.group(2) in SINGULAR_OF):
+            out.append(rest.group(1) + number(rest.group(2), many))
+            at += rest.end()
+    out.append(template[at:])
+    return "".join(out)
 
 
 NODES = re.compile(r"\b(?:Rahu|Ketu)\b")
@@ -165,6 +184,7 @@ def shape_of(slots: dict[str, str]) -> str:
 
 def tidy(text: str) -> str:
     """A filled variant's punctuation where an empty slot left it loose (", ." from an empty dignity)."""
+    text = re.sub(r",(?:\s*,)+", ",", text)       # ", ," and ",," after an empty dignity (review M6)
     text = re.sub(r"\s+,", ",", re.sub(r",\s*([.;:])", r"\1", text))
     return re.sub(r"\s{2,}", " ", text).strip()
 

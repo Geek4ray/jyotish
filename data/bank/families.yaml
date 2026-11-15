@@ -1326,33 +1326,33 @@
   - area
   - planets
   variants:
-  - The planet {planets}, a ruler of the day you were born, leans unfavourably for {area}.
+  - '{planets}, a ruler of the day you were born, leans unfavourably for {area}.'
   - Among the rulers of the day you were born, {planets} leans unfavourably when it comes to {area}.
   - For {area}, one ruler of the day you were born, {planets}, leans in an unfavourable direction.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review M6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
-    sentence: The planet the Sun, a ruler of the day you were born, leans unfavourably for marriage.
+    sentence: the Sun, a ruler of the day you were born, leans unfavourably for marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,planets:one+lum
   - variant: 1
     sentence: Among the rulers of the day you were born, the Sun leans unfavourably when it comes to marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,planets:one+lum
   - variant: 2
     sentence: For marriage, one ruler of the day you were born, the Sun, leans in an unfavourable direction.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,planets:one+lum
 - signature: family.panchanga.for.many
   kind: fact

@@ -589,3 +589,27 @@ def test_m5_a_rule_fired_with_no_house_is_told_from_the_bank(composed):
     nohouse = [s for c, p, s in composed if s["part"] == "rule" and s["signature"].endswith(".nohouse")]
     assert nohouse and sum(s["row"] is not None for s in nohouse) / len(nohouse) > 0.9
 
+
+# --- M6. Grammar faults the composer puts in front of clients ----------------------------------------------------------
+
+P = r"(?:the )?(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)"
+SINGULAR = r"(?:sits|has|is|leans|holds|forms|bears|falls|lies|stands|rules|gives)"
+
+
+def test_m6_no_doubled_comma_no_plural_verb_after_a_role_and_no_list_with_a_singular_verb(composed):
+    for c, p, s in composed:
+        t = s["text"]
+        assert not re.search(r",\s*,", t), t
+        assert not re.search(rf"\b{P} and {P} {SINGULAR}\b", t), t                       # "the Sun and Mercury sits"
+        assert not re.search(rf"\b{P} and {P} [^,;.]*?\band {SINGULAR}\b", t), t          # "... sit ... and forms"
+        assert not re.search(r"\b(?:main planet|ruler)[^,;.]* and the main planet[^,;.]* (?:are|sit|have)\b", t), t
+
+
+def test_m6_agreement_mends_the_second_verb_and_leaves_a_role_singular():
+    from jyotish.bank import agree, tidy
+    assert agree("{planets} sits in your 10th house and forms a yoga.", {"planets": "the Sun and Mercury"}) == \
+        "{planets} sit in your 10th house and form a yoga."
+    assert agree("When {role} sits in", {"role": "the ruler of your 2nd house and the main planet for money"}) == \
+        "When {role} sits in"
+    assert tidy("in your 12th house,, and together") == "in your 12th house, and together"
+    assert tidy("in your 12th house, , and together") == "in your 12th house, and together"
