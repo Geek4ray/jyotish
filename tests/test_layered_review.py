@@ -658,3 +658,50 @@ def test_m7_a_rule_said_for_several_areas_reads_each_areas_own_meaning_row():
     labels = rule.facts["area_labels"]
     assert [s["text"] for s in told] == [f"For {labels[a]} ({a})." for a in rule.facts["areas"]]
     assert [s["area"] for s in told] == rule.facts["areas"]
+
+
+# --- M8. A withdrawal cannot be undone, and an older verdict can override a newer one --------------------------------
+
+def _verdict_db(tmp_path, verdicts):
+    import shutil
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.bank import BankRow, dump_rows
+    from jyotish.db import BankReviewRow, migrate
+    d = tmp_path / "bank"
+    d.mkdir()
+    shutil.copy(ROOT / "data" / "bank" / "bank.schema.json", d)
+    row = BankRow(signature="rule.yoga.ruchaka.reduced@career", kind="meaning", slots=["area"], source="BPHS 75.1",
+                  drafted_by="t", drafted_on=AS_OF, variants=["Zero for {area}.", "One for {area}.", "Two for {area}."])
+    (d / "meanings.yaml").write_text(dump_rows([row]))
+    url = f"sqlite:///{tmp_path / 'm8.db'}"
+    with sessionmaker(migrate(url)).begin() as s:
+        for variant, verdict, words in verdicts:                         # in the order given: oldest first
+            s.add(BankReviewRow(signature=row.signature, kind="meaning", variant=variant, verdict=verdict, words=words,
+                                sentence="x", slots={"area": "your career"}, reviewer_id="astrologer-1"))
+            s.flush()
+    return d, url
+
+
+def test_m8_a_newer_right_is_not_undone_by_an_older_wrong(tmp_path):
+    from jyotish.bank import apply_reviews, load_bank
+    d, url = _verdict_db(tmp_path, [(0, "wrong", "not this reading"), (1, "right", None)])
+    apply_reviews(url, d, today=AS_OF)
+    r = load_bank(d).meaning("rule.yoga.ruchaka.reduced", "career")
+    assert r is not None and r.approved_variants == [1]                     # the latest verdict on the row decides
+
+
+def test_m8_a_row_withdrawn_and_then_rewritten_is_shown_again(tmp_path):
+    from jyotish.bank import apply_reviews, load_bank
+    d, url = _verdict_db(tmp_path, [(0, "wrong", "not this reading")])
+    apply_reviews(url, d, today=AS_OF)
+    assert load_bank(d).meaning("rule.yoga.ruchaka.reduced", "career") is None
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.db import BankReviewRow, migrate
+    with sessionmaker(migrate(url)).begin() as s:
+        s.add(BankReviewRow(signature="rule.yoga.ruchaka.reduced@career", kind="meaning", variant=2, verdict="change",
+                            words="Tradition reads it as courage for your career.", sentence="x",
+                            slots={"area": "your career"}, reviewer_id="astrologer-1"))
+    rep = apply_reviews(url, d, today=AS_OF)
+    r = load_bank(d).meaning("rule.yoga.ruchaka.reduced", "career")
+    assert rep["rewritten"] and r is not None and r.withdrawn_by is None
+    assert r.variants[2] == "Tradition reads it as courage for {area}." and r.approved_variants == [2]

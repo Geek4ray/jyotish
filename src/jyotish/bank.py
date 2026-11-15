@@ -413,9 +413,10 @@ def approve(row: BankRow, i: int, by: str, today: date) -> None:
 
 def apply_reviews(database_url: str | None = None, directory: Path | str | None = None,
                   today: date | None = None, checker=None) -> dict[str, Any]:
-    """Every verdict not yet written back, the latest first per (row, variant): right approves the row (approved_by,
-    approved_on); change puts the astrologer's words, with the chart's values as slots, in place of the variant he
-    read, approved and `rewritten_by` him; wrong withdraws the row (never shown again). A row that would no longer
+    """Every verdict not yet written back, oldest first, so the latest decides: right approves the variant he read
+    (approved_by, approved_on); change puts the astrologer's words, with the chart's values as slots, in place of the
+    variant he read, approved and `rewritten_by` him; wrong withdraws the row (never shown again) until a later right
+    or change brings it back. A row that would no longer
     stand (`row_errors`) is left as it was and reported; a verdict on a sentence with no row (the engine's own) is
     reported for drafting. Each file is rewritten once, and every verdict written back is marked applied."""
     from datetime import datetime, timezone
@@ -431,20 +432,20 @@ def apply_reviews(database_url: str | None = None, directory: Path | str | None 
     Session = sessionmaker(migrate(database_url))
     changed: set[str] = set()
     with Session.begin() as s:
-        pending = s.query(BankReviewRow).filter(BankReviewRow.applied_at.is_(None)).order_by(BankReviewRow.id.desc()).all()
-        seen: set[tuple] = set()
+        # Oldest first, each applied in turn (review 2026-11-15, M8: newest first with one per variant let an older
+        # "wrong" on variant 0 withdraw a row after a newer "right" on variant 1): the latest verdict on a row decides
+        # whether it is withdrawn, and the latest on a variant its words and approval.
+        pending = s.query(BankReviewRow).filter(BankReviewRow.applied_at.is_(None)).order_by(BankReviewRow.id).all()
         for v in pending:
-            key = (v.signature, v.kind, v.variant)
-            if key in seen:                              # an older verdict on the same variant: the latest stands
-                v.applied_at = datetime.now(timezone.utc)
-                continue
-            seen.add(key)
             row = bank.row(v.signature, v.kind) if v.kind else None
             if row is None:
                 report["no_row"].append({"signature": v.signature, "verdict": v.verdict, "words": v.words})
                 continue
             new = row.model_copy(deep=True)
             i = v.variant or 0
+            if v.verdict in ("right", "change") and new.withdrawn_by:
+                # Judged right or rewritten after it was withdrawn: shown again (M8).
+                new.withdrawn_by = new.withdrawn_on = new.withdrawn_why = None
             if v.verdict == "right":
                 approve(new, i, v.reviewer_id, today)
                 what = "approved"
@@ -485,6 +486,7 @@ def apply_reviews(database_url: str | None = None, directory: Path | str | None 
                 what = "rewritten"
             else:
                 new.withdrawn_by, new.withdrawn_on, new.withdrawn_why = v.reviewer_id, today, v.words
+                new.approved_variants, new.status = [], "draft"
                 what = "withdrawn"
             errs = row_errors(new)
             if errs:
