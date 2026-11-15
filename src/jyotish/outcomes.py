@@ -303,10 +303,14 @@ def erase_sessions(session, session_ids: list[str], erased_by: str) -> dict[str,
             r.target = "session:<erased>" if (r.target or "").startswith("session:") else r.target
             counts["reviews_kept"] += 1
         # The astrologer's verdicts on the bank (SPEC Layer 8, "The layered answer") are kept as his judgement of a
-        # sentence, as review rows are: their turn is taken off, and with it the chart's values they carried.
+        # sentence, as review rows are: their turn is taken off. The slots stay (planet, sign and house names, which a
+        # rewrite needs to become slots again: review 2026-11-15, H4, where an erased verdict's rewrite was written
+        # as one client's values for every chart); the facts and the engine's sentence they rest on go with the turn,
+        # so a rewrite of a fact row can no longer be checked and apply-reviews refuses it.
         from .db import BankReviewRow
         for r in session.query(BankReviewRow).filter(BankReviewRow.turn_id.in_(turn_ids)):
-            r.turn_id, r.slots = None, None
+            r.turn_id = None
+            r.slots = {k: v for k, v in (r.slots or {}).items() if k not in ("_facts", "_engine")} or None
             counts["reviews_kept"] += 1
         session.flush()
     for r in session.query(ReviewRow).filter(ReviewRow.target.in_([f"session:{i}" for i in ids])):

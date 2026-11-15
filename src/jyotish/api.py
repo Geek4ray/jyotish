@@ -1083,7 +1083,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             s.add(BankReviewRow(signature=row.get("signature") or sent["looked_at"]["signature"] or f"turn:{t.id}:{req.i}",
                                 kind=row.get("kind"), variant=row.get("variant"), bank_version=t.document.get("bank"),
                                 verdict=req.verdict, words=(req.words or "").strip() or None, sentence=sent["told"],
-                                slots=sent["looked_at"]["slots"] | {"_i": req.i}, turn_id=t.id, reviewer_id=who))
+                                slots=sent["looked_at"]["slots"] | {"_i": req.i, "_facts": sent["looked_at"]["facts"],
+                                                                     "_engine": sent.get("engine")},
+                                turn_id=t.id, reviewer_id=who))
             log_turn(s, srow, who, "verdict", turn_id=t.id, target=f"worksheet:{n}:{req.i}", before=sent["told"],
                      after=(req.words or None), verdict=req.verdict, area=sent.get("area"))
             s.flush()

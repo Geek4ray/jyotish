@@ -351,9 +351,26 @@ def template(sentence: str, slots: dict[str, str]) -> str:
     """A sentence in the astrologer's own words with the chart's values put back as slots ({planet}, {house}, ...),
     the longest value first, so his rewrite serves every later chart."""
     out = sentence.strip()
-    for name, value in sorted(((k, v) for k, v in slots.items() if v and not k.startswith("_")),
+    for name, value in sorted(((k, v) for k, v in slots.items() if isinstance(v, str) and v and not k.startswith("_")),
                               key=lambda kv: -len(kv[1])):
-        out = re.sub(rf"(?<![{{\w]){re.escape(value)}(?![\w}}])", "{" + name + "}", out)
+        # The value as the plan gives it and capitalised at a sentence's start ("the Sun" read as "The Sun": review
+        # 2026-11-15, H4, where the capital kept "The Sun" literal in a rewrite served to every chart).
+        forms = sorted({value, value[:1].upper() + value[1:]}, key=len, reverse=True)
+        pattern = "|".join(re.escape(f) for f in forms)
+        out = re.sub(rf"(?<![{{\w])(?:{pattern})(?![\w}}])", "{" + name + "}", out)
+    return out
+
+
+def rewrite_errors(old: str, new: str) -> list[str]:
+    """Why an astrologer's rewrite cannot replace a variant: its slots are not the variant's (a value left literal,
+    or one the variant did not carry), so it would tell one chart's values to every chart (review H4)."""
+    a, b = set(SLOT.findall(old)), set(SLOT.findall(new))
+    out = []
+    if a - b:
+        out.append(f"the rewrite does not carry the chart's values for {sorted(a - b)} as the sentence did: a value "
+                   f"left in the words would be told to every chart")
+    if b - a:
+        out.append(f"the rewrite carries {sorted(b - a)}, which the sentence did not")
     return out
 
 
@@ -365,7 +382,7 @@ def approve(row: BankRow, i: int, by: str, today: date) -> None:
 
 
 def apply_reviews(database_url: str | None = None, directory: Path | str | None = None,
-                  today: date | None = None) -> dict[str, Any]:
+                  today: date | None = None, checker=None) -> dict[str, Any]:
     """Every verdict not yet written back, the latest first per (row, variant): right approves the row (approved_by,
     approved_on); change puts the astrologer's words, with the chart's values as slots, in place of the variant he
     read, approved and `rewritten_by` him; wrong withdraws the row (never shown again). A row that would no longer
@@ -402,11 +419,38 @@ def apply_reviews(database_url: str | None = None, directory: Path | str | None 
                 approve(new, i, v.reviewer_id, today)
                 what = "approved"
             elif v.verdict == "change":
+                slots = v.slots or {}
+                words = template(v.words or v.sentence, slots)
+                why = rewrite_errors(row.variants[i], words)
+                check = None
+                if not why and new.kind == "fact":
+                    # A fact variant is checked once against the item's facts, as the drafted variants were (H4).
+                    if checker is None:
+                        why = ["a rewritten fact sentence is checked against its facts, and no checker was given"]
+                    elif not slots.get("_facts"):
+                        why = ["the facts this sentence rests on were erased with the conversation: rewrite it on "
+                               "another turn"]
+                    else:
+                        filled = BankRow.fill(new.model_copy(update={"variants": [words] * 3}), 0,
+                                              {k: x for k, x in slots.items() if not k.startswith("_")})
+                        data = json.dumps({"facts": slots["_facts"], "the engine's own sentence": slots.get("_engine")},
+                                          default=str, indent=1)
+                        res, meta = checker.ask_one(filled, data)
+                        ok = all(p.supported for p in res.propositions)
+                        model = ((meta or {}).get("backend") or {}).get("model") or "checker"
+                        check = Check(variant=i, sentence=filled, supported=ok, model=model, on=today,
+                                      evidence="; ".join(p.evidence for p in res.propositions if not p.supported)[:400],
+                                      shape=shape_of({k: x for k, x in slots.items() if not k.startswith("_")}))
+                        if not ok:
+                            why = [f"the checker found the rewrite not stated by the facts: {check.evidence}"]
+                if why:
+                    report["refused"].append({"signature": v.signature, "verdict": v.verdict, "why": why})
+                    continue
                 variants = list(new.variants)
-                variants[i] = template(v.words or v.sentence, v.slots or {})
+                variants[i] = words
                 new.variants = variants
                 new.rewritten_by = v.reviewer_id
-                new.checks = [c for c in new.checks if c.variant != i]
+                new.checks = [c for c in new.checks if c.variant != i] + ([check] if check else [])
                 approve(new, i, v.reviewer_id, today)
                 what = "rewritten"
             else:

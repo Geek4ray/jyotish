@@ -631,8 +631,10 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
                f"{slots['reductions']} hold it back.")
     c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
            json={"i": fact["i"], "verdict": "change", "words": rewrite})
-    rep = apply_reviews(url, ws_bank, today=AS_OF)
+    checker = StubChecker()                                    # a rewritten fact sentence is checked (review H4)
+    rep = apply_reviews(url, ws_bank, today=AS_OF, checker=checker)
     assert [x["signature"] for x in rep["rewritten"]] == ["rule.yoga.ruchaka.reduced"]
+    assert checker.asked and "Mars in your 7th house" in checker.asked[0][0]
     assert [x["signature"] for x in rep["no_row"]] == ["weakness.mks"]          # the engine's sentence: for drafting
     row = load_bank(ws_bank).fact("rule.yoga.ruchaka.reduced")
     v = fact["bank_row"]["variant"]
@@ -642,7 +644,7 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     assert row.approved_variants == [v] and row.status == "draft"
     assert row.approved_by == row.rewritten_by == "astrologer-1"
     assert (ws_bank / "rules.yaml").read_text().startswith("# the test bank")
-    assert apply_reviews(url, ws_bank, today=AS_OF) == {k: [] for k in rep} | {"no_row": rep["no_row"]}
+    assert apply_reviews(url, ws_bank, today=AS_OF, checker=checker) == {k: [] for k in rep} | {"no_row": rep["no_row"]}
     # Wrong: the row is withdrawn and never shown again; the next turn falls back to the engine's sentence.
     c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
            json={"i": fact["i"], "verdict": "wrong", "words": "Ruchaka does not bear on career here."})
@@ -669,7 +671,9 @@ def test_6_erasing_the_conversation_keeps_the_verdict_without_its_turn(ws_client
         erase_sessions(s, [sid], "test")
     with S.begin() as s:
         rows = s.query(BankReviewRow).all()
-        assert rows and all(r.turn_id is None and r.slots is None for r in rows)
+        # The turn is taken off; the slots (planet and sign names) stay for a rewrite, the facts go (review H4).
+        assert rows and all(r.turn_id is None for r in rows)
+        assert all(r.slots and "_facts" not in r.slots and "_engine" not in r.slots for r in rows)
 
 
 def test_6_the_session_review_page_opens_the_worksheet_and_saves_a_verdict(tmp_path):

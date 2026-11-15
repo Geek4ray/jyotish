@@ -506,7 +506,14 @@ def cmd_bank(args) -> int:
     if args.bcmd == "apply-reviews":
         import os
         from .bank import apply_reviews
-        rep = apply_reviews(args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db"))
+        from .narrate import CONFIG, ModelChecker, make_backend
+        try:                                     # a rewritten fact sentence is checked by the gate checker (review H4)
+            checker = ModelChecker(make_backend(None, "checker", CONFIG), CONFIG)
+        except Exception as e:                   # no backend: every rewrite of a fact row is refused, and says why
+            print(f"no checker ({type(e).__name__}): a rewritten fact sentence will be refused")
+            checker = None
+        rep = apply_reviews(args.database or os.environ.get("JYOTISH_DATABASE_URL", "sqlite:///jyotish.db"),
+                            checker=checker)
         for k, v in rep.items():
             print(f"{k}: {len(v)}" + "".join(f"\n  {x['signature']} ({x.get('verdict') or x.get('by')})"
                                              + (f": {'; '.join(x['why'])}" if x.get("why") else "") for x in v))

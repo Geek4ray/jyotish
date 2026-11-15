@@ -834,9 +834,11 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
         tags = " ".join(f"[{t}]" for t in item.tags)
         return {"text": text, "tagged": f"{text[:-1]} {tags}{text[-1]}" if tags and text[-1:] in ".!?" else text,
                 "signature": item.signature, "part": item.part, "area": item.area, "tags": item.tags,
+                "item": index[id(item)],
                 "notes": item.notes, "row": None if row is None else
                 {"signature": row.signature, "kind": row.kind, "variant": variant,
                  "status": row.status, "file": row.file}}
+    index = {id(it): n for n, it in enumerate(plan.items)}      # each sentence's plan item (the worksheet's, H4)
     for item in plan.items:
         row = bank.fact(item.signature)
         if _usable(row, item):
@@ -1552,11 +1554,17 @@ def worksheet(doc: dict, bank=None, verdicts: list[dict] | None = None) -> dict[
     bank = bank if bank is not None else default_bank()
     verdicts = verdicts or []
     plan = doc.get("plan") or {}
-    items = {(i["signature"], i.get("area")): i for i in plan.get("items", [])}
+    plan_items = plan.get("items", [])
+    # By the sentence's plan index (review 2026-11-15, H4: two items of one signature in one area, Saturn's and the
+    # Sun's Mrita, overwrote each other, and Saturn's sentence showed the Sun's facts and slots); a turn composed
+    # before the index was kept, by signature and area.
+    items = {(i["signature"], i.get("area")): i for i in plan_items}
     out: list[dict[str, Any]] = []
     if doc.get("composed"):
         for i, s in enumerate(doc["composed"]["sentences"]):
-            item = items.get((s["signature"], s.get("area"))) or {}
+            k = s.get("item")
+            item = (plan_items[k] if isinstance(k, int) and k < len(plan_items) else
+                    items.get((s["signature"], s.get("area")))) or {}
             r = s.get("row")
             row = bank.row(r["signature"], r["kind"]) if r else None
             out.append({"i": i, "told": s["text"], "part": s["part"], "area": s.get("area"),

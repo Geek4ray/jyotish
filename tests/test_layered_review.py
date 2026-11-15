@@ -246,3 +246,102 @@ def test_h3_the_worksheet_shows_every_variant_and_which_are_approved():
     assert s["bank_row"]["variants"] == row.variants and s["bank_row"]["approved_variants"] == [0]
     js = (ROOT / "web" / "js" / "review-session.js").read_text()
     assert "ws.right_scope" in js and "approved_variants" in js
+
+
+# --- H4. An astrologer's rewrite can become one chart's values for every chart ---------------------------------------
+
+def test_h4_a_rewrite_starting_with_a_capitalised_value_is_templated():
+    from jyotish.bank import template
+    slots = {"planet": "the Sun", "role": "the main planet of your career", "sign": "Aquarius"}
+    assert (template("The Sun, the main planet of your career, is in a feeble state by its degree in Aquarius.", slots)
+            == "{planet}, {role}, is in a feeble state by its degree in {sign}.")
+
+
+def test_h4_two_items_of_one_signature_keep_their_own_facts_on_the_worksheet():
+    """The reference chart's career: weakness.mrita for Saturn (the 10th lord) and for the Sun (the main
+    significator). Each sentence's worksheet row shows its own planet's facts and slots."""
+    from jyotish.conversation import compose, plan_turn, route_turn, worksheet
+    from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
+    from jyotish.uncertainty import assess
+    c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
+    p = plan_turn(c, "how is my career", route_turn("how is my career", c), as_of=AS_OF)
+    assert [i.facts["planet"] for i in p.items if i.signature == "weakness.mrita"] == ["Saturn", "Sun"]
+    doc = {"source": "composer", "plan": p.model_dump(), "composed": compose(p, session_key="s")}
+    mrita = [s for s in worksheet(doc)["sentences"] if s["looked_at"]["signature"] == "weakness.mrita"]
+    assert [s["looked_at"]["facts"]["planet"] for s in mrita] == ["Saturn", "Sun"]
+    for s in mrita:
+        planet = s["looked_at"]["facts"]["planet"]
+        assert planet in s["told"] and s["looked_at"]["slots"]["sign"] == c.bodies[planet].sign_name
+
+
+def test_h4_a_rewrite_whose_slots_are_not_the_variants_is_refused():
+    from jyotish.bank import rewrite_errors, template
+    old = "{role}, {planet}, is in a feeble state by its degree in {sign}."
+    slots = {"planet": "Saturn", "role": "the ruler of your 10th house", "sign": "Taurus"}
+    ok = template("The ruler of your 10th house, Saturn, is feeble by its degree in Taurus.", slots)
+    assert rewrite_errors(old, ok) == []
+    left = template("Saturn is feeble in Taurus, as it is for everyone.", {"planet": "the Sun", "sign": "Aquarius"})
+    assert left == "Saturn is feeble in Taurus, as it is for everyone." and rewrite_errors(old, left)
+
+
+@pytest.fixture
+def h4_db(tmp_path):
+    """A bank of one fact row and a database with one "change" verdict on its variant 0."""
+    import shutil
+    from sqlalchemy.orm import sessionmaker
+    from jyotish.bank import BankRow, dump_rows
+    from jyotish.db import BankReviewRow, migrate
+    d = tmp_path / "bank"
+    d.mkdir()
+    shutil.copy(ROOT / "data" / "bank" / "bank.schema.json", d)
+    row = BankRow(signature="weakness.mrita", kind="fact", slots=["planet", "role", "sign"], drafted_by="t",
+                  drafted_on=AS_OF, variants=["{role}, {planet}, is in a feeble state by its degree in {sign}."] * 3)
+    (d / "weaknesses.yaml").write_text(dump_rows([row]))
+    url = f"sqlite:///{tmp_path / 'h4.db'}"
+    S = sessionmaker(migrate(url))
+    slots = {"planet": "Saturn", "role": "the ruler of your 10th house", "sign": "Taurus",
+             "_facts": {"planet": "Saturn", "avastha_baladi": "Mrita", "sign": "Taurus"}, "_engine": "e", "_i": 3}
+    with S.begin() as s:
+        s.add(BankReviewRow(signature="weakness.mrita", kind="fact", variant=0, verdict="change",
+                            words="The ruler of your 10th house, Saturn, sits feeble by its degree in Taurus.",
+                            sentence="x", slots=slots, reviewer_id="astrologer-1"))
+    return d, url, S
+
+
+class _Checker:
+    def __init__(self, ok):
+        self.ok, self.asked = ok, []
+
+    def ask_one(self, sentence, data):
+        from jyotish.narrate import CheckResult, Proposition
+        self.asked.append((sentence, json.loads(data)))
+        return CheckResult(propositions=[Proposition(text=sentence, supported=self.ok, evidence="stub")]), {}
+
+
+def test_h4_a_rewritten_fact_variant_is_checked_against_its_facts_and_refused_if_not_stated(h4_db):
+    from jyotish.bank import apply_reviews, load_bank
+    d, url, _ = h4_db
+    assert apply_reviews(url, d, today=AS_OF)["refused"][0]["why"][0].startswith("a rewritten fact sentence is checked")
+    no = _Checker(False)
+    rep = apply_reviews(url, d, today=AS_OF, checker=no)
+    assert rep["refused"] and "not stated by the facts" in rep["refused"][0]["why"][0]
+    assert no.asked[0][0] == "the ruler of your 10th house, Saturn, sits feeble by its degree in Taurus."
+    assert no.asked[0][1]["facts"]["avastha_baladi"] == "Mrita"
+    assert load_bank(d).fact("weakness.mrita").variants[0].endswith("is in a feeble state by its degree in {sign}.")
+    yes = _Checker(True)
+    rep = apply_reviews(url, d, today=AS_OF, checker=yes)
+    row = load_bank(d).fact("weakness.mrita")
+    assert rep["rewritten"] and row.variants[0] == "{role}, {planet}, sits feeble by its degree in {sign}."
+    assert [c.variant for c in row.checks] == [0] and row.checks[0].supported
+
+
+def test_h4_after_the_conversation_is_erased_a_fact_rewrite_is_refused_not_written_literally(h4_db):
+    from jyotish.bank import apply_reviews, load_bank
+    from jyotish.db import BankReviewRow
+    d, url, S = h4_db
+    with S.begin() as s:                                   # what erase_sessions leaves: the slots, not the facts
+        r = s.query(BankReviewRow).one()
+        r.slots = {k: v for k, v in r.slots.items() if k not in ("_facts", "_engine")}
+    rep = apply_reviews(url, d, today=AS_OF, checker=_Checker(True))
+    assert rep["refused"] and "erased with the conversation" in rep["refused"][0]["why"][0]
+    assert "Saturn" not in "".join(load_bank(d).fact("weakness.mrita").variants)
