@@ -957,3 +957,26 @@ def test_l6_a_fact_variant_no_check_supported_is_never_shown():
     r = BankRow(signature="period.now.touches.same", kind="fact", slots=["area"], drafted_by="t", drafted_on=AS_OF,
                 variants=["A {area}.", "B {area}.", "C {area}."])
     assert r.refused() == {0, 1, 2} and not fills(r, {"area": "your career"})
+
+
+# --- L7. Smaller readings to settle ----------------------------------------------------------------------------------
+
+def test_l7_a_served_stored_answer_lights_the_chart_wheel_as_the_first_one_did(monkeypatch):
+    from jyotish.conversation import answer_turn, route_turn
+    c = _reference()
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+
+    class Store:
+        rows = {}
+
+        def get(self, key):
+            return dict(self.rows[key]) if key in self.rows else None
+
+        def put(self, key, document, *, bank_version, birth_key=None):
+            self.rows[key] = document
+    store, m = Store(), "how is my career"
+    lights = lambda ev: [(e["planets"], e["houses"]) for e in ev if e["type"] == "light" and e.get("stage") == "sentence"]
+    first, again = [], []
+    answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l7", store=store, emit=first.append)
+    doc = answer_turn(c, m, route_turn(m, c), as_of=AS_OF, session_key="l7", store=store, emit=again.append)
+    assert doc["stored"]["served"] and lights(again) and len(lights(again)) == len(lights(first))

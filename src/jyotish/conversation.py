@@ -787,6 +787,10 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
             for i, text in enumerate(hit["shown"]):
                 mark("first_verified")
                 emit({"type": "text", "i": i, "text": text, "para": i in hit["paragraphs"]})
+                # The chart wheel lights a served answer as it lit the answer first given (review 2026-11-15, L7).
+                f = focus_of(text, chart)
+                if f["planets"] or f["houses"]:
+                    emit({"type": "light", "stage": "sentence", **f})
             mark("done")
             emit({"type": "done", "status": "done", "source": hit["source"]})
             return doc | hit | {"stored": {"key": key, "served": True}, "attempts": 0, "timeline": timeline,
