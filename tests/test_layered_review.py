@@ -95,7 +95,8 @@ def test_h1_a_variant_refused_on_one_shape_is_never_shown_and_the_next_one_is(tm
     row = BankRow(signature="family.kp.for", kind="fact", slots=["area"], drafted_by="t", drafted_on=AS_OF,
                   variants=["A {area}.", "B {area}.", "C {area}."],
                   checks=[{"variant": 1, "sentence": "B x.", "supported": False, "model": "m", "on": AS_OF, "shape": "a"},
-                          {"variant": 1, "sentence": "B y.", "supported": True, "model": "m", "on": AS_OF, "shape": "b"}])
+                          {"variant": 1, "sentence": "B y.", "supported": True, "model": "m", "on": AS_OF, "shape": "b"}]
+                  + [{"variant": v, "sentence": "x", "supported": True, "model": "m", "on": AS_OF} for v in (0, 2)])
     assert row.refused() == {1}
     assert [row.usable(i) for i in range(3)] == [0, 2, 2]
     from jyotish.bank import Check
@@ -578,7 +579,8 @@ def test_m5_a_row_declaring_a_slot_no_variant_uses_does_not_load():
 def test_m5_fills_is_the_composers_rule_and_the_coverage_tools():
     from jyotish.bank import BankRow, fills
     r = BankRow(signature="x.y", kind="fact", slots=["area", "dignity", "planets"], drafted_by="t", drafted_on=AS_OF,
-                variants=["{planets} for {area}{dignity}."] * 3)
+                variants=["{planets} for {area}{dignity}."] * 3,
+                checks=[{"variant": v, "sentence": "x", "supported": True, "model": "m", "on": AS_OF} for v in range(3)])
     assert fills(r, {"area": "your career", "planets": "Mars", "dignity": ""})
     assert not fills(r, {"area": "your career", "planets": "", "dignity": ""})      # an empty slot: the engine's
     assert not fills(r, {"area": "your career"})
@@ -921,3 +923,37 @@ def test_l5_composes_is_the_turns_rule_and_a_question_with_no_area_keeps_the_wri
     assert composes(route_turn("how is my career", c))
     assert not composes(route_turn("what should I know", c))
     assert not composes(route_turn("will I die early?", c))
+
+
+# --- L6. Wording a client would stumble on ------------------------------------------------------------------------------
+
+def test_l6_the_wordings_the_review_named_are_gone_from_every_variant(composed):
+    from jyotish.bank import load_bank
+    text = " ".join(v for r in load_bank().rows for v in r.variants)
+    assert "is not something this chart" not in text and "least favourable stretch in the chart" not in text
+    assert "lies behind it." not in text and "among your twelve houses" not in text
+    for c, p, s in composed:
+        assert "the main planet of " not in s["text"], s["text"]
+        assert not re.search(r"period of (\w+), within that of \1\b", s["text"]), s["text"]
+        assert not re.search(r"^(?:Brothers, sisters and courage|Your \w+) (?:draws|is where|is an area)", s["text"])
+
+
+def test_l6_a_lord_in_its_own_sub_period_is_said_as_one_planet():
+    from jyotish.bank import load_bank
+    from jyotish.plan import _period_item
+    c = _reference()
+    for d in (date(2026, 11, 15), date(2030, 1, 1), date(2041, 6, 1), date(2045, 6, 1), date(2060, 6, 1)):
+        it = _period_item(c, "career", "your career", d)
+        if it.facts["mahadasha"] == it.facts["antardasha"]:
+            assert it.signature.endswith(".same") and "in its own sub-period" in it.engine
+            break
+    else:
+        pytest.skip("no own sub-period among the dates tried")
+    assert load_bank().fact("period.now.apart.same") is not None
+
+
+def test_l6_a_fact_variant_no_check_supported_is_never_shown():
+    from jyotish.bank import BankRow, fills
+    r = BankRow(signature="period.now.touches.same", kind="fact", slots=["area"], drafted_by="t", drafted_on=AS_OF,
+                variants=["A {area}.", "B {area}.", "C {area}."])
+    assert r.refused() == {0, 1, 2} and not fills(r, {"area": "your career"})

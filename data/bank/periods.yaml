@@ -39,6 +39,44 @@
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
     shape: antar:one+node,area:many,maha:one+node,until:one
+- signature: period.now.apart.same
+  kind: fact
+  slots:
+  - area
+  - maha
+  - until
+  variants:
+  - You are in the period of {maha}, in its own sub-period, until {until}; it neither rules nor signifies {area}.
+  - Until {until} you are in the period of {maha}, in its own sub-period, and it neither rules nor signifies {area}.
+  - Your current period is that of {maha}, in its own sub-period, running until {until}; it neither rules nor signifies {area}.
+  drafted_by: claude-opus-5-5 (written for review L6)
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: You are in the period of Ketu, in its own sub-period, until March 2027; it neither rules nor signifies your
+      career, marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one+node,area:many,maha:one+node,until:one
+  - variant: 1
+    sentence: Until March 2027 you are in the period of Ketu, in its own sub-period, and it neither rules nor signifies your
+      career, marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one+node,area:many,maha:one+node,until:one
+  - variant: 2
+    sentence: Your current period is that of Ketu, in its own sub-period, running until March 2027; it neither rules nor signifies
+      your career, marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one+node,area:many,maha:one+node,until:one
 - signature: period.now.touches
   kind: fact
   slots:
@@ -128,29 +166,29 @@
     'on': '2026-11-16'
     shape: antar:one+lum,area:many,maha:one,touching:many+lum,until:one
   - variant: 0
-    sentence: You are in the period of Jupiter, within that of Jupiter, until November 2028; Jupiter has a hand in your career,
+    sentence: You are in the period of Saturn, within that of Rahu, until November 2028; Saturn has a hand in your career,
       marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
-    shape: antar:one,area:many,maha:one,touching:one,until:one
+    shape: antar:one+node,area:many,maha:one,touching:one,until:one
   - variant: 1
-    sentence: Until November 2028 you are in the period of Jupiter, within that of Jupiter, and Jupiter has a hand in your
-      career, marriage and money.
+    sentence: Until November 2028 you are in the period of Saturn, within that of Rahu, and Saturn has a hand in your career,
+      marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
-    shape: antar:one,area:many,maha:one,touching:one,until:one
+    shape: antar:one+node,area:many,maha:one,touching:one,until:one
   - variant: 2
-    sentence: Your current period is that of Jupiter, within that of Jupiter, running until November 2028; Jupiter has a hand
-      in your career, marriage and money.
+    sentence: Your current period is that of Saturn, within that of Rahu, running until November 2028; Saturn has a hand in
+      your career, marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
-    shape: antar:one,area:many,maha:one,touching:one,until:one
+    shape: antar:one+node,area:many,maha:one,touching:one,until:one
 - signature: period.now.touches.each
   kind: fact
   slots:
@@ -262,3 +300,66 @@
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
     shape: antar:one+node,area:many,hands:many+node+lum,maha:one+lum,touching:many+node+lum,until:one
+- signature: period.now.touches.same
+  kind: fact
+  slots:
+  - area
+  - maha
+  - touching
+  - until
+  variants:
+  - You are in the period of {maha}, in its own sub-period, until {until}; {touching} has a hand in {area}.
+  - Until {until} you are in the period of {maha}, in its own sub-period, and {touching} has a hand in {area}.
+  - Your current period is that of {maha}, in its own sub-period, running until {until}; {touching} has a hand in {area}.
+  drafted_by: claude-opus-5-5 (written for review L6)
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: You are in the period of Jupiter, in its own sub-period, until November 2028; Jupiter has a hand in your career,
+      marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one,area:many,maha:one,touching:one,until:one
+  - variant: 1
+    sentence: Until November 2028 you are in the period of Jupiter, in its own sub-period, and Jupiter has a hand in your
+      career, marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one,area:many,maha:one,touching:one,until:one
+  - variant: 2
+    sentence: Your current period is that of Jupiter, in its own sub-period, running until November 2028; Jupiter has a hand
+      in your career, marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one,area:many,maha:one,touching:one,until:one
+  - variant: 0
+    sentence: You are in the period of the Moon, in its own sub-period, until April 2027; the Moon has a hand in your career,
+      marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one+lum,area:many,maha:one+lum,touching:one+lum,until:one
+  - variant: 1
+    sentence: Until April 2027 you are in the period of the Moon, in its own sub-period, and the Moon has a hand in your career,
+      marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one+lum,area:many,maha:one+lum,touching:one+lum,until:one
+  - variant: 2
+    sentence: Your current period is that of the Moon, in its own sub-period, running until April 2027; the Moon has a hand
+      in your career, marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: antar:one+lum,area:many,maha:one+lum,touching:one+lum,until:one

@@ -579,12 +579,12 @@
   variants:
   - 'Taken together, the houses that govern {area} lean unfavourably: the main one, your {house} house in {sign}, is {standing}
     of your twelve houses.'
-  - The houses behind {area} lean unfavourably as a group, and the main one, your {house} house in {sign}, is {standing} among
+  - The houses behind {area} lean unfavourably as a group, and the main one, your {house} house in {sign}, is {standing} of
     your twelve houses.
   - Looking at all the houses that govern {area}, the lean is unfavourable; the main one is your {house} house, in {sign},
     which is {standing} of your twelve.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -593,15 +593,15 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,house:one,sign:one,standing:one
   - variant: 1
     sentence: The houses behind marriage lean unfavourably as a group, and the main one, your 7th house in Virgo, is less
-      supported than most among your twelve houses.
+      supported than most of your twelve houses.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,house:one,sign:one,standing:one
   - variant: 2
     sentence: Looking at all the houses that govern marriage, the lean is unfavourable; the main one is your 7th house, in
@@ -609,7 +609,7 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,house:one,sign:one,standing:one
 - signature: family.house.against.though
   kind: fact
@@ -663,12 +663,12 @@
   variants:
   - 'Taken together, the houses that govern {area} lean favourably: the main one, your {house} house in {sign}, is {standing}
     of your twelve houses.'
-  - The houses behind {area} lean favourably as a group, and the main one, your {house} house in {sign}, is {standing} among
+  - The houses behind {area} lean favourably as a group, and the main one, your {house} house in {sign}, is {standing} of
     your twelve houses.
   - Looking at all the houses that govern {area}, the lean is favourable; the main one is your {house} house, in {sign}, which
     is {standing} of your twelve.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -677,15 +677,15 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,house:one,sign:one,standing:one
   - variant: 1
     sentence: The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported
-      than most among your twelve houses.
+      than most of your twelve houses.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,house:one,sign:one,standing:one
   - variant: 2
     sentence: Looking at all the houses that govern money, the lean is favourable; the main one is your 2nd house, in Gemini,
@@ -693,7 +693,7 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,house:one,sign:one,standing:one
 - signature: family.house.for.though
   kind: fact

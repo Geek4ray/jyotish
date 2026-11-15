@@ -526,8 +526,44 @@
    "usd": {
     "checker": 0.004
    }
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 11,
+   "checks": 36,
+   "refused": {
+    "period.now.apart.same": [
+     "variant 1 ('You are in the period of Jupiter, in its own sub-period, until November 2028; it neither rules nor signifies your career, marriage and money.') is not stated by the facts: The data states the opposite connection: facts.area_lords includes \"Jupiter\" (Jupiter is one of the lords of the houses in these areas \u2014 the career houses are 10, 6, 2, 11, so a lord on that list rules one of them), and facts.hands assigns \"career\" to Jupiter (hands.Jupiter = [\"career\", \"marriage\", \"wealth\"]). Nothing in the data states that Jupiter rules no career house.; facts.hands assigns \"marriage\" to Jupiter, and \"Jupiter\" appears in facts.area_lords, the lords of the houses of the areas under discussion (career, marriage, wealth). The data states a rulership connection, not its absence.; facts.hands assigns \"wealth\" to Jupiter, and \"Jupiter\" appears in facts.area_lords for these areas. (\"Money\" for the data's \"wealth\" area is fine as framing; the negation is not.); Ambiguous at best and contradicted on the natural reading: the career significator list (facts.about.significators = [\"Sun\", \"Saturn\", \"Mercury\"]) and facts.area_karakas indeed omit Jupiter, which alone would support the negation \u2014 but facts.hands explicitly assigns \"career\" to Jupiter, and hands, on its face, are the areas the planet holds/signifies. The sentence is thus contradicted (or at best ambiguous between a supported and an unsupported reading).; facts.hands assigns \"marriage\" to Jupiter; the data states Jupiter holds marriage in its hands, the opposite of the sentence's claim. No karaka/significator list for marriage excludes Jupiter cleanly enough to rescue the negation.; facts.hands assigns \"wealth\" to Jupiter; again the data states the connection the sentence denies.",
+     "variant 3 ('Your current period is that of Jupiter, in its own sub-period, running until November 2028; it neither rules nor signifies your career, marriage and money.') is not stated by the facts: Jupiter appears in facts.area_lords, so the data counts Jupiter among the lords of the areas under discussion (career, marriage, wealth); the data does not state \u2014 and on its face contradicts \u2014 that Jupiter rules none of them.; Same: Jupiter is listed in facts.area_lords, which covers the areas career, marriage and wealth (facts.areas).; Same: Jupiter is listed in facts.area_lords.; facts.hands assigns Jupiter the areas [\"career\", \"marriage\", \"wealth\"], i.e., the data presents Jupiter as handing/signifying career; the data does not state that Jupiter signifies no areas, and facts.hands points the other way.; Same: facts.hands assigns Jupiter \"marriage\".; Same: facts.hands assigns Jupiter \"wealth\"."
+    ],
+    "stretch.most.second": [
+     "variant 1 ('Looking at the stretches the chart shows, the most favourable one runs from October 2029 to June 2032.') is not stated by the facts: the data lists a single window; it states one stretch, not stretches in the plural"
+    ]
+   },
+   "no_sample": [
+    "period.now.touches.same"
+   ],
+   "usd": {
+    "checker": 0.0308
+   }
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 4,
+   "checks": 21,
+   "refused": {},
+   "no_sample": [
+    "period.now.apart"
+   ],
+   "usd": {
+    "checker": 0.008
+   }
   }
  ],
- "rows_in_bank": 127,
- "usd_total": 2.1146
+ "rows_in_bank": 129,
+ "usd_total": 2.1534
 }

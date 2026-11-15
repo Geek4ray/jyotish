@@ -168,10 +168,10 @@
   - area
   variants:
   - Here is what in your chart lies behind it, as it touches {area}.
-  - Let us look together at what in your chart lies behind it.
+  - Let us look together at what in your chart lies behind this, as it touches {area}.
   - Behind this, these are the parts of your chart that speak to {area}.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -179,21 +179,21 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:many
   - variant: 1
-    sentence: Let us look together at what in your chart lies behind it.
+    sentence: Let us look together at what in your chart lies behind this, as it touches your career, marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:many
   - variant: 2
     sentence: Behind this, these are the parts of your chart that speak to your career, marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:many
 - signature: opening.yes_no
   kind: fact

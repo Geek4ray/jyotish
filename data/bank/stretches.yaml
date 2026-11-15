@@ -73,9 +73,9 @@
   variants:
   - Looking at the stretches the chart shows, the least favourable one runs {when}.
   - The least favourable stretch, as the chart reads it, is the one that runs {when}.
-  - Running {when}, this is the least favourable stretch in the chart.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  - Running {when}, this is the stretch the chart reads as least favourable.
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -83,21 +83,21 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,when:one
   - variant: 1
     sentence: The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to August 2029.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,when:one
   - variant: 2
-    sentence: Running from November 2028 to August 2029, this is the least favourable stretch in the chart.
+    sentence: Running from November 2028 to August 2029, this is the stretch the chart reads as least favourable.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,when:one
 - signature: stretch.most.first
   kind: fact
@@ -140,30 +140,29 @@
   variants:
   - Looking at the stretches the chart shows, the most favourable one runs {when}.
   - The most favourable stretch, as the chart reads it, is the one that runs {when}.
-  - Running {when}, this is the most favourable stretch in the chart.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  - Running {when}, this is the stretch the chart reads as most favourable.
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
     sentence: Looking at the stretches the chart shows, the most favourable one runs from October 2029 to June 2032.
     supported: false
-    evidence: The data contains a single window fact only; nothing states that the chart shows multiple stretches. The plural
-      is an ordinary-reader reading of "the stretches the chart shows."
+    evidence: the data lists a single window; it states one stretch, not stretches in the plural
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,when:one
   - variant: 1
     sentence: The most favourable stretch, as the chart reads it, is the one that runs from October 2029 to June 2032.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,when:one
   - variant: 2
-    sentence: Running from October 2029 to June 2032, this is the most favourable stretch in the chart.
+    sentence: Running from October 2029 to June 2032, this is the stretch the chart reads as most favourable.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: area:one,when:one

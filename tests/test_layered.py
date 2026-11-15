@@ -141,7 +141,11 @@ def row(**kw):
                          "Supporting {area}: {planet}, ruler of the {ruled_house} house, placed in {sign} in your "
                          "{house} house, {dignity}."],
             "drafted_by": "test", "drafted_on": "2026-11-15", "status": "draft"}
-    return base | kw
+    out = base | kw
+    if out["kind"] == "fact" and "checks" not in kw:      # a fact variant is shown only once a check supported it
+        out["checks"] = [{"variant": v, "sentence": "checked", "supported": True, "model": "test", "on": "2026-11-15"}
+                         for v in range(3)]
+    return out
 
 
 def write_bank(tmp_path, rows, name="family.yaml"):
@@ -333,7 +337,7 @@ def test_4_a_row_refused_by_the_checker_or_wanting_a_slot_is_not_used(chart, dat
     from jyotish.conversation import compose
     fact, _ = ruchaka_rows()
     refused = fact | {"checks": [{"variant": 0, "sentence": "x", "supported": False, "evidence": "no", "model": "m",
-                                  "on": "2026-11-15"}]}
+                                  "on": "2026-11-15"}] + fact["checks"][1:]}
     # All three variants refused, or a slot the item does not fill: the engine's sentence. One refused variant: the
     # next variant is shown in its place (the review of 2026-11-15, H1).
     every = fact | {"checks": [refused["checks"][0] | {"variant": v} for v in range(3)]}

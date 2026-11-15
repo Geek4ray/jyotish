@@ -3,15 +3,14 @@
 - signature: verdict.mixed
   kind: fact
   slots:
-  - Area
   - area
   - lean
   variants:
   - For {area}, what the chart shows points in different directions, though on balance it leans {lean}.
-  - '{Area} draws different messages from the chart, and when they are weighed together they lean {lean}.'
+  - The chart sends different messages about {area}, and when they are weighed together they lean {lean}.
   - What the chart shows for {area} does not all agree, but taken as a whole it leans {lean}.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -19,34 +18,33 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 1
-    sentence: Your career draws different messages from the chart, and when they are weighed together they lean favourably.
+    sentence: The chart sends different messages about your career, and when they are weighed together they lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: What the chart shows for your career does not all agree, but taken as a whole it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
 - signature: verdict.moderate
   kind: fact
   slots:
-  - Area
   - area
   - lean
   variants:
   - For {area}, most of what the chart shows agrees, and on balance it leans {lean}.
-  - '{Area} is where most of the chart''s picture agrees, and on balance it leans {lean}.'
+  - Most of the chart's picture of {area} agrees, and on balance it leans {lean}.
   - Most of what the chart shows about {area} points the same way, and on balance it leans {lean}.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -54,34 +52,33 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 1
-    sentence: Your career is where most of the chart's picture agrees, and on balance it leans favourably.
+    sentence: Most of the chart's picture of your career agrees, and on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: Most of what the chart shows about your career points the same way, and on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
 - signature: verdict.not_emphasised
   kind: fact
   slots:
-  - Area
   - area
   - lean
   variants:
   - This chart does not emphasise {area}, but on balance what it shows leans {lean}.
-  - '{Area} is not something this chart puts much weight on, though what it does show leans {lean}.'
+  - This chart puts no special weight on {area}, though what it does show leans {lean}.
   - The chart does not give {area} special emphasis; even so, on balance it leans {lean}.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -89,34 +86,33 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 1
-    sentence: Your career is not something this chart puts much weight on, though what it does show leans favourably.
+    sentence: This chart puts no special weight on your career, though what it does show leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: The chart does not give your career special emphasis; even so, on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
 - signature: verdict.strong
   kind: fact
   slots:
-  - Area
   - area
   - lean
   variants:
   - For {area}, what the chart shows agrees closely, and on balance it leans {lean}.
-  - '{Area} is an area where the chart speaks with one voice, and on balance it leans {lean}.'
+  - On {area} the chart speaks with one voice, and on balance it leans {lean}.
   - When it comes to {area}, the different parts of your chart agree closely, and the overall lean is {lean}.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_by: claude-opus-5-5 (rewritten for review L6)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
@@ -124,19 +120,19 @@
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 1
-    sentence: Money is an area where the chart speaks with one voice, and on balance it leans favourably.
+    sentence: On money the chart speaks with one voice, and on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: When it comes to money, the different parts of your chart agree closely, and the overall lean is favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
+    'on': '2026-11-16'
     shape: Area:one,area:one,lean:one

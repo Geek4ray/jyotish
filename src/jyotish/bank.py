@@ -103,12 +103,14 @@ class BankRow(BaseModel):
         return next((j for j in ((i + k) % 3 for k in range(3)) if self.approved(j)), None)
 
     def refused(self) -> set[int]:
-        """The variants a check found unsupported on any shape: the composer never shows them."""
-        return {c.variant for c in self.checks if not c.supported}
+        """The variants the composer never shows as fact: refused by a check on any shape, or never checked (a fact
+        row says only what its signature states, checked once: a row no sample reached is the engine's sentence)."""
+        checked = {c.variant for c in self.checks}
+        return {c.variant for c in self.checks if not c.supported} | {i for i in range(3) if i not in checked}
 
     def usable(self, i: int) -> int | None:
-        """The variant shown for a session's pick `i`: `i` itself, else the next variant no check refused, else none
-        (review 2026-11-15, H1: a variant true for one sample's values may be false for another's)."""
+        """The variant shown for a session's pick `i`: `i` itself, else the next variant checked and never refused,
+        else none (review 2026-11-15, H1: a variant true for one sample's values may be false for another's)."""
         bad = self.refused()
         return next((j for j in ((i + k) % 3 for k in range(3)) if j not in bad), None)
 

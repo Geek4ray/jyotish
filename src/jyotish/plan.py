@@ -298,10 +298,11 @@ def _weakness_items(chart, area: str, label: str, data: dict | None, sheet: dict
     if ml:
         who.append((ml[0], f"the ruler of your {_ORD[ml[1]]} house", "lord"))
     k = ad.get("main_karaka")
+    # "the main planet for your father", never "of" (review 2026-11-15, L6: read as the father's planet).
     if k and k not in [w[0] for w in who]:
-        who.append((k, f"the main planet of {label}", "karaka"))
+        who.append((k, f"the main planet for {label}", "karaka"))
     elif k:
-        who[0] = (who[0][0], who[0][1] + f" and the main planet of {label}", "lord+karaka")
+        who[0] = (who[0][0], who[0][1] + f" and the main planet for {label}", "lord+karaka")
     sb = chart.features.shadbala.planets if chart.features.shadbala else {}
     out = []
     for planet, role, kind in who:
@@ -345,14 +346,19 @@ def _period_item(chart, area: str, label: str, as_of: date) -> PlanItem | None:
     touched = [x for x in (lords["mahadasha"], lords["antardasha"]) if x in a.lords or x in a.karakas]
     maha, antar = _the(lords["mahadasha"]), _the(lords["antardasha"])
     slots = {"area": label, "maha": maha, "antar": antar, "until": until}
+    # A lord in its own sub-period is one planet (review L6: "the period of Mercury, within that of Mercury ...
+    # neither rules nor signifies"): `.same`, said as its own sub-period.
+    same = lords["mahadasha"] == lords["antardasha"]
+    within = "in its own sub-period" if same else f"within that of {antar}"
     if touched:
         slots["touching"] = _and([_the(x) for x in dict.fromkeys(touched)])
-        engine = (f"You are in the period of {maha}, within that of {antar}, until {until}; "
-                  f"{slots['touching']} {'has' if len(touched) == 1 else 'have'} a hand in {label}.")
+        engine = (f"You are in the period of {maha}, {within}, until {until}; "
+                  f"{slots['touching']} {'has' if len(set(touched)) == 1 else 'have'} a hand in {label}.")
     else:
-        engine = (f"You are in the period of {maha}, within that of {antar}, until {until}; "
-                  f"neither rules nor signifies {label}.")
-    return PlanItem(part="period", signature=f"period.now.{'touches' if touched else 'apart'}", area=area,
+        engine = (f"You are in the period of {maha}, {within}, until {until}; "
+                  f"{'it neither rules' if same else 'neither rules'} nor signifies {label}.")
+    sig = f"period.now.{'touches' if touched else 'apart'}" + (".same" if same else "")
+    return PlanItem(part="period", signature=sig, area=area,
                     slots=slots, facts={"mahadasha": lords["mahadasha"], "antardasha": lords["antardasha"],
                                         "until": until, "area_lords": a.lords, "area_karakas": a.karakas,
                                         "touching": touched, "about": about(chart, area, label)},
@@ -536,14 +542,15 @@ def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tu
         out.append(i)
     if len(periods) > 1:
         p0 = periods[0]
-        touched = [p.area for p in periods if p.signature == "period.now.touches"]
+        touched = [p.area for p in periods if p.signature.startswith("period.now.touches")]
         lords = [x for p in periods for x in (p.facts.get("touching") or [])]
         slots = dict(p0.slots) | {"area": n_and([labels[a] for a in (touched or [p.area for p in periods])])}
         # Each lord with the areas it has a hand in (review 2026-11-15, M7: "Jupiter and Mercury have a hand in your
         # father, your reputation and ..." where Mercury touches no reputation).
         hands = {x: [p.area for p in periods if x in (p.facts.get("touching") or [])] for x in dict.fromkeys(lords)}
         the = lambda x: "the " + x if x in ("Sun", "Moon") else x
-        sig = "period.now.touches" if touched else "period.now.apart"
+        same = p0.facts.get("mahadasha") == p0.facts.get("antardasha")
+        sig = ("period.now.touches" if touched else "period.now.apart") + (".same" if same else "")
         if touched:
             slots["touching"] = n_and([the(x) for x in hands])
         if touched and len({tuple(v) for v in hands.values()}) > 1:
@@ -554,9 +561,10 @@ def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tu
             engine = (f"You are in the period of {slots['maha']}, within that of {slots['antar']}, until "
                       f"{slots['until']}; {slots['hands']}.")
         else:
-            engine = (f"You are in the period of {slots['maha']}, within that of {slots['antar']}, until {slots['until']}; "
+            within = "in its own sub-period" if same else f"within that of {slots['antar']}"
+            engine = (f"You are in the period of {slots['maha']}, {within}, until {slots['until']}; "
                       + (f"{slots['touching']} {'have' if ' and ' in slots['touching'] else 'has'} a hand in {slots['area']}."
-                         if touched else f"neither rules nor signifies {slots['area']}."))
+                         if touched else f"{'it neither rules' if same else 'neither rules'} nor signifies {slots['area']}."))
         item = p0.model_copy(update={"signature": sig, "slots": slots, "engine": engine, "area": p0.area,
                                      "facts": p0.facts | {"areas": [p.area for p in periods], "touched_areas": touched,
                                                           "hands": hands}})
