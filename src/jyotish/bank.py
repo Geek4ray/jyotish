@@ -211,6 +211,16 @@ def row_errors(row: BankRow) -> list[str]:
             out.append(f"{row.signature}: a meaning row carries its source (the rule's citation)")
     elif "@" in row.signature:
         out.append(f"{row.signature}: a fact row is the same for every area; only a meaning row names one")
+    if row.kind == "meaning" and row.base.startswith("rule.") and ".nohouse" not in row.base:
+        # A row with a house is a fire from the rising sign: for a rule counted from the rising sign as well as the
+        # Moon, "from the Moon" is wrong there (review 2026-11-15, M9: Gaja Kesari's BPHS form). A .nohouse row is a
+        # fire from the Moon or the Sun only, where it can be right.
+        bases = rule_bases(".".join(row.base.split(".")[1:3]))
+        if "lagna" in bases and len(bases) > 1:
+            for i, v in enumerate(row.variants):
+                if re.search(r"\bfrom (?:the|your) Moon\b", v):
+                    out.append(f"{row.signature}: variant {i + 1} counts from the Moon a rule that fired from the "
+                               f"rising sign here: {v!r}")
     if (row.status == "approved" or row.approved_variants) and not (row.approved_by and row.approved_on):
         out.append(f"{row.signature}: an approved row names who approved it and when")
     if any(i not in (0, 1, 2) for i in row.approved_variants) or len(set(row.approved_variants)) != len(row.approved_variants):
@@ -231,6 +241,16 @@ def fills(row: BankRow | None, slots: dict[str, str]) -> bool:
     empty), and a variant no check refused is left. The composer's rule, and the coverage tool's (review M5)."""
     return (row is not None and set(row.slots) <= set(slots) and len(row.refused()) < 3
             and all(slots[s] for s in row.slots if s != "dignity"))
+
+
+@lru_cache(maxsize=64)
+def rule_bases(rule_id: str) -> tuple[str, ...]:
+    """The points a rule is counted from (its file's when.basis: lagna, moon, sun), read from rules/<id>.yaml."""
+    path = Path(__file__).resolve().parents[2] / "rules" / f"{rule_id}.yaml"
+    if not path.exists():
+        return ()
+    when = (yaml.safe_load(path.read_text()) or {}).get("when") or {}
+    return tuple(when.get("basis") or ())
 
 
 class Bank:

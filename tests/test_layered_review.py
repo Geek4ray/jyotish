@@ -705,3 +705,30 @@ def test_m8_a_row_withdrawn_and_then_rewritten_is_shown_again(tmp_path):
     r = load_bank(d).meaning("rule.yoga.ruchaka.reduced", "career")
     assert rep["rewritten"] and r is not None and r.withdrawn_by is None
     assert r.variants[2] == "Tradition reads it as courage for {area}." and r.approved_variants == [2]
+
+
+# --- M9. Meaning rows that are wrong in substance -----------------------------------------------------------------------
+
+def test_m9_the_meaning_rows_the_review_named_say_what_their_rule_and_weakness_are():
+    from jyotish.bank import load_bank
+    rows = {r.signature: r for r in load_bank().rows if r.kind == "meaning"}
+    words = lambda prefix: " ".join(v for s, r in rows.items() if s.startswith(prefix) for v in r.variants)
+    gk = words("rule.yoga.gaja_kesari.")
+    assert "lion" in gk and not re.search(r"the lion combination|means a lion", gk)   # the elephant and the lion
+    assert "named for discipline" not in words("rule.yoga.sasa.")                       # Sasa is the hare
+    assert "named for courage" not in words("rule.yoga.ruchaka.")                       # Ruchaka is radiant
+    assert "short of the strength" not in words("weakness.mks@")                        # that is low strength
+    for area in ("marriage", "wealth"):
+        assert all("{planet}" in v for v in rows[f"weakness.mks@{area}"].variants)        # the planet is named
+    for s in ("rule.yoga.gaja_kesari_bphs.reduced@career", "rule.yoga.gaja_kesari_bphs.reduced@wealth"):
+        assert not any("Moon" in v for v in rows[s].variants)
+
+
+def test_m9_a_meaning_row_with_a_house_never_counts_a_rising_sign_rule_from_the_moon():
+    from jyotish.bank import BankRow, row_errors
+    mk = lambda sig: BankRow(signature=sig, kind="meaning", slots=["area", "planets"], source="BPHS 1.1",
+                             drafted_by="t", drafted_on=AS_OF,
+                             variants=["With {planets} at an angle from the Moon, it favours {area}."] * 3)
+    assert any("counts from the Moon" in e for e in row_errors(mk("rule.yoga.gaja_kesari_bphs.full@career")))
+    assert not row_errors(mk("rule.yoga.gaja_kesari_bphs.full.nohouse@career"))      # fired from the Moon only
+    assert not row_errors(mk("rule.yoga.gaja_kesari.full.nohouse@career"))           # counted from the Moon alone
