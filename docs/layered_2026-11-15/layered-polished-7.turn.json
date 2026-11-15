@@ -1,0 +1,1440 @@
+{
+  "question": "whan and how",
+  "route": {
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "when": true,
+    "why": false,
+    "how": true,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [],
+  "warnings": [],
+  "checks": [],
+  "writer": {},
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "wall_seconds": 18.637,
+    "polisher": {
+      "calls": 1,
+      "input_tokens": 155,
+      "output_tokens": 158,
+      "cache_read_input_tokens": 1223,
+      "cache_creation_input_tokens": 0,
+      "seconds": 1.523
+    },
+    "checker": {
+      "calls": 1,
+      "input_tokens": 473,
+      "output_tokens": 1123,
+      "cache_read_input_tokens": 384,
+      "cache_creation_input_tokens": 0,
+      "seconds": 17.081
+    }
+  },
+  "kinds": [
+    "when",
+    "why"
+  ],
+  "engine": {
+    "question": "whan and how",
+    "direction": "both",
+    "areas": [
+      "wealth"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+        "notes": []
+      },
+      {
+        "text": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "text": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The rulers of the day you were born, Mars and the Moon, lean favourably for money.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "wealth",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 2nd from the moon; 3rd from the sun."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch runs from November 2028 to October 2029.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "polished",
+  "shown": [
+    "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.",
+    "What lies behind it is what the answer before set out, and the chart has no further reason to add.",
+    "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032, while the least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.",
+    "Please read neither stretch as a prediction of the moment you will act."
+  ],
+  "paragraphs": [
+    0
+  ],
+  "accepted": [
+    "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.",
+    "What lies behind it is what the answer before set out; the chart has no further reason to add.",
+    "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+    "The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.",
+    "Please read neither stretch as a prediction of the moment you will act."
+  ],
+  "attempts": 0,
+  "timeline": {
+    "engine": 0.001,
+    "plan": 0.029,
+    "polished": 18.637,
+    "first_verified": 18.637,
+    "done": 18.637
+  },
+  "opened_by": "composer",
+  "plan": {
+    "question": "whan and how",
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "kinds": [
+      "when",
+      "why"
+    ],
+    "when": true,
+    "as_of": "2026-11-02",
+    "items": [
+      {
+        "part": "opening",
+        "signature": "opening.when",
+        "area": null,
+        "slots": {
+          "area": "money"
+        },
+        "tags": [],
+        "facts": {
+          "question_kind": "when",
+          "areas": [
+            "wealth"
+          ],
+          "area_words": "money"
+        },
+        "engine": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for money.",
+        "notes": []
+      },
+      {
+        "part": "opening",
+        "signature": "opening.why",
+        "area": null,
+        "slots": {
+          "area": "money"
+        },
+        "tags": [],
+        "facts": {
+          "question_kind": "why",
+          "areas": [
+            "wealth"
+          ],
+          "area_words": "money"
+        },
+        "engine": "Here is what in your chart lies behind it.",
+        "notes": []
+      },
+      {
+        "part": "verdict",
+        "signature": "verdict.moderate",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "Area": "Money",
+          "lean": "favourably"
+        },
+        "tags": [
+          "vote:wealth.house",
+          "vote:wealth.lord",
+          "vote:wealth.karaka",
+          "vote:wealth.arudha",
+          "vote:wealth.panchanga"
+        ],
+        "facts": {
+          "tier": "moderate",
+          "direction": "supportive",
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          }
+        },
+        "engine": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.karaka.for",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "planet": "Jupiter",
+          "sign": "Taurus",
+          "house": "1st",
+          "dignity": "in an unfriendly sign"
+        },
+        "tags": [
+          "vote:wealth.karaka"
+        ],
+        "facts": {
+          "family": "karaka",
+          "lean": "favourable",
+          "term": 4.101372596634128,
+          "derivation": [
+            {
+              "planet": "Jupiter",
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "area_house_from": [],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22
+            },
+            {
+              "planet": "Venus",
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 11
+                },
+                {
+                  "basis": "sun",
+                  "house": 2
+                }
+              ],
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33
+            }
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": 4.1014
+        },
+        "engine": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.lord.for",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "planet": "Mercury",
+          "ruled_house": "2nd",
+          "sign": "Aquarius",
+          "house": "10th",
+          "dignity": "in a neutral sign"
+        },
+        "tags": [
+          "vote:wealth.lord"
+        ],
+        "facts": {
+          "family": "lord",
+          "lean": "favourable",
+          "term": 1.3923217675625754,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 2,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 9,
+              "sign": "Capricorn",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 3,
+              "sign": "Cancer",
+              "bhavat_bhavam_of": 2,
+              "lord": "Moon",
+              "lord_sign": "Libra",
+              "lord_house_from_lagna": 6,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.27,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 2,
+              "sign": "Scorpio",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 9,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 3,
+              "sign": "Sagittarius",
+              "bhavat_bhavam_of": 2,
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 2,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 9,
+              "sign": "Libra",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 3,
+              "sign": "Aries",
+              "bhavat_bhavam_of": 2,
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            }
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": 1.3923
+        },
+        "engine": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.house.for.agrees",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "house": "2nd",
+          "sign": "Gemini",
+          "standing": "better supported than most"
+        },
+        "tags": [
+          "vote:wealth.house"
+        ],
+        "facts": {
+          "family": "house",
+          "lean": "favourable",
+          "term": 0.9255133013635419,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 2,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "bhava_bala_rupas": 9.02,
+              "relative": 0.51
+            },
+            {
+              "basis": "lagna",
+              "house": 9,
+              "sign": "Capricorn",
+              "bhava_bala_rupas": 4.62,
+              "relative": -0.97
+            },
+            {
+              "basis": "lagna",
+              "house": 3,
+              "sign": "Cancer",
+              "bhavat_bhavam_of": 2,
+              "bhava_bala_rupas": 7.68,
+              "relative": 0.06
+            },
+            {
+              "basis": "moon",
+              "house": 2,
+              "sign": "Scorpio",
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "moon",
+              "house": 9,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "moon",
+              "house": 3,
+              "sign": "Sagittarius",
+              "bhavat_bhavam_of": 2,
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "sun",
+              "house": 2,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "sun",
+              "house": 9,
+              "sign": "Libra",
+              "bhava_bala_rupas": 8.22,
+              "relative": 0.24
+            },
+            {
+              "basis": "sun",
+              "house": 3,
+              "sign": "Aries",
+              "bhavat_bhavam_of": 2,
+              "bhava_bala_rupas": 6.7,
+              "relative": -0.27
+            }
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": 0.9255
+        },
+        "engine": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.arudha.against.many.hard.alone",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "signs": "Libra and Cancer",
+          "planets": "the Moon",
+          "sits": "sits"
+        },
+        "tags": [
+          "vote:wealth.arudha"
+        ],
+        "facts": {
+          "family": "arudha",
+          "lean": "unfavourable",
+          "term": null,
+          "derivation": {
+            "rests_on": [
+              "A2",
+              "A11"
+            ],
+            "padas": [
+              {
+                "pada": "A2",
+                "basis": "lagna",
+                "house": 6,
+                "sign": "Libra",
+                "occupants": [
+                  "Moon"
+                ],
+                "benefics": []
+              },
+              {
+                "pada": "A11",
+                "basis": "lagna",
+                "house": 3,
+                "sign": "Cancer",
+                "occupants": [],
+                "benefics": []
+              }
+            ],
+            "why": "more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": -0.9978
+        },
+        "engine": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "part": "rule",
+        "signature": "rule.yoga.parivartana.reduced",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "name": "Parivartana",
+          "named": "Parivartana (two planets each in the other's sign)",
+          "planets": "Jupiter and Venus",
+          "houses": "1st and 11th",
+          "reductions": "a difficult house in the exchange"
+        },
+        "tags": [
+          "rule:yoga.parivartana",
+          "text:Phaladeepika/Sastri-1937/6/32"
+        ],
+        "facts": {
+          "rule_id": "yoga.parivartana",
+          "names": [
+            "Parivartana",
+            "exchange"
+          ],
+          "fires": [
+            {
+              "basis": "lagna",
+              "sudarshana": false,
+              "cited_to": "rule and text",
+              "nodes": [
+                "Jupiter",
+                "Venus",
+                "H1",
+                "H11"
+              ],
+              "scale": 0.8,
+              "modifiers_applied": [
+                "class_by_lordship == dainya (Jupiter and Venus) -> x0.8"
+              ],
+              "modifiers_unknown": [],
+              "details": {
+                "relations": [
+                  "exchange"
+                ],
+                "class_by_houses": "maha",
+                "class_by_lordship": "dainya",
+                "houses": [
+                  1,
+                  11
+                ],
+                "taint": [
+                  6,
+                  8
+                ]
+              },
+              "stability": 1.0
+            }
+          ],
+          "planets": [
+            "Jupiter",
+            "Venus"
+          ],
+          "houses": [
+            1,
+            11
+          ],
+          "reductions": [
+            "a difficult house in the exchange"
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          }
+        },
+        "engine": "Your chart holds Parivartana (two planets each in the other's sign), formed by Jupiter and Venus in your 1st and 11th houses, which bears on money, though it is weakened by a difficult house in the exchange.",
+        "notes": []
+      },
+      {
+        "part": "period",
+        "signature": "period.now.touches",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "maha": "Jupiter",
+          "antar": "Mercury",
+          "until": "November 2028",
+          "touching": "Jupiter and Mercury"
+        },
+        "tags": [],
+        "facts": {
+          "mahadasha": "Jupiter",
+          "antardasha": "Mercury",
+          "until": "November 2028",
+          "area_lords": [
+            "Jupiter",
+            "Mars",
+            "Mercury",
+            "Moon",
+            "Saturn",
+            "Sun",
+            "Venus"
+          ],
+          "area_karakas": [
+            "Jupiter",
+            "Venus"
+          ],
+          "touching": [
+            "Jupiter",
+            "Mercury"
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          }
+        },
+        "engine": "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in money.",
+        "notes": []
+      },
+      {
+        "part": "stretch",
+        "signature": "stretch.most.first",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "when": "from October 2029 to June 2032"
+        },
+        "tags": [],
+        "facts": {
+          "window": {
+            "start": "2029-10-23",
+            "end": "2032-06-23",
+            "score": 0.892,
+            "dignity_of": "Venus (exalted)",
+            "q": 0.821,
+            "t": 1.0,
+            "periods": {
+              "vimshottari": [
+                "Jupiter",
+                "Venus"
+              ],
+              "yogini": [
+                "Rahu",
+                "Jupiter"
+              ],
+              "chara": [
+                "Aquarius",
+                "Gemini"
+              ]
+            },
+            "confidence": "strong",
+            "tags": [],
+            "edge_spread_days": 7.49,
+            "q_terms": {
+              "tara": 0.0,
+              "relevance": 1.0,
+              "dignity": 1.0,
+              "shadbala": 1.0,
+              "ishta": 0.925,
+              "relation": 1.0
+            },
+            "targets": {
+              "full": [
+                "Aquarius",
+                "Gemini",
+                "Taurus"
+              ],
+              "secondary": [
+                "Capricorn",
+                "Pisces",
+                "Virgo"
+              ]
+            },
+            "strongest_piece": {
+              "start": "2029-10-23",
+              "end": "2030-01-10",
+              "score": 0.892,
+              "t": 1.0,
+              "transit": {
+                "credits": {
+                  "Saturn": 1.0,
+                  "Jupiter": 1.0,
+                  "nodes": 1.0
+                },
+                "bodies": {
+                  "Saturn": [
+                    "Saturn Aries"
+                  ],
+                  "Jupiter": [
+                    "Jupiter Libra"
+                  ],
+                  "nodes": [
+                    "Rahu Sagittarius",
+                    "Ketu Gemini"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "engine": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "part": "stretch",
+        "signature": "stretch.least.second",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "when": "from November 2028 to October 2029"
+        },
+        "tags": [],
+        "facts": {
+          "window": {
+            "start": "2028-11-17",
+            "end": "2029-10-23",
+            "score": 0.6,
+            "dignity_of": null,
+            "q": 0.333,
+            "t": 1.0,
+            "periods": {
+              "vimshottari": [
+                "Jupiter",
+                "Ketu"
+              ],
+              "yogini": [
+                "Rahu",
+                "Rahu"
+              ],
+              "chara": [
+                "Aquarius",
+                "Aries"
+              ]
+            },
+            "confidence": "strong",
+            "tags": [],
+            "edge_spread_days": 7.49,
+            "q_terms": {
+              "tara": 0.0,
+              "relevance": 1.0,
+              "relation": 0.0
+            },
+            "targets": {
+              "full": [
+                "Aquarius",
+                "Gemini",
+                "Taurus"
+              ],
+              "secondary": [
+                "Capricorn",
+                "Pisces",
+                "Virgo"
+              ]
+            },
+            "strongest_piece": {
+              "start": "2028-11-17",
+              "end": "2028-12-26",
+              "score": 0.6,
+              "t": 1.0,
+              "transit": {
+                "credits": {
+                  "Saturn": 1.0,
+                  "Jupiter": 1.0,
+                  "nodes": 1.0
+                },
+                "bodies": {
+                  "Saturn": [
+                    "Saturn Aries"
+                  ],
+                  "Jupiter": [
+                    "Jupiter Virgo"
+                  ],
+                  "nodes": [
+                    "Rahu Sagittarius",
+                    "Ketu Gemini"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "engine": "The least favourable stretch runs from November 2028 to October 2029.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      },
+      {
+        "part": "stretch",
+        "signature": "stretch.caveat.two",
+        "area": "wealth",
+        "slots": {},
+        "tags": [],
+        "facts": {},
+        "engine": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ]
+      }
+    ],
+    "left_out": [
+      {
+        "area": "wealth",
+        "what": "vote:wealth.panchanga",
+        "why": "a weaker term than the 3 that help"
+      },
+      {
+        "area": "wealth",
+        "what": "vote:wealth.varga",
+        "why": "abstains"
+      },
+      {
+        "area": "wealth",
+        "what": "place.jupiter_in_taurus@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "place.l1_h11@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "place.l2_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "place.l7_h7@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "chain:wealth.lord",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "wealth",
+        "what": "chain:wealth.karaka",
+        "why": "a chain of sign rulers: the sheet's"
+      }
+    ]
+  },
+  "composed": {
+    "sentences": [
+      {
+        "text": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.",
+        "tagged": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.",
+        "signature": "opening.when",
+        "part": "opening",
+        "area": null,
+        "tags": [],
+        "notes": [],
+        "row": {
+          "signature": "opening.when",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "openings.yaml"
+        }
+      },
+      {
+        "text": "What lies behind it is what the answer before set out; the chart has no further reason to add.",
+        "tagged": "What lies behind it is what the answer before set out; the chart has no further reason to add.",
+        "signature": "opening.said",
+        "part": "opening",
+        "area": null,
+        "tags": [],
+        "notes": [],
+        "row": null
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "tagged": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "signature": "stretch.most.first",
+        "part": "stretch",
+        "area": "wealth",
+        "tags": [],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ],
+        "row": {
+          "signature": "stretch.most.first",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "stretches.yaml"
+        }
+      },
+      {
+        "text": "The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.",
+        "tagged": "The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.",
+        "signature": "stretch.least.second",
+        "part": "stretch",
+        "area": "wealth",
+        "tags": [],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ],
+        "row": {
+          "signature": "stretch.least.second",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "stretches.yaml"
+        }
+      },
+      {
+        "text": "Please read neither stretch as a prediction of the moment you will act.",
+        "tagged": "Please read neither stretch as a prediction of the moment you will act.",
+        "signature": "stretch.caveat.two",
+        "part": "stretch",
+        "area": "wealth",
+        "tags": [],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2029-10-23 → 2032-06-23: score 0.892 (q 0.821, t 1.000), Jupiter–Venus, Rahu–Jupiter, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          },
+          {
+            "area": "wealth",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2028-11-17 → 2029-10-23: score 0.600 (q 0.333, t 1.000)."
+          }
+        ],
+        "row": {
+          "signature": "stretch.caveat.two",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "stretches.yaml"
+        }
+      }
+    ],
+    "paragraphs": [
+      0,
+      2
+    ],
+    "bank": "e28c17f41e57",
+    "from_bank": 4,
+    "from_engine": 1
+  },
+  "bank": "e28c17f41e57",
+  "polish": {
+    "model": "claude-haiku-5-5",
+    "composed": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money. What lies behind it is what the answer before set out; the chart has no further reason to add.\n\nThe most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032. The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029. Please read neither stretch as a prediction of the moment you will act.",
+    "text": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money. What lies behind it is what the answer before set out, and the chart has no further reason to add. The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032, while the least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029. Please read neither stretch as a prediction of the moment you will act.",
+    "used": true,
+    "refusals": [],
+    "verdict": [
+      {
+        "text": "The chart does not name a date for any event; instead it points to stretches it reads as more and less favourable for money.",
+        "supported": true,
+        "evidence": "stated verbatim in the composed answer: \"Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.\""
+      },
+      {
+        "text": "What lies behind the stretches is what the answer before set out, and the chart has no further reason to add.",
+        "supported": true,
+        "evidence": "stated verbatim in the composed answer: \"What lies behind it is what the answer before set out; the chart has no further reason to add.\""
+      },
+      {
+        "text": "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
+        "supported": true,
+        "evidence": "stated verbatim in the composed answer: \"The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.\""
+      },
+      {
+        "text": "The least favourable stretch for money, as the chart reads it, is the one that runs from November 2028 to October 2029.",
+        "supported": true,
+        "evidence": "stated verbatim in the composed answer: \"The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.\""
+      },
+      {
+        "text": "Neither stretch should be read as a prediction of the moment the client will act.",
+        "supported": true,
+        "evidence": "stated verbatim in the composed answer: \"Please read neither stretch as a prediction of the moment you will act.\""
+      }
+    ],
+    "sentences": [
+      "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.",
+      "What lies behind it is what the answer before set out, and the chart has no further reason to add.",
+      "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032, while the least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.",
+      "Please read neither stretch as a prediction of the moment you will act."
+    ],
+    "paragraphs": [
+      0
+    ]
+  },
+  "polisher": {
+    "model": "claude-haiku-5-5",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-haiku-5-5"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-09 at commit `61ba9af` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-15 at commit `8c1ae83` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -8,7 +8,7 @@ Run 2026-11-09 at commit `61ba9af` by `scripts/evaluate.py`. CI fails when any g
 
 ## Phase 0 cross-check
 
-1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 8 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
+1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 13 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
 
 ## Metamorphic tests
 
@@ -16,7 +16,7 @@ Run 2026-11-09 at commit `61ba9af` by `scripts/evaluate.py`. CI fails when any g
 
 ## Checker benchmark
 
-184 rows; the validator alone: precision 1.000, recall 0.342, F1 0.510; 35 of 35 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 27 rows from the live turns of 2026-11-01, Ray's of 2026-11-02 and the writer bake-off of 2026-11-09): the validator alone refuses 14 of 24 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
+186 rows; the validator alone: precision 1.000, recall 0.339, F1 0.506; 35 of 35 tag and wording errors caught; 0 accepted sentences rejected. The semantic categories are the checker's. A turn's sentences (`where: "answer"`, 27 rows from the live turns of 2026-11-01, Ray's of 2026-11-02 and the writer bake-off of 2026-11-09): the validator alone refuses 14 of 24 wrong ones and 0 true ones. The live run on record (docs/checker_scorecard.md, 2026-10-22 at `b0eb697`, model claude-opus-5-5, checker effort high): 72 of 74 bad sentences caught, precision 1.000, recall 0.973, F1 0.986. The harness does not re-run it (API calls), so it is reported, not gated.
 
 ## Placement generator check
 
@@ -94,17 +94,36 @@ Live turns of the reference chart (docs/live_timings.jsonl, scripts/live_timing.
 - claude-sonnet-5-5-4 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.001 s, first verified 53.615 s, done 343.649 s; 21 of 29 sentences removed; answer from the writer; USD 0.070663.
 - claude-sonnet-5-5-6 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.002 s, first verified 3.507 s, done 211.199 s; 8 of 18 sentences removed; answer from the writer; USD 0.054651.
 - claude-sonnet-5-5-7 (2026-11-09; claude-sonnet-5-5 on api.anthropic.com, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.002 s, first verified 1.548 s, done 98.135 s; 13 of 22 sentences removed; answer from the writer; USD 0.066513.
+- layered-composed-1 (2026-11-15; None on None, None on None): "what are the challanges in my life", engine 0.004 s, first verified 0.428 s, done 0.428 s; 0 of 27 sentences removed; answer from the composer; USD 0.0.
+- layered-composed-2 (2026-11-15; None on None, None on None): "and marriage?", engine 0.001 s, first verified 0.022 s, done 0.022 s; 0 of 7 sentences removed; answer from the composer; USD 0.0.
+- layered-composed-3 (2026-11-15; None on None, None on None): "when?", engine 0.001 s, first verified 0.022 s, done 0.022 s; 0 of 4 sentences removed; answer from the composer; USD 0.0.
+- layered-composed-4 (2026-11-15; None on None, None on None): "why do you say that?", engine 0.001 s, first verified 0.023 s, done 0.023 s; 0 of 1 sentences removed; answer from the composer; USD 0.0.
+- layered-composed-6 (2026-11-15; None on None, None on None): "how much money will i earn in my life, will i be rich", engine 0.001 s, first verified 0.025 s, done 0.025 s; 0 of 8 sentences removed; answer from the composer; USD 0.0.
+- layered-composed-7 (2026-11-15; None on None, None on None): "whan and how", engine 0.001 s, first verified 0.025 s, done 0.025 s; 0 of 5 sentences removed; answer from the composer; USD 0.0.
+- layered-polished-1 (2026-11-15; None on None, zai-org/GLM-5.3-Flash on api.deepinfra.com): "what are the challanges in my life", engine 0.639 s, first verified 45.901 s, done 45.901 s; 0 of 27 sentences removed; answer from the polished; USD 0.005478.
+- layered-polished-2 (2026-11-15; None on None, zai-org/GLM-5.3-Flash on api.deepinfra.com): "and marriage?", engine 0.001 s, first verified 12.879 s, done 12.879 s; 0 of 7 sentences removed; answer from the polished; USD 0.000892.
+- layered-polished-3 (2026-11-15; None on None, zai-org/GLM-5.3-Flash on api.deepinfra.com): "when?", engine 0.001 s, first verified 10.51 s, done 10.51 s; 0 of 4 sentences removed; answer from the polished; USD 0.000397.
+- layered-polished-4 (2026-11-15; None on None, zai-org/GLM-5.3-Flash on api.deepinfra.com): "why do you say that?", engine 0.005 s, first verified 8.428 s, done 8.428 s; 0 of 1 sentences removed; answer from the polished; USD 0.000177.
+- layered-polished-6 (2026-11-15; None on None, zai-org/GLM-5.3-Flash on api.deepinfra.com): "how much money will i earn in my life, will i be rich", engine 0.001 s, first verified 28.494 s, done 28.494 s; 0 of 8 sentences removed; answer from the composer; USD 0.002439.
+- layered-polished-7 (2026-11-15; None on None, zai-org/GLM-5.3-Flash on api.deepinfra.com): "whan and how", engine 0.001 s, first verified 18.637 s, done 18.637 s; 0 of 5 sentences removed; answer from the polished; USD 0.000751.
 
 ## The paragraph held sentence by sentence (reported, not gated)
 
 From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run per side): 4 complete, 2 held in part, 0 none; the writer's rounds per area, mean 3.00; sentences held at each attempt: attempt 1 9, attempt 2 6, attempt 3 7; ended early with attempts unused: 0. The latest comparison at curious depth is read; a later one replaces it.
 
+## The layered answer (reported, not gated)
+
+Bank e28c17f41e57: 126 rows, 0% approved. On 1000 random synthetic charts (every area, every question kind, a "when" turn), 155281 of 155413 plan items find a fact row whose slots they fill (99.9%); by part: hard 100%, helps 100%, opening 100%, period 100%, rule 96%, stretch 100%, verdict 100%, weakness 100%. Meaning rows for 41% of the rule and weakness items. Missing most often: rule.yoga.neecha_bhanga.reduced (54), rule.yoga.gaja_kesari_bphs.full (33), rule.yoga.gaja_kesari_bphs.full.nohouse (25), rule.yoga.gaja_kesari_bphs.reduced.nohouse (11), rule.yoga.gaja_kesari_bphs.reduced (9).
+Composed turns (2026-11-15, 6): USD 0.00000 and 0.09 s per turn on average.
+Polished turns (2026-11-15, 6): USD 0.00169 and 20.81 s per turn on average; the polished text shown on 5 of 6.
+The composer answered 100% of the 12 answered turns of 2026-11-15.
+
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 30 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 11 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 247 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 111 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 73 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 27 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 827 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 283 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -150,11 +169,11 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `metamorphic.seed_agreement.synthetic-3` | 1.0 |  | higher | no |
 | `metamorphic.changed_at_one_minute.synthetic-3` | 2 |  | informational | no |
 | `checker.validator.precision` | 1.0 |  | higher | no |
-| `checker.validator.recall` | 0.3421 |  | higher | no |
-| `checker.validator.f1` | 0.5098 |  | higher | no |
+| `checker.validator.recall` | 0.3391 |  | higher | no |
+| `checker.validator.f1` | 0.5065 |  | higher | no |
 | `checker.validator.wording_caught_share` | 1.0 |  | higher | yes |
 | `checker.validator.false_rejects` | 0 |  | lower | yes |
-| `checker.bench_rows` | 184 |  | informational | no |
+| `checker.bench_rows` | 186 |  | informational | no |
 | `checker.answer.rows` | 27 |  | informational | no |
 | `checker.answer.validator_recall` | 0.5833 |  | higher | no |
 | `checker.answer.validator_false_rejects` | 0 |  | lower | no |
@@ -498,11 +517,71 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `turn.claude-sonnet-5-5-7.removed_share` | 0.591 |  | lower | no |
 | `turn.claude-sonnet-5-5-7.done_s` | 98.135 |  | lower | no |
 | `turn.claude-sonnet-5-5-7.cost_usd` | 0.066513 |  | lower | no |
+| `turn.layered-composed-1.engine_s` | 0.004 |  | lower | no |
+| `turn.layered-composed-1.first_verified_s` | 0.428 |  | lower | no |
+| `turn.layered-composed-1.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-composed-1.done_s` | 0.428 |  | lower | no |
+| `turn.layered-composed-1.cost_usd` | 0.0 |  | lower | no |
+| `turn.layered-composed-2.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-composed-2.first_verified_s` | 0.022 |  | lower | no |
+| `turn.layered-composed-2.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-composed-2.done_s` | 0.022 |  | lower | no |
+| `turn.layered-composed-2.cost_usd` | 0.0 |  | lower | no |
+| `turn.layered-composed-3.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-composed-3.first_verified_s` | 0.022 |  | lower | no |
+| `turn.layered-composed-3.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-composed-3.done_s` | 0.022 |  | lower | no |
+| `turn.layered-composed-3.cost_usd` | 0.0 |  | lower | no |
+| `turn.layered-composed-4.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-composed-4.first_verified_s` | 0.023 |  | lower | no |
+| `turn.layered-composed-4.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-composed-4.done_s` | 0.023 |  | lower | no |
+| `turn.layered-composed-4.cost_usd` | 0.0 |  | lower | no |
+| `turn.layered-composed-6.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-composed-6.first_verified_s` | 0.025 |  | lower | no |
+| `turn.layered-composed-6.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-composed-6.done_s` | 0.025 |  | lower | no |
+| `turn.layered-composed-6.cost_usd` | 0.0 |  | lower | no |
+| `turn.layered-composed-7.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-composed-7.first_verified_s` | 0.025 |  | lower | no |
+| `turn.layered-composed-7.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-composed-7.done_s` | 0.025 |  | lower | no |
+| `turn.layered-composed-7.cost_usd` | 0.0 |  | lower | no |
+| `turn.layered-polished-1.engine_s` | 0.639 |  | lower | no |
+| `turn.layered-polished-1.first_verified_s` | 45.901 |  | lower | no |
+| `turn.layered-polished-1.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-polished-1.done_s` | 45.901 |  | lower | no |
+| `turn.layered-polished-1.cost_usd` | 0.005478 |  | lower | no |
+| `turn.layered-polished-2.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-polished-2.first_verified_s` | 12.879 |  | lower | no |
+| `turn.layered-polished-2.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-polished-2.done_s` | 12.879 |  | lower | no |
+| `turn.layered-polished-2.cost_usd` | 0.000892 |  | lower | no |
+| `turn.layered-polished-3.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-polished-3.first_verified_s` | 10.51 |  | lower | no |
+| `turn.layered-polished-3.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-polished-3.done_s` | 10.51 |  | lower | no |
+| `turn.layered-polished-3.cost_usd` | 0.000397 |  | lower | no |
+| `turn.layered-polished-4.engine_s` | 0.005 |  | lower | no |
+| `turn.layered-polished-4.first_verified_s` | 8.428 |  | lower | no |
+| `turn.layered-polished-4.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-polished-4.done_s` | 8.428 |  | lower | no |
+| `turn.layered-polished-4.cost_usd` | 0.000177 |  | lower | no |
+| `turn.layered-polished-6.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-polished-6.first_verified_s` | 28.494 |  | lower | no |
+| `turn.layered-polished-6.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-polished-6.done_s` | 28.494 |  | lower | no |
+| `turn.layered-polished-6.cost_usd` | 0.002439 |  | lower | no |
+| `turn.layered-polished-7.engine_s` | 0.001 |  | lower | no |
+| `turn.layered-polished-7.first_verified_s` | 18.637 |  | lower | no |
+| `turn.layered-polished-7.removed_share` | 0.0 |  | lower | no |
+| `turn.layered-polished-7.done_s` | 18.637 |  | lower | no |
+| `turn.layered-polished-7.cost_usd` | 0.000751 |  | lower | no |
 | `turn.median.engine_s` | 0.002 |  | lower | no |
-| `turn.median.first_verified_s` | 34.198 |  | lower | no |
-| `turn.median.removed_share` | 0.5605 |  | lower | no |
-| `turn.median.done_s` | 110.508 |  | lower | no |
-| `turn.median.cost_usd` | 0.013309 |  | lower | no |
+| `turn.median.first_verified_s` | 28.996 |  | lower | no |
+| `turn.median.removed_share` | 0.487 |  | lower | no |
+| `turn.median.done_s` | 97.363 |  | lower | no |
+| `turn.median.cost_usd` | 0.010347 |  | lower | no |
 | `paragraph.complete` | 4 |  | higher | no |
 | `paragraph.partial` | 2 |  | lower | no |
 | `paragraph.none` | 0 |  | lower | no |
@@ -511,6 +590,23 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `paragraph.sentences_held_attempt_1` | 9 |  | informational | no |
 | `paragraph.sentences_held_attempt_2` | 6 |  | informational | no |
 | `paragraph.sentences_held_attempt_3` | 7 |  | informational | no |
+| `bank.coverage` | 0.9992 |  | higher | no |
+| `bank.rows` | 126 |  | informational | no |
+| `bank.approved_share` | 0.0 |  | higher | no |
+| `bank.meaning_share` | 0.4139 |  | higher | no |
+| `bank.coverage.hard` | 1.0 |  | higher | no |
+| `bank.coverage.helps` | 1.0 |  | higher | no |
+| `bank.coverage.opening` | 1.0 |  | higher | no |
+| `bank.coverage.period` | 1.0 |  | higher | no |
+| `bank.coverage.rule` | 0.96 |  | higher | no |
+| `bank.coverage.stretch` | 1.0 |  | higher | no |
+| `bank.coverage.verdict` | 1.0 |  | higher | no |
+| `bank.coverage.weakness` | 1.0 |  | higher | no |
+| `layered.composer_share` | 1.0 |  | higher | no |
+| `layered.composed.cost_usd` | 0.0 |  | lower | no |
+| `layered.composed.done_s` | 0.090833 |  | lower | no |
+| `layered.polished.cost_usd` | 0.001689 |  | lower | no |
+| `layered.polished.done_s` | 20.808167 |  | lower | no |
 | `synthetic.planted.2000.predicted_power` | 0.4101 |  | informational | no |
 | `synthetic.planted.2000.recovered_share` | 0.375 |  | higher | no |
 | `synthetic.planted.2000.survived_bh_share` | 0.375 |  | higher | no |
@@ -534,5 +630,5 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 
 - metamorphic: tests/test_metamorphic.py:189: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API
 - metamorphic: tests/test_metamorphic.py:206: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API
-- checker benchmark: tests/test_checker_bench.py:129: set JYOTISH_LIVE_NARRATION=1 to call the API
+- checker benchmark: tests/test_checker_bench.py:130: set JYOTISH_LIVE_NARRATION=1 to call the API
 

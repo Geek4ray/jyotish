@@ -1,0 +1,4041 @@
+{
+  "question": "what are the challanges in my life",
+  "route": {
+    "areas": [
+      "father",
+      "reputation",
+      "siblings"
+    ],
+    "direction": "against",
+    "when": false,
+    "why": false,
+    "how": false,
+    "follow_up": false,
+    "carried": [],
+    "areas_from": "weakest",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [],
+  "warnings": [],
+  "checks": [],
+  "writer": {},
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "wall_seconds": 45.901,
+    "polisher": {
+      "calls": 1,
+      "input_tokens": 1387,
+      "output_tokens": 2494,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 1223,
+      "seconds": 10.376
+    },
+    "checker": {
+      "calls": 1,
+      "input_tokens": 2550,
+      "output_tokens": 7114,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "seconds": 33.794
+    }
+  },
+  "kinds": [],
+  "engine": {
+    "question": "what are the challanges in my life",
+    "direction": "against",
+    "areas": [
+      "father",
+      "reputation",
+      "siblings"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "No part of your chart works against you on balance; the parts it supports least are your father, your reputation and brothers, sisters and courage.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "reputation",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "siblings",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          }
+        ]
+      },
+      {
+        "text": "This chart does not emphasise your father; on balance what it shows leans favourably.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "father",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your rising sign, in Capricorn, is among the least supported of your twelve houses.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "house",
+            "text": "against — 9th Capricorn, 4.62 rupas, relative -0.97"
+          },
+          {
+            "area": "father",
+            "point": 1,
+            "item": 0,
+            "text": "9th from the lagna: Capricorn, lord Saturn, empty; Bhava Bala (house strength) 4.62 rupas (units of 60 virupas), rank 11 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for your father leans unfavourably; there Mars falls in Gemini, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D12: Mars enemy (-0.25), Saturn friend (+0.25)"
+          },
+          {
+            "area": "father",
+            "point": 5,
+            "item": 0,
+            "text": "D12 (dwadasamsa): Sun Capricorn enemy; Moon Libra neutral; Mars Gemini enemy; Mercury Aquarius neutral; Jupiter Virgo enemy; Venus Sagittarius neutral; Saturn Taurus friend; Rahu Capricorn; Ketu Cancer."
+          }
+        ]
+      },
+      {
+        "text": "For your reputation, what the chart shows points different ways; on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "reputation",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern your reputation lean unfavourably: the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "house",
+            "text": "against — 10th Aquarius, 4.51 rupas, relative -1.00"
+          },
+          {
+            "area": "reputation",
+            "point": 1,
+            "item": 0,
+            "text": "10th from the lagna: Aquarius, lord Saturn, occupied by Sun, Mercury; Bhava Bala (house strength) 4.51 rupas (units of 60 virupas), rank 12 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify your reputation lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "reputation",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see your reputation, Capricorn and Libra, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy AL, AL10: the vote is against"
+          },
+          {
+            "area": "reputation",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) AL: Capricorn, 9th from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "reputation",
+            "point": 8,
+            "item": 1,
+            "text": "arudha AL10: Libra, 6th from the lagna; occupants Moon; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "For brothers, sisters and courage, what the chart shows points different ways; on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "siblings",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "lord",
+            "text": "against — Moon, 3rd lord, neutral, ratio 1.27"
+          },
+          {
+            "area": "siblings",
+            "point": 2,
+            "item": 0,
+            "text": "Moon — lord of the 3rd from the lagna: Libra 1°25′34″ in the 6th; neutral (compound enemy); Shadbala (sixfold strength) ratio 1.27 (7.64 of 6.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window)."
+          }
+        ]
+      },
+      {
+        "text": "The divisional chart for brothers, sisters and courage leans unfavourably; there the Sun falls in Libra, debilitated, where it is least at ease.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "varga",
+            "text": "against — D3: Sun debilitated (-1.00), Mars friend (+0.25)"
+          },
+          {
+            "area": "siblings",
+            "point": 5,
+            "item": 0,
+            "text": "D3 (drekkana): Sun Libra debilitated; Moon Libra neutral; Mars Pisces friend; Mercury Aquarius neutral; Jupiter Virgo enemy; Venus Scorpio neutral; Saturn Taurus friend; Rahu Libra; Ketu Aries."
+          }
+        ]
+      },
+      {
+        "text": "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A3: the vote is against"
+          },
+          {
+            "area": "siblings",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A3: Libra, 6th from the lagna; occupants Moon; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "polished",
+  "shown": [
+    "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage.",
+    "Your father is not something this chart puts much weight on, though what it does show leans favourably.",
+    "What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably.",
+    "What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably.",
+    "Looking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign.",
+    "Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve.",
+    "The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says, and the degree Saturn holds in Taurus puts it, as that ruler, in a feeble state, so it has less strength than it needs to give fully what it promises for your father.",
+    "The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state.",
+    "On the other side, looking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign.",
+    "For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+    "Looking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign.",
+    "Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve.",
+    "Even so, looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign.",
+    "The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+    "For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+    "Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it.",
+    "Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation.",
+    "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "Among the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably.",
+    "The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably.",
+    "The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says.",
+    "On the other side, looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign.",
+    "The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses.",
+    "For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+    "Your current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage."
+  ],
+  "paragraphs": [
+    0,
+    4,
+    8,
+    10,
+    12,
+    18,
+    21,
+    24
+  ],
+  "accepted": [
+    "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage.",
+    "Your father is not something this chart puts much weight on, though what it does show leans favourably [vote:father.house] [vote:father.lord] [vote:father.karaka] [vote:father.varga] [vote:father.panchanga].",
+    "What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably [vote:reputation.house] [vote:reputation.lord] [vote:reputation.karaka] [vote:reputation.varga] [vote:reputation.arudha] [vote:reputation.panchanga].",
+    "What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably [vote:siblings.house] [vote:siblings.lord] [vote:siblings.karaka] [vote:siblings.varga] [vote:siblings.arudha] [vote:siblings.panchanga].",
+    "Looking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign [vote:father.karaka].",
+    "Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve [vote:father.house].",
+    "The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says [vote:father.lord].",
+    "The degree Saturn holds in Taurus puts it, as the ruler of your 9th house, in a feeble state [vote:father.lord].",
+    "The ruler of your 9th house, Saturn, has less strength than it needs to give fully what it promises for your father [vote:father.lord].",
+    "The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state [vote:father.karaka].",
+    "Looking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign [vote:reputation.karaka].",
+    "Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve [vote:reputation.house].",
+    "Among the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably [vote:siblings.lord].",
+    "The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably [vote:siblings.arudha].",
+    "The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says [vote:siblings.karaka].",
+    "Looking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign [vote:father.lord].",
+    "For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction [vote:father.panchanga].",
+    "Looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign [vote:reputation.lord].",
+    "The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best [vote:reputation.varga].",
+    "For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction [vote:reputation.panchanga].",
+    "Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1].",
+    "Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12] [text:BPHS/Santhanam-1984/34/15] [text:BPHS/Santhanam-1984/7/33-36].",
+    "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2] [text:Phaladeepika/Sastri-1937/6/1].",
+    "Looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign [vote:siblings.karaka].",
+    "The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses [vote:siblings.house].",
+    "For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction [vote:siblings.panchanga].",
+    "Your current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage."
+  ],
+  "attempts": 0,
+  "timeline": {
+    "engine": 0.639,
+    "plan": 0.977,
+    "polished": 45.901,
+    "first_verified": 45.901,
+    "done": 45.901
+  },
+  "opened_by": "composer",
+  "plan": {
+    "question": "what are the challanges in my life",
+    "areas": [
+      "father",
+      "reputation",
+      "siblings"
+    ],
+    "direction": "against",
+    "kinds": [],
+    "when": false,
+    "as_of": "2026-11-02",
+    "items": [
+      {
+        "part": "opening",
+        "signature": "opening.weakest.none",
+        "area": null,
+        "slots": {
+          "areas": "your father, your reputation and brothers, sisters and courage"
+        },
+        "tags": [],
+        "facts": {},
+        "engine": "No part of your chart works against you on balance; the parts it supports least are your father, your reputation and brothers, sisters and courage.",
+        "notes": []
+      },
+      {
+        "part": "verdict",
+        "signature": "verdict.not_emphasised",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "Area": "Your father",
+          "lean": "favourably"
+        },
+        "tags": [
+          "vote:father.house",
+          "vote:father.lord",
+          "vote:father.karaka",
+          "vote:father.varga",
+          "vote:father.panchanga"
+        ],
+        "facts": {
+          "tier": "not emphasised",
+          "direction": "supportive",
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          }
+        },
+        "engine": "This chart does not emphasise your father; on balance what it shows leans favourably.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "father",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.lord.for",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planet": "Saturn",
+          "ruled_house": "9th",
+          "sign": "Taurus",
+          "house": "1st",
+          "dignity": "in a friendly sign"
+        },
+        "tags": [
+          "vote:father.lord"
+        ],
+        "facts": {
+          "family": "lord",
+          "lean": "favourable",
+          "term": 3.364896475978936,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 9,
+              "sign": "Capricorn",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "bhavat_bhavam_of": 9,
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 9,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 10,
+              "sign": "Cancer",
+              "lord": "Moon",
+              "lord_sign": "Libra",
+              "lord_house_from_lagna": 6,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.27,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "bhavat_bhavam_of": 9,
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 9,
+              "sign": "Libra",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 10,
+              "sign": "Scorpio",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "bhavat_bhavam_of": 9,
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            }
+          ],
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": 3.3649
+        },
+        "engine": "The planets that rule the houses of your father lean favourably; Saturn, which rules the 9th house, sits in Taurus in your 1st house, in a friendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Saturn, 9th lord, friend, ratio 0.69"
+          },
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.panchanga.for.many",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planets": "Mars and the Moon"
+        },
+        "tags": [
+          "vote:father.panchanga"
+        ],
+        "facts": {
+          "family": "panchanga",
+          "lean": "favourable",
+          "term": 0.2882596330432228,
+          "derivation": [
+            {
+              "planet": "Mars",
+              "role": [
+                "tithi",
+                "nakshatra"
+              ],
+              "rules": [
+                {
+                  "basis": "sun",
+                  "house": 10
+                }
+              ],
+              "karaka": false,
+              "shadbala_ratio": 1.3
+            },
+            {
+              "planet": "Moon",
+              "role": [
+                "vara"
+              ],
+              "rules": [
+                {
+                  "basis": "moon",
+                  "house": 10
+                }
+              ],
+              "karaka": false,
+              "shadbala_ratio": 1.27
+            }
+          ],
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": 0.2883
+        },
+        "engine": "The rulers of the day you were born, Mars and the Moon, lean favourably for your father.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "father",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 10th from the sun."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.karaka.against",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planet": "the Sun",
+          "sign": "Aquarius",
+          "house": "10th",
+          "dignity": "in an unfriendly sign"
+        },
+        "tags": [
+          "vote:father.karaka"
+        ],
+        "facts": {
+          "family": "karaka",
+          "lean": "unfavourable",
+          "term": -2.454769321053787,
+          "derivation": [
+            {
+              "planet": "Sun",
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 10
+                },
+                {
+                  "basis": "moon",
+                  "house": 5
+                }
+              ],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23
+            },
+            {
+              "planet": "Jupiter",
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "area_house_from": [],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22
+            }
+          ],
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": -2.4548
+        },
+        "engine": "The planets that signify your father lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.house.against.agrees",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "house": "9th",
+          "sign": "Capricorn",
+          "standing": "among the least supported"
+        },
+        "tags": [
+          "vote:father.house"
+        ],
+        "facts": {
+          "family": "house",
+          "lean": "unfavourable",
+          "term": -1.5266196189463785,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 9,
+              "sign": "Capricorn",
+              "bhava_bala_rupas": 4.62,
+              "relative": -0.97
+            },
+            {
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "bhavat_bhavam_of": 9,
+              "bhava_bala_rupas": 9.02,
+              "relative": 0.51
+            },
+            {
+              "basis": "moon",
+              "house": 9,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "moon",
+              "house": 10,
+              "sign": "Cancer",
+              "bhava_bala_rupas": 7.68,
+              "relative": 0.06
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "bhavat_bhavam_of": 9,
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "sun",
+              "house": 9,
+              "sign": "Libra",
+              "bhava_bala_rupas": 8.22,
+              "relative": 0.24
+            },
+            {
+              "basis": "sun",
+              "house": 10,
+              "sign": "Scorpio",
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "bhavat_bhavam_of": 9,
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            }
+          ],
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": -1.5266
+        },
+        "engine": "Taken together, the houses that govern your father lean unfavourably: the main one, the 9th house from your rising sign, in Capricorn, is among the least supported of your twelve houses.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "house",
+            "text": "against — 9th Capricorn, 4.62 rupas, relative -0.97"
+          },
+          {
+            "area": "father",
+            "point": 1,
+            "item": 0,
+            "text": "9th from the lagna: Capricorn, lord Saturn, empty; Bhava Bala (house strength) 4.62 rupas (units of 60 virupas), rank 11 of 12."
+          }
+        ]
+      },
+      {
+        "part": "weakness",
+        "signature": "weakness.mks",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planet": "Saturn",
+          "role": "the ruler of your 9th house",
+          "sign": "Taurus",
+          "house": "1st"
+        },
+        "tags": [
+          "vote:father.lord"
+        ],
+        "facts": {
+          "planet": "Saturn",
+          "role": "lord",
+          "sign": "Taurus",
+          "house": 1,
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "marana_karaka_sthana": true
+        },
+        "engine": "The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ]
+      },
+      {
+        "part": "weakness",
+        "signature": "weakness.mrita",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planet": "Saturn",
+          "role": "the ruler of your 9th house",
+          "sign": "Taurus",
+          "house": "1st"
+        },
+        "tags": [
+          "vote:father.lord"
+        ],
+        "facts": {
+          "planet": "Saturn",
+          "role": "lord",
+          "sign": "Taurus",
+          "house": 1,
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "avastha_baladi": "Mrita"
+        },
+        "engine": "The ruler of your 9th house, Saturn, is in a feeble state by its degree in Taurus.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ]
+      },
+      {
+        "part": "weakness",
+        "signature": "weakness.low_strength",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planet": "Saturn",
+          "role": "the ruler of your 9th house",
+          "sign": "Taurus",
+          "house": "1st"
+        },
+        "tags": [
+          "vote:father.lord"
+        ],
+        "facts": {
+          "planet": "Saturn",
+          "role": "lord",
+          "sign": "Taurus",
+          "house": 1,
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "shadbala_ratio": 0.69
+        },
+        "engine": "The ruler of your 9th house, Saturn, has less strength than it needs to give fully what it promises.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ]
+      },
+      {
+        "part": "weakness",
+        "signature": "weakness.mrita",
+        "area": "father",
+        "slots": {
+          "area": "your father",
+          "planet": "the Sun",
+          "role": "the main planet of your father",
+          "sign": "Aquarius",
+          "house": "10th"
+        },
+        "tags": [
+          "vote:father.karaka"
+        ],
+        "facts": {
+          "planet": "Sun",
+          "role": "karaka",
+          "sign": "Aquarius",
+          "house": 10,
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "avastha_baladi": "Mrita"
+        },
+        "engine": "The main planet of your father, the Sun, is in a feeble state by its degree in Aquarius.",
+        "notes": [
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "part": "verdict",
+        "signature": "verdict.mixed",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "Area": "Your reputation",
+          "lean": "favourably"
+        },
+        "tags": [
+          "vote:reputation.house",
+          "vote:reputation.lord",
+          "vote:reputation.karaka",
+          "vote:reputation.varga",
+          "vote:reputation.arudha",
+          "vote:reputation.panchanga"
+        ],
+        "facts": {
+          "tier": "weak / mixed",
+          "direction": "supportive",
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          }
+        },
+        "engine": "For your reputation, what the chart shows points different ways; on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "reputation",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.lord.for",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "planet": "Saturn",
+          "ruled_house": "10th",
+          "sign": "Taurus",
+          "house": "1st",
+          "dignity": "in a friendly sign"
+        },
+        "tags": [
+          "vote:reputation.lord"
+        ],
+        "facts": {
+          "family": "lord",
+          "lean": "favourable",
+          "term": 11.70444119365837,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 4,
+              "sign": "Leo",
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 7,
+              "sign": "Scorpio",
+              "bhavat_bhavam_of": 10,
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "moon",
+              "house": 10,
+              "sign": "Cancer",
+              "lord": "Moon",
+              "lord_sign": "Libra",
+              "lord_house_from_lagna": 6,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.27,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 1,
+              "sign": "Libra",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 4,
+              "sign": "Capricorn",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 7,
+              "sign": "Aries",
+              "bhavat_bhavam_of": 10,
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "sun",
+              "house": 10,
+              "sign": "Scorpio",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "sun",
+              "house": 1,
+              "sign": "Aquarius",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 4,
+              "sign": "Taurus",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 7,
+              "sign": "Leo",
+              "bhavat_bhavam_of": 10,
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            }
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": 11.7044
+        },
+        "engine": "The planets that rule the houses of your reputation lean favourably; Saturn, which rules the 10th house, sits in Taurus in your 1st house, in a friendly sign.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Saturn, 10th lord, friend, ratio 0.69"
+          },
+          {
+            "area": "reputation",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 10th from the lagna, 4th from the Moon, 1st from the Sun: Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.varga.for",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "planet": "Mars",
+          "sign": "Capricorn",
+          "dignity": "exalted, where it is at its best"
+        },
+        "tags": [
+          "vote:reputation.varga"
+        ],
+        "facts": {
+          "family": "varga",
+          "lean": "favourable",
+          "term": 0.375,
+          "derivation": [
+            {
+              "planet": "Sun",
+              "varga": "D10",
+              "d1": "enemy",
+              "varga_sign": "Scorpio",
+              "varga_dignity": 0.5,
+              "varga_dignity_label": "friend",
+              "signed": 0.25,
+              "vargottama_d9": false,
+              "agrees_with_d1": false,
+              "score": 0.25
+            },
+            {
+              "planet": "Moon",
+              "varga": "D10",
+              "d1": "neutral",
+              "varga_sign": "Libra",
+              "varga_dignity": 0.0,
+              "varga_dignity_label": "neutral",
+              "signed": 0.0,
+              "vargottama_d9": false,
+              "agrees_with_d1": true,
+              "score": 0.0
+            },
+            {
+              "planet": "Mars",
+              "varga": "D10",
+              "d1": "own",
+              "varga_sign": "Capricorn",
+              "varga_dignity": 2.0,
+              "varga_dignity_label": "exalted",
+              "signed": 1.0,
+              "vargottama_d9": false,
+              "agrees_with_d1": true,
+              "score": 1.0
+            },
+            {
+              "planet": "Venus",
+              "varga": "D10",
+              "d1": "exalted",
+              "varga_sign": "Gemini",
+              "varga_dignity": 0.5,
+              "varga_dignity_label": "friend",
+              "signed": 0.25,
+              "vargottama_d9": false,
+              "agrees_with_d1": true,
+              "score": 0.25
+            },
+            {
+              "planet": "Saturn",
+              "varga": "D10",
+              "d1": "friend",
+              "varga_sign": "Capricorn",
+              "varga_dignity": 1.0,
+              "varga_dignity_label": "own",
+              "signed": 0.5,
+              "vargottama_d9": false,
+              "agrees_with_d1": true,
+              "score": 0.5
+            },
+            {
+              "planet": "Jupiter",
+              "varga": "D10",
+              "d1": "enemy",
+              "varga_sign": "Aries",
+              "varga_dignity": 0.5,
+              "varga_dignity_label": "friend",
+              "signed": 0.25,
+              "vargottama_d9": false,
+              "agrees_with_d1": false,
+              "score": 0.25
+            }
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": 0.375
+        },
+        "engine": "The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "varga",
+            "text": "for — D10: Mars exalted (+1.00), Saturn own (+0.50)"
+          },
+          {
+            "area": "reputation",
+            "point": 5,
+            "item": 0,
+            "text": "D10 (dasamsa): Sun Scorpio friend; Moon Libra neutral; Mars Capricorn exalted; Mercury Aquarius neutral; Jupiter Aries friend; Venus Gemini friend; Saturn Capricorn own; Rahu Sagittarius; Ketu Gemini."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.panchanga.for.many",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "planets": "Mars and the Moon"
+        },
+        "tags": [
+          "vote:reputation.panchanga"
+        ],
+        "facts": {
+          "family": "panchanga",
+          "lean": "favourable",
+          "term": 0.2882596330432228,
+          "derivation": [
+            {
+              "planet": "Mars",
+              "role": [
+                "tithi",
+                "nakshatra"
+              ],
+              "rules": [
+                {
+                  "basis": "lagna",
+                  "house": 7
+                },
+                {
+                  "basis": "moon",
+                  "house": 7
+                },
+                {
+                  "basis": "sun",
+                  "house": 10
+                }
+              ],
+              "karaka": false,
+              "shadbala_ratio": 1.3
+            },
+            {
+              "planet": "Moon",
+              "role": [
+                "vara"
+              ],
+              "rules": [
+                {
+                  "basis": "moon",
+                  "house": 10
+                }
+              ],
+              "karaka": false,
+              "shadbala_ratio": 1.27
+            }
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": 0.2883
+        },
+        "engine": "The rulers of the day you were born, Mars and the Moon, lean favourably for your reputation.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "reputation",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 7th from the lagna; 7th from the moon; 10th from the sun."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.karaka.against",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "planet": "the Sun",
+          "sign": "Aquarius",
+          "house": "10th",
+          "dignity": "in an unfriendly sign"
+        },
+        "tags": [
+          "vote:reputation.karaka"
+        ],
+        "facts": {
+          "family": "karaka",
+          "lean": "unfavourable",
+          "term": -2.454769321053787,
+          "derivation": [
+            {
+              "planet": "Sun",
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 10
+                },
+                {
+                  "basis": "sun",
+                  "house": 1
+                }
+              ],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23
+            },
+            {
+              "planet": "Jupiter",
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 1
+                },
+                {
+                  "basis": "sun",
+                  "house": 4
+                }
+              ],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22
+            }
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": -2.4548
+        },
+        "engine": "The planets that signify your reputation lean unfavourably; the main one, the Sun, sits in Aquarius in your 10th house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "reputation",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.house.against.agrees",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "house": "10th",
+          "sign": "Aquarius",
+          "standing": "among the least supported"
+        },
+        "tags": [
+          "vote:reputation.house"
+        ],
+        "facts": {
+          "family": "house",
+          "lean": "unfavourable",
+          "term": -1.6944617700495064,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "bhava_bala_rupas": 7.16,
+              "relative": -0.11
+            },
+            {
+              "basis": "lagna",
+              "house": 4,
+              "sign": "Leo",
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            },
+            {
+              "basis": "lagna",
+              "house": 7,
+              "sign": "Scorpio",
+              "bhavat_bhavam_of": 10,
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "moon",
+              "house": 10,
+              "sign": "Cancer",
+              "bhava_bala_rupas": 7.68,
+              "relative": 0.06
+            },
+            {
+              "basis": "moon",
+              "house": 1,
+              "sign": "Libra",
+              "bhava_bala_rupas": 8.22,
+              "relative": 0.24
+            },
+            {
+              "basis": "moon",
+              "house": 4,
+              "sign": "Capricorn",
+              "bhava_bala_rupas": 4.62,
+              "relative": -0.97
+            },
+            {
+              "basis": "moon",
+              "house": 7,
+              "sign": "Aries",
+              "bhavat_bhavam_of": 10,
+              "bhava_bala_rupas": 6.7,
+              "relative": -0.27
+            },
+            {
+              "basis": "sun",
+              "house": 10,
+              "sign": "Scorpio",
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "sun",
+              "house": 1,
+              "sign": "Aquarius",
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "sun",
+              "house": 4,
+              "sign": "Taurus",
+              "bhava_bala_rupas": 7.16,
+              "relative": -0.11
+            },
+            {
+              "basis": "sun",
+              "house": 7,
+              "sign": "Leo",
+              "bhavat_bhavam_of": 10,
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            }
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "strength": -1.6945
+        },
+        "engine": "Taken together, the houses that govern your reputation lean unfavourably: the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "house",
+            "text": "against — 10th Aquarius, 4.51 rupas, relative -1.00"
+          },
+          {
+            "area": "reputation",
+            "point": 1,
+            "item": 0,
+            "text": "10th from the lagna: Aquarius, lord Saturn, occupied by Sun, Mercury; Bhava Bala (house strength) 4.51 rupas (units of 60 virupas), rank 12 of 12."
+          }
+        ]
+      },
+      {
+        "part": "rule",
+        "signature": "rule.yoga.budhaditya.reduced",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation and brothers, sisters and courage",
+          "name": "Budhaditya",
+          "named": "Budhaditya (the Sun and Mercury together in one sign)",
+          "planets": "the Sun and Mercury",
+          "houses": "10th",
+          "reductions": "Mercury being in a feeble state"
+        },
+        "tags": [
+          "rule:yoga.budhaditya",
+          "text:Phaladeepika/Sastri-1937/18/1"
+        ],
+        "facts": {
+          "rule_id": "yoga.budhaditya",
+          "names": [
+            "Budhaditya",
+            "Budha-Aditya",
+            "Budha Aditya"
+          ],
+          "fires": [
+            {
+              "basis": "lagna",
+              "sudarshana": false,
+              "cited_to": "rule and text",
+              "nodes": [
+                "Sun",
+                "Mercury",
+                "H10"
+              ],
+              "scale": 0.9,
+              "modifiers_applied": [
+                "avastha in [bala, mrita] (Mercury) -> x0.9"
+              ],
+              "modifiers_unknown": [],
+              "details": {
+                "relations": [
+                  "conjunction"
+                ]
+              },
+              "stability": 1.0
+            }
+          ],
+          "planets": [
+            "Sun",
+            "Mercury"
+          ],
+          "houses": [
+            10
+          ],
+          "reductions": [
+            "Mercury being in a feeble state"
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "areas": [
+            "reputation",
+            "siblings"
+          ]
+        },
+        "engine": "Your chart holds Budhaditya (the Sun and Mercury together in one sign), formed by the Sun and Mercury in your 10th house, which bears on your reputation, though it is weakened by Mercury being in a feeble state.",
+        "notes": []
+      },
+      {
+        "part": "rule",
+        "signature": "rule.yoga.kendra_trikona_raja.full",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation",
+          "name": "raja yoga",
+          "named": "raja yoga (the rulers of an angular house and of a trine house joined)",
+          "planets": "the Sun and Mercury",
+          "houses": "10th"
+        },
+        "tags": [
+          "rule:yoga.kendra_trikona_raja",
+          "text:BPHS/Santhanam-1984/34/11-12",
+          "text:BPHS/Santhanam-1984/34/15",
+          "text:BPHS/Santhanam-1984/7/33-36"
+        ],
+        "facts": {
+          "rule_id": "yoga.kendra_trikona_raja",
+          "names": [
+            "raja yoga",
+            "kendra-trikona",
+            "kendra trikona"
+          ],
+          "fires": [
+            {
+              "basis": "lagna",
+              "sudarshana": false,
+              "cited_to": "rule and text",
+              "nodes": [
+                "Sun",
+                "Mercury",
+                "H10"
+              ],
+              "scale": 1.0,
+              "modifiers_applied": [],
+              "modifiers_unknown": [],
+              "details": {
+                "relations": [
+                  "conjunction"
+                ],
+                "lordships": {
+                  "a": [
+                    4
+                  ],
+                  "b": [
+                    2,
+                    5
+                  ]
+                }
+              },
+              "stability": 1.0
+            }
+          ],
+          "planets": [
+            "Sun",
+            "Mercury"
+          ],
+          "houses": [
+            10
+          ],
+          "reductions": [],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          }
+        },
+        "engine": "Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, which bears on your reputation.",
+        "notes": []
+      },
+      {
+        "part": "rule",
+        "signature": "rule.yoga.ruchaka.reduced",
+        "area": "reputation",
+        "slots": {
+          "area": "your reputation and brothers, sisters and courage",
+          "name": "Ruchaka",
+          "named": "Ruchaka (Mars in its own or exalted sign in an angular house)",
+          "planets": "Mars",
+          "houses": "7th",
+          "reductions": "Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it"
+        },
+        "tags": [
+          "rule:yoga.ruchaka",
+          "text:BPHS/Santhanam-1984/75/1-2",
+          "text:Phaladeepika/Sastri-1937/6/1"
+        ],
+        "facts": {
+          "rule_id": "yoga.ruchaka",
+          "names": [
+            "Ruchaka"
+          ],
+          "fires": [
+            {
+              "basis": "lagna",
+              "sudarshana": false,
+              "cited_to": "rule and text",
+              "nodes": [
+                "Mars",
+                "H7"
+              ],
+              "scale": 0.408,
+              "modifiers_applied": [
+                "aspected_by: [Saturn] -> x0.8",
+                "tara_from_moon in [vipat, pratyak, vadha] -> x0.85",
+                "marana_karaka_sthana -> x0.6"
+              ],
+              "modifiers_unknown": [],
+              "details": {},
+              "stability": 1.0
+            },
+            {
+              "basis": "sun",
+              "sudarshana": true,
+              "cited_to": "rule",
+              "nodes": [
+                "Mars",
+                "H10"
+              ],
+              "scale": 0.408,
+              "modifiers_applied": [
+                "aspected_by: [Saturn] -> x0.8",
+                "tara_from_moon in [vipat, pratyak, vadha] -> x0.85",
+                "marana_karaka_sthana -> x0.6"
+              ],
+              "modifiers_unknown": [],
+              "details": {},
+              "stability": 1.0
+            }
+          ],
+          "planets": [
+            "Mars"
+          ],
+          "houses": [
+            7
+          ],
+          "reductions": [
+            "Saturn's aspect on it",
+            "an unhelpful star counted from your Moon",
+            "a house that drains it"
+          ],
+          "about": {
+            "area": "reputation",
+            "area_words": "your reputation",
+            "area_houses_from_rising_sign": [
+              10,
+              1,
+              4
+            ],
+            "main_house": 10,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "areas": [
+            "reputation",
+            "siblings"
+          ]
+        },
+        "engine": "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house, which bears on your reputation, though it is weakened by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+        "notes": []
+      },
+      {
+        "part": "verdict",
+        "signature": "verdict.mixed",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "Area": "Brothers, sisters and courage",
+          "lean": "favourably"
+        },
+        "tags": [
+          "vote:siblings.house",
+          "vote:siblings.lord",
+          "vote:siblings.karaka",
+          "vote:siblings.varga",
+          "vote:siblings.arudha",
+          "vote:siblings.panchanga"
+        ],
+        "facts": {
+          "tier": "weak / mixed",
+          "direction": "supportive",
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          }
+        },
+        "engine": "For brothers, sisters and courage, what the chart shows points different ways; on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "siblings",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.karaka.for",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "planet": "Mars",
+          "sign": "Scorpio",
+          "house": "7th",
+          "dignity": "in its own sign"
+        },
+        "tags": [
+          "vote:siblings.karaka"
+        ],
+        "facts": {
+          "family": "karaka",
+          "lean": "favourable",
+          "term": 2.6067086095928116,
+          "derivation": [
+            {
+              "planet": "Mars",
+              "basis": "lagna",
+              "house": 7,
+              "sign": "Scorpio",
+              "area_house_from": [],
+              "dignity": "own",
+              "shadbala_ratio": 1.3
+            },
+            {
+              "planet": "Mercury",
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "area_house_from": [
+                {
+                  "basis": "moon",
+                  "house": 5
+                }
+              ],
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19
+            }
+          ],
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          },
+          "strength": 2.6067
+        },
+        "engine": "The planets that signify brothers, sisters and courage lean favourably; the main one, Mars, sits in Scorpio in your 7th house, in its own sign.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Mars in the 7th, own, ratio 1.30"
+          },
+          {
+            "area": "siblings",
+            "point": 3,
+            "item": 0,
+            "text": "Mars — main karaka (significator): Scorpio 18°37′11″ in the 7th; own; Shadbala ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha Kumara; marana karaka sthana; maraka."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.house.for.agrees",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "house": "3rd",
+          "sign": "Cancer",
+          "standing": "better supported than most"
+        },
+        "tags": [
+          "vote:siblings.house"
+        ],
+        "facts": {
+          "family": "house",
+          "lean": "favourable",
+          "term": 0.9485778427830208,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 3,
+              "sign": "Cancer",
+              "bhava_bala_rupas": 7.68,
+              "relative": 0.06
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "bhavat_bhavam_of": 3,
+              "bhava_bala_rupas": 9.02,
+              "relative": 0.51
+            },
+            {
+              "basis": "moon",
+              "house": 3,
+              "sign": "Sagittarius",
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "bhavat_bhavam_of": 3,
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "sun",
+              "house": 3,
+              "sign": "Aries",
+              "bhava_bala_rupas": 6.7,
+              "relative": -0.27
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "bhavat_bhavam_of": 3,
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            }
+          ],
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          },
+          "strength": 0.9486
+        },
+        "engine": "Taken together, the houses that govern brothers, sisters and courage lean favourably: the main one, the 3rd house from your rising sign, in Cancer, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "house",
+            "text": "for — 3rd Cancer, 7.68 rupas, relative +0.06"
+          },
+          {
+            "area": "siblings",
+            "point": 1,
+            "item": 0,
+            "text": "3rd from the lagna: Cancer, lord Moon, empty; Bhava Bala (house strength) 7.68 rupas (units of 60 virupas), rank 7 of 12."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.panchanga.for.many",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "planets": "Mars and the Moon"
+        },
+        "tags": [
+          "vote:siblings.panchanga"
+        ],
+        "facts": {
+          "family": "panchanga",
+          "lean": "favourable",
+          "term": 0.2882596330432228,
+          "derivation": [
+            {
+              "planet": "Mars",
+              "role": [
+                "tithi",
+                "nakshatra"
+              ],
+              "rules": [
+                {
+                  "basis": "sun",
+                  "house": 3
+                }
+              ],
+              "karaka": true,
+              "shadbala_ratio": 1.3
+            },
+            {
+              "planet": "Moon",
+              "role": [
+                "vara"
+              ],
+              "rules": [
+                {
+                  "basis": "lagna",
+                  "house": 3
+                }
+              ],
+              "karaka": false,
+              "shadbala_ratio": 1.27
+            }
+          ],
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          },
+          "strength": 0.2883
+        },
+        "engine": "The rulers of the day you were born, Mars and the Moon, lean favourably for brothers, sisters and courage.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "siblings",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 3rd from the sun."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.lord.against",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "planet": "the Moon",
+          "ruled_house": "3rd",
+          "sign": "Libra",
+          "house": "6th",
+          "dignity": "in a neutral sign"
+        },
+        "tags": [
+          "vote:siblings.lord"
+        ],
+        "facts": {
+          "family": "lord",
+          "lean": "unfavourable",
+          "term": -1.4545516203998055,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 3,
+              "sign": "Cancer",
+              "lord": "Moon",
+              "lord_sign": "Libra",
+              "lord_house_from_lagna": 6,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.27,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "bhavat_bhavam_of": 3,
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 3,
+              "sign": "Sagittarius",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "bhavat_bhavam_of": 3,
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 3,
+              "sign": "Aries",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "bhavat_bhavam_of": 3,
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            }
+          ],
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          },
+          "strength": -1.4546
+        },
+        "engine": "The planets that rule the houses of brothers, sisters and courage lean unfavourably; the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "lord",
+            "text": "against — Moon, 3rd lord, neutral, ratio 1.27"
+          },
+          {
+            "area": "siblings",
+            "point": 2,
+            "item": 0,
+            "text": "Moon — lord of the 3rd from the lagna: Libra 1°25′34″ in the 6th; neutral (compound enemy); Shadbala (sixfold strength) ratio 1.27 (7.64 of 6.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window)."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.arudha.against.one.hard.alone",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "signs": "Libra",
+          "planets": "the Moon",
+          "sits": "sits"
+        },
+        "tags": [
+          "vote:siblings.arudha"
+        ],
+        "facts": {
+          "family": "arudha",
+          "lean": "unfavourable",
+          "term": null,
+          "derivation": {
+            "rests_on": [
+              "A3"
+            ],
+            "padas": [
+              {
+                "pada": "A3",
+                "basis": "lagna",
+                "house": 6,
+                "sign": "Libra",
+                "occupants": [
+                  "Moon"
+                ],
+                "benefics": []
+              }
+            ],
+            "why": "more malefics than benefics occupy A3: the vote is against"
+          },
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          },
+          "strength": -0.9978
+        },
+        "engine": "The sign that shows how others see brothers, sisters and courage, Libra, leans unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A3: the vote is against"
+          },
+          {
+            "area": "siblings",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A3: Libra, 6th from the lagna; occupants Moon; benefics none."
+          }
+        ]
+      },
+      {
+        "part": "weakness",
+        "signature": "weakness.mks",
+        "area": "siblings",
+        "slots": {
+          "area": "brothers, sisters and courage",
+          "planet": "Mars",
+          "role": "the main planet of brothers, sisters and courage",
+          "sign": "Scorpio",
+          "house": "7th"
+        },
+        "tags": [
+          "vote:siblings.karaka"
+        ],
+        "facts": {
+          "planet": "Mars",
+          "role": "karaka",
+          "sign": "Scorpio",
+          "house": 7,
+          "about": {
+            "area": "siblings",
+            "area_words": "brothers, sisters and courage",
+            "area_houses_from_rising_sign": [
+              3,
+              11
+            ],
+            "main_house": 3,
+            "main_house_lord": "Moon",
+            "significators": [
+              "Mars",
+              "Mercury"
+            ],
+            "main_significator": "Mars"
+          },
+          "marana_karaka_sthana": true
+        },
+        "engine": "The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says.",
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 3,
+            "item": 0,
+            "text": "Mars — main karaka (significator): Scorpio 18°37′11″ in the 7th; own; Shadbala ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha Kumara; marana karaka sthana; maraka."
+          }
+        ]
+      },
+      {
+        "part": "period",
+        "signature": "period.now.touches",
+        "area": "father",
+        "slots": {
+          "area": "your father, your reputation and brothers, sisters and courage",
+          "maha": "Jupiter",
+          "antar": "Mercury",
+          "until": "November 2028",
+          "touching": "Jupiter and Mercury"
+        },
+        "tags": [],
+        "facts": {
+          "mahadasha": "Jupiter",
+          "antardasha": "Mercury",
+          "until": "November 2028",
+          "area_lords": [
+            "Mars",
+            "Mercury",
+            "Moon",
+            "Saturn",
+            "Venus"
+          ],
+          "area_karakas": [
+            "Sun",
+            "Jupiter"
+          ],
+          "touching": [
+            "Jupiter",
+            "Mercury"
+          ],
+          "about": {
+            "area": "father",
+            "area_words": "your father",
+            "area_houses_from_rising_sign": [
+              9,
+              10
+            ],
+            "main_house": 9,
+            "main_house_lord": "Saturn",
+            "significators": [
+              "Sun",
+              "Jupiter"
+            ],
+            "main_significator": "Sun"
+          },
+          "areas": [
+            "father",
+            "reputation",
+            "siblings"
+          ],
+          "touched_areas": [
+            "father",
+            "reputation",
+            "siblings"
+          ]
+        },
+        "engine": "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage.",
+        "notes": []
+      }
+    ],
+    "left_out": [
+      {
+        "area": "father",
+        "what": "vote:father.varga",
+        "why": "a weaker term than the 2 that are hard"
+      },
+      {
+        "area": "father",
+        "what": "vote:father.arudha",
+        "why": "abstains"
+      },
+      {
+        "area": "father",
+        "what": "chain:father.lord",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "father",
+        "what": "chain:father.karaka",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "reputation",
+        "what": "vote:reputation.arudha",
+        "why": "a weaker term than the 2 that are hard"
+      },
+      {
+        "area": "reputation",
+        "what": "place.l2_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "reputation",
+        "what": "place.l5_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "reputation",
+        "what": "place.sun_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "reputation",
+        "what": "place.sun_in_aquarius@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "reputation",
+        "what": "chain:reputation.lord",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "reputation",
+        "what": "chain:reputation.karaka",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "siblings",
+        "what": "vote:siblings.varga",
+        "why": "a weaker term than the 2 that are hard"
+      },
+      {
+        "area": "siblings",
+        "what": "place.l2_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "siblings",
+        "what": "place.l3_h6@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "siblings",
+        "what": "place.mars_in_scorpio@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "siblings",
+        "what": "place.mercury_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "siblings",
+        "what": "chain:siblings.lord",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "siblings",
+        "what": "chain:siblings.karaka",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "reputation",
+        "what": "weakness.mks:Saturn",
+        "why": "said for an earlier area of this answer"
+      },
+      {
+        "area": "reputation",
+        "what": "weakness.mrita:Saturn",
+        "why": "said for an earlier area of this answer"
+      },
+      {
+        "area": "reputation",
+        "what": "weakness.low_strength:Saturn",
+        "why": "said for an earlier area of this answer"
+      },
+      {
+        "area": "reputation",
+        "what": "weakness.mrita:Sun",
+        "why": "said for an earlier area of this answer"
+      }
+    ]
+  },
+  "composed": {
+    "sentences": [
+      {
+        "text": "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage.",
+        "tagged": "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage.",
+        "signature": "opening.weakest.none",
+        "part": "opening",
+        "area": null,
+        "tags": [],
+        "notes": [],
+        "row": {
+          "signature": "opening.weakest.none",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "openings.yaml"
+        }
+      },
+      {
+        "text": "Your father is not something this chart puts much weight on, though what it does show leans favourably.",
+        "tagged": "Your father is not something this chart puts much weight on, though what it does show leans favourably [vote:father.house] [vote:father.lord] [vote:father.karaka] [vote:father.varga] [vote:father.panchanga].",
+        "signature": "verdict.not_emphasised",
+        "part": "verdict",
+        "area": "father",
+        "tags": [
+          "vote:father.house",
+          "vote:father.lord",
+          "vote:father.karaka",
+          "vote:father.varga",
+          "vote:father.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "father",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ],
+        "row": {
+          "signature": "verdict.not_emphasised",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "verdicts.yaml"
+        }
+      },
+      {
+        "text": "What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably.",
+        "tagged": "What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably [vote:reputation.house] [vote:reputation.lord] [vote:reputation.karaka] [vote:reputation.varga] [vote:reputation.arudha] [vote:reputation.panchanga].",
+        "signature": "verdict.mixed",
+        "part": "verdict",
+        "area": "reputation",
+        "tags": [
+          "vote:reputation.house",
+          "vote:reputation.lord",
+          "vote:reputation.karaka",
+          "vote:reputation.varga",
+          "vote:reputation.arudha",
+          "vote:reputation.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "reputation",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ],
+        "row": {
+          "signature": "verdict.mixed",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "verdicts.yaml"
+        }
+      },
+      {
+        "text": "What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably.",
+        "tagged": "What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably [vote:siblings.house] [vote:siblings.lord] [vote:siblings.karaka] [vote:siblings.varga] [vote:siblings.arudha] [vote:siblings.panchanga].",
+        "signature": "verdict.mixed",
+        "part": "verdict",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.house",
+          "vote:siblings.lord",
+          "vote:siblings.karaka",
+          "vote:siblings.varga",
+          "vote:siblings.arudha",
+          "vote:siblings.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "siblings",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ],
+        "row": {
+          "signature": "verdict.mixed",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "verdicts.yaml"
+        }
+      },
+      {
+        "text": "Looking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign.",
+        "tagged": "Looking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign [vote:father.karaka].",
+        "signature": "family.karaka.against",
+        "part": "hard",
+        "area": "father",
+        "tags": [
+          "vote:father.karaka"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ],
+        "row": {
+          "signature": "family.karaka.against",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve.",
+        "tagged": "Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve [vote:father.house].",
+        "signature": "family.house.against.agrees",
+        "part": "hard",
+        "area": "father",
+        "tags": [
+          "vote:father.house"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "house",
+            "text": "against — 9th Capricorn, 4.62 rupas, relative -0.97"
+          },
+          {
+            "area": "father",
+            "point": 1,
+            "item": 0,
+            "text": "9th from the lagna: Capricorn, lord Saturn, empty; Bhava Bala (house strength) 4.62 rupas (units of 60 virupas), rank 11 of 12."
+          }
+        ],
+        "row": {
+          "signature": "family.house.against.agrees",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.",
+        "tagged": "The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says [vote:father.lord].",
+        "signature": "weakness.mks",
+        "part": "weakness",
+        "area": "father",
+        "tags": [
+          "vote:father.lord"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ],
+        "row": {
+          "signature": "weakness.mks",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "weaknesses.yaml"
+        }
+      },
+      {
+        "text": "The degree Saturn holds in Taurus puts it, as the ruler of your 9th house, in a feeble state.",
+        "tagged": "The degree Saturn holds in Taurus puts it, as the ruler of your 9th house, in a feeble state [vote:father.lord].",
+        "signature": "weakness.mrita",
+        "part": "weakness",
+        "area": "father",
+        "tags": [
+          "vote:father.lord"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ],
+        "row": {
+          "signature": "weakness.mrita",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "weaknesses.yaml"
+        }
+      },
+      {
+        "text": "The ruler of your 9th house, Saturn, has less strength than it needs to give fully what it promises for your father.",
+        "tagged": "The ruler of your 9th house, Saturn, has less strength than it needs to give fully what it promises for your father [vote:father.lord].",
+        "signature": "weakness.low_strength",
+        "part": "weakness",
+        "area": "father",
+        "tags": [
+          "vote:father.lord"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ],
+        "row": {
+          "signature": "weakness.low_strength",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "weaknesses.yaml"
+        }
+      },
+      {
+        "text": "The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state.",
+        "tagged": "The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state [vote:father.karaka].",
+        "signature": "weakness.mrita",
+        "part": "weakness",
+        "area": "father",
+        "tags": [
+          "vote:father.karaka"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ],
+        "row": {
+          "signature": "weakness.mrita",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "weaknesses.yaml"
+        }
+      },
+      {
+        "text": "Looking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign.",
+        "tagged": "Looking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign [vote:reputation.karaka].",
+        "signature": "family.karaka.against",
+        "part": "hard",
+        "area": "reputation",
+        "tags": [
+          "vote:reputation.karaka"
+        ],
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "karaka",
+            "text": "against — Sun in the 10th, enemy, ratio 1.23"
+          },
+          {
+            "area": "reputation",
+            "point": 3,
+            "item": 0,
+            "text": "Sun — main karaka (significator): Aquarius 27°47′56″ in the 10th; enemy (compound neutral); Shadbala ratio 1.23 (8.00 of 6.50 rupas); Baladi avastha Mrita; boundary."
+          }
+        ],
+        "row": {
+          "signature": "family.karaka.against",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve.",
+        "tagged": "Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve [vote:reputation.house].",
+        "signature": "family.house.against.agrees",
+        "part": "hard",
+        "area": "reputation",
+        "tags": [
+          "vote:reputation.house"
+        ],
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "house",
+            "text": "against — 10th Aquarius, 4.51 rupas, relative -1.00"
+          },
+          {
+            "area": "reputation",
+            "point": 1,
+            "item": 0,
+            "text": "10th from the lagna: Aquarius, lord Saturn, occupied by Sun, Mercury; Bhava Bala (house strength) 4.51 rupas (units of 60 virupas), rank 12 of 12."
+          }
+        ],
+        "row": {
+          "signature": "family.house.against.agrees",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Among the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably.",
+        "tagged": "Among the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably [vote:siblings.lord].",
+        "signature": "family.lord.against",
+        "part": "hard",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.lord"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "lord",
+            "text": "against — Moon, 3rd lord, neutral, ratio 1.27"
+          },
+          {
+            "area": "siblings",
+            "point": 2,
+            "item": 0,
+            "text": "Moon — lord of the 3rd from the lagna: Libra 1°25′34″ in the 6th; neutral (compound enemy); Shadbala (sixfold strength) ratio 1.27 (7.64 of 6.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window)."
+          }
+        ],
+        "row": {
+          "signature": "family.lord.against",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably.",
+        "tagged": "The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably [vote:siblings.arudha].",
+        "signature": "family.arudha.against.one.hard.alone",
+        "part": "hard",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.arudha"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A3: the vote is against"
+          },
+          {
+            "area": "siblings",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A3: Libra, 6th from the lagna; occupants Moon; benefics none."
+          }
+        ],
+        "row": {
+          "signature": "family.arudha.against.one.hard.alone",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says.",
+        "tagged": "The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says [vote:siblings.karaka].",
+        "signature": "weakness.mks",
+        "part": "weakness",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.karaka"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 3,
+            "item": 0,
+            "text": "Mars — main karaka (significator): Scorpio 18°37′11″ in the 7th; own; Shadbala ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha Kumara; marana karaka sthana; maraka."
+          }
+        ],
+        "row": {
+          "signature": "weakness.mks",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "weaknesses.yaml"
+        }
+      },
+      {
+        "text": "Looking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign.",
+        "tagged": "Looking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign [vote:father.lord].",
+        "signature": "family.lord.for",
+        "part": "helps",
+        "area": "father",
+        "tags": [
+          "vote:father.lord"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Saturn, 9th lord, friend, ratio 0.69"
+          },
+          {
+            "area": "father",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 9th from the lagna, 10th from the lagna, 5th from the Moon (bhavat bhavam of the 9th): Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ],
+        "row": {
+          "signature": "family.lord.for",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+        "tagged": "For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction [vote:father.panchanga].",
+        "signature": "family.panchanga.for.many",
+        "part": "helps",
+        "area": "father",
+        "tags": [
+          "vote:father.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "father",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "father",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 10th from the sun."
+          }
+        ],
+        "row": {
+          "signature": "family.panchanga.for.many",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign.",
+        "tagged": "Looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign [vote:reputation.lord].",
+        "signature": "family.lord.for",
+        "part": "helps",
+        "area": "reputation",
+        "tags": [
+          "vote:reputation.lord"
+        ],
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Saturn, 10th lord, friend, ratio 0.69"
+          },
+          {
+            "area": "reputation",
+            "point": 2,
+            "item": 0,
+            "text": "Saturn — lord of the 10th from the lagna, 4th from the Moon, 1st from the Sun: Taurus 2°06′21″ in the 1st; friend; Shadbala (sixfold strength) ratio 0.69 (3.45 of 5.00 rupas); Baladi avastha (age-state by degree) Mrita; marana karaka sthana (a placement in which a planet cannot give its good results); boundary (a sign or nakshatra edge within the birth-time window); yogakaraka (a planet ruling a kendra and a trikona)."
+          }
+        ],
+        "row": {
+          "signature": "family.lord.for",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+        "tagged": "The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best [vote:reputation.varga].",
+        "signature": "family.varga.for",
+        "part": "helps",
+        "area": "reputation",
+        "tags": [
+          "vote:reputation.varga"
+        ],
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "varga",
+            "text": "for — D10: Mars exalted (+1.00), Saturn own (+0.50)"
+          },
+          {
+            "area": "reputation",
+            "point": 5,
+            "item": 0,
+            "text": "D10 (dasamsa): Sun Scorpio friend; Moon Libra neutral; Mars Capricorn exalted; Mercury Aquarius neutral; Jupiter Aries friend; Venus Gemini friend; Saturn Capricorn own; Rahu Sagittarius; Ketu Gemini."
+          }
+        ],
+        "row": {
+          "signature": "family.varga.for",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+        "tagged": "For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction [vote:reputation.panchanga].",
+        "signature": "family.panchanga.for.many",
+        "part": "helps",
+        "area": "reputation",
+        "tags": [
+          "vote:reputation.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "reputation",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "reputation",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 7th from the lagna; 7th from the moon; 10th from the sun."
+          }
+        ],
+        "row": {
+          "signature": "family.panchanga.for.many",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it.",
+        "tagged": "Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it [rule:yoga.budhaditya] [text:Phaladeepika/Sastri-1937/18/1].",
+        "signature": "rule.yoga.budhaditya.reduced",
+        "part": "rule",
+        "area": "reputation",
+        "tags": [
+          "rule:yoga.budhaditya",
+          "text:Phaladeepika/Sastri-1937/18/1"
+        ],
+        "notes": [],
+        "row": {
+          "signature": "rule.yoga.budhaditya.reduced",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "rules.yaml"
+        }
+      },
+      {
+        "text": "Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation.",
+        "tagged": "Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation [rule:yoga.kendra_trikona_raja] [text:BPHS/Santhanam-1984/34/11-12] [text:BPHS/Santhanam-1984/34/15] [text:BPHS/Santhanam-1984/7/33-36].",
+        "signature": "rule.yoga.kendra_trikona_raja.full",
+        "part": "rule",
+        "area": "reputation",
+        "tags": [
+          "rule:yoga.kendra_trikona_raja",
+          "text:BPHS/Santhanam-1984/34/11-12",
+          "text:BPHS/Santhanam-1984/34/15",
+          "text:BPHS/Santhanam-1984/7/33-36"
+        ],
+        "notes": [],
+        "row": {
+          "signature": "rule.yoga.kendra_trikona_raja.full",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "rules.yaml"
+        }
+      },
+      {
+        "text": "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+        "tagged": "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it [rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2] [text:Phaladeepika/Sastri-1937/6/1].",
+        "signature": "rule.yoga.ruchaka.reduced",
+        "part": "rule",
+        "area": "reputation",
+        "tags": [
+          "rule:yoga.ruchaka",
+          "text:BPHS/Santhanam-1984/75/1-2",
+          "text:Phaladeepika/Sastri-1937/6/1"
+        ],
+        "notes": [],
+        "row": {
+          "signature": "rule.yoga.ruchaka.reduced",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "rules.yaml"
+        }
+      },
+      {
+        "text": "Looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign.",
+        "tagged": "Looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign [vote:siblings.karaka].",
+        "signature": "family.karaka.for",
+        "part": "helps",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.karaka"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Mars in the 7th, own, ratio 1.30"
+          },
+          {
+            "area": "siblings",
+            "point": 3,
+            "item": 0,
+            "text": "Mars — main karaka (significator): Scorpio 18°37′11″ in the 7th; own; Shadbala ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha Kumara; marana karaka sthana; maraka."
+          }
+        ],
+        "row": {
+          "signature": "family.karaka.for",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses.",
+        "tagged": "The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses [vote:siblings.house].",
+        "signature": "family.house.for.agrees",
+        "part": "helps",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.house"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "house",
+            "text": "for — 3rd Cancer, 7.68 rupas, relative +0.06"
+          },
+          {
+            "area": "siblings",
+            "point": 1,
+            "item": 0,
+            "text": "3rd from the lagna: Cancer, lord Moon, empty; Bhava Bala (house strength) 7.68 rupas (units of 60 virupas), rank 7 of 12."
+          }
+        ],
+        "row": {
+          "signature": "family.house.for.agrees",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+        "tagged": "For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction [vote:siblings.panchanga].",
+        "signature": "family.panchanga.for.many",
+        "part": "helps",
+        "area": "siblings",
+        "tags": [
+          "vote:siblings.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "siblings",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "siblings",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 3rd from the sun."
+          }
+        ],
+        "row": {
+          "signature": "family.panchanga.for.many",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Your current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage.",
+        "tagged": "Your current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage.",
+        "signature": "period.now.touches",
+        "part": "period",
+        "area": "father",
+        "tags": [],
+        "notes": [],
+        "row": {
+          "signature": "period.now.touches",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "periods.yaml"
+        }
+      }
+    ],
+    "paragraphs": [
+      0,
+      4,
+      15,
+      26
+    ],
+    "bank": "e28c17f41e57",
+    "from_bank": 27,
+    "from_engine": 0
+  },
+  "bank": "e28c17f41e57",
+  "polish": {
+    "model": "claude-haiku-5-5",
+    "composed": "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage. Your father is not something this chart puts much weight on, though what it does show leans favourably. What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably. What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably.\n\nLooking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign. Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve. The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says. The degree Saturn holds in Taurus puts it, as the ruler of your 9th house, in a feeble state. The ruler of your 9th house, Saturn, has less strength than it needs to give fully what it promises for your father. The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state. Looking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign. Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve. Among the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably. The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably. The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says.\n\nLooking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign. For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction. Looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign. The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best. For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction. Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it. Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation. Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it. Looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign. The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses. For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.\n\nYour current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage.",
+    "text": "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage. Your father is not something this chart puts much weight on, though what it does show leans favourably. What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably. What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably.\n\nLooking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign. Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve. The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says, and the degree Saturn holds in Taurus puts it, as that ruler, in a feeble state, so it has less strength than it needs to give fully what it promises for your father. The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state.\n\nOn the other side, looking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign. For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.\n\nLooking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign. Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve.\n\nEven so, looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign. The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best. For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction. Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it. Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation. Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.\n\nAmong the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably. The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably. The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says.\n\nOn the other side, looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign. The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses. For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.\n\nYour current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage.",
+    "used": true,
+    "refusals": [],
+    "verdict": [
+      {
+        "text": "The chart leans against the client in no area on balance (i.e. is on balance favourable)",
+        "supported": true,
+        "evidence": "data: \"Your chart leans against you in no area on balance\""
+      },
+      {
+        "text": "The chart gives the least support to the client's father, reputation, and brothers/sisters/courage",
+        "supported": true,
+        "evidence": "data: \"it gives the least support to your father, your reputation and brothers, sisters and courage\""
+      },
+      {
+        "text": "Father is not something the chart puts much weight on",
+        "supported": true,
+        "evidence": "data: \"Your father is not something this chart puts much weight on\""
+      },
+      {
+        "text": "What the chart shows for father leans favourably",
+        "supported": true,
+        "evidence": "data: \"though what it does show leans favourably\""
+      },
+      {
+        "text": "What the chart shows for reputation does not all agree (is mixed)",
+        "supported": true,
+        "evidence": "data: \"What the chart shows for your reputation does not all agree\""
+      },
+      {
+        "text": "Taken as a whole, reputation leans favourably",
+        "supported": true,
+        "evidence": "data: \"but taken as a whole it leans favourably\""
+      },
+      {
+        "text": "What the chart shows for brothers/sisters/courage does not all agree (is mixed)",
+        "supported": true,
+        "evidence": "data: \"What the chart shows for brothers, sisters and courage does not all agree\""
+      },
+      {
+        "text": "Taken as a whole, brothers/sisters/courage leans favourably",
+        "supported": true,
+        "evidence": "data: \"but taken as a whole it leans favourably\""
+      },
+      {
+        "text": "Among the planets that signify father, the lean is unfavourable",
+        "supported": true,
+        "evidence": "data: \"Looking at the planets that signify your father, the lean is unfavourable\""
+      },
+      {
+        "text": "The main planet signifying father is the Sun",
+        "supported": true,
+        "evidence": "data: \"the main one, the Sun\""
+      },
+      {
+        "text": "The Sun sits in the 10th house",
+        "supported": true,
+        "evidence": "data: \"sits in your 10th house\""
+      },
+      {
+        "text": "The Sun sits in Aquarius",
+        "supported": true,
+        "evidence": "data: \"in Aquarius\""
+      },
+      {
+        "text": "Aquarius is an unfriendly sign (for the Sun)",
+        "supported": true,
+        "evidence": "data: \"in an unfriendly sign\""
+      },
+      {
+        "text": "The houses that govern father, taken together, lean unfavourable",
+        "supported": true,
+        "evidence": "data: \"Looking at all the houses that govern your father, the lean is unfavourable\""
+      },
+      {
+        "text": "The main house governing father is the 9th house",
+        "supported": true,
+        "evidence": "data: \"the main one is your 9th house\""
+      },
+      {
+        "text": "The 9th house is in Capricorn",
+        "supported": true,
+        "evidence": "data: \"your 9th house, in Capricorn\""
+      },
+      {
+        "text": "The 9th house is among the least supported of the twelve houses",
+        "supported": true,
+        "evidence": "data: \"which is among the least supported of your twelve\""
+      },
+      {
+        "text": "Saturn rules the 9th house",
+        "supported": true,
+        "evidence": "data: \"The ruler of your 9th house, Saturn\""
+      },
+      {
+        "text": "Saturn sits in the 1st house",
+        "supported": true,
+        "evidence": "data: \"sits in your 1st house\""
+      },
+      {
+        "text": "The 1st house is a house that drains a planet placed in it, whatever the sign says",
+        "supported": true,
+        "evidence": "data: \"a house that drains it, whatever the sign says\""
+      },
+      {
+        "text": "The degree Saturn holds in Taurus puts it, as ruler of the 9th house, in a feeble state",
+        "supported": true,
+        "evidence": "data: \"The degree Saturn holds in Taurus puts it, as the ruler of your 9th house, in a feeble state\""
+      },
+      {
+        "text": "Saturn has less strength than it needs to give fully what it promises for father",
+        "supported": true,
+        "evidence": "data: \"has less strength than it needs to give fully what it promises for your father\""
+      },
+      {
+        "text": "The degree the Sun holds in Aquarius puts it, as the main planet of father, in a feeble state",
+        "supported": true,
+        "evidence": "data: \"The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state\""
+      },
+      {
+        "text": "Among the rulers of the houses of father, the lean is favourable",
+        "supported": true,
+        "evidence": "data: \"Looking at the rulers of the houses of your father, the lean is favourable\""
+      },
+      {
+        "text": "Saturn, ruler of the 9th house, sits in Taurus",
+        "supported": true,
+        "evidence": "data: \"Saturn, ruler of the 9th house, sits in Taurus\""
+      },
+      {
+        "text": "Saturn sits in the 1st house (restated here)",
+        "supported": true,
+        "evidence": "data: \"in your 1st house\""
+      },
+      {
+        "text": "Taurus is a friendly sign (for Saturn)",
+        "supported": true,
+        "evidence": "data: \"in a friendly sign\""
+      },
+      {
+        "text": "Mars and the Moon are the planets that rule the day of birth",
+        "supported": true,
+        "evidence": "data: \"the planets that rule the day you were born, Mars and the Moon\""
+      },
+      {
+        "text": "For father, Mars and the Moon lean in a favourable direction",
+        "supported": true,
+        "evidence": "data: \"For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction\""
+      },
+      {
+        "text": "Among the planets that signify reputation, the lean is unfavourable",
+        "supported": true,
+        "evidence": "data: \"Looking at the planets that signify your reputation, the lean is unfavourable\""
+      },
+      {
+        "text": "The main planet signifying reputation is the Sun",
+        "supported": true,
+        "evidence": "data: \"the main one, the Sun\""
+      },
+      {
+        "text": "The Sun sits in the 10th house (reputation context)",
+        "supported": true,
+        "evidence": "data: \"sits in your 10th house\""
+      },
+      {
+        "text": "The Sun sits in Aquarius (reputation context)",
+        "supported": true,
+        "evidence": "data: \"in Aquarius\""
+      },
+      {
+        "text": "Aquarius is an unfriendly sign (reputation context)",
+        "supported": true,
+        "evidence": "data: \"in an unfriendly sign\""
+      },
+      {
+        "text": "The houses that govern reputation, taken together, lean unfavourable",
+        "supported": true,
+        "evidence": "data: \"Looking at all the houses that govern your reputation, the lean is unfavourable\""
+      },
+      {
+        "text": "The main house governing reputation is the 10th house",
+        "supported": true,
+        "evidence": "data: \"the main one is your 10th house\""
+      },
+      {
+        "text": "The 10th house is in Aquarius",
+        "supported": true,
+        "evidence": "data: \"your 10th house, in Aquarius\""
+      },
+      {
+        "text": "The 10th house is among the least supported of the twelve houses",
+        "supported": true,
+        "evidence": "data: \"which is among the least supported of your twelve\""
+      },
+      {
+        "text": "Among the rulers of the houses of reputation, the lean is favourable",
+        "supported": true,
+        "evidence": "data: \"Looking at the rulers of the houses of your reputation, the lean is favourable\""
+      },
+      {
+        "text": "Saturn rules the 10th house",
+        "supported": true,
+        "evidence": "data: \"Saturn, ruler of the 10th house\""
+      },
+      {
+        "text": "Saturn sits in Taurus in the 1st house (reputation context)",
+        "supported": true,
+        "evidence": "data: \"sits in Taurus in your 1st house\""
+      },
+      {
+        "text": "Taurus is a friendly sign (reputation context)",
+        "supported": true,
+        "evidence": "data: \"in a friendly sign\""
+      },
+      {
+        "text": "The divisional chart for reputation leans favourably",
+        "supported": true,
+        "evidence": "data: \"The divisional chart for your reputation leans favourably\""
+      },
+      {
+        "text": "In that divisional chart, Mars falls in Capricorn",
+        "supported": true,
+        "evidence": "data: \"there Mars falls in Capricorn\""
+      },
+      {
+        "text": "Mars is exalted there",
+        "supported": true,
+        "evidence": "data: \"exalted\""
+      },
+      {
+        "text": "Exaltation is where Mars is at its best",
+        "supported": true,
+        "evidence": "data: \"exalted, where it is at its best\""
+      },
+      {
+        "text": "For reputation, Mars and the Moon lean in a favourable direction",
+        "supported": true,
+        "evidence": "data: \"For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction\""
+      },
+      {
+        "text": "Budhaditya is the combination of the Sun and Mercury (gloss)",
+        "supported": true,
+        "evidence": "data: \"Budhaditya, the combination of the Sun and Mercury\""
+      },
+      {
+        "text": "Budhaditya is in the client's chart",
+        "supported": true,
+        "evidence": "data: \"Budhaditya, the combination of the Sun and Mercury, is in your chart\""
+      },
+      {
+        "text": "The Sun and Mercury are in the 10th house",
+        "supported": true,
+        "evidence": "data: \"the Sun and Mercury in your 10th house\""
+      },
+      {
+        "text": "The Sun and Mercury (Budhaditya) bear on reputation and on brothers/sisters/courage",
+        "supported": true,
+        "evidence": "data: \"bear on your reputation and brothers, sisters and courage\""
+      },
+      {
+        "text": "Mercury is in a feeble state, which softens the combination",
+        "supported": true,
+        "evidence": "data: \"with Mercury being in a feeble state softening it\""
+      },
+      {
+        "text": "Raja yoga is the rulers of an angular house and of a trine house joined (gloss)",
+        "supported": true,
+        "evidence": "data: \"raja yoga (the rulers of an angular house and of a trine house joined)\""
+      },
+      {
+        "text": "The chart holds raja yoga",
+        "supported": true,
+        "evidence": "data: \"Your chart holds raja yoga\""
+      },
+      {
+        "text": "The raja yoga is formed by the Sun and Mercury in the 10th house",
+        "supported": true,
+        "evidence": "data: \"formed by the Sun and Mercury in your 10th house\""
+      },
+      {
+        "text": "The raja yoga bears on reputation",
+        "supported": true,
+        "evidence": "data: \"and it bears on your reputation\""
+      },
+      {
+        "text": "Ruchaka is Mars in its own or exalted sign in an angular house (gloss)",
+        "supported": true,
+        "evidence": "data: \"Ruchaka (Mars in its own or exalted sign in an angular house)\""
+      },
+      {
+        "text": "The chart holds Ruchaka",
+        "supported": true,
+        "evidence": "data: \"Your chart holds Ruchaka\""
+      },
+      {
+        "text": "The Ruchaka is formed by Mars in the 7th house",
+        "supported": true,
+        "evidence": "data: \"formed by Mars in your 7th house\""
+      },
+      {
+        "text": "The combination bears on reputation and on brothers/sisters/courage",
+        "supported": true,
+        "evidence": "data: \"the combination bears on your reputation and brothers, sisters and courage\""
+      },
+      {
+        "text": "The combination is held back by Saturn's aspect on it",
+        "supported": true,
+        "evidence": "data: \"though it is held back by Saturn's aspect on it\""
+      },
+      {
+        "text": "Saturn is an unhelpful star counted from the Moon (the aspect's source)",
+        "supported": true,
+        "evidence": "data: \"an unhelpful star counted from your Moon\""
+      },
+      {
+        "text": "A house (the 7th, Mars's placement) drains it (the combination's planet)",
+        "supported": true,
+        "evidence": "data: \"and a house that drains it\""
+      },
+      {
+        "text": "Among the rulers of the houses of brothers/sisters/courage, the Moon rules the 3rd house",
+        "supported": true,
+        "evidence": "data: \"the Moon, which rules the 3rd house\""
+      },
+      {
+        "text": "The Moon sits in Libra",
+        "supported": true,
+        "evidence": "data: \"sits in Libra\""
+      },
+      {
+        "text": "The Moon sits in the 6th house",
+        "supported": true,
+        "evidence": "data: \"in your 6th house\""
+      },
+      {
+        "text": "Libra is a neutral sign (for the Moon)",
+        "supported": true,
+        "evidence": "data: \"in a neutral sign\""
+      },
+      {
+        "text": "The rulers of the houses of brothers/sisters/courage, taken together, lean unfavourable",
+        "supported": true,
+        "evidence": "data: \"together these rulers lean unfavourably\""
+      },
+      {
+        "text": "Libra is the sign showing how others see brothers/sisters/courage",
+        "supported": true,
+        "evidence": "data: \"the sign showing how others see brothers, sisters and courage\""
+      },
+      {
+        "text": "The Moon has no helpful planet beside it",
+        "supported": true,
+        "evidence": "data: \"with no helpful planet beside\""
+      },
+      {
+        "text": "The Moon's sign placement (Libra, 6th) leans unfavourably",
+        "supported": true,
+        "evidence": "data: \"so this sign leans unfavourably\""
+      },
+      {
+        "text": "Mars is the main planet of brothers/sisters/courage",
+        "supported": true,
+        "evidence": "data: \"The main planet of brothers, sisters and courage, Mars\""
+      },
+      {
+        "text": "Mars sits in the 7th house",
+        "supported": true,
+        "evidence": "data: \"sits in your 7th house\""
+      },
+      {
+        "text": "The 7th house is a house that drains a planet placed in it, whatever the sign says",
+        "supported": true,
+        "evidence": "data: \"a house that drains it, whatever the sign says\""
+      },
+      {
+        "text": "Among the planets that stand for brothers/sisters/courage, they lean favourably",
+        "supported": true,
+        "evidence": "data: \"Looking at the planets that stand for brothers, sisters and courage, they lean favourably\""
+      },
+      {
+        "text": "Mars is placed in Scorpio",
+        "supported": true,
+        "evidence": "data: \"Mars is placed in Scorpio\""
+      },
+      {
+        "text": "Mars is placed in the 7th house (karaka context)",
+        "supported": true,
+        "evidence": "data: \"in your 7th house\""
+      },
+      {
+        "text": "Scorpio is Mars's own sign",
+        "supported": true,
+        "evidence": "data: \"in its own sign\""
+      },
+      {
+        "text": "The houses behind brothers/sisters/courage lean favourably as a group",
+        "supported": true,
+        "evidence": "data: \"The houses behind brothers, sisters and courage lean favourably as a group\""
+      },
+      {
+        "text": "The main such house is the 3rd house, in Cancer",
+        "supported": true,
+        "evidence": "data: \"the main one, your 3rd house in Cancer\""
+      },
+      {
+        "text": "The 3rd house is better supported than most of the twelve houses",
+        "supported": true,
+        "evidence": "data: \"is better supported than most among your twelve houses\""
+      },
+      {
+        "text": "For brothers/sisters/courage, Mars and the Moon lean in a favourable direction",
+        "supported": true,
+        "evidence": "data: \"For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction\""
+      },
+      {
+        "text": "The client's current period is that of Jupiter",
+        "supported": true,
+        "evidence": "data: \"Your current period is that of Jupiter\""
+      },
+      {
+        "text": "The Jupiter period is within the period of Mercury",
+        "supported": true,
+        "evidence": "data: \"within that of Mercury\""
+      },
+      {
+        "text": "The current period runs until November 2028",
+        "supported": true,
+        "evidence": "data: \"running until November 2028\""
+      },
+      {
+        "text": "Jupiter and Mercury have a hand in father, reputation, and brothers/sisters/courage",
+        "supported": true,
+        "evidence": "data: \"Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage\"}],"
+      },
+      {
+        "text": "summary",
+        "supported": true,
+        "evidence": "The sentence is matched nearly word for word by the composed answer given in the data; every proposition, including each appositive and gloss (Budhaditya, raja yoga, Ruchaka, the draining house, the unhelpful star from the Moon), is stated there with the same lean and strength. No proposition is unsupported, and none attaches a detail to the wrong thing or is ambiguous."
+      }
+    ],
+    "sentences": [
+      "Your chart leans against you in no area on balance, and it gives the least support to your father, your reputation and brothers, sisters and courage.",
+      "Your father is not something this chart puts much weight on, though what it does show leans favourably.",
+      "What the chart shows for your reputation does not all agree, but taken as a whole it leans favourably.",
+      "What the chart shows for brothers, sisters and courage does not all agree, but taken as a whole it leans favourably.",
+      "Looking at the planets that signify your father, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign.",
+      "Looking at all the houses that govern your father, the lean is unfavourable; the main one is your 9th house, in Capricorn, which is among the least supported of your twelve.",
+      "The ruler of your 9th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says, and the degree Saturn holds in Taurus puts it, as that ruler, in a feeble state, so it has less strength than it needs to give fully what it promises for your father.",
+      "The degree the Sun holds in Aquarius puts it, as the main planet of your father, in a feeble state.",
+      "On the other side, looking at the rulers of the houses of your father, the lean is favourable, and Saturn, ruler of the 9th house, sits in Taurus in your 1st house, in a friendly sign.",
+      "For your father, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+      "Looking at the planets that signify your reputation, the lean is unfavourable, and the main one, the Sun, sits in your 10th house in Aquarius, in an unfriendly sign.",
+      "Looking at all the houses that govern your reputation, the lean is unfavourable; the main one is your 10th house, in Aquarius, which is among the least supported of your twelve.",
+      "Even so, looking at the rulers of the houses of your reputation, the lean is favourable, and Saturn, ruler of the 10th house, sits in Taurus in your 1st house, in a friendly sign.",
+      "The divisional chart for your reputation leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+      "For your reputation, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+      "Budhaditya, the combination of the Sun and Mercury, is in your chart: the Sun and Mercury in your 10th house bear on your reputation and brothers, sisters and courage, with Mercury being in a feeble state softening it.",
+      "Your chart holds raja yoga (the rulers of an angular house and of a trine house joined), formed by the Sun and Mercury in your 10th house, and it bears on your reputation.",
+      "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your reputation and brothers, sisters and courage, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+      "Among the rulers of the houses of brothers, sisters and courage, the Moon, which rules the 3rd house, sits in Libra in your 6th house, in a neutral sign, and together these rulers lean unfavourably.",
+      "The Moon sits in Libra, the sign showing how others see brothers, sisters and courage, with no helpful planet beside, so this sign leans unfavourably.",
+      "The main planet of brothers, sisters and courage, Mars, sits in your 7th house, a house that drains it, whatever the sign says.",
+      "On the other side, looking at the planets that stand for brothers, sisters and courage, they lean favourably, and among them Mars is placed in Scorpio in your 7th house, in its own sign.",
+      "The houses behind brothers, sisters and courage lean favourably as a group, and the main one, your 3rd house in Cancer, is better supported than most among your twelve houses.",
+      "For brothers, sisters and courage, the planets that rule the day you were born, Mars and the Moon, lean in a favourable direction.",
+      "Your current period is that of Jupiter, within that of Mercury, running until November 2028; Jupiter and Mercury have a hand in your father, your reputation and brothers, sisters and courage."
+    ],
+    "paragraphs": [
+      0,
+      4,
+      8,
+      10,
+      12,
+      18,
+      21,
+      24
+    ]
+  },
+  "polisher": {
+    "model": "claude-haiku-5-5",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-haiku-5-5"
+    }
+  }
+}

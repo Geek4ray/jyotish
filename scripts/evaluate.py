@@ -273,6 +273,56 @@ def turn_timings(card: Card):
         "removed by the checks. Each is one run on a shared provider, so it is reported and never gated.", ""] + lines))
 
 
+def layered(card: Card, charts: int = 1000):
+    """The layered answer (SPEC Layer 8 rev 134, 2026-11-15): the bank's coverage of plan items on `charts` random
+    synthetic charts (bank.coverage), its rows and approved share; and, from the turn rows of docs/live_timings.jsonl
+    that carry `from_bank` (scripts/live_timing.py --turn --layered on [--polish]), the share of answered turns the
+    composer answered and the cost and seconds per turn, composed and polished. Reported, never gated: the bank is
+    data still being drafted and read, and the turns are one live run each."""
+    import statistics
+    from jyotish.bank import coverage
+    cov = coverage(charts, seed=0)
+    card.num("bank.coverage", cov["share"], "higher", gate=False)
+    card.num("bank.rows", cov["rows"], None, gate=False)
+    card.num("bank.approved_share", cov["approved_share"], "higher", gate=False)
+    card.num("bank.meaning_share", cov["meaning_share"], "higher", gate=False)
+    for part, share in cov["by_part"].items():
+        card.num(f"bank.coverage.{part}", share, "higher", gate=False)
+    lines = [f"Bank {cov['version']}: {cov['rows']} rows, {cov['approved_share']:.0%} approved. On {cov['charts']} random "
+             f"synthetic charts (every area, every question kind, a \"when\" turn), {cov['found']} of {cov['items']} plan "
+             f"items find a fact row whose slots they fill ({cov['share']:.1%}); by part: "
+             + ", ".join(f"{k} {v:.0%}" for k, v in cov["by_part"].items())
+             + f". Meaning rows for {cov['meaning_share']:.0%} of the rule and weakness items. Missing most often: "
+             + ", ".join(f"{s} ({n})" for s, n in cov["missing"][:8]) + "."]
+    path = DOCS / "live_timings.jsonl"
+    rows = [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
+    turns = [r for r in rows if r.get("kind") == "turn" and r.get("source") != "fixed" and "from_bank" in r]
+    if turns:
+        last = max(r["date"] for r in turns)
+        turns = [r for r in turns if r["date"] == last]
+        answered = len(turns)
+        share = sum(1 for r in turns if r["source"] in ("composer", "polished")) / answered
+        card.num("layered.composer_share", round(share, 4), "higher", gate=False)
+        for name, group in (("composed", [r for r in turns if r.get("polished") is None]),
+                            ("polished", [r for r in turns if r.get("polished") is not None])):
+            if not group:
+                continue
+            for k in ("cost_usd", "done_s"):
+                vals = [r[k] for r in group if r.get(k) is not None]
+                if vals:
+                    card.num(f"layered.{name}.{k}", round(statistics.mean(vals), 6), "lower", gate=False)
+            used = [r for r in group if r.get("polished")]
+            lines.append(f"{name.capitalize()} turns ({last}, {len(group)}): USD "
+                         f"{statistics.mean([r['cost_usd'] or 0 for r in group]):.5f} and "
+                         f"{statistics.mean([r['done_s'] or 0 for r in group]):.2f} s per turn on average"
+                         + (f"; the polished text shown on {len(used)} of {len(group)}" if name == "polished" else "") + ".")
+        lines.append(f"The composer answered {share:.0%} of the {answered} answered turns of {last}.")
+    else:
+        card.skip("layered turns", "no composed turn row in docs/live_timings.jsonl; run scripts/live_timing.py --turn "
+                                   "--layered on")
+    card.sections.append(("The layered answer (reported, not gated)", lines))
+
+
 def paragraph_policy(card: Card):
     """The paragraph held sentence by sentence (review Q11, DoD 4): from the latest committed comparison at curious
     depth (docs/comparison_<date>*/ with curious readings and their recordings), per area paragraph: complete,
@@ -436,7 +486,7 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     card = Card()
     for step in (reference, crosscheck, metamorphic, checker, placements_check, live_timings, turn_timings,
-                 paragraph_policy):
+                 paragraph_policy, layered):
         t = time.time()
         step(card)
         print(f"{step.__name__}: {time.time() - t:.0f} s", flush=True)                 # progress, for a CI log

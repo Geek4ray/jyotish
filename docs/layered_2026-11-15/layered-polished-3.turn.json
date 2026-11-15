@@ -1,0 +1,1357 @@
+{
+  "question": "when?",
+  "route": {
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "when": true,
+    "why": false,
+    "how": false,
+    "follow_up": true,
+    "carried": [
+      "areas",
+      "direction"
+    ],
+    "areas_from": "carried",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [],
+  "warnings": [],
+  "checks": [],
+  "writer": {},
+  "checker": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "backend": {
+      "provider": "openai-compatible",
+      "host": "api.deepinfra.com",
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "temperature": 0.0
+    }
+  },
+  "usage": {
+    "wall_seconds": 10.51,
+    "polisher": {
+      "calls": 1,
+      "input_tokens": 124,
+      "output_tokens": 129,
+      "cache_read_input_tokens": 1223,
+      "cache_creation_input_tokens": 0,
+      "seconds": 2.745
+    },
+    "checker": {
+      "calls": 1,
+      "input_tokens": 413,
+      "output_tokens": 468,
+      "cache_read_input_tokens": 384,
+      "cache_creation_input_tokens": 0,
+      "seconds": 7.73
+    }
+  },
+  "kinds": [
+    "when"
+  ],
+  "engine": {
+    "question": "when?",
+    "direction": "against",
+    "areas": [
+      "marriage"
+    ],
+    "when": true,
+    "sentences": [
+      {
+        "text": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "text": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "text": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "text": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "text": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "polished",
+  "shown": [
+    "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.",
+    "Looking at marriage, the chart places its least favourable stretch from August 2029 to October 2029.",
+    "Running from January 2030 to October 2031, this is the most favourable stretch in the chart.",
+    "Please read neither stretch as a prediction of the moment you will act."
+  ],
+  "paragraphs": [
+    0,
+    1
+  ],
+  "accepted": [
+    "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.",
+    "Looking at marriage, the chart places its least favourable stretch from August 2029 to October 2029.",
+    "Running from January 2030 to October 2031, this is the most favourable stretch in the chart.",
+    "Please read neither stretch as a prediction of the moment you will act."
+  ],
+  "attempts": 0,
+  "timeline": {
+    "engine": 0.001,
+    "plan": 0.028,
+    "polished": 10.509,
+    "first_verified": 10.51,
+    "done": 10.51
+  },
+  "opened_by": "composer",
+  "plan": {
+    "question": "when?",
+    "areas": [
+      "marriage"
+    ],
+    "direction": "against",
+    "kinds": [
+      "when"
+    ],
+    "when": true,
+    "as_of": "2026-11-02",
+    "items": [
+      {
+        "part": "opening",
+        "signature": "opening.when",
+        "area": null,
+        "slots": {
+          "area": "marriage"
+        },
+        "tags": [],
+        "facts": {
+          "question_kind": "when",
+          "areas": [
+            "marriage"
+          ],
+          "area_words": "marriage"
+        },
+        "engine": "A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for marriage.",
+        "notes": []
+      },
+      {
+        "part": "verdict",
+        "signature": "verdict.moderate",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "Area": "Marriage",
+          "lean": "favourably"
+        },
+        "tags": [
+          "vote:marriage.house",
+          "vote:marriage.lord",
+          "vote:marriage.karaka",
+          "vote:marriage.varga",
+          "vote:marriage.arudha",
+          "vote:marriage.kp",
+          "vote:marriage.panchanga"
+        ],
+        "facts": {
+          "tier": "moderate",
+          "direction": "supportive",
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          }
+        },
+        "engine": "For marriage, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "marriage",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.lord.for",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "planet": "Mars",
+          "ruled_house": "7th",
+          "sign": "Scorpio",
+          "house": "7th",
+          "dignity": "in its own sign"
+        },
+        "tags": [
+          "vote:marriage.lord"
+        ],
+        "facts": {
+          "family": "lord",
+          "lean": "favourable",
+          "term": 10.682937798913992,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 7,
+              "sign": "Scorpio",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "lagna",
+              "house": 2,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "lagna",
+              "house": 8,
+              "sign": "Sagittarius",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "bhavat_bhavam_of": 7,
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 7,
+              "sign": "Aries",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "moon",
+              "house": 2,
+              "sign": "Scorpio",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 8,
+              "sign": "Taurus",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 1,
+              "sign": "Libra",
+              "bhavat_bhavam_of": 7,
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 7,
+              "sign": "Leo",
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 2,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 8,
+              "sign": "Virgo",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 1,
+              "sign": "Aquarius",
+              "bhavat_bhavam_of": 7,
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            }
+          ],
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          },
+          "strength": 10.6829
+        },
+        "engine": "The planets that rule the houses of marriage lean favourably; Mars, which rules the 7th house, sits in Scorpio in your 7th house, in its own sign.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mars, 7th lord, own, ratio 1.30"
+          },
+          {
+            "area": "marriage",
+            "point": 2,
+            "item": 0,
+            "text": "Mars — lord of the 7th from the lagna, 7th from the Moon, 2nd from the Moon: Scorpio 18°37′11″ in the 7th; own; Shadbala (sixfold strength) ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha (age-state by degree) Kumara; marana karaka sthana (a placement in which a planet cannot give its good results); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.karaka.for",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "planet": "Venus",
+          "sign": "Pisces",
+          "house": "11th",
+          "dignity": "exalted, where it is at its best"
+        },
+        "tags": [
+          "vote:marriage.karaka"
+        ],
+        "facts": {
+          "family": "karaka",
+          "lean": "favourable",
+          "term": 4.101372596634128,
+          "derivation": [
+            {
+              "planet": "Venus",
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 11
+                },
+                {
+                  "basis": "sun",
+                  "house": 2
+                }
+              ],
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33
+            },
+            {
+              "planet": "Jupiter",
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 1
+                },
+                {
+                  "basis": "moon",
+                  "house": 8
+                }
+              ],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22
+            },
+            {
+              "planet": "Mercury",
+              "basis": "lagna",
+              "house": 10,
+              "sign": "Aquarius",
+              "area_house_from": [
+                {
+                  "basis": "sun",
+                  "house": 1
+                }
+              ],
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19
+            }
+          ],
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          },
+          "strength": 4.1014
+        },
+        "engine": "The planets that signify marriage lean favourably; the main one, Venus, sits in Pisces in your 11th house, exalted, where it is at its best.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Venus in the 11th, exalted, ratio 1.33"
+          },
+          {
+            "area": "marriage",
+            "point": 3,
+            "item": 0,
+            "text": "Venus — main karaka (significator): Pisces 23°39′19″ in the 11th; exalted; Shadbala ratio 1.33 (7.32 of 5.50 rupas); Baladi avastha Kumara; retrograde; lagna lord."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.house.for.though",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "house": "7th",
+          "sign": "Scorpio",
+          "standing": "less supported than most"
+        },
+        "tags": [
+          "vote:marriage.house"
+        ],
+        "facts": {
+          "family": "house",
+          "lean": "favourable",
+          "term": 1.3837521680193303,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 7,
+              "sign": "Scorpio",
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "lagna",
+              "house": 2,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "lagna",
+              "house": 8,
+              "sign": "Sagittarius",
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "bhavat_bhavam_of": 7,
+              "bhava_bala_rupas": 7.16,
+              "relative": -0.11
+            },
+            {
+              "basis": "moon",
+              "house": 7,
+              "sign": "Aries",
+              "bhava_bala_rupas": 6.7,
+              "relative": -0.27
+            },
+            {
+              "basis": "moon",
+              "house": 2,
+              "sign": "Scorpio",
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            },
+            {
+              "basis": "moon",
+              "house": 8,
+              "sign": "Taurus",
+              "bhava_bala_rupas": 7.16,
+              "relative": -0.11
+            },
+            {
+              "basis": "moon",
+              "house": 1,
+              "sign": "Libra",
+              "bhavat_bhavam_of": 7,
+              "bhava_bala_rupas": 8.22,
+              "relative": 0.24
+            },
+            {
+              "basis": "sun",
+              "house": 7,
+              "sign": "Leo",
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            },
+            {
+              "basis": "sun",
+              "house": 2,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "sun",
+              "house": 8,
+              "sign": "Virgo",
+              "bhava_bala_rupas": 9.02,
+              "relative": 0.51
+            },
+            {
+              "basis": "sun",
+              "house": 1,
+              "sign": "Aquarius",
+              "bhavat_bhavam_of": 7,
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            }
+          ],
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          },
+          "strength": 1.3838
+        },
+        "engine": "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your rising sign, in Scorpio, is less supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "house",
+            "text": "for — 7th Scorpio, 7.37 rupas, relative -0.04"
+          },
+          {
+            "area": "marriage",
+            "point": 1,
+            "item": 0,
+            "text": "7th from the lagna: Scorpio, lord Mars, occupied by Mars; Bhava Bala (house strength) 7.37 rupas (units of 60 virupas), rank 8 of 12."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.arudha.against.many.hard.alone",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "signs": "Gemini, Cancer and Leo",
+          "planets": "Rahu",
+          "sits": "sits"
+        },
+        "tags": [
+          "vote:marriage.arudha"
+        ],
+        "facts": {
+          "family": "arudha",
+          "lean": "unfavourable",
+          "term": null,
+          "derivation": {
+            "rests_on": [
+              "UL",
+              "UL2",
+              "A7"
+            ],
+            "padas": [
+              {
+                "pada": "UL",
+                "basis": "lagna",
+                "house": 2,
+                "sign": "Gemini",
+                "occupants": [
+                  "Rahu"
+                ],
+                "benefics": []
+              },
+              {
+                "pada": "UL2",
+                "basis": "lagna",
+                "house": 3,
+                "sign": "Cancer",
+                "occupants": [],
+                "benefics": []
+              },
+              {
+                "pada": "A7",
+                "basis": "lagna",
+                "house": 4,
+                "sign": "Leo",
+                "occupants": [],
+                "benefics": []
+              }
+            ],
+            "why": "more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          },
+          "strength": -0.9978
+        },
+        "engine": "The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably: Rahu sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy UL, UL2, A7: the vote is against"
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) UL: Gemini, 2nd from the lagna; occupants Rahu; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 1,
+            "text": "arudha UL2: Cancer, 3rd from the lagna; occupants none; benefics none."
+          },
+          {
+            "area": "marriage",
+            "point": 8,
+            "item": 2,
+            "text": "arudha A7: Leo, 4th from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "part": "weakness",
+        "signature": "weakness.mks",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "planet": "Mars",
+          "role": "the ruler of your 7th house",
+          "sign": "Scorpio",
+          "house": "7th"
+        },
+        "tags": [
+          "vote:marriage.lord"
+        ],
+        "facts": {
+          "planet": "Mars",
+          "role": "lord",
+          "sign": "Scorpio",
+          "house": 7,
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          },
+          "marana_karaka_sthana": true
+        },
+        "engine": "The ruler of your 7th house, Mars, sits in your 7th house, a house that drains it, whatever the sign says.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 2,
+            "item": 0,
+            "text": "Mars — lord of the 7th from the lagna, 7th from the Moon, 2nd from the Moon: Scorpio 18°37′11″ in the 7th; own; Shadbala (sixfold strength) ratio 1.30 (6.52 of 5.00 rupas); Baladi avastha (age-state by degree) Kumara; marana karaka sthana (a placement in which a planet cannot give its good results); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "part": "period",
+        "signature": "period.now.touches",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "maha": "Jupiter",
+          "antar": "Mercury",
+          "until": "November 2028",
+          "touching": "Jupiter and Mercury"
+        },
+        "tags": [],
+        "facts": {
+          "mahadasha": "Jupiter",
+          "antardasha": "Mercury",
+          "until": "November 2028",
+          "area_lords": [
+            "Jupiter",
+            "Mars",
+            "Mercury",
+            "Saturn",
+            "Sun",
+            "Venus"
+          ],
+          "area_karakas": [
+            "Venus",
+            "Jupiter",
+            "Mercury"
+          ],
+          "touching": [
+            "Jupiter",
+            "Mercury"
+          ],
+          "about": {
+            "area": "marriage",
+            "area_words": "marriage",
+            "area_houses_from_rising_sign": [
+              7,
+              2,
+              11,
+              8
+            ],
+            "main_house": 7,
+            "main_house_lord": "Mars",
+            "significators": [
+              "Venus",
+              "Jupiter",
+              "Mercury"
+            ],
+            "main_significator": "Venus"
+          }
+        },
+        "engine": "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in marriage.",
+        "notes": []
+      },
+      {
+        "part": "stretch",
+        "signature": "stretch.least.first",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "when": "from August 2029 to October 2029"
+        },
+        "tags": [],
+        "facts": {
+          "window": {
+            "start": "2029-08-24",
+            "end": "2029-10-23",
+            "score": 0.446,
+            "dignity_of": null,
+            "q": 0.333,
+            "t": 0.616,
+            "periods": {
+              "vimshottari": [
+                "Jupiter",
+                "Ketu"
+              ],
+              "yogini": [
+                "Rahu",
+                "Rahu"
+              ],
+              "chara": [
+                "Aquarius",
+                "Taurus"
+              ]
+            },
+            "confidence": "strong",
+            "tags": [],
+            "edge_spread_days": 7.49,
+            "q_terms": {
+              "tara": 0.0,
+              "relevance": 1.0,
+              "relation": 0.0
+            },
+            "targets": {
+              "full": [
+                "Pisces",
+                "Scorpio"
+              ],
+              "secondary": [
+                "Aquarius",
+                "Gemini",
+                "Sagittarius",
+                "Taurus"
+              ]
+            },
+            "strongest_piece": {
+              "start": "2029-08-24",
+              "end": "2029-10-05",
+              "score": 0.467,
+              "t": 0.667,
+              "transit": {
+                "credits": {
+                  "Saturn": 1.0,
+                  "Jupiter": 0.5,
+                  "nodes": 0.5
+                },
+                "bodies": {
+                  "Saturn": [
+                    "Saturn Taurus"
+                  ],
+                  "Jupiter": [
+                    "Jupiter Libra"
+                  ],
+                  "nodes": [
+                    "Rahu Sagittarius",
+                    "Ketu Gemini"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "engine": "The least favourable stretch for marriage, as the chart reads it, runs from August 2029 to October 2029.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ]
+      },
+      {
+        "part": "stretch",
+        "signature": "stretch.most.second",
+        "area": "marriage",
+        "slots": {
+          "area": "marriage",
+          "when": "from January 2030 to October 2031"
+        },
+        "tags": [],
+        "facts": {
+          "window": {
+            "start": "2030-01-24",
+            "end": "2031-10-15",
+            "score": 0.856,
+            "dignity_of": "Venus (exalted)",
+            "q": 0.821,
+            "t": 0.909,
+            "periods": {
+              "vimshottari": [
+                "Jupiter",
+                "Venus"
+              ],
+              "yogini": [
+                "Rahu",
+                "Sun"
+              ],
+              "chara": [
+                "Aquarius",
+                "Gemini"
+              ]
+            },
+            "confidence": "strong",
+            "tags": [],
+            "edge_spread_days": null,
+            "q_terms": {
+              "tara": 0.0,
+              "relevance": 1.0,
+              "dignity": 1.0,
+              "shadbala": 1.0,
+              "ishta": 0.925,
+              "relation": 1.0
+            },
+            "targets": {
+              "full": [
+                "Pisces",
+                "Scorpio"
+              ],
+              "secondary": [
+                "Aquarius",
+                "Gemini",
+                "Sagittarius",
+                "Taurus"
+              ]
+            },
+            "strongest_piece": {
+              "start": "2030-09-22",
+              "end": "2031-02-17",
+              "score": 0.892,
+              "t": 1.0,
+              "transit": {
+                "credits": {
+                  "Saturn": 1.0,
+                  "Jupiter": 1.0,
+                  "nodes": 1.0
+                },
+                "bodies": {
+                  "Saturn": [
+                    "Saturn Taurus"
+                  ],
+                  "Jupiter": [
+                    "Jupiter Scorpio"
+                  ],
+                  "nodes": [
+                    "Rahu Scorpio",
+                    "Ketu Taurus"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "engine": "The most favourable stretch runs from January 2030 to October 2031.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      },
+      {
+        "part": "stretch",
+        "signature": "stretch.caveat.two",
+        "area": "marriage",
+        "slots": {},
+        "tags": [],
+        "facts": {},
+        "engine": "Neither stretch is a prediction of when you will act.",
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ]
+      }
+    ],
+    "left_out": [
+      {
+        "area": "marriage",
+        "what": "vote:marriage.kp",
+        "why": "a weaker term than the 3 that help"
+      },
+      {
+        "area": "marriage",
+        "what": "vote:marriage.varga",
+        "why": "a weaker term than the 3 that help"
+      },
+      {
+        "area": "marriage",
+        "what": "vote:marriage.panchanga",
+        "why": "a weaker term than the 3 that help"
+      },
+      {
+        "area": "marriage",
+        "what": "place.l12_h7@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "marriage",
+        "what": "place.l7_h7@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "marriage",
+        "what": "place.venus_h11@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "marriage",
+        "what": "place.venus_in_pisces@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "marriage",
+        "what": "chain:marriage.lord",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "marriage",
+        "what": "chain:marriage.karaka",
+        "why": "a chain of sign rulers: the sheet's"
+      }
+    ]
+  },
+  "composed": {
+    "sentences": [
+      {
+        "text": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.",
+        "tagged": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.",
+        "signature": "opening.when",
+        "part": "opening",
+        "area": null,
+        "tags": [],
+        "notes": [],
+        "row": {
+          "signature": "opening.when",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "openings.yaml"
+        }
+      },
+      {
+        "text": "Looking at marriage, the chart places its least favourable stretch from August 2029 to October 2029.",
+        "tagged": "Looking at marriage, the chart places its least favourable stretch from August 2029 to October 2029.",
+        "signature": "stretch.least.first",
+        "part": "stretch",
+        "area": "marriage",
+        "tags": [],
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          }
+        ],
+        "row": {
+          "signature": "stretch.least.first",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "stretches.yaml"
+        }
+      },
+      {
+        "text": "Running from January 2030 to October 2031, this is the most favourable stretch in the chart.",
+        "tagged": "Running from January 2030 to October 2031, this is the most favourable stretch in the chart.",
+        "signature": "stretch.most.second",
+        "part": "stretch",
+        "area": "marriage",
+        "tags": [],
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ],
+        "row": {
+          "signature": "stretch.most.second",
+          "kind": "fact",
+          "variant": 2,
+          "status": "draft",
+          "file": "stretches.yaml"
+        }
+      },
+      {
+        "text": "Please read neither stretch as a prediction of the moment you will act.",
+        "tagged": "Please read neither stretch as a prediction of the moment you will act.",
+        "signature": "stretch.caveat.two",
+        "part": "stretch",
+        "area": "marriage",
+        "tags": [],
+        "notes": [
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 8,
+            "text": "Avoid 2029-08-24 → 2029-10-23: score 0.446 (q 0.333, t 0.616)."
+          },
+          {
+            "area": "marriage",
+            "point": 11,
+            "item": 5,
+            "text": "Window 2030-01-24 → 2031-10-15: score 0.856 (q 0.821, t 0.909), Jupiter–Venus, Rahu–Sun, Aquarius–Gemini; dignity of Venus (exalted); strong."
+          }
+        ],
+        "row": {
+          "signature": "stretch.caveat.two",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "stretches.yaml"
+        }
+      }
+    ],
+    "paragraphs": [
+      0,
+      1
+    ],
+    "bank": "e28c17f41e57",
+    "from_bank": 4,
+    "from_engine": 0
+  },
+  "bank": "e28c17f41e57",
+  "polish": {
+    "model": "claude-haiku-5-5",
+    "composed": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.\n\nLooking at marriage, the chart places its least favourable stretch from August 2029 to October 2029. Running from January 2030 to October 2031, this is the most favourable stretch in the chart. Please read neither stretch as a prediction of the moment you will act.",
+    "text": "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.\n\nLooking at marriage, the chart places its least favourable stretch from August 2029 to October 2029. Running from January 2030 to October 2031, this is the most favourable stretch in the chart. Please read neither stretch as a prediction of the moment you will act.",
+    "used": true,
+    "refusals": [],
+    "verdict": [
+      {
+        "text": "The reading does not name a date for any event",
+        "supported": true,
+        "evidence": "stated in the composed answer: 'Rather than naming a date for any event'"
+      },
+      {
+        "text": "The chart points to stretches it reads as more and less favourable for marriage",
+        "supported": true,
+        "evidence": "stated verbatim in the composed answer"
+      },
+      {
+        "text": "The chart places its least favourable stretch for marriage from August 2029 to October 2029",
+        "supported": true,
+        "evidence": "stated in the composed answer: 'the chart places its least favourable stretch from August 2029 to October 2029'"
+      },
+      {
+        "text": "The chart's most favourable stretch runs from January 2030 to October 2031",
+        "supported": true,
+        "evidence": "stated in the composed answer: 'Running from January 2030 to October 2031, this is the most favourable stretch in the chart'"
+      },
+      {
+        "text": "Neither stretch should be read as a prediction of the moment the client will act",
+        "supported": true,
+        "evidence": "stated in the composed answer: 'Please read neither stretch as a prediction of the moment you will act'"
+      }
+    ],
+    "sentences": [
+      "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for marriage.",
+      "Looking at marriage, the chart places its least favourable stretch from August 2029 to October 2029.",
+      "Running from January 2030 to October 2031, this is the most favourable stretch in the chart.",
+      "Please read neither stretch as a prediction of the moment you will act."
+    ],
+    "paragraphs": [
+      0,
+      1
+    ]
+  },
+  "polisher": {
+    "model": "claude-haiku-5-5",
+    "backend": {
+      "provider": "anthropic",
+      "host": "api.anthropic.com",
+      "model": "claude-haiku-5-5"
+    }
+  }
+}

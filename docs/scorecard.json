@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-09",
-  "commit": "61ba9af",
+  "date": "2026-11-15",
+  "commit": "8c1ae83",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -231,13 +231,13 @@
       "gate": false
     },
     "checker.validator.recall": {
-      "value": 0.3421,
+      "value": 0.3391,
       "better": "higher",
       "unit": "",
       "gate": false
     },
     "checker.validator.f1": {
-      "value": 0.5098,
+      "value": 0.5065,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -255,7 +255,7 @@
       "gate": true
     },
     "checker.bench_rows": {
-      "value": 184,
+      "value": 186,
       "better": null,
       "unit": "",
       "gate": false
@@ -2318,6 +2318,366 @@
       "unit": "",
       "gate": false
     },
+    "turn.layered-composed-1.engine_s": {
+      "value": 0.004,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-1.first_verified_s": {
+      "value": 0.428,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-1.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-1.done_s": {
+      "value": 0.428,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-1.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-2.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-2.first_verified_s": {
+      "value": 0.022,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-2.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-2.done_s": {
+      "value": 0.022,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-2.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-3.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-3.first_verified_s": {
+      "value": 0.022,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-3.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-3.done_s": {
+      "value": 0.022,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-3.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-4.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-4.first_verified_s": {
+      "value": 0.023,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-4.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-4.done_s": {
+      "value": 0.023,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-4.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-6.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-6.first_verified_s": {
+      "value": 0.025,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-6.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-6.done_s": {
+      "value": 0.025,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-6.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-7.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-7.first_verified_s": {
+      "value": 0.025,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-7.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-7.done_s": {
+      "value": 0.025,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-composed-7.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-1.engine_s": {
+      "value": 0.639,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-1.first_verified_s": {
+      "value": 45.901,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-1.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-1.done_s": {
+      "value": 45.901,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-1.cost_usd": {
+      "value": 0.005478,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-2.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-2.first_verified_s": {
+      "value": 12.879,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-2.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-2.done_s": {
+      "value": 12.879,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-2.cost_usd": {
+      "value": 0.000892,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-3.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-3.first_verified_s": {
+      "value": 10.51,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-3.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-3.done_s": {
+      "value": 10.51,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-3.cost_usd": {
+      "value": 0.000397,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-4.engine_s": {
+      "value": 0.005,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-4.first_verified_s": {
+      "value": 8.428,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-4.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-4.done_s": {
+      "value": 8.428,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-4.cost_usd": {
+      "value": 0.000177,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-6.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-6.first_verified_s": {
+      "value": 28.494,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-6.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-6.done_s": {
+      "value": 28.494,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-6.cost_usd": {
+      "value": 0.002439,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-7.engine_s": {
+      "value": 0.001,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-7.first_verified_s": {
+      "value": 18.637,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-7.removed_share": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-7.done_s": {
+      "value": 18.637,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "turn.layered-polished-7.cost_usd": {
+      "value": 0.000751,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
     "turn.median.engine_s": {
       "value": 0.002,
       "better": "lower",
@@ -2325,25 +2685,25 @@
       "gate": false
     },
     "turn.median.first_verified_s": {
-      "value": 34.198,
+      "value": 28.996,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.removed_share": {
-      "value": 0.5605,
+      "value": 0.487,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.done_s": {
-      "value": 110.508,
+      "value": 97.363,
       "better": "lower",
       "unit": "",
       "gate": false
     },
     "turn.median.cost_usd": {
-      "value": 0.013309,
+      "value": 0.010347,
       "better": "lower",
       "unit": "",
       "gate": false
@@ -2393,6 +2753,108 @@
     "paragraph.sentences_held_attempt_3": {
       "value": 7,
       "better": null,
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage": {
+      "value": 0.9992,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.rows": {
+      "value": 126,
+      "better": null,
+      "unit": "",
+      "gate": false
+    },
+    "bank.approved_share": {
+      "value": 0.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.meaning_share": {
+      "value": 0.4139,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.hard": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.helps": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.opening": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.period": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.rule": {
+      "value": 0.96,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.stretch": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.verdict": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.weakness": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "layered.composer_share": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "layered.composed.cost_usd": {
+      "value": 0.0,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "layered.composed.done_s": {
+      "value": 0.090833,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "layered.polished.cost_usd": {
+      "value": 0.001689,
+      "better": "lower",
+      "unit": "",
+      "gate": false
+    },
+    "layered.polished.done_s": {
+      "value": 20.808167,
+      "better": "lower",
       "unit": "",
       "gate": false
     },
@@ -2508,6 +2970,6 @@
   "skips": [
     "metamorphic: tests/test_metamorphic.py:189: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
     "metamorphic: tests/test_metamorphic.py:206: set JYOTISH_LIVE_NARRATION=1 to call the Anthropic API",
-    "checker benchmark: tests/test_checker_bench.py:129: set JYOTISH_LIVE_NARRATION=1 to call the API"
+    "checker benchmark: tests/test_checker_bench.py:130: set JYOTISH_LIVE_NARRATION=1 to call the API"
   ]
 }

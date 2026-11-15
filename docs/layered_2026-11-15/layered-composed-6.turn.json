@@ -1,0 +1,1239 @@
+{
+  "question": "how much money will i earn in my life, will i be rich",
+  "route": {
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "when": false,
+    "why": false,
+    "how": false,
+    "follow_up": false,
+    "carried": [],
+    "areas_from": "named",
+    "off_limits": null,
+    "third_party": false,
+    "explains": null
+  },
+  "as_of": "2026-11-02",
+  "removed": [],
+  "warnings": [],
+  "checks": [],
+  "writer": {},
+  "checker": {},
+  "usage": {
+    "wall_seconds": 0.025
+  },
+  "kinds": [
+    "amount"
+  ],
+  "engine": {
+    "question": "how much money will i earn in my life, will i be rich",
+    "direction": "both",
+    "areas": [
+      "wealth"
+    ],
+    "when": false,
+    "sentences": [
+      {
+        "text": "A chart gives no amount and makes no promise; what it shows is how well it supports money.",
+        "notes": []
+      },
+      {
+        "text": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "text": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "text": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "text": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "text": "The rulers of the day you were born, Mars and the Moon, lean favourably for money.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "panchanga",
+            "text": "for — Mars (tithi/nakshatra), Moon (vara)"
+          },
+          {
+            "area": "wealth",
+            "point": 9,
+            "item": 4,
+            "text": "For this area: Mars (tithi, nakshatra lord) rules 2nd from the moon; 3rd from the sun."
+          }
+        ]
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      }
+    ]
+  },
+  "source": "composer",
+  "shown": [
+    "No chart can name an amount or promise anything to you; it shows how well it supports money.",
+    "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+    "Looking at the planets that stand for money, they lean favourably, and among them Jupiter is placed in Taurus in your 1st house, in an unfriendly sign.",
+    "Looking at the rulers of the houses of money, the lean is favourable, and Mercury, ruler of the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+    "The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported than most among your twelve houses.",
+    "Your chart holds Parivartana, a planetary exchange, formed by Jupiter and Venus in your 1st and 11th houses, which bears on money, though it is weakened by a difficult house in the exchange.",
+    "The signs that show how others see money, Libra and Cancer, lean unfavourably, and the Moon sits in one of these signs with no helpful planet in any of them.",
+    "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in money."
+  ],
+  "paragraphs": [
+    0,
+    2,
+    6,
+    7
+  ],
+  "accepted": [
+    "No chart can name an amount or promise anything to you; it shows how well it supports money.",
+    "For money, most of what the chart shows agrees, and on balance it leans favourably [vote:wealth.house] [vote:wealth.lord] [vote:wealth.karaka] [vote:wealth.arudha] [vote:wealth.panchanga].",
+    "Looking at the planets that stand for money, they lean favourably, and among them Jupiter is placed in Taurus in your 1st house, in an unfriendly sign [vote:wealth.karaka].",
+    "Looking at the rulers of the houses of money, the lean is favourable, and Mercury, ruler of the 2nd house, sits in Aquarius in your 10th house, in a neutral sign [vote:wealth.lord].",
+    "The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported than most among your twelve houses [vote:wealth.house].",
+    "Your chart holds Parivartana, a planetary exchange, formed by Jupiter and Venus in your 1st and 11th houses, which bears on money, though it is weakened by a difficult house in the exchange [rule:yoga.parivartana] [text:Phaladeepika/Sastri-1937/6/32].",
+    "The signs that show how others see money, Libra and Cancer, lean unfavourably, and the Moon sits in one of these signs with no helpful planet in any of them [vote:wealth.arudha].",
+    "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in money."
+  ],
+  "attempts": 0,
+  "timeline": {
+    "engine": 0.001,
+    "plan": 0.025,
+    "first_verified": 0.025,
+    "done": 0.025
+  },
+  "opened_by": "composer",
+  "plan": {
+    "question": "how much money will i earn in my life, will i be rich",
+    "areas": [
+      "wealth"
+    ],
+    "direction": "both",
+    "kinds": [
+      "amount"
+    ],
+    "when": false,
+    "as_of": "2026-11-02",
+    "items": [
+      {
+        "part": "opening",
+        "signature": "opening.amount",
+        "area": null,
+        "slots": {
+          "area": "money"
+        },
+        "tags": [],
+        "facts": {
+          "question_kind": "amount",
+          "areas": [
+            "wealth"
+          ],
+          "area_words": "money"
+        },
+        "engine": "A chart gives no amount and makes no promise; what it shows is how well it supports money.",
+        "notes": []
+      },
+      {
+        "part": "verdict",
+        "signature": "verdict.moderate",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "Area": "Money",
+          "lean": "favourably"
+        },
+        "tags": [
+          "vote:wealth.house",
+          "vote:wealth.lord",
+          "vote:wealth.karaka",
+          "vote:wealth.arudha",
+          "vote:wealth.panchanga"
+        ],
+        "facts": {
+          "tier": "moderate",
+          "direction": "supportive",
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          }
+        },
+        "engine": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.karaka.for",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "planet": "Jupiter",
+          "sign": "Taurus",
+          "house": "1st",
+          "dignity": "in an unfriendly sign"
+        },
+        "tags": [
+          "vote:wealth.karaka"
+        ],
+        "facts": {
+          "family": "karaka",
+          "lean": "favourable",
+          "term": 4.101372596634128,
+          "derivation": [
+            {
+              "planet": "Jupiter",
+              "basis": "lagna",
+              "house": 1,
+              "sign": "Taurus",
+              "area_house_from": [],
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22
+            },
+            {
+              "planet": "Venus",
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "area_house_from": [
+                {
+                  "basis": "lagna",
+                  "house": 11
+                },
+                {
+                  "basis": "sun",
+                  "house": 2
+                }
+              ],
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33
+            }
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": 4.1014
+        },
+        "engine": "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an unfriendly sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.lord.for",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "planet": "Mercury",
+          "ruled_house": "2nd",
+          "sign": "Aquarius",
+          "house": "10th",
+          "dignity": "in a neutral sign"
+        },
+        "tags": [
+          "vote:wealth.lord"
+        ],
+        "facts": {
+          "family": "lord",
+          "lean": "favourable",
+          "term": 1.3923217675625754,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 2,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 9,
+              "sign": "Capricorn",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "lagna",
+              "house": 3,
+              "sign": "Cancer",
+              "bhavat_bhavam_of": 2,
+              "lord": "Moon",
+              "lord_sign": "Libra",
+              "lord_house_from_lagna": 6,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.27,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 2,
+              "sign": "Scorpio",
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "lord": "Sun",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.23,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "lord": "Saturn",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "friend",
+              "shadbala_ratio": 0.69,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 9,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "moon",
+              "house": 3,
+              "sign": "Sagittarius",
+              "bhavat_bhavam_of": 2,
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 2,
+              "sign": "Pisces",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "lord": "Jupiter",
+              "lord_sign": "Taurus",
+              "lord_house_from_lagna": 1,
+              "dignity": "enemy",
+              "shadbala_ratio": 1.22,
+              "final_dispositor": "Venus"
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "lord": "Mercury",
+              "lord_sign": "Aquarius",
+              "lord_house_from_lagna": 10,
+              "dignity": "neutral",
+              "shadbala_ratio": 1.19,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 9,
+              "sign": "Libra",
+              "lord": "Venus",
+              "lord_sign": "Pisces",
+              "lord_house_from_lagna": 11,
+              "dignity": "exalted",
+              "shadbala_ratio": 1.33,
+              "final_dispositor": "Jupiter"
+            },
+            {
+              "basis": "sun",
+              "house": 3,
+              "sign": "Aries",
+              "bhavat_bhavam_of": 2,
+              "lord": "Mars",
+              "lord_sign": "Scorpio",
+              "lord_house_from_lagna": 7,
+              "dignity": "own",
+              "shadbala_ratio": 1.3,
+              "final_dispositor": "Mars"
+            }
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": 1.3923
+        },
+        "engine": "The planets that rule the houses of money lean favourably; Mercury, which rules the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ]
+      },
+      {
+        "part": "helps",
+        "signature": "family.house.for.agrees",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "house": "2nd",
+          "sign": "Gemini",
+          "standing": "better supported than most"
+        },
+        "tags": [
+          "vote:wealth.house"
+        ],
+        "facts": {
+          "family": "house",
+          "lean": "favourable",
+          "term": 0.9255133013635419,
+          "derivation": [
+            {
+              "basis": "lagna",
+              "house": 2,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "lagna",
+              "house": 11,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "lagna",
+              "house": 5,
+              "sign": "Virgo",
+              "bhava_bala_rupas": 9.02,
+              "relative": 0.51
+            },
+            {
+              "basis": "lagna",
+              "house": 9,
+              "sign": "Capricorn",
+              "bhava_bala_rupas": 4.62,
+              "relative": -0.97
+            },
+            {
+              "basis": "lagna",
+              "house": 3,
+              "sign": "Cancer",
+              "bhavat_bhavam_of": 2,
+              "bhava_bala_rupas": 7.68,
+              "relative": 0.06
+            },
+            {
+              "basis": "moon",
+              "house": 2,
+              "sign": "Scorpio",
+              "bhava_bala_rupas": 7.37,
+              "relative": -0.04
+            },
+            {
+              "basis": "moon",
+              "house": 11,
+              "sign": "Leo",
+              "bhava_bala_rupas": 8.51,
+              "relative": 0.34
+            },
+            {
+              "basis": "moon",
+              "house": 5,
+              "sign": "Aquarius",
+              "bhava_bala_rupas": 4.51,
+              "relative": -1.0
+            },
+            {
+              "basis": "moon",
+              "house": 9,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "moon",
+              "house": 3,
+              "sign": "Sagittarius",
+              "bhavat_bhavam_of": 2,
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "sun",
+              "house": 2,
+              "sign": "Pisces",
+              "bhava_bala_rupas": 8.23,
+              "relative": 0.25
+            },
+            {
+              "basis": "sun",
+              "house": 11,
+              "sign": "Sagittarius",
+              "bhava_bala_rupas": 8.95,
+              "relative": 0.49
+            },
+            {
+              "basis": "sun",
+              "house": 5,
+              "sign": "Gemini",
+              "bhava_bala_rupas": 8.93,
+              "relative": 0.48
+            },
+            {
+              "basis": "sun",
+              "house": 9,
+              "sign": "Libra",
+              "bhava_bala_rupas": 8.22,
+              "relative": 0.24
+            },
+            {
+              "basis": "sun",
+              "house": 3,
+              "sign": "Aries",
+              "bhavat_bhavam_of": 2,
+              "bhava_bala_rupas": 6.7,
+              "relative": -0.27
+            }
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": 0.9255
+        },
+        "engine": "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising sign, in Gemini, is better supported than most of your twelve houses.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ]
+      },
+      {
+        "part": "hard",
+        "signature": "family.arudha.against.many.hard.alone",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "signs": "Libra and Cancer",
+          "planets": "the Moon",
+          "sits": "sits"
+        },
+        "tags": [
+          "vote:wealth.arudha"
+        ],
+        "facts": {
+          "family": "arudha",
+          "lean": "unfavourable",
+          "term": null,
+          "derivation": {
+            "rests_on": [
+              "A2",
+              "A11"
+            ],
+            "padas": [
+              {
+                "pada": "A2",
+                "basis": "lagna",
+                "house": 6,
+                "sign": "Libra",
+                "occupants": [
+                  "Moon"
+                ],
+                "benefics": []
+              },
+              {
+                "pada": "A11",
+                "basis": "lagna",
+                "house": 3,
+                "sign": "Cancer",
+                "occupants": [],
+                "benefics": []
+              }
+            ],
+            "why": "more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          },
+          "strength": -0.9978
+        },
+        "engine": "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no helpful planet beside.",
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ]
+      },
+      {
+        "part": "rule",
+        "signature": "rule.yoga.parivartana.reduced",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "name": "Parivartana",
+          "named": "Parivartana (two planets each in the other's sign)",
+          "planets": "Jupiter and Venus",
+          "houses": "1st and 11th",
+          "reductions": "a difficult house in the exchange"
+        },
+        "tags": [
+          "rule:yoga.parivartana",
+          "text:Phaladeepika/Sastri-1937/6/32"
+        ],
+        "facts": {
+          "rule_id": "yoga.parivartana",
+          "names": [
+            "Parivartana",
+            "exchange"
+          ],
+          "fires": [
+            {
+              "basis": "lagna",
+              "sudarshana": false,
+              "cited_to": "rule and text",
+              "nodes": [
+                "Jupiter",
+                "Venus",
+                "H1",
+                "H11"
+              ],
+              "scale": 0.8,
+              "modifiers_applied": [
+                "class_by_lordship == dainya (Jupiter and Venus) -> x0.8"
+              ],
+              "modifiers_unknown": [],
+              "details": {
+                "relations": [
+                  "exchange"
+                ],
+                "class_by_houses": "maha",
+                "class_by_lordship": "dainya",
+                "houses": [
+                  1,
+                  11
+                ],
+                "taint": [
+                  6,
+                  8
+                ]
+              },
+              "stability": 1.0
+            }
+          ],
+          "planets": [
+            "Jupiter",
+            "Venus"
+          ],
+          "houses": [
+            1,
+            11
+          ],
+          "reductions": [
+            "a difficult house in the exchange"
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          }
+        },
+        "engine": "Your chart holds Parivartana (two planets each in the other's sign), formed by Jupiter and Venus in your 1st and 11th houses, which bears on money, though it is weakened by a difficult house in the exchange.",
+        "notes": []
+      },
+      {
+        "part": "period",
+        "signature": "period.now.touches",
+        "area": "wealth",
+        "slots": {
+          "area": "money",
+          "maha": "Jupiter",
+          "antar": "Mercury",
+          "until": "November 2028",
+          "touching": "Jupiter and Mercury"
+        },
+        "tags": [],
+        "facts": {
+          "mahadasha": "Jupiter",
+          "antardasha": "Mercury",
+          "until": "November 2028",
+          "area_lords": [
+            "Jupiter",
+            "Mars",
+            "Mercury",
+            "Moon",
+            "Saturn",
+            "Sun",
+            "Venus"
+          ],
+          "area_karakas": [
+            "Jupiter",
+            "Venus"
+          ],
+          "touching": [
+            "Jupiter",
+            "Mercury"
+          ],
+          "about": {
+            "area": "wealth",
+            "area_words": "money",
+            "area_houses_from_rising_sign": [
+              2,
+              11,
+              5,
+              9
+            ],
+            "main_house": 2,
+            "main_house_lord": "Mercury",
+            "significators": [
+              "Jupiter",
+              "Venus"
+            ],
+            "main_significator": "Jupiter"
+          }
+        },
+        "engine": "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in money.",
+        "notes": []
+      }
+    ],
+    "left_out": [
+      {
+        "area": "wealth",
+        "what": "vote:wealth.panchanga",
+        "why": "a weaker term than the 3 that help"
+      },
+      {
+        "area": "wealth",
+        "what": "vote:wealth.varga",
+        "why": "abstains"
+      },
+      {
+        "area": "wealth",
+        "what": "place.jupiter_in_taurus@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "place.l1_h11@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "place.l2_h10@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "place.l7_h7@lagna",
+        "why": "a draft placement: drafted from principles, not read in its verse"
+      },
+      {
+        "area": "wealth",
+        "what": "chain:wealth.lord",
+        "why": "a chain of sign rulers: the sheet's"
+      },
+      {
+        "area": "wealth",
+        "what": "chain:wealth.karaka",
+        "why": "a chain of sign rulers: the sheet's"
+      }
+    ]
+  },
+  "composed": {
+    "sentences": [
+      {
+        "text": "No chart can name an amount or promise anything to you; it shows how well it supports money.",
+        "tagged": "No chart can name an amount or promise anything to you; it shows how well it supports money.",
+        "signature": "opening.amount",
+        "part": "opening",
+        "area": null,
+        "tags": [],
+        "notes": [],
+        "row": {
+          "signature": "opening.amount",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "openings.yaml"
+        }
+      },
+      {
+        "text": "For money, most of what the chart shows agrees, and on balance it leans favourably.",
+        "tagged": "For money, most of what the chart shows agrees, and on balance it leans favourably [vote:wealth.house] [vote:wealth.lord] [vote:wealth.karaka] [vote:wealth.arudha] [vote:wealth.panchanga].",
+        "signature": "verdict.moderate",
+        "part": "verdict",
+        "area": "wealth",
+        "tags": [
+          "vote:wealth.house",
+          "vote:wealth.lord",
+          "vote:wealth.karaka",
+          "vote:wealth.arudha",
+          "vote:wealth.panchanga"
+        ],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "item": 0,
+            "text": "7 families; the percentile is each term's against 10,000 random charts."
+          },
+          {
+            "area": "wealth",
+            "point": 14,
+            "item": 0,
+            "text": "The area's tier: time 1.0, ayanamsa 1.0, house 1.0 (stable; holds under 3 of 3 ayanamsas; holds under 2 of 2 house systems)."
+          }
+        ],
+        "row": {
+          "signature": "verdict.moderate",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "verdicts.yaml"
+        }
+      },
+      {
+        "text": "Looking at the planets that stand for money, they lean favourably, and among them Jupiter is placed in Taurus in your 1st house, in an unfriendly sign.",
+        "tagged": "Looking at the planets that stand for money, they lean favourably, and among them Jupiter is placed in Taurus in your 1st house, in an unfriendly sign [vote:wealth.karaka].",
+        "signature": "family.karaka.for",
+        "part": "helps",
+        "area": "wealth",
+        "tags": [
+          "vote:wealth.karaka"
+        ],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "karaka",
+            "text": "for — Jupiter in the 1st, enemy, ratio 1.22"
+          },
+          {
+            "area": "wealth",
+            "point": 3,
+            "item": 0,
+            "text": "Jupiter — main karaka (significator): Taurus 10°38′45″ in the 1st; enemy (compound neutral); Shadbala ratio 1.22 (7.96 of 6.50 rupas); Baladi avastha Vriddha."
+          }
+        ],
+        "row": {
+          "signature": "family.karaka.for",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Looking at the rulers of the houses of money, the lean is favourable, and Mercury, ruler of the 2nd house, sits in Aquarius in your 10th house, in a neutral sign.",
+        "tagged": "Looking at the rulers of the houses of money, the lean is favourable, and Mercury, ruler of the 2nd house, sits in Aquarius in your 10th house, in a neutral sign [vote:wealth.lord].",
+        "signature": "family.lord.for",
+        "part": "helps",
+        "area": "wealth",
+        "tags": [
+          "vote:wealth.lord"
+        ],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "lord",
+            "text": "for — Mercury, 2nd lord, neutral, ratio 1.19"
+          },
+          {
+            "area": "wealth",
+            "point": 2,
+            "item": 0,
+            "text": "Mercury — lord of the 2nd from the lagna, 5th from the lagna, 9th from the Moon, 5th from the Sun: Aquarius 0°22′01″ in the 10th; neutral (compound friend); Shadbala (sixfold strength) ratio 1.19 (8.34 of 7.00 rupas); Baladi avastha (age-state by degree) Bala; boundary (a sign or nakshatra edge within the birth-time window); maraka (a lord of the 2nd or the 7th)."
+          }
+        ],
+        "row": {
+          "signature": "family.lord.for",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported than most among your twelve houses.",
+        "tagged": "The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported than most among your twelve houses [vote:wealth.house].",
+        "signature": "family.house.for.agrees",
+        "part": "helps",
+        "area": "wealth",
+        "tags": [
+          "vote:wealth.house"
+        ],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "house",
+            "text": "for — 2nd Gemini, 8.93 rupas, relative +0.48"
+          },
+          {
+            "area": "wealth",
+            "point": 1,
+            "item": 0,
+            "text": "2nd from the lagna: Gemini, lord Mercury, occupied by Rahu; Bhava Bala (house strength) 8.93 rupas (units of 60 virupas), rank 3 of 12."
+          }
+        ],
+        "row": {
+          "signature": "family.house.for.agrees",
+          "kind": "fact",
+          "variant": 1,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "Your chart holds Parivartana, a planetary exchange, formed by Jupiter and Venus in your 1st and 11th houses, which bears on money, though it is weakened by a difficult house in the exchange.",
+        "tagged": "Your chart holds Parivartana, a planetary exchange, formed by Jupiter and Venus in your 1st and 11th houses, which bears on money, though it is weakened by a difficult house in the exchange [rule:yoga.parivartana] [text:Phaladeepika/Sastri-1937/6/32].",
+        "signature": "rule.yoga.parivartana.reduced",
+        "part": "rule",
+        "area": "wealth",
+        "tags": [
+          "rule:yoga.parivartana",
+          "text:Phaladeepika/Sastri-1937/6/32"
+        ],
+        "notes": [],
+        "row": {
+          "signature": "rule.yoga.parivartana.reduced",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "rules.yaml"
+        }
+      },
+      {
+        "text": "The signs that show how others see money, Libra and Cancer, lean unfavourably, and the Moon sits in one of these signs with no helpful planet in any of them.",
+        "tagged": "The signs that show how others see money, Libra and Cancer, lean unfavourably, and the Moon sits in one of these signs with no helpful planet in any of them [vote:wealth.arudha].",
+        "signature": "family.arudha.against.many.hard.alone",
+        "part": "hard",
+        "area": "wealth",
+        "tags": [
+          "vote:wealth.arudha"
+        ],
+        "notes": [
+          {
+            "area": "wealth",
+            "point": 10,
+            "row": "arudha",
+            "text": "against — more malefics than benefics occupy A2, A11: the vote is against"
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 0,
+            "text": "arudha (the image of a house) A2: Libra, 6th from the lagna; occupants Moon; benefics none."
+          },
+          {
+            "area": "wealth",
+            "point": 8,
+            "item": 1,
+            "text": "arudha A11: Cancer, 3rd from the lagna; occupants none; benefics none."
+          }
+        ],
+        "row": {
+          "signature": "family.arudha.against.many.hard.alone",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "families.yaml"
+        }
+      },
+      {
+        "text": "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in money.",
+        "tagged": "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in money.",
+        "signature": "period.now.touches",
+        "part": "period",
+        "area": "wealth",
+        "tags": [],
+        "notes": [],
+        "row": {
+          "signature": "period.now.touches",
+          "kind": "fact",
+          "variant": 0,
+          "status": "draft",
+          "file": "periods.yaml"
+        }
+      }
+    ],
+    "paragraphs": [
+      0,
+      2,
+      6,
+      7
+    ],
+    "bank": "e28c17f41e57",
+    "from_bank": 8,
+    "from_engine": 0
+  },
+  "bank": "e28c17f41e57"
+}

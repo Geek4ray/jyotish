@@ -281,7 +281,7 @@ def build() -> list[dict]:
         row["tags"] = _tags(row["sentence"])
         row["validator"] = inputs(row["where"], row["area"] or "career", row["finding_id"])
         row["facts"] = facts(row["where"], row["sentence"], row["finding_id"])
-    return out + comparison_rows() + answer_rows() + never_show_rows()
+    return out + comparison_rows() + answer_rows() + never_show_rows() + polish_rows()
 
 
 # --- a conversation turn's sentences (SPEC Layer 8, review M5) --------------------------------------------------
@@ -753,6 +753,30 @@ def known_bad(reading) -> list[dict]:
 
 # --- running --------------------------------------------------------------------------------------
 
+POLISHED = ROOT / "docs" / "layered_2026-11-15"
+
+
+def polish_rows() -> list[dict]:
+    """The polisher's text (SPEC Layer 8, "The layered answer", 2026-11-15), as rows `where: "polish"`: the polished
+    answer as the sentence, the composed answer as the facts (every proposition of the sentence must be stated
+    there), from the live seven-turn run of 2026-11-15 (docs/layered_2026-11-15/layered-polished-*). The money turn's
+    polished text, refused live (it put Mercury among the planets that signify money; the composed answer gives it
+    as the ruler of the 2nd house), and the marriage turn's, shown."""
+    from jyotish.conversation import POLISH_CHECK
+    rows = []
+    for rid, n, label, cat, why in (
+            ("live-polish-money-mercury", 6, "reject", "misattached_detail",
+             "refused live by the gate checker: Mercury put among the planets that signify money"),
+            ("live-polish-marriage", 2, "accept", "accepted", "shown live: every proposition in the composed answer")):
+        doc = json.loads((POLISHED / f"layered-polished-{n}.turn.json").read_text())
+        rows.append({"id": rid, "where": "polish", "area": (doc["route"]["areas"] or [None])[0], "finding_id": None,
+                     "section": None, "sentence": doc["polish"]["text"], "label": label, "category": cat,
+                     "origin": f"the live seven-turn run of 2026-11-15, turn {n}; {why}", "tags": [],
+                     "validator": {"allowed": [], "offered_votes": {}, "chains": {}, "family_rule": False},
+                     "facts": json.dumps({POLISH_CHECK: doc["polish"]["composed"]}, indent=1)})
+    return rows
+
+
 def validator_errors(row: dict) -> list[str]:
     v = row["validator"]
     if row.get("astrologer_depth"):
@@ -773,6 +797,10 @@ def validator_errors(row: dict) -> list[str]:
         if not TAG.search(row["sentence"]):
             errs.append(f"claim without a tag: {row['sentence']!r}")
         return errs
+    if row["where"] == "polish":                         # the polisher's text: its words, as conversation.polish holds them
+        from jyotish.narrate import TIER_WORDS
+        return never_show(row["sentence"]) + client_warnings(row["sentence"], conversation=True) + \
+            [f"a tier word ({m.group(0)!r})" for m in [TIER_WORDS.search(row["sentence"])] if m]
     if row["where"] == "answer":                         # a conversation turn's sentence (review M5)
         return validate_summary(row["sentence"], allowed, offered_votes=ov, where="answer", family_rule=False,
                                 chains=v["chains"]) + client_errors(row["sentence"]) + never_show(row["sentence"])

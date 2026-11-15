@@ -113,6 +113,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--turn", metavar="MESSAGE", nargs="*", default=None,
                     help="time a conversation, not a reading: the seven-turn conversation (SEVEN_TURNS) with no message, "
                          "else these messages in order")
+    ap.add_argument("--layered", choices=("on", "off"), help="a turn's answer: composed from the plan and the bank "
+                    "(on, the service's default) or written by the writer loop (off); default: JYOTISH_LAYERED")
+    ap.add_argument("--polish", action="store_true", help="polish each composed answer (JYOTISH_POLISH: Haiku 5.5, "
+                    "then the checker against the composed text)")
     ap.add_argument("--from-reading", type=Path, help="append the row of a reading already written (a comparison's "
                     "docs/comparison_<date>/<side>.reading.json), with no model call")
     args = ap.parse_args(argv)
@@ -201,7 +205,13 @@ def turn_row(label: str, doc: dict, cost: dict, session_s: float | None, n: int 
             "engine_s": t.get("engine"), "first_verified_s": t.get("first_verified"), "done_s": t.get("done"),
             "removed": removed, "written": written, "removed_share": round(removed / written, 3) if written else None,
             "source": doc.get("source"), "attempts": doc.get("attempts"), "warnings": len(doc.get("warnings") or []),
-            "cost_usd": cost["cost_usd"], "writer_calls": cost["writer_calls"], "checker_calls": cost["checker_calls"]}
+            "cost_usd": cost["cost_usd"], "writer_calls": cost["writer_calls"], "checker_calls": cost["checker_calls"],
+            # The layered answer (SPEC Layer 8, 2026-11-15): the sentences from the bank and from the engine, and the
+            # polisher's call and whether its text was shown.
+            **({"from_bank": doc["composed"]["from_bank"], "from_engine": doc["composed"]["from_engine"],
+                "bank": doc.get("bank"), "polished": (doc.get("polish") or {}).get("used"),
+                "polish_refusals": len((doc.get("polish") or {}).get("refusals") or [])}
+               if doc.get("composed") else {})}
 
 
 def local_turn(args) -> int:
@@ -227,10 +237,16 @@ def local_turn(args) -> int:
         config = replace(config, model=args.writer_model)
     messages = args.turn or SEVEN_TURNS
     whole = len(messages) > 1
+    import os
+    if getattr(args, "layered", None):
+        os.environ["JYOTISH_LAYERED"] = "1" if args.layered == "on" else "0"
+    if getattr(args, "polish", False):
+        os.environ["JYOTISH_POLISH"] = "1"
     last, history = None, []
     for n, message in enumerate(messages, 1):
         route = route_turn(message, chart, last)
-        doc = answer_turn(chart, message, route, as_of=as_of, data=data, config=config, history=list(history))
+        doc = answer_turn(chart, message, route, as_of=as_of, data=data, config=config, history=list(history),
+                          session_key=args.label)
         label = f"{args.label}-{n}" if whole else args.label
         row = turn_row(label, doc, reading_cost(doc), session_s if n == 1 else None, n if whole else None,
                        args.label if whole else None)
@@ -258,6 +274,11 @@ def remote_turn(args) -> int:
     where = args.where or ("fly" if host.endswith(".fly.dev") else host)
     messages = args.turn or SEVEN_TURNS
     whole = len(messages) > 1
+    import os
+    if getattr(args, "layered", None):
+        os.environ["JYOTISH_LAYERED"] = "1" if args.layered == "on" else "0"
+    if getattr(args, "polish", False):
+        os.environ["JYOTISH_POLISH"] = "1"
     ok = True
     with httpx.Client(timeout=120) as http:              # the client keeps the conversation's cookie (review H7)
         t = time.perf_counter()

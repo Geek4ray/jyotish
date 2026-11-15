@@ -402,5 +402,7 @@ text, else the composed text is shown; priced in jyotish.costs, cache reads at 0
 derived, told, bank row; a verdict right|change|wrong stored in `bank_reviews`, Alembic 0007, exported;
 `jyotish bank apply-reviews` writes approvals, rewrites and withdrawals back to the YAML); the stored answer (`answers`,
 Alembic 0008, `conversation.answer_key`: chart, route, kinds, date, bank version, what was said, polish; served with
-no plan or call; erased with the conversation by its birth key).
+no plan or call; erased with the conversation by its birth key). Measured in docs/layered_2026-11-15.md
+(`live_timing.py --turn --layered on [--polish]`; composed 0.09 s and USD 0 a turn, polished 20.8 s and USD 0.0017,
+the polished text shown on 5 of 6; the scorecard's "The layered answer"; the polish rows of the benchmark, 186).
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

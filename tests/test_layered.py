@@ -766,3 +766,53 @@ def test_7_the_database_store_counts_hits_and_an_erasure_removes_the_charts_answ
     with S.begin() as s:
         counts = erase_sessions(s, ["s1"], "test")
         assert counts["answers"] == 1 and s.query(AnswerRow).count() == 0
+
+
+# --- 8. Measured ------------------------------------------------------------------------------------------------------
+
+@pytest.fixture
+def real_bank(monkeypatch):
+    """The committed bank, whatever an earlier module-scoped fixture (the worksheet's test bank) set."""
+    import jyotish.bank
+    monkeypatch.setattr(jyotish.bank, "BANK_DIR", ROOT / "data" / "bank")
+
+
+def test_8_live_timing_times_the_seven_turns_composed_and_polished(tmp_path, monkeypatch, real_bank):
+    """scripts/live_timing.py --turn --layered on [--polish]: each row says how many sentences came from the bank and
+    whether the polished text was shown; offline here (a stub polisher and checker)."""
+    lt = load_script("live_timing")
+    import jyotish.conversation as conv
+    import jyotish.envfile
+    monkeypatch.setattr(jyotish.envfile, "load", lambda path: [])
+    monkeypatch.setattr(lt, "ROWS", tmp_path / "rows.jsonl")
+    real = conv.answer_turn
+    monkeypatch.setattr(conv, "answer_turn", lambda *a, **k: real(*a, **(k | {"polisher": StubPolisher(joined),
+                                                                               "checker": StubChecker()})))
+    for flags in ([], ["--polish"]):
+        monkeypatch.delenv("JYOTISH_POLISH", raising=False)
+        assert lt.main(["--label", "l" + "".join(flags), "--turn", "--layered", "on", *flags, "--as-of", "2026-11-02",
+                        "--out", str(tmp_path / "out")]) == 0
+    rows = [json.loads(x) for x in (tmp_path / "rows.jsonl").read_text().splitlines()]
+    composed, polished = rows[:7], rows[7:]
+    assert [r["source"] for r in composed] == ["composer"] * 4 + ["fixed"] + ["composer"] * 2
+    assert all(r["from_bank"] > 0 for r in composed if r["source"] != "fixed" and r["turn"] != 4)
+    assert all(r["polished"] is None for r in composed if r["source"] != "fixed")
+    assert [r["source"] for r in polished if r["source"] != "fixed"] == ["polished"] * 6
+    assert all(r["polished"] is True and r["polish_refusals"] == 0 for r in polished if r["source"] != "fixed")
+
+
+def test_8_the_scorecard_reports_the_layered_answer_never_gated(monkeypatch, tmp_path, real_bank):
+    ev = load_script("evaluate")
+    monkeypatch.setattr(ev, "DOCS", tmp_path)
+    (tmp_path / "live_timings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in [
+        {"kind": "turn", "date": "2026-11-15", "label": "c-1", "source": "composer", "from_bank": 8, "polished": None,
+         "cost_usd": 0.0, "done_s": 0.1},
+        {"kind": "turn", "date": "2026-11-15", "label": "p-1", "source": "polished", "from_bank": 8, "polished": True,
+         "cost_usd": 0.002, "done_s": 9.0},
+        {"kind": "turn", "date": "2026-11-15", "label": "w-1", "source": "writer", "cost_usd": 0.01, "done_s": 60}]))
+    card = ev.Card()
+    ev.layered(card, charts=4)
+    n = card.numbers
+    assert 0 < n["bank.coverage"]["value"] <= 1 and n["bank.rows"]["value"] == 126
+    assert n["layered.composer_share"]["value"] == 1.0 and n["layered.polished.cost_usd"]["value"] == 0.002
+    assert not any(v["gate"] for k, v in n.items() if k.startswith(("bank.", "layered.")))

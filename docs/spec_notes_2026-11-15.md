@@ -180,3 +180,63 @@ during the build.
 
    *Reading settled:* the key leaves out the session. "Same chart, same routed question, same bank version" is
    read literally, so a second conversation on one chart reads the first one's variants.
+8. **Measured** (docs/layered_2026-11-15.md; turn records in docs/layered_2026-11-15/; rows in docs/live_timings.jsonl).
+   - **The runs.** `scripts/live_timing.py --turn` now takes `--layered on|off` and `--polish`, and each row says how
+     many sentences came from the bank and whether the polished text was shown. The seven-turn conversation ran
+     once composed and once polished, as of 2026-11-02.
+
+   Means over the six answered turns, beside the bake-off's Haiku writer:
+
+   | answer | first sentence shown, s | done, s | USD / turn | INR / ten turns |
+   | --- | --- | --- | --- | --- |
+   | claude-haiku-5-5 writer (bake-off) | 19.7 | 65.7 | 0.0109 | 9.62 |
+   | composed | 0.09 | 0.09 | 0 | 0 |
+   | composed and polished | 20.8 | 20.8 | 0.0017 | 1.49 |
+
+   - **What answered.** The composer answered all six; 50 sentences came from the bank and 2 from the engine. Those
+     two are the "why" follow-up's "nothing further to add" line, which has no row.
+   - **The polished text.** It was shown on five of six turns. On the money question the gate checker refused it:
+     it put Mercury among the planets that signify money, and the composed answer gives Mercury as the ruler of
+     the 2nd house. The composed text was shown. That polished text, and the marriage turn's, which was shown, are
+     benchmark rows (`where: "polish"`; 186 rows).
+   - **The cache.** The polisher's 1,223-token prefix was written on the first turn and read on every later one.
+   - **Coverage after step 4.** On 1,000 random charts 99.9% of plan items find a row, and the rules are at 96%.
+     Meaning rows exist for 41% of the rule and weakness items. Both rose from step 3's figures because a turn now
+     names each rule once.
+   - **The scorecard.** It reports, never gated:
+     - the bank's coverage on 1,000 random charts, overall and by part, its rows, approved share and meaning share;
+     - the composer's share of answered turns;
+     - cost and seconds per turn, composed and polished (`scripts/evaluate.py`, `layered`).
+
+## Against the definition of done
+
+- **1, spec first.** Written to the living doc (rev 134) before the build; this note is for it.
+- **2, the reference chart first.** Every step's tests run on the reference chart first.
+- **3, conventions are settings.** No new astrological convention. `plan.RULE_PLAIN` restates each rule's
+  condition in plain words, and the two that disagree with the glossary are named above.
+- **4, every number has a home.** The scorecard is re-run.
+- **5, every sentence is gated.**
+  - A bank row's words are refused at load.
+  - Its fact variants were checked once, at drafting, by the gate checker.
+  - The polished text is checked every turn against the composed text, and its two live texts are benchmark rows.
+  - A composed sentence is not checked again per client. That is the paragraph's design ("verified once against its
+    signature … never again per client"), and it rests on the composer's slots being filled only from the plan's
+    values.
+- **6, content is draft until read.** All 126 rows are `draft`. The meaning rows are shown to no client until
+  approved; the fact rows are shown as facts, checked.
+- **7, the writer is measured when it changes.** The writer is not changed. A placed turn no longer calls it,
+  which is measured above against the bake-off. `compare_readings.py` is unchanged, since readings do not compose.
+- **8, humans try human-facing pages.** Open. The worksheet on the session review page is the astrologer's, and
+  his first hour with it, approving or rewriting rows, is the next step. Ray choosing between composed and
+  polished is the client side.
+- **9, independent review.** Open: the review of this batch is the next session's.
+- **10, commit messages.** They claim what the tests show.
+
+## Not done here
+
+- **The bank is all draft.** Every row is drafted by Sonnet. The astrologer's approvals are what make meaning rows
+  visible to a client.
+- **Meaning rows.** They exist only for career, marriage and wealth.
+- **Gloss disagreements.** Gaja Kesari's BPHS form and Neecha Bhanga disagree between `RULE_PLAIN` and the
+  glossary. Their 5 rule rows are left out until the astrologer settles them.
+- **Length.** A weakest-areas turn over three areas is long.
