@@ -63,17 +63,23 @@ def test_1_the_career_plan_holds_the_yogas_with_their_reductions_and_saturns_hid
         "weakness.mks", "weakness.mrita", "weakness.low_strength"}     # ratio 0.69, Mrita, 1st house
 
 
-def test_1_the_plan_is_in_order_helps_by_the_strongest_terms_and_says_what_it_left_out(chart, data):
+def test_1_the_plan_is_in_order_helps_by_the_most_unusual_terms_and_says_what_it_left_out(chart, data):
     p = career(chart, data)
     order = [i.part for i in p.items]
     from jyotish.plan import PARTS
     assert order == sorted(order, key=PARTS.index)
     helps = [i for i in p.items if i.part == "helps"]
-    terms = chart.scored.areas["career"].terms
-    assert 2 <= len(helps) <= 3 and [i.facts["strength"] for i in helps] == sorted((i.facts["strength"] for i in helps), reverse=True)
-    assert min(i.facts["term"] for i in helps) >= max(terms[f] for f in ("varga", "panchanga"))
+    # By each family's term as a percentile of 10,000 random charts (review L1), the highest first.
+    assert 2 <= len(helps) <= 3 and [i.facts["ranked_at"] for i in helps] == sorted(
+        (i.facts["ranked_at"] for i in helps), reverse=True)
     left = {x["what"]: x["why"] for x in p.left_out}
-    assert left["vote:career.varga"].startswith("a weaker term") and left["vote:career.kp"] == "abstains"
+    from jyotish.plan import _percentiles
+    pct = _percentiles(chart, chart.scored.areas["career"], "career")
+    for what, why in left.items():
+        if why.startswith("a less unusual term"):
+            fam = what.split(".")[-1]
+            assert (pct[fam] if pct[fam] is not None else 50.0) <= min(i.facts["ranked_at"] for i in helps)
+    assert left["vote:career.kp"] == "abstains"
     assert left["place.sun_h10@lagna"].startswith("a draft placement")
     assert left["chain:career.lord"].startswith("a chain")
     assert p.items[-1].signature == "period.now.touches" and p.items[-1].slots["maha"] == "Jupiter"
@@ -90,7 +96,7 @@ def test_1_a_when_turn_ends_with_the_stretches_and_the_plan_is_the_same_without_
     assert [i.engine for i in career(chart).items] == [i.engine for i in career(chart, data).items]
 
 
-def test_1_hard_findings_come_by_the_most_negative_term(charts, data):
+def test_1_hard_findings_come_by_the_lowest_percentile(charts, data):
     found = 0
     for name, c in charts.items():
         for area in c.scored.areas:
@@ -100,7 +106,7 @@ def test_1_hard_findings_come_by_the_most_negative_term(charts, data):
                 update={"areas": [area]}), as_of=AS_OF)
             hard = [i for i in p.items if i.part == "hard"]
             assert len(hard) <= 2 and len([i for i in p.items if i.part == "helps"]) <= 3
-            assert [i.facts["strength"] for i in hard] == sorted(i.facts["strength"] for i in hard)
+            assert [i.facts["ranked_at"] for i in hard] == sorted(i.facts["ranked_at"] for i in hard)
             found += len(hard)
     assert found
 
@@ -263,7 +269,7 @@ def test_3_the_drafting_script_prices_first_and_stops_above_its_budget(monkeypat
 
 def test_3_a_fact_variant_is_checked_against_its_facts_its_area_and_the_glossary(chart, data):
     db = load_script("draft_bank")
-    item = next(i for i in career(chart, data).items if i.signature == "family.lord.for")
+    item = next(i for i in career(chart, data).items if i.signature == "family.karaka.for")
     d = db.check_data({"facts": item.facts, "engine": item.engine, "slots": item.slots})
     assert d["facts"]["about"]["main_house"] == 10 and d["facts"]["about"]["main_house_lord"] == "Saturn"
     assert "the engine's own sentence (the row says this, in other words)" in d and "friend" in d["the engine's plain words for a dignity"]
@@ -607,8 +613,8 @@ def test_6_the_worksheet_shows_per_sentence_what_was_looked_at_derived_told_and_
     assert r["looked_at"]["facts"]["reductions"] and r["looked_at"]["tags"][0] == "rule:yoga.ruchaka"
     mks = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.mks")
     assert mks["bank_row"] is None and mks["engine"] == mks["told"] and mks["derived"]          # the sheet's points
-    lord = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "family.lord.for")
-    assert any(d["point"] == 10 for d in lord["derived"])
+    karaka = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "family.karaka.for")
+    assert any(d["point"] == 3 for d in karaka["derived"])                     # the significators' point
     assert {x["what"] for x in ws["left_out"]} >= {"vote:career.kp", "place.sun_h10@lagna"}
     fixed = c.get(f"/sessions/{sid}/turns/2/worksheet", headers=AUTH).json()
     assert fixed["source"] == "fixed" and fixed["sentences"][0]["bank_row"] is None

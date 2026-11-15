@@ -796,3 +796,22 @@ def test_m11_the_cli_issues_an_astrologers_token(tmp_path, capsys):
     with pytest.raises(SystemExit) as done:
         main(["astrologer", "add", "astrologer-1", "--database", db])
     assert done.value.code == 0 and "astrologer astrologer-1: token" in capsys.readouterr().out
+
+
+# --- L1. "The strongest family terms" compares two different units ------------------------------------------------------
+
+def test_l1_families_are_ranked_by_percentile_and_a_vote_with_no_term_at_the_middle(plans):
+    from jyotish.plan import NO_TERM_PERCENTILE
+    seen = 0
+    for c, p in plans:
+        for part, desc in (("helps", True), ("hard", False)):
+            items = [i for i in p.items if i.part == part and i.area == p.areas[0]]
+            ranks = [i.facts["ranked_at"] for i in items]
+            assert ranks == sorted(ranks, reverse=desc)
+            for i in items:
+                fam = i.facts["family"]
+                assert (i.facts["percentile"] is None) == (fam in ("arudha", "kp"))
+                if i.facts["percentile"] is None:
+                    assert i.facts["ranked_at"] == NO_TERM_PERCENTILE
+                    seen += 1
+    assert seen > 5                                  # arudha and KP are said, by percentile, not hidden by scale

@@ -3,7 +3,7 @@ direction and question kinds, what the answer says, picked by the engine before 
 
 Per area, in this order: the verdict line (the tier in plain words with the overall lean) and, where the area
 depends on the birth time, its stability line; the two or three family findings that help and the one or two that
-are hard, by the strongest family terms (`AreaScore.terms`); every fired cited rule of the area (a rule with a
+are hard, by each family's term as a percentile of 10,000 random charts (review L1); every fired cited rule of the area (a rule with a
 checked source, not a draft placement), with the reductions its modifiers applied; the hidden weaknesses of the
 area's main lord (the lord of its first house from the rising sign) and main significator (its first karaka) that
 the lean does not show (marana karaka sthana, a Mrita avastha, a Shadbala ratio under 1); the Vimshottari period
@@ -388,13 +388,19 @@ def _stretch_items(area: str, label: str, data: dict | None, sheet: dict, hard_f
     return out
 
 
-def _strengths(chart, a) -> dict[str, float]:
-    """A family's signed strength in the area: its term in the score (`AreaScore.terms`); a family with no term (the
-    arudha and KP votes) by its vote times its family weight, the claim confidence narrate.findings gives it."""
-    from .scoring import family_rho, family_weights
-    weights = family_weights(a, family_rho(chart.meta.varga_term, chart.meta.kp_vote))
-    return {f: a.terms[f] if a.terms.get(f) is not None else v * min(1.0, weights.get(f, 0))
-            for f, v in a.votes.items() if v}
+# A family that votes with no term in the score (arudha, KP) has no percentile; it is ranked as the middle of the
+# population (review 2026-11-15, L1), neither unusually strong nor unusually weak.
+NO_TERM_PERCENTILE = 50.0
+
+
+def _percentiles(chart, a, area: str) -> dict[str, float | None]:
+    """Each voting family's term as a percentile of its terms over 10,000 random charts (fullchart.contributions, as
+    depth full ranks "the strongest support"): the terms are on different scales (the lord term sums fifteen rows),
+    so a term compared with a vote, as before, decided by its scale which families were said (review L1). None for a
+    family with no term."""
+    from .fullchart import contributions
+    pct = {r["family"]: r.get("percentile") for r in contributions(a, area, chart)["ranked"]}
+    return {f: pct.get(f) for f, v in a.votes.items() if v}
 
 
 def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str], *, as_of: date,
@@ -450,21 +456,25 @@ def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str
                                   notes=[st_note] if st_note else []))
         # The family findings, by the strength of their terms in the area's score.
         voted = [(f, v) for f, v in ad["votes"].items() if v["vote"] in (1, -1)]
-        strength = _strengths(chart, a)
-        helps = sorted([x for x in voted if x[1]["vote"] > 0], key=lambda x: (-strength[x[0]], x[0]))
-        hard = sorted([x for x in voted if x[1]["vote"] < 0], key=lambda x: (strength[x[0]], x[0]))
+        pct = _percentiles(chart, a, area)
+        rank = {f: NO_TERM_PERCENTILE if pct.get(f) is None else pct[f] for f, _ in voted}
+        # What helps most: the highest percentiles; what is hardest: the lowest.
+        helps = sorted([x for x in voted if x[1]["vote"] > 0], key=lambda x: (-rank[x[0]], x[0]))
+        hard = sorted([x for x in voted if x[1]["vote"] < 0], key=lambda x: (rank[x[0]], x[0]))
         for part, chosen, rest in (("helps", helps[:HELPS], helps[HELPS:]), ("hard", hard[:HARD], hard[HARD:])):
             for fam, v in chosen:
                 it = _family_item(chart, fam, v, area, label, part, data, sheet, a.terms.get(fam))
                 if it is not None:
-                    it.facts["strength"] = round(strength[fam], 4)
+                    it.facts["percentile"] = pct.get(fam)
+                    it.facts["ranked_at"] = rank[fam]
                 if it is None:
                     left.append({"area": area, "what": f"vote:{area}.{fam}", "why": "no sentence for this derivation"})
                 else:
                     items.append(it)
             for fam, _ in rest:
                 left.append({"area": area, "what": f"vote:{area}.{fam}",
-                             "why": f"a weaker term than the {len(chosen)} that {'help' if part == 'helps' else 'are hard'}"})
+                             "why": f"a less unusual term (by percentile) than the {len(chosen)} that "
+                                    f"{'help' if part == 'helps' else 'are hard'}"})
         for fam, v in ad["votes"].items():
             if v["vote"] == 0:
                 left.append({"area": area, "what": f"vote:{area}.{fam}", "why": "abstains"})
