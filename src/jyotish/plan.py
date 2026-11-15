@@ -202,16 +202,29 @@ def _family_item(chart, fam: str, v: dict, area: str, label: str, part: str, dat
         hard = [o for o in occ if o not in ben]
         n = "many" if len(signs) > 1 else "one"
         slots["signs"] = _and(signs)
+        # Over several signs each planet is named with its own sign (review 2026-11-15, H1: "Ketu, Saturn and Rahu
+        # sit in one of these signs" told a placement no chart can have): {placed}, {helpers_placed}.
+        sign_of = {}
+        for p in padas:
+            for o in p.get("occupants", []):
+                sign_of.setdefault(o, p["sign"])
+        placed = lambda ps: _and([f"{_the(p)} in {sign_of[p]}" if p in sign_of else _the(p) for p in ps])
         if v["vote"] < 0 and hard:
             sig += f".{n}.hard" + (".helped" if ben else ".alone")
             slots["planets"] = _and([_the(p) for p in hard])
             slots["sits"] = "sits" if len(hard) == 1 else "sit"
+            if n == "many":
+                slots["placed"] = placed(hard)
             if ben:
                 slots["helpers"] = _and([_the(p) for p in ben])
+                if n == "many":
+                    slots["helpers_placed"] = placed(ben)
         elif v["vote"] > 0 and ben:
             sig += f".{n}.helped"
             slots["helpers"] = _and([_the(p) for p in ben])
             slots["sits"] = "sits" if len(ben) == 1 else "sit"
+            if n == "many":
+                slots["helpers_placed"] = placed(ben)
         else:
             sig += f".{n}.plain"
     elif fam == "panchanga":

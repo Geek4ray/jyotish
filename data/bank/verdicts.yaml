@@ -20,18 +20,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 1
     sentence: Your career draws different messages from the chart, and when they are weighed together they lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: What the chart shows for your career does not all agree, but taken as a whole it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
 - signature: verdict.moderate
   kind: fact
   slots:
@@ -52,18 +55,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 1
     sentence: Your career is where most of the chart's picture agrees, and on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: Most of what the chart shows about your career points the same way, and on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
 - signature: verdict.not_emphasised
   kind: fact
   slots:
@@ -84,18 +90,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 1
     sentence: Your career is not something this chart puts much weight on, though what it does show leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: The chart does not give your career special emphasis; even so, on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
 - signature: verdict.strong
   kind: fact
   slots:
@@ -116,15 +125,18 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 1
     sentence: Money is an area where the chart speaks with one voice, and on balance it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one
   - variant: 2
     sentence: When it comes to money, the different parts of your chart agree closely, and the overall lean is favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: Area:one,area:one,lean:one

@@ -17,18 +17,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: ''
   - variant: 1
     sentence: Please read neither stretch as a prediction of the moment you will act.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: ''
   - variant: 2
     sentence: Neither stretch tells you when you will act, and neither is meant as a prediction of it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: ''
 - signature: stretch.least.first
   kind: fact
   slots:
@@ -48,18 +51,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 1
     sentence: Looking at your career, the chart places its least favourable stretch from November 2028 to August 2029.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 2
     sentence: The stretch the chart reads as least favourable for your career runs from November 2028 to August 2029.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
 - signature: stretch.least.second
   kind: fact
   slots:
@@ -79,18 +85,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 1
     sentence: The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to August 2029.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 2
     sentence: Running from November 2028 to August 2029, this is the least favourable stretch in the chart.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
 - signature: stretch.most.first
   kind: fact
   slots:
@@ -110,18 +119,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 1
     sentence: As the chart reads it, the most favourable stretch for your career runs from October 2029 to June 2032.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 2
     sentence: For your career, the chart reads the most favourable stretch as running from October 2029 to June 2032.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
 - signature: stretch.most.second
   kind: fact
   slots:
@@ -137,19 +149,23 @@
   checks:
   - variant: 0
     sentence: Looking at the stretches the chart shows, the most favourable one runs from October 2029 to June 2032.
-    supported: true
-    evidence: ''
+    supported: false
+    evidence: The data contains a single window fact only; nothing states that the chart shows multiple stretches. The plural
+      is an ordinary-reader reading of "the stretches the chart shows."
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 1
     sentence: The most favourable stretch, as the chart reads it, is the one that runs from October 2029 to June 2032.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one
   - variant: 2
     sentence: Running from October 2029 to June 2032, this is the most favourable stretch in the chart.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,when:one

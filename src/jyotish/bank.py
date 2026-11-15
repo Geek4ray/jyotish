@@ -60,6 +60,7 @@ class Check(BaseModel):
     evidence: str = ""
     model: str
     on: date
+    shape: str | None = None         # the slot shape the values had (`shape_of`): one value, several, empty, a node
 
 
 class BankRow(BaseModel):
@@ -88,6 +89,16 @@ class BankRow(BaseModel):
     @property
     def area(self) -> str | None:
         return self.signature.split("@", 1)[1] if "@" in self.signature else None
+
+    def refused(self) -> set[int]:
+        """The variants a check found unsupported on any shape: the composer never shows them."""
+        return {c.variant for c in self.checks if not c.supported}
+
+    def usable(self, i: int) -> int | None:
+        """The variant shown for a session's pick `i`: `i` itself, else the next variant no check refused, else none
+        (review 2026-11-15, H1: a variant true for one sample's values may be false for another's)."""
+        bad = self.refused()
+        return next((j for j in ((i + k) % 3 for k in range(3)) if j not in bad), None)
 
     def fill(self, i: int, slots: dict[str, str]) -> str:
         return tidy(SLOT.sub(lambda m: slots.get(m.group(1), m.group(0)), agree(self.variants[i], slots)))
@@ -122,6 +133,22 @@ def agree(template: str, slots: dict[str, str]) -> str:
             verb = SINGULAR_OF[verb]
         return "{" + name + "}" + space + verb
     return _AFTER_SLOT.sub(fix, template)
+
+
+NODES = re.compile(r"\b(?:Rahu|Ketu)\b")
+LUMINARIES = re.compile(r"\bthe (?:Sun|Moon)\b")
+
+
+def shape_of(slots: dict[str, str]) -> str:
+    """The shape of a plan item's slot values, what a fact variant's truth can turn on (review 2026-11-15, H1): per
+    slot, empty, one value or several, and whether it names a node or the Sun or Moon. A variant is checked once per
+    shape the random charts give its signature, not on one chart."""
+    out = []
+    for k in sorted(slots):
+        v = slots[k] or ""
+        n = "empty" if not v.strip() else "many" if plural(v) else "one"
+        out.append(f"{k}:{n}" + ("+node" if NODES.search(v) else "") + ("+lum" if LUMINARIES.search(v) else ""))
+    return ",".join(out)
 
 
 def tidy(text: str) -> str:

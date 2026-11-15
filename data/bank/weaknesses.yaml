@@ -23,6 +23,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
   - variant: 1
     sentence: In your chart, the ruler of your 10th house is Saturn, and it holds less strength than it needs to deliver in
       full what it promises.
@@ -30,12 +31,85 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
   - variant: 2
     sentence: Saturn, the ruler of your 10th house, falls short of the strength it needs to give fully what it promises.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
+  - variant: 0
+    sentence: the main planet of your career, the Sun, has less strength than it needs to give fully what it promises for
+      your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 1
+    sentence: In your chart, the main planet of your career is the Sun, and it holds less strength than it needs to deliver
+      in full what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 2
+    sentence: the Sun, the main planet of your career, falls short of the strength it needs to give fully what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 0
+    sentence: the ruler of your 2nd house and the main planet of money, Jupiter, has less strength than it needs to give fully
+      what it promises for money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 1
+    sentence: In your chart, the ruler of your 2nd house and the main planet of money are Jupiter, and it holds less strength
+      than it needs to deliver in full what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 2
+    sentence: Jupiter, the ruler of your 2nd house and the main planet of money, falls short of the strength it needs to give
+      fully what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 0
+    sentence: the ruler of your 10th house and the main planet of your career, the Sun, has less strength than it needs to
+      give fully what it promises for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 1
+    sentence: In your chart, the ruler of your 10th house and the main planet of your career are the Sun, and it holds less
+      strength than it needs to deliver in full what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 2
+    sentence: the Sun, the ruler of your 10th house and the main planet of your career, falls short of the strength it needs
+      to give fully what it promises.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
 - signature: weakness.mks
   kind: fact
   slots:
@@ -58,6 +132,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
   - variant: 1
     sentence: In your chart, Saturn, the ruler of your 10th house, is placed in your 1st house, which drains it no matter
       what Taurus says.
@@ -65,12 +140,86 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
   - variant: 2
     sentence: Saturn, the ruler of your 10th house, occupies your 1st house, a place that drains it, whatever its sign is.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
+  - variant: 0
+    sentence: the main planet of your career, the Sun, sits in your 12th house, a house that drains it, whatever the sign
+      says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 1
+    sentence: In your chart, the Sun, the main planet of your career, is placed in your 12th house, which drains it no matter
+      what Gemini says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 2
+    sentence: the Sun, the main planet of your career, occupies your 12th house, a place that drains it, whatever its sign
+      is.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 0
+    sentence: the ruler of your 2nd house and the main planet of money, Jupiter, sits in your 3rd house, a house that drains
+      it, whatever the sign says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 1
+    sentence: In your chart, Jupiter, the ruler of your 2nd house and the main planet of money, is placed in your 3rd house,
+      which drains it no matter what Aries says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 2
+    sentence: Jupiter, the ruler of your 2nd house and the main planet of money, occupies your 3rd house, a place that drains
+      it, whatever its sign is.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 0
+    sentence: the ruler of your 10th house and the main planet of your career, the Sun, sits in your 12th house, a house that
+      drains it, whatever the sign says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 1
+    sentence: In your chart, the Sun, the ruler of your 10th house and the main planet of your career, is placed in your 12th
+      house, which drains it no matter what Libra says.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 2
+    sentence: the Sun, the ruler of your 10th house and the main planet of your career, occupies your 12th house, a place
+      that drains it, whatever its sign is.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
 - signature: weakness.mrita
   kind: fact
   slots:
@@ -93,15 +242,86 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
   - variant: 1
     sentence: By its degree in Taurus, Saturn, the ruler of your 10th house, falls into a feeble state.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
   - variant: 2
     sentence: The degree Saturn holds in Taurus puts it, as the ruler of your 10th house, in a feeble state.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:one,sign:one
+  - variant: 0
+    sentence: the main planet of your career, the Sun, is in a feeble state by its degree in Aquarius.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 1
+    sentence: By its degree in Aquarius, the Sun, the main planet of your career, falls into a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 2
+    sentence: The degree the Sun holds in Aquarius puts it, as the main planet of your career, in a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:one,sign:one
+  - variant: 0
+    sentence: the ruler of your 10th house and the main planet of your career, the Sun, is in a feeble state by its degree
+      in Aquarius.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 1
+    sentence: By its degree in Aquarius, the Sun, the ruler of your 10th house and the main planet of your career, falls into
+      a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 2
+    sentence: The degree the Sun holds in Aquarius puts it, as the ruler of your 10th house and the main planet of your career,
+      in a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one+lum,role:many,sign:one
+  - variant: 0
+    sentence: the ruler of your 2nd house and the main planet of money, Jupiter, is in a feeble state by its degree in Taurus.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 1
+    sentence: By its degree in Taurus, Jupiter, the ruler of your 2nd house and the main planet of money, falls into a feeble
+      state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one
+  - variant: 2
+    sentence: The degree Jupiter holds in Taurus puts it, as the ruler of your 2nd house and the main planet of money, in
+      a feeble state.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,house:one,planet:one,role:many,sign:one

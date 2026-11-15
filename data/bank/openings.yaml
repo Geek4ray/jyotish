@@ -19,6 +19,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 1
     sentence: No chart can name an amount or promise anything to you; it shows how well it supports your career, marriage
       and money.
@@ -26,6 +27,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 2
     sentence: You will not find an amount or a promise in a chart; what it offers is a view of how well it supports your career,
       marriage and money.
@@ -33,6 +35,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
 - signature: opening.weakest.adverse
   kind: fact
   slots:
@@ -51,18 +54,42 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: areas:one
   - variant: 1
     sentence: On balance, your chart works against you in marriage, once everything is weighed together.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: areas:one
   - variant: 2
     sentence: Weighed all together, the way your chart leans is against you in marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: areas:one
+  - variant: 0
+    sentence: Taking everything together, your chart works against you when it comes to marriage and money, on balance.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: areas:many
+  - variant: 1
+    sentence: On balance, your chart works against you in marriage and money, once everything is weighed together.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: areas:many
+  - variant: 2
+    sentence: Weighed all together, the way your chart leans is against you in marriage and money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: areas:many
 - signature: opening.weakest.none
   kind: fact
   slots:
@@ -82,6 +109,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: areas:many
   - variant: 1
     sentence: Weighing it all, no part of your chart leans against you; the parts it supports least are your career, marriage
       and money.
@@ -89,6 +117,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: areas:many
   - variant: 2
     sentence: Your chart leans against you in no area on balance, and it gives the least support to your career, marriage
       and money.
@@ -96,6 +125,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: areas:many
 - signature: opening.when
   kind: fact
   slots:
@@ -115,6 +145,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 1
     sentence: What your chart offers is not a date but stretches of time read as more and less favourable for your career,
       marriage and money.
@@ -122,6 +153,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 2
     sentence: Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable
       for your career, marriage and money.
@@ -129,6 +161,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
 - signature: opening.why
   kind: fact
   slots:
@@ -147,18 +180,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 1
     sentence: Let us look together at what in your chart lies behind it.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 2
     sentence: Behind this, these are the parts of your chart that speak to your career, marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
 - signature: opening.yes_no
   kind: fact
   slots:
@@ -177,15 +213,18 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 1
     sentence: What a chart shows is not a yes or no but which way it leans for your career, marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many
   - variant: 2
     sentence: A chart cannot give you a yes or no answer; it shows which way it leans for your career, marriage and money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:many

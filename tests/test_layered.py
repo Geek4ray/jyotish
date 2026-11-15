@@ -225,9 +225,13 @@ def test_3_the_drafted_rows_are_drafts_from_sonnet_and_every_fact_variant_was_ch
     from jyotish.bank import load_bank
     bank = load_bank()
     assert len(bank) > 60
-    assert all(r.status == "draft" and r.drafted_by == "claude-sonnet-5-5" for r in bank.rows)
+    # Drafted by Sonnet; rows rewritten after the review of 2026-11-15 name the model that rewrote them and why.
+    assert all(r.status == "draft" and (r.drafted_by == "claude-sonnet-5-5" or "review" in r.drafted_by)
+               for r in bank.rows)
     facts = [r for r in bank.rows if r.kind == "fact"]
-    assert all(sorted(c.variant for c in r.checks) == [0, 1, 2] and all(c.supported for c in r.checks) for r in facts)
+    # Every fact variant was checked (on each slot shape since the review's H1); a variant refused on a shape is
+    # never shown, and every fact row keeps at least one variant no check refused.
+    assert all({c.variant for c in r.checks} == {0, 1, 2} and len(r.refused()) < 3 for r in facts)
     assert all(c.model == "zai-org/GLM-5.3-Flash" for r in facts for c in r.checks)
     meanings = [r for r in bank.rows if r.kind == "meaning"]
     assert meanings and all(r.area in ("career", "marriage", "wealth") and r.source for r in meanings)
@@ -324,9 +328,16 @@ def test_4_a_row_refused_by_the_checker_or_wanting_a_slot_is_not_used(chart, dat
     fact, _ = ruchaka_rows()
     refused = fact | {"checks": [{"variant": 0, "sentence": "x", "supported": False, "evidence": "no", "model": "m",
                                   "on": "2026-11-15"}]}
-    for bad in (refused, fact | {"slots": fact["slots"] + ["dignity"]}):
+    # All three variants refused, or a slot the item does not fill: the engine's sentence. One refused variant: the
+    # next variant is shown in its place (the review of 2026-11-15, H1).
+    every = fact | {"checks": [refused["checks"][0] | {"variant": v} for v in range(3)]}
+    for bad in (every, fact | {"slots": fact["slots"] + ["dignity"]}):
         c = compose(career(chart, data), load_bank(write_bank(tmp_path, [bad])), session_key="s1")
         assert next(s for s in c["sentences"] if s["signature"] == "rule.yoga.ruchaka.reduced")["row"] is None
+    from jyotish.conversation import variant_of
+    key = next(k for k in ("s0", "s1", "s2", "s3", "s4", "s5") if variant_of(k, fact["signature"]) == 0)
+    c = compose(career(chart, data), load_bank(write_bank(tmp_path, [refused])), session_key=key)
+    assert next(s for s in c["sentences"] if s["signature"] == "rule.yoga.ruchaka.reduced")["row"]["variant"] == 1
 
 
 def test_4_paragraphs_are_the_answer_what_helps_what_is_hard_then_the_timing(chart, data):

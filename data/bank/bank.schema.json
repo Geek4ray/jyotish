@@ -139,6 +139,13 @@
             "on": {
               "type": "string",
               "format": "date"
+            },
+            "shape": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "the shape of the slot values checked (bank.shape_of): one value, several, empty, a node"
             }
           }
         }

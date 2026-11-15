@@ -43,6 +43,7 @@ MODEL = "claude-sonnet-5-5"
 AREAS = ["career", "marriage", "wealth"]
 AS_OF = date(2026, 11, 15)
 PER_CALL = 10
+SHAPES = 4                # slot shapes a fact variant is checked on (bank.shape_of): one value, several, empty, a node
 # The estimate: characters a row's prompt part takes (signature, slots, engine sentence, values, facts) at 3.5 a
 # token, the fixed prompt, the tokens a row's three variants take out, every call possibly sent twice (a redraft);
 # the checker's tokens a variant as the live checks of 2026-11-01 measured them per sentence (16,773 in and 7,074
@@ -102,6 +103,7 @@ def _signatures(n: int, seed: int) -> dict[tuple[str, str], dict]:
     from jyotish.plan import plan
     from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
     from jyotish.uncertainty import assess
+    from jyotish.bank import shape_of
     kinds = ["amount", "yes_no", "when", "why"]
     found: dict[tuple[str, str], dict] = {}
 
@@ -110,7 +112,10 @@ def _signatures(n: int, seed: int) -> dict[tuple[str, str], dict]:
             if not i.engine:
                 continue                      # a "when" item from a chart with no payload: taken from the reference
             sample = {"slots": i.slots, "facts": i.facts, "engine": i.engine, "area": i.area, "part": i.part}
-            found.setdefault((i.signature, "fact"), sample)
+            first = found.setdefault((i.signature, "fact"), sample | {"shapes": []})
+            # Up to SHAPES samples of distinct slot shapes (review 2026-11-15, H1): a fact variant is checked on each.
+            if len(first["shapes"]) < SHAPES and shape_of(i.slots) not in [shape_of(x["slots"]) for x in first["shapes"]]:
+                first["shapes"].append(sample)
             if i.part in ("rule", "weakness") and i.area in AREAS:
                 found.setdefault((f"{i.signature}@{i.area}", "meaning"), sample)
     ref = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
@@ -188,6 +193,49 @@ def check_data(sample: dict) -> dict:
     return data
 
 
+def samples_for(row, sample: dict) -> list[dict]:
+    """The samples a fact row is checked on: each shape whose slots the row's variants can be filled from (as the
+    composer would fill them: every slot the row declares has a value, a dignity excepted)."""
+    out = []
+    for x in sample.get("shapes") or [sample]:
+        if set(row.slots) <= set(x["slots"]) and all(x["slots"][s] for s in row.slots if s != "dignity"):
+            out.append(x)
+    return out
+
+
+def check_rows(rows: dict, found: dict, checker, checker_model: str, spent: dict) -> tuple[dict, dict]:
+    """Every fact variant of `rows` ({(signature, kind): BankRow}), filled with each of its signature's sample shapes,
+    checked once by the gate checker against that sample's facts and engine sentence; each verdict is kept on the row
+    with its shape. Returns the rows and, per signature, why a variant was refused."""
+    from jyotish.bank import Check, shape_of
+    from jyotish.costs import cost
+    asks, where = [], []
+    for k, r in rows.items():
+        if k[1] != "fact" or k not in found:
+            continue
+        fits = samples_for(r, found[k])
+        if not fits:
+            continue                      # no sample can fill it (the composer cannot either): its checks stand
+        r.checks = []
+        for x in fits:
+            data = json.dumps(check_data(x), default=str, indent=1)
+            for i in range(3):
+                asks.append((r.fill(i, x["slots"]), data))
+                where.append((k, i, shape_of(x["slots"])))
+    results = checker.check_many(asks) if asks else []
+    bad = defaultdict(list)
+    for (k, i, shape), (sentence, _), (res, meta) in zip(where, asks, results):
+        ok = all(p.supported for p in res.propositions)
+        ev = "; ".join(p.evidence for p in res.propositions if not p.supported)
+        rows[k].checks.append(Check(variant=i, sentence=sentence, supported=ok, evidence=ev[:400],
+                                    model=checker_model, on=TODAY, shape=shape))
+        spent["checker"] = spent.get("checker", 0.0) + (
+            cost(checker_model, (meta or {}).get("usage") or {}, "api.deepinfra.com") or 0)
+        if not ok:
+            bad[k[0]].append(f"variant {i + 1} ({sentence!r}) is not stated by the facts: {ev}")
+    return rows, dict(bad)
+
+
 def estimate(found: dict) -> tuple[float, dict]:
     from jyotish.costs import price
     sonnet = price(MODEL, "api.anthropic.com")
@@ -224,10 +272,15 @@ def main(argv=None) -> int:
     ap.add_argument("--charts", type=int, default=300, help="random charts the signatures are gathered from")
     ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--redraft", action="store_true", help="replace the draft rows already in the bank")
+    ap.add_argument("--recheck", action="store_true",
+                    help="draft nothing: check every fact row (or --signatures) on each sample shape, and write its checks")
+    ap.add_argument("--signatures", nargs="*", default=None, help="with --recheck: only these signatures")
     a = ap.parse_args(argv)
     from jyotish import envfile
     from jyotish.bank import BANK_DIR, BankRow, Check, dump_rows, load_bank, row_errors
     print(f"read from .env: {envfile.load(ROOT / '.env')}")                # names only, never a value
+    if a.recheck:
+        return recheck(a)
     if not os.environ.get("ANTHROPIC_API_KEY") and not a.estimate:
         raise SystemExit("ANTHROPIC_API_KEY is not set (the anthropic SDK reads it): nothing drafted")
     have = load_bank(strict=False)
@@ -284,27 +337,8 @@ def main(argv=None) -> int:
         return ok, bad
 
     def check(rows: dict) -> tuple[dict, dict]:
-        """Every fact variant filled with the sample's values, checked once against the facts and the engine's sentence."""
-        asks, where = [], []
-        for k, r in rows.items():
-            if k[1] != "fact":
-                continue
-            s = todo[k]
-            data = json.dumps(check_data(s), default=str, indent=1)
-            for i in range(3):
-                asks.append((r.fill(i, s["slots"]), data))
-                where.append((k, i))
-        results = checker.check_many(asks) if asks else []
-        bad = defaultdict(list)
-        for (k, i), (sentence, _), (res, meta) in zip(where, asks, results):
-            ok = all(p.supported for p in res.propositions)
-            ev = "; ".join(p.evidence for p in res.propositions if not p.supported)
-            rows[k].checks.append(Check(variant=i, sentence=sentence, supported=ok, evidence=ev[:400],
-                                        model=checker_model, on=TODAY))
-            spent["checker"] += cost(checker_model, (meta or {}).get("usage") or {}, "api.deepinfra.com") or 0
-            if not ok:
-                bad[k[0]].append(f"variant {i + 1} ({sentence!r}) is not stated by the facts: {ev}")
-        return rows, dict(bad)
+        """Every fact variant, filled with each sample shape's values, checked against its facts and engine sentence."""
+        return check_rows(rows, todo, checker, checker_model, spent)
 
     keys = list(todo)
     got = run(keys)
@@ -331,6 +365,19 @@ def main(argv=None) -> int:
         bad = {**bad, **bad3, **still}
     rows = list(keep.values()) + [r.model_copy(update={"checks": [c for c in r.checks if r.kind == "fact"]})
                                   for k, r in ok.items()]
+    write_bank(rows)
+    left = sorted(set(bad) | {k[0] for k in keys if k not in ok and k[0] not in bad})
+    report = {"date": TODAY.isoformat(), "model": MODEL, "checker": checker_model, "rows_written": len(ok),
+              "rows_kept": len(keep), "left_out": {s: bad.get(s, ["no draft"]) for s in left},
+              "usd": {k: round(v, 4) for k, v in spent.items()}, "calls": len(usage_all)}
+    log_run(report, len(rows))                                  # each run is kept
+    print(f"wrote {len(ok)} rows (kept {len(keep)}); left out {len(left)}; spent USD "
+          f"{spent['writer']:.3f} drafting and {spent['checker']:.3f} checking -> docs/bank_draft_2026-11-15.json")
+    return 0
+
+
+def write_bank(rows) -> None:
+    from jyotish.bank import BANK_DIR, dump_rows, load_bank
     files = defaultdict(list)
     for r in rows:
         files["meanings" if r.kind == "meaning" else FILES[r.base.split(".")[0]]].append(r)
@@ -342,19 +389,47 @@ def main(argv=None) -> int:
             "# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.\n"
             + dump_rows(rs))
     load_bank()                                                 # the written bank must stand
-    left = sorted(set(bad) | {k[0] for k in keys if k not in ok and k[0] not in bad})
-    report = {"date": TODAY.isoformat(), "model": MODEL, "checker": checker_model, "rows_written": len(ok),
-              "rows_kept": len(keep), "left_out": {s: bad.get(s, ["no draft"]) for s in left},
-              "usd": {k: round(v, 4) for k, v in spent.items()}, "calls": len(usage_all)}
-    # Each run is kept: a later run drafts what an earlier one left out.
+
+
+def log_run(report: dict, rows_in_bank: int) -> None:
     path = ROOT / "docs" / "bank_draft_2026-11-15.json"
     old = json.loads(path.read_text()) if path.exists() else {}
     runs = old.get("runs", [old] if old.get("date") else []) + [report]
-    path.write_text(json.dumps({"runs": runs, "rows_in_bank": len(rows),
-                                "usd_total": round(sum(r["usd"]["writer"] + r["usd"]["checker"] for r in runs), 4)},
-                               indent=1) + "\n")
-    print(f"wrote {len(ok)} rows (kept {len(keep)}); left out {len(left)}; spent USD "
-          f"{spent['writer']:.3f} drafting and {spent['checker']:.3f} checking -> docs/bank_draft_2026-11-15.json")
+    path.write_text(json.dumps({"runs": runs, "rows_in_bank": rows_in_bank,
+                                "usd_total": round(sum(r["usd"].get("writer", 0) + r["usd"].get("checker", 0)
+                                                       for r in runs), 4)}, indent=1) + "\n")
+
+
+def recheck(a) -> int:
+    """Every fact row (or `--signatures`) checked again on each sample shape; nothing is drafted. A variant refused on
+    any shape is never shown (bank.BankRow.usable); its evidence is printed for a redraft."""
+    from jyotish.narrate import CONFIG, ModelChecker, make_backend
+    from jyotish.bank import load_bank
+    bank = load_bank()
+    found = _signatures(a.charts, a.seed)
+    rows = {(r.signature, r.kind): r for r in bank.rows if r.kind == "fact"
+            and (a.signatures is None or r.signature in a.signatures)}
+    n = sum(3 * len(samples_for(r, found[k])) for k, r in rows.items() if k in found)
+    from jyotish.costs import price
+    pc = price("zai-org/GLM-5.3-Flash", "api.deepinfra.com")
+    usd = n * (CHECK_TOKENS[0] * pc[0] + CHECK_TOKENS[1] * pc[1]) / 1e6
+    print(f"{len(rows)} fact rows, {n} checks (up to {SHAPES} shapes a row); expected USD {usd:.3f} (budget {a.budget})")
+    if usd > a.budget:
+        print(f"over the budget of USD {a.budget}: nothing checked")
+        return 2
+    checker = ModelChecker(make_backend(os.environ.get("JYOTISH_CHECKER_BACKEND"), "checker", CONFIG), CONFIG)
+    checker_model = checker.backend.describe().get("model")
+    spent = {"checker": 0.0}
+    _, bad = check_rows(rows, found, checker, checker_model, spent)
+    no_sample = sorted(k[0] for k, r in rows.items() if k not in found or not samples_for(r, found[k]))
+    write_bank(bank.rows)
+    report = {"date": TODAY.isoformat(), "kind": "recheck", "checker": checker_model, "rows_checked": len(rows),
+              "checks": n, "refused": bad, "no_sample": no_sample, "usd": {k: round(v, 4) for k, v in spent.items()}}
+    log_run(report, len(bank.rows))
+    for sig, why in sorted(bad.items()):
+        print(f"  refused: {sig}: {len(why)} variant(s)")
+    print(f"checked {n}; {sum(len(v) for v in bad.values())} refused over {len(bad)} rows; no sample for "
+          f"{len(no_sample)}; spent USD {spent['checker']:.4f}")
     return 0
 
 

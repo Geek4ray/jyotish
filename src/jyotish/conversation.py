@@ -807,9 +807,9 @@ def variant_of(session_key: str, signature: str) -> int:
 
 
 def _usable(row, item) -> bool:
-    """A fact row the item can fill: its slots are the item's and each has a value (a dignity may be empty), and none
-    of its variants was refused by the checker."""
-    return (row is not None and set(row.slots) <= set(item.slots) and all(c.supported for c in row.checks)
+    """A fact row the item can fill: its slots are the item's and each has a value (a dignity may be empty), and at
+    least one of its variants was refused by no check."""
+    return (row is not None and set(row.slots) <= set(item.slots) and len(row.refused()) < 3
             and all(item.slots[s] for s in row.slots if s != "dignity"))
 
 
@@ -829,25 +829,27 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
     said_before = said_before or []
     out: list[dict[str, Any]] = []
 
-    def sentence(item, row, text: str) -> dict[str, Any]:
+    def sentence(item, row, text: str, variant: int | None = None) -> dict[str, Any]:
         text = _cap(text)
         tags = " ".join(f"[{t}]" for t in item.tags)
         return {"text": text, "tagged": f"{text[:-1]} {tags}{text[-1]}" if tags and text[-1:] in ".!?" else text,
                 "signature": item.signature, "part": item.part, "area": item.area, "tags": item.tags,
                 "notes": item.notes, "row": None if row is None else
-                {"signature": row.signature, "kind": row.kind, "variant": variant_of(session_key, row.signature),
+                {"signature": row.signature, "kind": row.kind, "variant": variant,
                  "status": row.status, "file": row.file}}
     for item in plan.items:
         row = bank.fact(item.signature)
         if _usable(row, item):
-            out.append(sentence(item, row, row.fill(variant_of(session_key, row.signature), item.slots)))
+            i = row.usable(variant_of(session_key, row.signature))
+            out.append(sentence(item, row, row.fill(i, item.slots), i))
         elif item.engine:
             out.append(sentence(item, None, item.engine))
         else:
             continue
         meaning = bank.meaning(item.signature, item.area) if item.part in ("rule", "weakness") else None
         if meaning is not None and set(meaning.slots) <= set(item.slots) and (meaning.status == "approved" or draft_meanings):
-            out.append(sentence(item, meaning, meaning.fill(variant_of(session_key, meaning.signature), item.slots)))
+            i = variant_of(session_key, meaning.signature)
+            out.append(sentence(item, meaning, meaning.fill(i, item.slots), i))
     if said_before:
         keep = ("Neither stretch is", "This stretch is not")
         out = [s for s in out if s["part"] == "stretch" and s["signature"].startswith("stretch.caveat")

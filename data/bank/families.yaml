@@ -4,81 +4,229 @@
   kind: fact
   slots:
   - area
-  - planets
+  - placed
   - signs
-  - sits
   variants:
-  - The signs that show how others see {area}, {signs}, lean unfavourably, and {planets} {sits} in one of these signs with
-    no helpful planet in any of them.
-  - 'When it comes to how others see {area}, the signs {signs} lean unfavourably: {planets} {sits} in one of them, and no
-    helpful planet sits in any.'
-  - Others' view of {area} is shown by {signs}, and these signs lean unfavourably, with {planets} that {sits} in one of them
-    and no helpful planet in any.
-  drafted_by: claude-sonnet-5-5
+  - The signs that show how others see {area}, {signs}, lean unfavourably, with {placed} and no helpful planet in any of them.
+  - When it comes to how others see {area}, the signs {signs} lean unfavourably, holding {placed} with no helpful planet in
+    any of them.
+  - 'Others'' view of {area} is shown by {signs}, and these signs lean unfavourably: you have {placed} there, and no helpful
+    planet in any of them.'
+  drafted_by: claude-opus-5-5 (rewritten for review H1)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
-    sentence: The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably, and Rahu sits in one
-      of these signs with no helpful planet in any of them.
+    sentence: The signs that show how others see marriage, Gemini, Cancer and Leo, lean unfavourably, with Rahu in Gemini
+      and no helpful planet in any of them.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,placed:one+node,planets:one+node,signs:many,sits:one
   - variant: 1
-    sentence: 'When it comes to how others see marriage, the signs Gemini, Cancer and Leo lean unfavourably: Rahu sits in
-      one of them, and no helpful planet sits in any.'
+    sentence: When it comes to how others see marriage, the signs Gemini, Cancer and Leo lean unfavourably, holding Rahu in
+      Gemini with no helpful planet in any of them.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,placed:one+node,planets:one+node,signs:many,sits:one
   - variant: 2
-    sentence: Others' view of marriage is shown by Gemini, Cancer and Leo, and these signs lean unfavourably, with Rahu that
-      sits in one of them and no helpful planet in any.
+    sentence: 'Others'' view of marriage is shown by Gemini, Cancer and Leo, and these signs lean unfavourably: you have Rahu
+      in Gemini there, and no helpful planet in any of them.'
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,placed:one+node,planets:one+node,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see money, Libra and Cancer, lean unfavourably, with the Moon in Libra and no
+      helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:one+lum,planets:one+lum,signs:many,sits:one
+  - variant: 1
+    sentence: When it comes to how others see money, the signs Libra and Cancer lean unfavourably, holding the Moon in Libra
+      with no helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:one+lum,planets:one+lum,signs:many,sits:one
+  - variant: 2
+    sentence: 'Others'' view of money is shown by Libra and Cancer, and these signs lean unfavourably: you have the Moon in
+      Libra there, and no helpful planet in any of them.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:one+lum,planets:one+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see marriage, Cancer, Leo and Pisces, lean unfavourably, with the Moon in Cancer,
+      Mars in Cancer and Saturn in Cancer and no helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 1
+    sentence: When it comes to how others see marriage, the signs Cancer, Leo and Pisces lean unfavourably, holding the Moon
+      in Cancer, Mars in Cancer and Saturn in Cancer with no helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 2
+    sentence: 'Others'' view of marriage is shown by Cancer, Leo and Pisces, and these signs lean unfavourably: you have the
+      Moon in Cancer, Mars in Cancer and Saturn in Cancer there, and no helpful planet in any of them.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see marriage, Libra, Scorpio and Sagittarius, lean unfavourably, with Mars in
+      Libra and no helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:one,planets:one,signs:many,sits:one
+  - variant: 1
+    sentence: When it comes to how others see marriage, the signs Libra, Scorpio and Sagittarius lean unfavourably, holding
+      Mars in Libra with no helpful planet in any of them.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:one,planets:one,signs:many,sits:one
+  - variant: 2
+    sentence: 'Others'' view of marriage is shown by Libra, Scorpio and Sagittarius, and these signs lean unfavourably: you
+      have Mars in Libra there, and no helpful planet in any of them.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,placed:one,planets:one,signs:many,sits:one
 - signature: family.arudha.against.many.hard.helped
   kind: fact
   slots:
   - area
-  - helpers
-  - planets
+  - helpers_placed
+  - placed
   - signs
-  - sits
   variants:
-  - 'The signs that show how others see {area}, {signs}, lean unfavourably: {planets} {sits} there, though {helpers} is beside
-    to help.'
-  - Others' picture of {area} is shaped by {signs}, which lean unfavourably, as {planets} {sits} there with {helpers} beside
-    to help.
-  - '{planets} {sits} in {signs}, the signs showing how others see {area}, with {helpers} beside to help, and still these
-    signs lean unfavourably.'
-  drafted_by: claude-sonnet-5-5
+  - The signs that show how others see {area}, {signs}, lean unfavourably, with {placed}, and with {helpers_placed} to help.
+  - Others' picture of {area} is shaped by {signs}, which lean unfavourably, holding {placed}, and {helpers_placed} to help.
+  - In {signs}, the signs showing how others see {area}, you have {placed}, with {helpers_placed} to help, and still these
+    signs lean unfavourably.
+  drafted_by: claude-opus-5-5 (rewritten for review H1)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
-    sentence: 'The signs that show how others see marriage, Capricorn, Aquarius and Virgo, lean unfavourably: Rahu, the Sun
-      and the Moon sit there, though Venus is beside to help.'
+    sentence: The signs that show how others see marriage, Capricorn, Aquarius and Virgo, lean unfavourably, with Rahu in
+      Capricorn, the Sun in Aquarius and the Moon in Virgo, and with Venus in Capricorn to help.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+node+lum,planets:many+node+lum,signs:many,sits:one
   - variant: 1
-    sentence: Others' picture of marriage is shaped by Capricorn, Aquarius and Virgo, which lean unfavourably, as Rahu, the
-      Sun and the Moon sit there with Venus beside to help.
+    sentence: Others' picture of marriage is shaped by Capricorn, Aquarius and Virgo, which lean unfavourably, holding Rahu
+      in Capricorn, the Sun in Aquarius and the Moon in Virgo, and Venus in Capricorn to help.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+node+lum,planets:many+node+lum,signs:many,sits:one
   - variant: 2
-    sentence: Rahu, the Sun and the Moon sit in Capricorn, Aquarius and Virgo, the signs showing how others see marriage,
-      with Venus beside to help, and still these signs lean unfavourably.
+    sentence: In Capricorn, Aquarius and Virgo, the signs showing how others see marriage, you have Rahu in Capricorn, the
+      Sun in Aquarius and the Moon in Virgo, with Venus in Capricorn to help, and still these signs lean unfavourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+node+lum,planets:many+node+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see marriage, Sagittarius, Capricorn and Aquarius, lean unfavourably, with the
+      Sun in Sagittarius, Mars in Capricorn and Mercury in Capricorn, and with Jupiter in Sagittarius and the Moon in Aquarius
+      to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many+lum,helpers_placed:many+lum,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 1
+    sentence: Others' picture of marriage is shaped by Sagittarius, Capricorn and Aquarius, which lean unfavourably, holding
+      the Sun in Sagittarius, Mars in Capricorn and Mercury in Capricorn, and Jupiter in Sagittarius and the Moon in Aquarius
+      to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many+lum,helpers_placed:many+lum,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 2
+    sentence: In Sagittarius, Capricorn and Aquarius, the signs showing how others see marriage, you have the Sun in Sagittarius,
+      Mars in Capricorn and Mercury in Capricorn, with Jupiter in Sagittarius and the Moon in Aquarius to help, and still
+      these signs lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many+lum,helpers_placed:many+lum,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see money, Gemini and Pisces, lean unfavourably, with the Sun in Pisces and Mercury
+      in Pisces, and with Jupiter in Pisces to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 1
+    sentence: Others' picture of money is shaped by Gemini and Pisces, which lean unfavourably, holding the Sun in Pisces
+      and Mercury in Pisces, and Jupiter in Pisces to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 2
+    sentence: In Gemini and Pisces, the signs showing how others see money, you have the Sun in Pisces and Mercury in Pisces,
+      with Jupiter in Pisces to help, and still these signs lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+lum,planets:many+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see marriage, Leo, Virgo and Aquarius, lean unfavourably, with Saturn in Leo,
+      Rahu in Leo and Ketu in Aquarius, and with Venus in Aquarius to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+node,planets:many+node,signs:many,sits:one
+  - variant: 1
+    sentence: Others' picture of marriage is shaped by Leo, Virgo and Aquarius, which lean unfavourably, holding Saturn in
+      Leo, Rahu in Leo and Ketu in Aquarius, and Venus in Aquarius to help.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+node,planets:many+node,signs:many,sits:one
+  - variant: 2
+    sentence: In Leo, Virgo and Aquarius, the signs showing how others see marriage, you have Saturn in Leo, Rahu in Leo and
+      Ketu in Aquarius, with Venus in Aquarius to help, and still these signs lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,placed:many+node,planets:many+node,signs:many,sits:one
 - signature: family.arudha.against.one.hard.alone
   kind: fact
   slots:
@@ -104,6 +252,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one+node,signs:one,sits:one
   - variant: 1
     sentence: Others' picture of your career is shaped by Virgo, and this sign leans unfavourably, since Rahu sits there with
       no helpful planet alongside.
@@ -111,6 +260,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one+node,signs:one,sits:one
   - variant: 2
     sentence: Rahu sits in Virgo, the sign showing how others see your career, with no helpful planet beside, so this sign
       leans unfavourably.
@@ -118,6 +268,79 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one+node,signs:one,sits:one
+  - variant: 0
+    sentence: The sign that shows how others see your career, Virgo, leans unfavourably, because Saturn sits there and no
+      helpful planet is beside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one,signs:one,sits:one
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Virgo, and this sign leans unfavourably, since Saturn sits there
+      with no helpful planet alongside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one,signs:one,sits:one
+  - variant: 2
+    sentence: Saturn sits in Virgo, the sign showing how others see your career, with no helpful planet beside, so this sign
+      leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one,signs:one,sits:one
+  - variant: 0
+    sentence: The sign that shows how others see your career, Sagittarius, leans unfavourably, because the Sun, Mars, Mercury
+      and Rahu sit there and no helpful planet is beside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+node+lum,signs:one,sits:one
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Sagittarius, and this sign leans unfavourably, since the Sun, Mars,
+      Mercury and Rahu sit there with no helpful planet alongside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+node+lum,signs:one,sits:one
+  - variant: 2
+    sentence: the Sun, Mars, Mercury and Rahu sit in Sagittarius, the sign showing how others see your career, with no helpful
+      planet beside, so this sign leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+node+lum,signs:one,sits:one
+  - variant: 0
+    sentence: The sign that shows how others see your career, Scorpio, leans unfavourably, because the Sun sits there and
+      no helpful planet is beside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one+lum,signs:one,sits:one
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Scorpio, and this sign leans unfavourably, since the Sun sits there
+      with no helpful planet alongside.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one+lum,signs:one,sits:one
+  - variant: 2
+    sentence: the Sun sits in Scorpio, the sign showing how others see your career, with no helpful planet beside, so this
+      sign leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one+lum,signs:one,sits:one
 - signature: family.arudha.against.one.hard.helped
   kind: fact
   slots:
@@ -144,6 +367,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,planets:many+lum,signs:one,sits:one
   - variant: 1
     sentence: How others see your career is shown by Scorpio, which leans unfavourably because the Sun and Mercury sit there,
       with Venus beside to help.
@@ -151,6 +375,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,planets:many+lum,signs:one,sits:one
   - variant: 2
     sentence: In Scorpio, the sign showing how others see your career, the lean is unfavourable, as the Sun and Mercury sit
       there, and Venus stands beside to help.
@@ -158,42 +383,113 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,planets:many+lum,signs:one,sits:one
 - signature: family.arudha.for.many.helped
   kind: fact
   slots:
   - area
-  - helpers
+  - helpers_placed
   - signs
-  - sits
   variants:
-  - 'The signs that show how others see {area}, {signs}, lean favourably: among them {helpers} {sits}.'
-  - Among {signs}, the signs that show how others see {area}, {helpers} {sits}, and together these signs lean favourably.
-  - How others see {area} is shown by {signs}, and these signs lean favourably; among them {helpers} {sits}.
-  drafted_by: claude-sonnet-5-5
+  - The signs that show how others see {area}, {signs}, lean favourably, with {helpers_placed}.
+  - Among {signs}, the signs that show how others see {area}, you have {helpers_placed}, and together these signs lean favourably.
+  - How others see {area} is shown by {signs}, and these signs lean favourably, holding {helpers_placed}.
+  drafted_by: claude-opus-5-5 (rewritten for review H1)
   drafted_on: '2026-11-15'
   status: draft
   checks:
   - variant: 0
-    sentence: 'The signs that show how others see money, Leo and Taurus, lean favourably: among them the Moon and Mercury
-      sit.'
+    sentence: The signs that show how others see money, Leo and Taurus, lean favourably, with the Moon in Leo and Mercury
+      in Leo.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:many+lum,helpers_placed:many+lum,signs:many,sits:one
   - variant: 1
-    sentence: Among Leo and Taurus, the signs that show how others see money, the Moon and Mercury sit, and together these
-      signs lean favourably.
+    sentence: Among Leo and Taurus, the signs that show how others see money, you have the Moon in Leo and Mercury in Leo,
+      and together these signs lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:many+lum,helpers_placed:many+lum,signs:many,sits:one
   - variant: 2
-    sentence: How others see money is shown by Leo and Taurus, and these signs lean favourably; among them the Moon and Mercury
-      sit.
+    sentence: How others see money is shown by Leo and Taurus, and these signs lean favourably, holding the Moon in Leo and
+      Mercury in Leo.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:many+lum,helpers_placed:many+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see money, Libra and Scorpio, lean favourably, with Jupiter in Scorpio.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,signs:many,sits:one
+  - variant: 1
+    sentence: Among Libra and Scorpio, the signs that show how others see money, you have Jupiter in Scorpio, and together
+      these signs lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,signs:many,sits:one
+  - variant: 2
+    sentence: How others see money is shown by Libra and Scorpio, and these signs lean favourably, holding Jupiter in Scorpio.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one,helpers_placed:one,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see money, Virgo and Gemini, lean favourably, with the Moon in Gemini.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one+lum,helpers_placed:one+lum,signs:many,sits:one
+  - variant: 1
+    sentence: Among Virgo and Gemini, the signs that show how others see money, you have the Moon in Gemini, and together
+      these signs lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one+lum,helpers_placed:one+lum,signs:many,sits:one
+  - variant: 2
+    sentence: How others see money is shown by Virgo and Gemini, and these signs lean favourably, holding the Moon in Gemini.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one+lum,helpers_placed:one+lum,signs:many,sits:one
+  - variant: 0
+    sentence: The signs that show how others see money, Libra and Pisces, lean favourably, with Mercury in Libra and Venus
+      in Libra.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many,helpers_placed:many,signs:many,sits:one
+  - variant: 1
+    sentence: Among Libra and Pisces, the signs that show how others see money, you have Mercury in Libra and Venus in Libra,
+      and together these signs lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many,helpers_placed:many,signs:many,sits:one
+  - variant: 2
+    sentence: How others see money is shown by Libra and Pisces, and these signs lean favourably, holding Mercury in Libra
+      and Venus in Libra.
+    supported: false
+    evidence: A2 Libra occupants; A2 Libra occupants
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many,helpers_placed:many,signs:many,sits:one
 - signature: family.arudha.for.one.helped
   kind: fact
   slots:
@@ -215,18 +511,64 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,signs:one,sits:one
   - variant: 1
     sentence: Others' picture of your career is shaped by Aquarius, and this sign leans favourably, since Jupiter sits there.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,signs:one,sits:one
   - variant: 2
     sentence: Jupiter sits in Aquarius, the sign showing how others see your career, so this sign leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,helpers:one,signs:one,sits:one
+  - variant: 0
+    sentence: The sign that shows how others see your career, Leo, leans favourably, because Jupiter and Venus sit there.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many,signs:one,sits:one
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Leo, and this sign leans favourably, since Jupiter and Venus sit
+      there.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many,signs:one,sits:one
+  - variant: 2
+    sentence: Jupiter and Venus sit in Leo, the sign showing how others see your career, so this sign leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:many,signs:one,sits:one
+  - variant: 0
+    sentence: The sign that shows how others see your career, Taurus, leans favourably, because the Moon sits there.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one+lum,signs:one,sits:one
+  - variant: 1
+    sentence: Others' picture of your career is shaped by Taurus, and this sign leans favourably, since the Moon sits there.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one+lum,signs:one,sits:one
+  - variant: 2
+    sentence: the Moon sits in Taurus, the sign showing how others see your career, so this sign leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,helpers:one+lum,signs:one,sits:one
 - signature: family.house.against.agrees
   kind: fact
   slots:
@@ -252,6 +594,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 1
     sentence: The houses behind marriage lean unfavourably as a group, and the main one, your 7th house in Virgo, is less
       supported than most among your twelve houses.
@@ -259,6 +602,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 2
     sentence: Looking at all the houses that govern marriage, the lean is unfavourable; the main one is your 7th house, in
       Virgo, which is less supported than most of your twelve.
@@ -266,6 +610,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
 - signature: family.house.against.though
   kind: fact
   slots:
@@ -291,6 +636,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 1
     sentence: The houses that govern your career lean unfavourably as a group, yet the main one, your 10th house in Sagittarius,
       counted from your rising sign, stands better supported than most.
@@ -298,6 +644,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 2
     sentence: Counted from your rising sign, your 10th house, in Sagittarius, is the main house for your career and stands
       better supported than most, although the houses together lean unfavourably.
@@ -305,6 +652,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
 - signature: family.house.for.agrees
   kind: fact
   slots:
@@ -330,6 +678,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 1
     sentence: The houses behind money lean favourably as a group, and the main one, your 2nd house in Gemini, is better supported
       than most among your twelve houses.
@@ -337,6 +686,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 2
     sentence: Looking at all the houses that govern money, the lean is favourable; the main one is your 2nd house, in Gemini,
       which is better supported than most of your twelve.
@@ -344,6 +694,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
 - signature: family.house.for.though
   kind: fact
   slots:
@@ -369,6 +720,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 1
     sentence: The houses that govern your career lean favourably as a group, yet the main one, your 10th house in Aquarius,
       counted from your rising sign, is among the least supported of your twelve houses.
@@ -376,6 +728,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
   - variant: 2
     sentence: Looking at all the houses that govern your career, they lean favourably, although the main one, the 10th house
       from your rising sign, in Aquarius, is among the least supported of your twelve houses.
@@ -383,6 +736,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,house:one,sign:one,standing:one
 - signature: family.karaka.against
   kind: fact
   slots:
@@ -408,6 +762,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,sign:one
   - variant: 1
     sentence: Looking at the planets that signify your career, the lean is unfavourable, and the main one, the Sun, sits in
       your 6th house in Libra, debilitated, where it is least at ease.
@@ -415,6 +770,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,sign:one
   - variant: 2
     sentence: 'For your career, the planets that signify it lean unfavourably: the main one is the Sun, placed in Libra in
       your 6th house, debilitated, where it is least at ease.'
@@ -422,6 +778,79 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,sign:one
+  - variant: 0
+    sentence: The planets that signify your career lean unfavourably; the main one, the Sun, sits in Aquarius in your 4th
+      house, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the planets that signify your career, the lean is unfavourable, and the main one, the Sun, sits in
+      your 4th house in Aquarius, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,sign:one
+  - variant: 2
+    sentence: 'For your career, the planets that signify it lean unfavourably: the main one is the Sun, placed in Aquarius
+      in your 4th house, in an unfriendly sign.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,sign:one
+  - variant: 0
+    sentence: The planets that signify marriage lean unfavourably; the main one, Venus, sits in Leo in your 6th house, in
+      an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that signify marriage, the lean is unfavourable, and the main one, Venus, sits in your
+      6th house in Leo, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,sign:one
+  - variant: 2
+    sentence: 'For marriage, the planets that signify it lean unfavourably: the main one is Venus, placed in Leo in your 6th
+      house, in an unfriendly sign.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,sign:one
+  - variant: 0
+    sentence: The planets that signify money lean unfavourably; the main one, Jupiter, sits in Capricorn in your 9th house,
+      debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that signify money, the lean is unfavourable, and the main one, Jupiter, sits in your
+      9th house in Capricorn, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,sign:one
+  - variant: 2
+    sentence: 'For money, the planets that signify it lean unfavourably: the main one is Jupiter, placed in Capricorn in your
+      9th house, debilitated, where it is least at ease.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,sign:one
 - signature: family.karaka.for
   kind: fact
   slots:
@@ -447,6 +876,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,sign:one
   - variant: 1
     sentence: Looking at the planets that stand for your career, they lean favourably, and among them the Sun is placed in
       Aquarius in your 10th house, in an unfriendly sign.
@@ -454,6 +884,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,sign:one
   - variant: 2
     sentence: Among the planets that signify your career, the Sun sits in Aquarius in your 10th house, in an unfriendly sign,
       and together these planets lean favourably.
@@ -461,6 +892,79 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,sign:one
+  - variant: 0
+    sentence: The planets that signify marriage lean favourably; among them, Venus sits in Pisces in your 11th house, exalted,
+      where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that stand for marriage, they lean favourably, and among them Venus is placed in Pisces
+      in your 11th house, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,sign:one
+  - variant: 2
+    sentence: Among the planets that signify marriage, Venus sits in Pisces in your 11th house, exalted, where it is at its
+      best, and together these planets lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,sign:one
+  - variant: 0
+    sentence: The planets that signify money lean favourably; among them, Jupiter sits in Taurus in your 1st house, in an
+      unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that stand for money, they lean favourably, and among them Jupiter is placed in Taurus
+      in your 1st house, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,sign:one
+  - variant: 2
+    sentence: Among the planets that signify money, Jupiter sits in Taurus in your 1st house, in an unfriendly sign, and together
+      these planets lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,sign:one
+  - variant: 0
+    sentence: The planets that signify your career lean favourably; among them, the Sun sits in Aries in your 2nd house, exalted,
+      where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the planets that stand for your career, they lean favourably, and among them the Sun is placed in
+      Aries in your 2nd house, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,sign:one
+  - variant: 2
+    sentence: Among the planets that signify your career, the Sun sits in Aries in your 2nd house, exalted, where it is at
+      its best, and together these planets lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,sign:one
 - signature: family.kp.against
   kind: fact
   slots:
@@ -479,18 +983,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one
   - variant: 1
     sentence: When the exact start of the house for marriage is read, it leans unfavourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one
   - variant: 2
     sentence: Reading the exact start of the house that governs marriage, the reading leans unfavourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one
 - signature: family.kp.for
   kind: fact
   slots:
@@ -509,18 +1016,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one
   - variant: 1
     sentence: When the exact start of each house is read, it leans favourably for your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one
   - variant: 2
     sentence: For your career, the reading of where each house exactly begins leans in a favourable direction.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one
 - signature: family.lord.against
   kind: fact
   slots:
@@ -548,6 +1058,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,ruled_house:one,sign:one
   - variant: 1
     sentence: Looking at the planets that rule the houses of your career, they lean unfavourably, and Saturn, ruler of the
       10th house, sits in Cancer in your 3rd house, in an unfriendly sign.
@@ -555,6 +1066,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,ruled_house:one,sign:one
   - variant: 2
     sentence: Among the rulers of the houses of your career, Saturn, which rules the 10th house, sits in Cancer in your 3rd
       house, in an unfriendly sign, and together these rulers lean unfavourably.
@@ -562,6 +1074,79 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 0
+    sentence: The planets that rule the houses of marriage lean unfavourably; among them, Mars, which rules the 7th house,
+      sits in Cancer in your 3rd house, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that rule the houses of marriage, they lean unfavourably, and Mars, ruler of the 7th
+      house, sits in Cancer in your 3rd house, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 2
+    sentence: Among the rulers of the houses of marriage, Mars, which rules the 7th house, sits in Cancer in your 3rd house,
+      debilitated, where it is least at ease, and together these rulers lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 0
+    sentence: The planets that rule the houses of marriage lean unfavourably; among them, the Moon, which rules the 7th house,
+      sits in Virgo in your 9th house, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that rule the houses of marriage, they lean unfavourably, and the Moon, ruler of the
+      7th house, sits in Virgo in your 9th house, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 2
+    sentence: Among the rulers of the houses of marriage, the Moon, which rules the 7th house, sits in Virgo in your 9th house,
+      in a friendly sign, and together these rulers lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 0
+    sentence: The planets that rule the houses of your career lean unfavourably; among them, the Moon, which rules the 10th
+      house, sits in Scorpio in your 2nd house, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 1
+    sentence: Looking at the planets that rule the houses of your career, they lean unfavourably, and the Moon, ruler of the
+      10th house, sits in Scorpio in your 2nd house, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 2
+    sentence: Among the rulers of the houses of your career, the Moon, which rules the 10th house, sits in Scorpio in your
+      2nd house, debilitated, where it is least at ease, and together these rulers lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,ruled_house:one,sign:one
 - signature: family.lord.for
   kind: fact
   slots:
@@ -589,6 +1174,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,ruled_house:one,sign:one
   - variant: 1
     sentence: Looking at the rulers of the houses of your career, the lean is favourable, and Saturn, ruler of the 10th house,
       sits in Taurus in your 1st house, in a friendly sign.
@@ -596,6 +1182,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,ruled_house:one,sign:one
   - variant: 2
     sentence: 'The houses of your career have rulers that lean favourably: Saturn, which rules the 10th house, is placed in
       Taurus, in your 1st house, in a friendly sign.'
@@ -603,6 +1190,79 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 0
+    sentence: The planets that rule the houses of your career lean favourably; the Sun, which rules the 10th house, sits in
+      Pisces in your 5th house, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 1
+    sentence: Looking at the rulers of the houses of your career, the lean is favourable, and the Sun, ruler of the 10th house,
+      sits in Pisces in your 5th house, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 2
+    sentence: 'The houses of your career have rulers that lean favourably: the Sun, which rules the 10th house, is placed
+      in Pisces, in your 5th house, in a friendly sign.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 0
+    sentence: The planets that rule the houses of your career lean favourably; Mercury, which rules the 10th house, sits in
+      Pisces in your 7th house, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 1
+    sentence: Looking at the rulers of the houses of your career, the lean is favourable, and Mercury, ruler of the 10th house,
+      sits in Pisces in your 7th house, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 2
+    sentence: 'The houses of your career have rulers that lean favourably: Mercury, which rules the 10th house, is placed
+      in Pisces, in your 7th house, debilitated, where it is least at ease.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one,ruled_house:one,sign:one
+  - variant: 0
+    sentence: The planets that rule the houses of money lean favourably; the Moon, which rules the 2nd house, sits in Taurus
+      in your 12th house, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 1
+    sentence: Looking at the rulers of the houses of money, the lean is favourable, and the Moon, ruler of the 2nd house,
+      sits in Taurus in your 12th house, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,ruled_house:one,sign:one
+  - variant: 2
+    sentence: 'The houses of money have rulers that lean favourably: the Moon, which rules the 2nd house, is placed in Taurus,
+      in your 12th house, exalted, where it is at its best.'
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,house:one,planet:one+lum,ruled_house:one,sign:one
 - signature: family.panchanga.against.many
   kind: fact
   slots:
@@ -622,6 +1282,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:many
   - variant: 1
     sentence: Looking at the rulers of the day you were born, Mercury and Saturn, they lean unfavourably where your career
       is concerned.
@@ -629,12 +1290,36 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:many
   - variant: 2
     sentence: The day you were born is ruled by Mercury and Saturn, and together they lean unfavourably for your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:many
+  - variant: 0
+    sentence: The rulers of the day you were born, Mercury, the Sun and Saturn, lean unfavourably for marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+lum
+  - variant: 1
+    sentence: Looking at the rulers of the day you were born, Mercury, the Sun and Saturn, they lean unfavourably where marriage
+      is concerned.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+lum
+  - variant: 2
+    sentence: The day you were born is ruled by Mercury, the Sun and Saturn, and together they lean unfavourably for marriage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+lum
 - signature: family.panchanga.against.one
   kind: fact
   slots:
@@ -654,18 +1339,21 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one+lum
   - variant: 1
     sentence: Among the rulers of the day you were born, the Sun leans unfavourably when it comes to marriage.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one+lum
   - variant: 2
     sentence: For marriage, one ruler of the day you were born, the Sun, leans in an unfavourable direction.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one+lum
 - signature: family.panchanga.for.many
   kind: fact
   slots:
@@ -685,18 +1373,44 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:many
   - variant: 1
     sentence: Among the rulers of the day you were born, Saturn, Mars and Venus lean favourably when it comes to your career.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:many
   - variant: 2
     sentence: For your career, the planets that rule the day you were born, Saturn, Mars and Venus, lean in a favourable direction.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:many
+  - variant: 0
+    sentence: The rulers of the day you were born, the Moon, Venus and Saturn, lean favourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+lum
+  - variant: 1
+    sentence: Among the rulers of the day you were born, the Moon, Venus and Saturn lean favourably when it comes to your
+      career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+lum
+  - variant: 2
+    sentence: For your career, the planets that rule the day you were born, the Moon, Venus and Saturn, lean in a favourable
+      direction.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:many+lum
 - signature: family.panchanga.for.one
   kind: fact
   slots:
@@ -716,18 +1430,44 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one
   - variant: 1
     sentence: Among the planets tied to the day of your birth, Saturn leans favourably for money.
-    supported: true
-    evidence: ''
+    supported: false
+    evidence: The data lists only one planet, Saturn, in the derivation. The glossary's generic note that the panchanga limbs
+      are each ruled by a planet is not a statement about this chart, so no fact or finding states that other planets tied
+      to the day exist here.
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one
   - variant: 2
     sentence: For money, Saturn, a planet linked with your birth day, leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,planets:one
+  - variant: 0
+    sentence: the Sun, one of the planets linked with the day you were born, leans favourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one+lum
+  - variant: 1
+    sentence: Among the planets tied to the day of your birth, the Sun leans favourably for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one+lum
+  - variant: 2
+    sentence: For your career, the Sun, a planet linked with your birth day, leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,planets:one+lum
 - signature: family.varga.against
   kind: fact
   slots:
@@ -750,6 +1490,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one,sign:one
   - variant: 1
     sentence: Looking at the divisional chart that speaks to money, the lean is unfavourable, as Mars falls in Cancer, debilitated,
       where it is least at ease.
@@ -757,6 +1498,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one,sign:one
   - variant: 2
     sentence: In the divisional chart for money, which leans unfavourably, you find Mars placed in Cancer, debilitated, where
       it is least at ease.
@@ -764,6 +1506,80 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 0
+    sentence: The divisional chart for money leans unfavourably; there the Sun falls in Libra, debilitated, where it is least
+      at ease.
+    supported: false
+    evidence: 'no cited fact states that the chart for money is the varga where the Sun is in Libra; the derivation rows put
+      the Sun in Libra only in D16, while the D2 row puts it in Cancer ("friend"), and the data never ties D16 to money —
+      so the sentence attaches the placement to the wrong thing or is ambiguous between a supported (D16) and a contradicted
+      (D2) reading; same attachment problem: the "debilitated'
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart that speaks to money, the lean is unfavourable, as the Sun falls in Libra, debilitated,
+      where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 2
+    sentence: In the divisional chart for money, which leans unfavourably, you find the Sun placed in Libra, debilitated,
+      where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 0
+    sentence: The divisional chart for your career leans unfavourably; there the Sun falls in Taurus, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart that speaks to your career, the lean is unfavourable, as the Sun falls in Taurus,
+      in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 2
+    sentence: In the divisional chart for your career, which leans unfavourably, you find the Sun placed in Taurus, in an
+      unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 0
+    sentence: The divisional chart for marriage leans unfavourably; there Jupiter falls in Gemini, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart that speaks to marriage, the lean is unfavourable, as Jupiter falls in Gemini,
+      in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 2
+    sentence: In the divisional chart for marriage, which leans unfavourably, you find Jupiter placed in Gemini, in an unfriendly
+      sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one,sign:one
 - signature: family.varga.for
   kind: fact
   slots:
@@ -786,6 +1602,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
   - variant: 1
     sentence: Looking at the divisional chart for your career, it leans in your favour, with the Sun placed in Aries, exalted,
       where it is at its best.
@@ -793,6 +1610,7 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
   - variant: 2
     sentence: In the divisional chart for your career, which leans favourably, the Sun sits in Aries, exalted, where it is
       at its best.
@@ -800,3 +1618,72 @@
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 0
+    sentence: The divisional chart for your career leans favourably; there Venus falls in Libra, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for your career, it leans in your favour, with Venus placed in Libra, in its
+      own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 2
+    sentence: In the divisional chart for your career, which leans favourably, Venus sits in Libra, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 0
+    sentence: The divisional chart for marriage leans favourably; there Saturn falls in Libra, exalted, where it is at its
+      best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for marriage, it leans in your favour, with Saturn placed in Libra, exalted,
+      where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 2
+    sentence: In the divisional chart for marriage, which leans favourably, Saturn sits in Libra, exalted, where it is at
+      its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 0
+    sentence: The divisional chart for marriage leans favourably; there the Moon falls in Gemini, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for marriage, it leans in your favour, with the Moon placed in Gemini, in a
+      friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 2
+    sentence: In the divisional chart for marriage, which leans favourably, the Moon sits in Gemini, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-15'
+    shape: area:one,dignity:one,planet:one+lum,sign:one

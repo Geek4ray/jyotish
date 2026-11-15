@@ -400,8 +400,52 @@
    },
    "calls": 5,
    "note": "the rows still out, every rule's name in the slot {named} with its plain meaning"
+  },
+  {
+   "date": "2026-11-15",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 72,
+   "checks": 357,
+   "refused": {
+    "family.arudha.for.many.helped": [
+     "variant 3 ('How others see money is shown by Libra and Pisces, and these signs lean favourably, holding Mercury in Libra and Venus in Libra.') is not stated by the facts: A2 Libra occupants; A2 Libra occupants"
+    ],
+    "family.panchanga.for.one": [
+     "variant 2 ('Among the planets tied to the day of your birth, Saturn leans favourably for money.') is not stated by the facts: The data lists only one planet, Saturn, in the derivation. The glossary's generic note that the panchanga limbs are each ruled by a planet is not a statement about this chart, so no fact or finding states that other planets tied to the day exist here."
+    ],
+    "family.varga.against": [
+     "variant 1 ('The divisional chart for money leans unfavourably; there the Sun falls in Libra, debilitated, where it is least at ease.') is not stated by the facts: no cited fact states that the chart for money is the varga where the Sun is in Libra; the derivation rows put the Sun in Libra only in D16, while the D2 row puts it in Cancer (\"friend\"), and the data never ties D16 to money \u2014 so the sentence attaches the placement to the wrong thing or is ambiguous between a supported (D16) and a contradicted (D2) reading; same attachment problem: the \"debilitated\" label belongs to the Sun's D16 row (varga_sign Libra, varga_dignity_label \"debilitated\"), and the data does not state that D16 is the money chart; in D2 the Sun's label is \"friend\", so the reading is ambiguous between supported and unsupported"
+    ],
+    "period.now.touches": [
+     "variant 1 ('You are in the period of the Moon, within that of Jupiter, until September 2027; Jupiter and the Moon have a hand in your career, marriage and money.') is not stated by the facts: the touching list names only Jupiter, not the Moon; the data does not state that the Moon touches these areas"
+    ],
+    "stretch.most.second": [
+     "variant 1 ('Looking at the stretches the chart shows, the most favourable one runs from October 2029 to June 2032.') is not stated by the facts: The data contains a single window fact only; nothing states that the chart shows multiple stretches. The plural is an ordinary-reader reading of \"the stretches the chart shows.\""
+    ]
+   },
+   "no_sample": [
+    "rule.yoga.bhadra.full.nohouse",
+    "rule.yoga.bhadra.reduced.nohouse",
+    "rule.yoga.gaja_kesari.full.nohouse",
+    "rule.yoga.gaja_kesari.reduced.nohouse",
+    "rule.yoga.hamsa.full.nohouse",
+    "rule.yoga.hamsa.reduced.nohouse",
+    "rule.yoga.malavya.full.nohouse",
+    "rule.yoga.malavya.reduced.nohouse",
+    "rule.yoga.neecha_bhanga.full.nohouse",
+    "rule.yoga.neecha_bhanga.reduced.nohouse",
+    "rule.yoga.ruchaka.full.nohouse",
+    "rule.yoga.ruchaka.reduced.nohouse",
+    "rule.yoga.sasa.full.nohouse",
+    "rule.yoga.sasa.reduced.nohouse"
+   ],
+   "usd": {
+    "checker": 0.1711
+   },
+   "note": "the .nohouse rule rows: no sample fills their declared slot houses (review M5); their checks stand"
   }
  ],
  "rows_in_bank": 126,
- "usd_total": 1.8017
+ "usd_total": 1.9728
 }
