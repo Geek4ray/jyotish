@@ -345,3 +345,40 @@ def test_h4_after_the_conversation_is_erased_a_fact_rewrite_is_refused_not_writt
     rep = apply_reviews(url, d, today=AS_OF, checker=_Checker(True))
     assert rep["refused"] and "erased with the conversation" in rep["refused"][0]["why"][0]
     assert "Saturn" not in "".join(load_bank(d).fact("weakness.mrita").variants)
+
+
+# --- H5. A subject's erasure fails on Postgres once a bank verdict exists, and leaves the stored answers -------------
+
+def test_h5_a_subjects_erasure_with_a_bank_verdict_and_a_stored_answer_holds_under_foreign_keys(tmp_path):
+    """SQLite with foreign keys on, as Postgres enforces them: a subject, a conversation of its birth with one turn,
+    an astrologer's verdict on that turn and a stored answer of the birth; outcomes.erase removes the turn and the
+    answer and keeps the verdict, its turn taken off."""
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.orm import sessionmaker
+    from jyotish import outcomes as oc
+    from jyotish.api import SubjectRow
+    from jyotish.db import AnswerRow, BankReviewRow, SessionRow, TurnRow, migrate
+    url = f"sqlite:///{tmp_path / 'fk.db'}"
+    rows = oc.read_sheet(ROOT / "docs" / "intake_template.csv")
+    with sessionmaker(migrate(url)).begin() as s:            # the import, without foreign keys (its own fault, apart)
+        oc.add_consent(s, "C-0001", "S-0001", "v1", "backlog", "clerk-1")
+        assert oc.import_rows(s, rows, entered_by="clerk-1", today=AS_OF).accepted
+    engine = create_engine(url)
+    event.listen(engine, "connect", lambda conn, _: conn.execute("PRAGMA foreign_keys=ON"))
+    S = sessionmaker(migrate(engine))
+    with S.begin() as s:
+        bkey = s.get(SubjectRow, "S-0001").birth_key
+        s.add(SessionRow(id="s" * 32, birth_key=bkey, birth={}, as_of=AS_OF.isoformat()))
+        s.flush()
+        s.add(TurnRow(id="t" * 32, session_id="s" * 32, n=1, birth_key=bkey, question="q", status="done"))
+        s.flush()
+        s.add(BankReviewRow(signature="weakness.mks", kind="fact", variant=0, verdict="right", sentence="x",
+                            slots={"planet": "Saturn"}, turn_id="t" * 32, reviewer_id="astrologer-1"))
+        s.add(AnswerRow(key="k" * 64, birth_key=bkey, bank_version="v", document={"plan": {"question": "q"}}))
+    with S.begin() as s:
+        counts = oc.erase(s, "S-0001", "dpo-1")
+    assert counts["turns"] == 1 and counts["answers"] == 1 and counts["bank_verdicts_kept"] == 1
+    with S() as s:
+        assert s.query(TurnRow).count() == 0 and s.query(AnswerRow).count() == 0
+        v = s.query(BankReviewRow).one()
+        assert v.turn_id is None and v.verdict == "right"

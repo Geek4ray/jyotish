@@ -145,7 +145,7 @@ def test_post_outcomes_and_erasure(tmp_path):
     with Session.begin() as s:
         counts = oc.erase(s, "S-0001", "dpo-1")
     assert counts == {"reviews": 1, "readings": 2, "turns": 1, "sessions": 1, "exclusions": 2, "charts": 2, "events": 4,
-                      "consents": 1, "subjects": 1}
+                      "consents": 1, "subjects": 1, "answers": 0, "bank_verdicts_kept": 0}
     with Session() as s:
         assert s.get(SubjectRow, "S-0001") is None and s.query(EventRow).count() == 0
         assert s.query(ReadingRow).count() == 0 and s.query(ReviewRow).count() == 0 and s.query(ConsentRow).count() == 0

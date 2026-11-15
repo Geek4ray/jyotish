@@ -257,13 +257,22 @@ def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
         or_(ReadingRow.birth_key == bkey, *([ReadingRow.chart_id.in_(chart_ids)] if chart_ids else [])))]
     sessions = [r.id for r in session.query(SessionRow).filter(
         or_(SessionRow.birth_key == bkey, *([SessionRow.chart_id.in_(chart_ids)] if chart_ids else [])))]
-    counts = {"reviews": 0, "readings": 0, "turns": 0, "sessions": 0, "exclusions": 0, "charts": 0}
+    counts = {"reviews": 0, "readings": 0, "turns": 0, "sessions": 0, "exclusions": 0, "charts": 0, "answers": 0,
+              "bank_verdicts_kept": 0}
     if not twins:
         if sessions:
             turn_ids = [t.id for t in session.query(TurnRow).filter(TurnRow.session_id.in_(sessions))]
             if turn_ids:
                 counts["reviews"] += session.query(ReviewRow).filter(ReviewRow.turn_id.in_(turn_ids)).delete(
                     synchronize_session=False)
+                # The astrologer's verdicts on the bank are his judgement of a sentence, kept as erase_sessions keeps
+                # them: their turn is taken off (review 2026-11-15, H5: the turns' delete failed on the foreign key
+                # under Postgres once a verdict existed).
+                from .db import BankReviewRow
+                for r in session.query(BankReviewRow).filter(BankReviewRow.turn_id.in_(turn_ids)):
+                    r.turn_id = None
+                    counts["bank_verdicts_kept"] += 1
+                session.flush()
             counts["turns"] = session.query(TurnRow).filter(TurnRow.session_id.in_(sessions)).delete(synchronize_session=False)
             counts["sessions"] = session.query(SessionRow).filter(SessionRow.id.in_(sessions)).delete(synchronize_session=False)
         if readings:
@@ -273,6 +282,10 @@ def erase(session, subject_id: str, erased_by: str) -> dict[str, int]:
             or_(ExclusionRow.birth_key == bkey, *([ExclusionRow.chart_id.in_(chart_ids)] if chart_ids else []))).delete(synchronize_session=False)
         if chart_ids:
             counts["charts"] = session.query(ChartRow).filter(ChartRow.id.in_(chart_ids)).delete(synchronize_session=False)
+        # The stored answers of the birth (SPEC Layer 8, "The layered answer"), which hold the plan: a twin's chart
+        # keeps them, as it keeps the chart.
+        from .db import AnswerRow
+        counts["answers"] = session.query(AnswerRow).filter(AnswerRow.birth_key == bkey).delete(synchronize_session=False)
     counts["events"] = session.query(EventRow).filter_by(subject_id=subject_id).delete(synchronize_session=False)
     counts["consents"] = session.query(ConsentRow).filter_by(subject_id=subject_id).delete(synchronize_session=False)
     session.delete(subj)
