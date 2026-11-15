@@ -240,6 +240,7 @@ export const STRINGS = {
     "session.edited": "rewritten by {by}",
     // The layered answer (SPEC Layer 8, rev 134): a turn composed from the plan and the sentence bank.
     "session.source.composer": "Composed from the sentence bank and the engine's plan (no model)",
+    "session.source.polished": "Composed, then polished for flow (every proposition checked against the composed text)",
 
     // The conversation (web/chat.html, SPEC Layer 8): the client's words only, never the engine's.
     "chat.first": "Where and when were you born? I will draw your chart, and we can start.",

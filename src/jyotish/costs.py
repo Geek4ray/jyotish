@@ -14,9 +14,11 @@ from typing import Any
 # input, output, cache read, cache write (5-minute, 1.25 x input)
 PRICES = {"claude-opus-5-5": (4.00, 20.00, 0.20, 5.00), "claude-fable-5-1": (10.00, 50.00, 0.25, 12.50),
           "claude-opus-5": (5.00, 25.00, 0.50, 6.25), "claude-sonnet-5-5": (2.00, 10.00, 0.20, 2.50),
-          # Haiku 5.5 (the writer bake-off, 2026-11-02): its price for a prompt of 100K tokens or fewer, which every
-          # turn is ($0.50 / $2.50 above); its list gives no cache-read price, so cached tokens are priced at input.
-          "claude-haiku-5-5": (0.10, 0.50, 0.10, 0.125)}
+          # Haiku 5.5 (the writer bake-off, 2026-11-02; the polisher, 2026-11-15): its price for a prompt of 100K tokens
+          # or fewer, which every turn is ($0.50 / $2.50 above); cache reads 0.1 x input, 5-minute cache writes 1.25 x
+          # (Anthropic's model notes as the claude-api skill states them, read 2026-11-15; 2026-11-06 priced cache
+          # reads at input, for want of the figure).
+          "claude-haiku-5-5": (0.10, 0.50, 0.01, 0.125)}
 # (host, model) -> input, output, cache read, cache write. A provider that lists no cached price is
 # priced at its input price for cached tokens (what it bills when it does not discount them).
 OPEN_PRICES = {
@@ -104,12 +106,16 @@ def reading_cost(document: dict[str, Any]) -> dict[str, Any]:
     checker_model = checker.get("model")
     client_model = client.get("model") or (writer_model if usage.get("client") else None)
     w, c, k = tokens(usage.get("writer")), tokens(usage.get("checker")), tokens(usage.get("client"))
-    calls = {r: int((usage.get(r) or {}).get("calls") or 0) for r in ("writer", "checker", "client")}
+    calls = {r: int((usage.get(r) or {}).get("calls") or 0) for r in ("writer", "checker", "client", "polisher")}
+    # The polisher of a composed turn (SPEC Layer 8, "The layered answer"): its call is in the total and its backend
+    # in `backends`; the ledger has no columns of its own for it (its tokens are in the turn's document).
+    polisher = document.get("polisher") or {}
     parts = [(calls["writer"], cost(writer_model, w, _host(writer))), (calls["checker"], cost(checker_model, c, _host(checker))),
-             (calls["client"], cost(client_model, k, _host(client) or _host(writer)))]
+             (calls["client"], cost(client_model, k, _host(client) or _host(writer))),
+             (calls["polisher"], cost(polisher.get("model"), tokens(usage.get("polisher")), _host(polisher)))]
     total = None if any(n and v is None for n, v in parts) else round(sum(v or 0.0 for _, v in parts), 6)
-    backends = {r: d["backend"] for r, d in (("writer", writer), ("checker", checker), ("client", client))
-                if d.get("backend")}
+    backends = {r: d["backend"] for r, d in (("writer", writer), ("checker", checker), ("client", client),
+                                             ("polisher", polisher)) if d.get("backend")}
     return {"writer_model": writer_model, "checker_model": checker_model, "depth": document.get("depth"),
             "writer_tokens": w, "checker_tokens": c, "writer_calls": calls["writer"], "checker_calls": calls["checker"],
             "client_model": client_model if calls["client"] else None, "client_tokens": k if calls["client"] else None,

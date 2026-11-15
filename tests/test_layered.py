@@ -420,3 +420,103 @@ def test_4_the_seven_turns_composed_are_frozen(chart, monkeypatch):
     assert [d["source"] for d in docs] == ["composer"] * 4 + ["fixed"] + ["composer"] * 2
     from jyotish.client import never_show
     assert not [s for d in docs for s in d["shown"] if never_show(s)]
+
+
+# --- 5. The polisher ---------------------------------------------------------------------------------------------------
+
+class StubPolisher:
+    """Haiku's place: returns `make(composed)` as the polished text, recording each request."""
+    model = "claude-haiku-5-5"
+
+    def __init__(self, make):
+        self.make, self.calls = make, []
+
+    def describe(self):
+        return {"provider": "anthropic", "host": "api.anthropic.com", "model": self.model}
+
+    def structured(self, *, system, messages, schema, kind, effort, thinking, max_tokens, on_text=None):
+        from jyotish.narrate import Completion
+        self.calls.append({"system": system, "messages": messages, "kind": kind, "effort": effort})
+        usage = {"input_tokens": 300, "output_tokens": 200, "cache_read_input_tokens": 800,
+                 "cache_creation_input_tokens": 0}
+        return Completion(parsed=schema(text=self.make(messages[0]["content"])), assistant={}, stop_reason="end_turn",
+                          meta={"kind": kind, "usage": usage, "backend": self.describe()})
+
+
+class StubChecker:
+    def __init__(self, ok=True):
+        self.ok, self.asked = ok, []
+        self.backend = type("B", (), {"describe": lambda self: {"provider": "openai", "host": "api.deepinfra.com",
+                                                                 "model": "zai-org/GLM-5.3-Flash"}})()
+
+    def ask_one(self, sentence, data):
+        from jyotish.narrate import CheckResult, Proposition
+        self.asked.append((sentence, data))
+        return CheckResult(propositions=[Proposition(text=sentence[:40], supported=self.ok, evidence="stub")]), \
+            {"kind": "checker", "usage": {"input_tokens": 1000, "output_tokens": 400}}
+
+
+def joined(text):
+    """A polish that joins each paragraph's first two sentences with a semicolon: states nothing new."""
+    import re
+    out = []
+    for para in text.split("\n\n"):
+        out.append(re.sub(r"^([^.]+)\. ([A-Z])", lambda m: m.group(1) + "; " + m.group(2).lower(), para, count=1))
+    return "\n\n".join(out)
+
+
+def test_5_the_polisher_is_off_by_default_and_used_only_when_the_checker_finds_every_proposition(chart, monkeypatch):
+    from jyotish.conversation import answer_turn
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    m = "how is my career"
+    plain = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="s")
+    assert plain["source"] == "composer" and "polish" not in plain
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+    pol, chk = StubPolisher(joined), StubChecker(ok=True)
+    doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="s", polisher=pol, checker=chk)
+    assert doc["source"] == "polished" and doc["polish"]["used"] and doc["shown"] != plain["shown"]
+    assert len(doc["shown"]) < len(plain["shown"]) and doc["paragraphs"][0] == 0
+    # The stable prefix is cached; the composed answer follows in the message.
+    sys_block = pol.calls[0]["system"][0]
+    assert sys_block["cache_control"] == {"type": "ephemeral"} and pol.calls[0]["effort"] == "low"
+    assert pol.calls[0]["messages"][0]["content"] == doc["polish"]["composed"]
+    assert len(chk.asked) == 1 and doc["polish"]["composed"] in json.loads(chk.asked[0][1]).values()
+    # Refused by the checker: the composed text is shown, and both calls are still recorded and priced.
+    bad = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, session_key="s", polisher=StubPolisher(joined),
+                      checker=StubChecker(ok=False))
+    assert bad["source"] == "composer" and bad["shown"] == plain["shown"] and not bad["polish"]["used"]
+    assert bad["polish"]["refusals"][0].startswith("not in the composed text")
+    assert bad["usage"]["polisher"]["cache_read_input_tokens"] == 800 and bad["usage"]["checker"]["calls"] == 1
+
+
+def test_5_a_polished_text_with_an_engine_word_or_markdown_is_refused_before_the_checker(chart, monkeypatch):
+    from jyotish.conversation import answer_turn
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+    m = "how is my career"
+    for make, why in ((lambda t: "The vote is for your career.", "never shown"),
+                      (lambda t: "Your career is strong.", "tier word")):
+        chk = StubChecker()
+        doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, polisher=StubPolisher(make), checker=chk)
+        assert doc["source"] == "composer" and not chk.asked and any(why in r for r in doc["polish"]["refusals"])
+    # Markdown and HTML are taken off before anything is checked (conversation.unbullet): never shown as marks.
+    doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, checker=StubChecker(),
+                      polisher=StubPolisher(lambda t: "**Your** career <b>leans</b> favourably."))
+    assert doc["shown"] == ["Your career leans favourably."]
+
+
+def test_5_the_polisher_and_its_cache_tokens_are_priced(chart, monkeypatch):
+    from jyotish.conversation import answer_turn
+    from jyotish.costs import cost, reading_cost
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")
+    monkeypatch.setenv("JYOTISH_POLISH", "1")
+    m = "how is my career"
+    doc = answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF, polisher=StubPolisher(joined), checker=StubChecker())
+    v = reading_cost(doc)
+    haiku = cost("claude-haiku-5-5", {"input_tokens": 300, "output_tokens": 200, "cache_read_input_tokens": 800})
+    glm = cost("zai-org/GLM-5.3-Flash", {"input_tokens": 1000, "output_tokens": 400}, "api.deepinfra.com")
+    assert haiku == pytest.approx((300 * 0.10 + 200 * 0.50 + 800 * 0.01) / 1e6)     # cache reads at 0.1 x input
+    assert v["cost_usd"] == pytest.approx(haiku + glm, abs=1e-6)
+    assert v["backends"]["polisher"]["model"] == "claude-haiku-5-5"
+    monkeypatch.delenv("JYOTISH_POLISH")
+    assert reading_cost(answer_turn(chart, m, route_turn(m, chart), as_of=AS_OF))["cost_usd"] == 0

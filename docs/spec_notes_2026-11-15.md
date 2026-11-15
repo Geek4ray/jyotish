@@ -141,4 +141,14 @@ during the build.
      not three short paragraphs.
    - **A second verb.** A coordinated verb after the first is not made to agree ("the Sun and Mercury sit … and
      forms").
-
+5. **The polisher** (`conversation.polish`; JYOTISH_POLISH, off by default).
+   - **The calls.** One claude-haiku-5-5 call at effort low rewrites the composed answer for flow. Its stable
+     prefix (`POLISH_SYSTEM`, about 750 tokens, over Haiku 5.5's 512-token minimum) is sent with
+     `cache_control`. Then one call to the gate checker asks whether every proposition of the polished text is in
+     the composed text.
+   - **When the composed text is shown instead.** When the checker finds a proposition the composed text does not
+     state, or when the polished text carries a never-show, client or tier word; markdown and HTML are taken off
+     first. Either call failing also shows the composed text.
+   - **Prices.** The polisher's tokens, cache reads included, are priced in `jyotish.costs` and counted in a
+     turn's ledger total, with its backend under `backends`. Haiku 5.5's cache reads are now priced at 0.1 times
+     input; the bake-off of 2026-11-02 priced them at input for want of the figure.

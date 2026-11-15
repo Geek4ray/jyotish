@@ -19,6 +19,7 @@ investment, another person's chart or fate, and a minor's chart beyond the gener
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import date
 from typing import Any
@@ -556,8 +557,119 @@ def layered_on() -> bool:
     return os.environ.get("JYOTISH_LAYERED", "1").lower() not in ("0", "false", "no", "off")
 
 
-def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline, session_key, bank):
-    """A turn answered by the composer: the plan, the bank's sentences in their paragraphs, emitted as they are."""
+# The polisher (SPEC Layer 8, "The layered answer", step 5; JYOTISH_POLISH, off by default): one call rewrites the
+# composed answer for flow, and one checker call asks whether every proposition of the polished text is in the
+# composed text; if not, or if the polished text breaks a never-show or client rule, the composed text is shown.
+POLISH_MODEL = "claude-haiku-5-5"
+# The stable prefix, cached (Haiku 5.5 caches a prefix of 512 tokens or more): the same for every turn; the composed
+# answer follows it in the user message.
+POLISH_SYSTEM = """You polish the answer Tatva gives a client about their own Vedic birth chart. The answer you are \
+given was composed by the engine from checked sentences: every fact in it is right, and it says exactly what the \
+chart supports. Your one job is flow: make it read as one person talking warmly and plainly to another, not as a \
+list of placements.
+
+What you may do:
+- join two short sentences that are about the same thing into one, with "and", "but", "while", a semicolon;
+- reorder sentences inside a paragraph so that one leads into the next;
+- replace a repeated phrase with a pronoun where nothing becomes unclear, or vary a repeated sentence opening;
+- add a short connective ("On the other side,", "Even so,", "As for timing,") that states nothing new;
+- keep the paragraph breaks (a blank line between paragraphs), or merge two paragraphs only when both are short.
+
+What you may not do, ever:
+- add any fact, planet, sign, house, date, month, year, figure, period, name or quality the answer does not state;
+- drop a fact the answer states, or soften or strengthen it ("leans favourably" stays a lean, never "is good" or
+  "will be good"; "less supported than most" never becomes "weak");
+- add an effect, a prediction, a promise, a reassurance, advice or a question to the client;
+- change which way anything leans, or join a helping fact and a hard fact so that one seems to cancel the other;
+- use these words: vote, family (except "your family"), KP, Krishnamurti, analysis, score, D1 to D60, "marked as",
+  "indications", arudha, dasha, cusp, sub-lord, Shadbala, Bhava Bala, engine, percentile, term, sample, rupa,
+  strong, strongest, weak, weakest, moderate, mixed, "I";
+- use markdown, bullet points, headings, bold or HTML.
+
+Keep every sentence that opens the answer by saying what a chart cannot give (no amount, no promise, no date) as the
+first sentence. Keep every date range exactly as written and every "Neither stretch is a prediction" sentence as the
+last sentence of its paragraph. A Sanskrit name keeps its plain gloss beside it.
+
+An example of the change wanted (the facts are made up and are not this client's). Composed:
+"For your career, most of what the chart shows agrees, and on balance it leans favourably. The planets that rule the \
+houses of your career lean favourably. Saturn, which rules the 10th house, sits in Taurus in your 1st house. Saturn \
+has less strength than it needs to give fully what it promises."
+Polished:
+"For your career, most of what the chart shows agrees, and on balance it leans favourably. The planets that rule its \
+houses lean that way too: Saturn, which rules the 10th house, sits in Taurus in your 1st house, though it has less \
+strength than it needs to give fully what it promises."
+Every fact of the composed text is there, with its lean; nothing is added.
+
+Return the polished answer in `text`: paragraphs separated by one blank line, each sentence ending with a full stop.
+If the answer already reads well, return it unchanged."""
+POLISH_CHECK = ("composed answer: every proposition of the sentence (the polished answer) must be stated in this text, "
+                "with the same lean and strength; a proposition it does not state, or states differently, is not supported")
+
+
+class PolishDraft(BaseModel):
+    text: str
+
+
+def polish_on() -> bool:
+    import os
+    return os.environ.get("JYOTISH_POLISH", "").lower() in ("1", "true", "yes", "on")
+
+
+def composed_text(sentences: list[str], paragraphs: list[int]) -> str:
+    out = []
+    for i, s in enumerate(sentences):
+        out.append(("\n\n" if i in paragraphs and i else (" " if i else "")) + s)
+    return "".join(out)
+
+
+def polish(text: str, *, backend=None, checker=None) -> dict[str, Any]:
+    """The polisher's call and the checker's call on one composed answer; `used` says which text the client reads."""
+    from .client import client_warnings, never_show
+    from .narrate import CONFIG, AnthropicBackend, ModelChecker, NarrationError, make_backend, sentences, TIER_WORDS
+    backend = backend or AnthropicBackend(POLISH_MODEL, CONFIG)
+    checker = checker or ModelChecker(make_backend(None, "checker", CONFIG), CONFIG)
+    out: dict[str, Any] = {"model": getattr(backend, "model", POLISH_MODEL), "composed": text, "text": None,
+                           "used": False, "refusals": [], "verdict": None, "metas": {}}
+    system = [{"type": "text", "text": POLISH_SYSTEM, "cache_control": {"type": "ephemeral"}}]
+    try:
+        done = backend.structured(system=system, messages=[{"role": "user", "content": text}], schema=PolishDraft,
+                                  kind="polish", effort="low", thinking=None, max_tokens=4000)
+    except NarrationError as e:
+        out["refusals"].append(f"the polisher could not be reached: {e}")
+        return out
+    out["metas"]["polisher"] = done.meta
+    polished = unbullet(done.parsed.text).strip() if done.parsed is not None else None
+    if not polished:
+        out["refusals"].append(f"the polisher returned no text ({done.stop_reason})")
+        return out
+    out["text"] = polished
+    words = never_show(polished) + client_warnings(polished, conversation=True)
+    words += [f"a tier word ({m.group(0)!r})" for m in [TIER_WORDS.search(polished)] if m]
+    words += ["markdown or HTML" for _ in [1] if re.search(r"[*#`<>]", polished)]
+    if words:
+        out["refusals"] += words
+        return out
+    result, meta = checker.ask_one(polished, json.dumps({POLISH_CHECK: text}, indent=1))
+    out["metas"]["checker"] = meta
+    out["verdict"] = [p.model_dump() for p in result.propositions]
+    if not all(p.supported for p in result.propositions):
+        out["refusals"] += [f"not in the composed text: {p.text} ({p.evidence})" for p in result.propositions
+                            if not p.supported]
+        return out
+    out["used"] = True
+    out["sentences"] = [x for para in polished.split("\n\n") for x in sentences(para)]
+    starts, n = [], 0
+    for para in polished.split("\n\n"):
+        starts.append(n)
+        n += len(sentences(para))
+    out["paragraphs"] = starts
+    return out
+
+
+def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline, session_key, bank,
+                   polisher=None, checker=None):
+    """A turn answered by the composer: the plan, the bank's sentences in their paragraphs, emitted as they are; with
+    JYOTISH_POLISH, polished for flow and checked against the composed text."""
     if data is None:                                 # the stretches and the sheet's notes need the payload
         from .fullchart import cached_payload
         from .narrate import full_range
@@ -567,6 +679,19 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     c = compose(plan, bank, session_key, said)
     shown = [s["text"] for s in c["sentences"]]
     paras = list(c["paragraphs"])
+    extra: dict[str, Any] = {}
+    if polish_on() and shown:
+        from .narrate import _usage
+        p = polish(composed_text(shown, paras), backend=polisher, checker=checker)
+        mark("polished")
+        metas = p.pop("metas")
+        extra = {"polish": p, "polisher": {"model": p["model"], **_backend_of_backend(polisher, p["model"])},
+                 "checker": (_checker_role(checker) if checker is not None else _default_checker_role())
+                            if metas.get("checker") else {},
+                 "usage_extra": {"polisher": _usage([metas.get("polisher")]),
+                                 "checker": _usage([metas.get("checker")]) if metas.get("checker") else {}}}
+        if p["used"]:
+            shown, paras = p["sentences"], p["paragraphs"]
     if route.third_party:
         shown.append(THIRD_PARTY_LINE)
         paras.append(len(shown) - 1)
@@ -580,11 +705,36 @@ def _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, m
     mark("done")
     emit({"type": "done", "status": "done", "source": "composer"})
     opening = [s for s in c["sentences"] if s["part"] == "opening"]
-    return doc | {"source": "composer", "shown": shown, "paragraphs": paras,
+    usage = {"wall_seconds": timeline["done"]} | {k: v for k, v in extra.pop("usage_extra", {}).items() if v}
+    polished = bool(extra.get("polish", {}).get("used"))
+    return doc | {"source": "polished" if polished else "composer", "shown": shown, "paragraphs": paras,
                   "accepted": [s["tagged"] for s in c["sentences"]], "attempts": 0, "timeline": timeline,
                   "opened_by": "composer" if opening else None, "plan": plan.model_dump(),
                   "composed": {k: v for k, v in c.items()}, "bank": c["bank"],
-                  "writer": {}, "checker": {}, "usage": {"wall_seconds": timeline["done"]}}
+                  "writer": {}, "checker": {}, "usage": usage} | extra
+
+
+def _backend_of_backend(backend, model: str) -> dict:
+    """The polisher's backend as a reading records a role's (provider, host, model)."""
+    if backend is not None and hasattr(backend, "describe"):
+        return {"backend": backend.describe()}
+    return {"backend": {"provider": "anthropic", "host": "api.anthropic.com", "model": model}}
+
+
+def _checker_role(checker) -> dict:
+    """A checker's model and backend as a turn records a role's."""
+    b = getattr(checker, "backend", None)
+    d = b.describe() if b is not None and hasattr(b, "describe") else {}
+    return {"model": d.get("model"), "backend": d} if d else {}
+
+
+def _default_checker_role() -> dict:
+    from .narrate import CONFIG, make_backend
+    try:
+        b = make_backend(None, "checker", CONFIG)
+        return {"model": b.describe().get("model"), "backend": b.describe()}
+    except Exception:
+        return {}
 
 
 # The plan's parts as the composer orders them: the answer to the question as asked, what helps, what is hard, then
@@ -1090,7 +1240,7 @@ def check_sentence(sentence: str, tags: set[str], votes, chains, finding_data, c
 def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list[dict] | None = None,
                 drafter=None, checker=None, emit=None, config=None, data: dict | None = None,
                 word_rules: str | None = None, layered: bool | None = None, session_key: str = "",
-                bank=None) -> dict[str, Any]:
+                bank=None, polisher=None) -> dict[str, Any]:
     """One turn, answered (the section above): returns the turn's document, the record the turns table keeps —
     the route, the engine's answer, the writer's answer as the client read it (`shown`) with its source, every
     removed sentence with its reasons, the warnings, the checks, the settings and usage of each role, and the
@@ -1137,7 +1287,7 @@ def answer_turn(chart, message: str, route: Route, *, as_of: date, history: list
     # model; a question the route could not place (its areas the chart's top ones by default) keeps the writer loop.
     if (layered_on() if layered is None else layered) and route.areas and route.areas_from != "top":
         return _composed_turn(chart, message, route, doc, kinds, said, as_of, data, emit, mark, timeline,
-                              session_key, bank)
+                              session_key, bank, polisher=polisher, checker=checker)
     user, finding_data, tags, votes, chains, handles = _material(chart, message, route, engine, history, as_of, data,
                                                                  kinds)
     drafter = drafter or ModelDrafter(make_backend(None, "writer", config), config, schema=TurnDraft)
