@@ -62,6 +62,9 @@ def test_the_birth_data_once_then_the_check_line_and_the_chart(page, url):
     page.click("#draw")
     page.wait_for_selector("#check-line:not([hidden])")
     assert page.inner_text("#check-line") == "Taurus rising · Moon in Libra, Chitra"
+    # The wheel is drawn from the session's tables after the check line shows: wait for it (CI on bfa520a counted
+    # the bodies before the fetch had drawn them, 0 of 9).
+    page.wait_for_function("document.querySelectorAll('#wheel .body').length === 9")
     assert page.locator("#first").is_hidden() and page.locator("#wheel .body").count() == 9
     assert "?s=" not in page.url                     # the conversation is the browser's by a cookie (review H7)
     assert page.inner_text("#trust") == "Checked against your chart; a real astrologer can review this."
