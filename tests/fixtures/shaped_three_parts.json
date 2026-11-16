@@ -1,0 +1,204 @@
+{
+ "as_of": "2026-11-16",
+ "bank": "56cbc319cf01",
+ "draft_off": [
+  {
+   "question": "How will my career go, which field will i work in, when will i leave my current job",
+   "areas": [
+    "career"
+   ],
+   "areas_from": "named",
+   "kinds": [
+    "yes_no",
+    "when"
+   ],
+   "composes": true,
+   "source": "composer",
+   "sentences": 17,
+   "shown": [
+    "A chart cannot answer yes or no; what it shows is which way it leans for your career.",
+    "A chart gives no date for an event, but it does show stretches of time it reads as more or less favourable for your career.",
+    "For your career, most of what the chart shows agrees, and on balance it leans favourably.",
+    "The divisional chart for your career leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+    "The planets that signify your career lean favourably; among them, the Sun sits in Aquarius in your 10th house, in an unfriendly sign.",
+    "Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+    "Your chart holds Budhaditya, the Sun-and-Mercury pairing, formed by the Sun and Mercury in your 10th house and bearing on your career, though it is lessened by Mercury being in a feeble state.",
+    "Your chart holds raja yoga (the rulers of an angular house and of a trine house, together in one sign), formed by the Sun and Mercury in your 10th house, and it bears on your career.",
+    "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your career, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "The ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.",
+    "The ruler of your 10th house, Saturn, is in a feeble state by its degree in Taurus.",
+    "The ruler of your 10th house, Saturn, has less strength than it needs to give fully what it promises for your career.",
+    "The main planet for your career, the Sun, is in a feeble state by its degree in Aquarius.",
+    "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in your career.",
+    "The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.",
+    "Looking at the stretches the chart shows, the least favourable one runs from November 2028 to August 2029.",
+    "Neither of these two stretches is a prediction of when you will act."
+   ],
+   "paragraphs": [
+    0,
+    3,
+    9,
+    13
+   ]
+  },
+  {
+   "question": "which field will i work in",
+   "areas": [
+    "career",
+    "marriage",
+    "debts_enemies"
+   ],
+   "areas_from": "top",
+   "kinds": [
+    "yes_no"
+   ],
+   "composes": false
+  },
+  {
+   "question": "when will i leave my current job",
+   "areas": [
+    "career"
+   ],
+   "areas_from": "named",
+   "kinds": [
+    "yes_no",
+    "when"
+   ],
+   "composes": true,
+   "source": "composer",
+   "sentences": 17,
+   "shown": [
+    "A chart cannot answer yes or no; what it shows is which way it leans for your career.",
+    "A chart gives no date for an event, but it does show stretches of time it reads as more or less favourable for your career.",
+    "For your career, most of what the chart shows agrees, and on balance it leans favourably.",
+    "The divisional chart for your career leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+    "The planets that signify your career lean favourably; among them, the Sun sits in Aquarius in your 10th house, in an unfriendly sign.",
+    "Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+    "Your chart holds Budhaditya, the Sun-and-Mercury pairing, formed by the Sun and Mercury in your 10th house and bearing on your career, though it is lessened by Mercury being in a feeble state.",
+    "Your chart holds raja yoga (the rulers of an angular house and of a trine house, together in one sign), formed by the Sun and Mercury in your 10th house, and it bears on your career.",
+    "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your career, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "The ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.",
+    "The ruler of your 10th house, Saturn, is in a feeble state by its degree in Taurus.",
+    "The ruler of your 10th house, Saturn, has less strength than it needs to give fully what it promises for your career.",
+    "The main planet for your career, the Sun, is in a feeble state by its degree in Aquarius.",
+    "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in your career.",
+    "The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.",
+    "Looking at the stretches the chart shows, the least favourable one runs from November 2028 to August 2029.",
+    "Neither of these two stretches is a prediction of when you will act."
+   ],
+   "paragraphs": [
+    0,
+    3,
+    9,
+    13
+   ]
+  }
+ ],
+ "draft_on": [
+  {
+   "question": "How will my career go, which field will i work in, when will i leave my current job",
+   "areas": [
+    "career"
+   ],
+   "areas_from": "named",
+   "kinds": [
+    "yes_no",
+    "when"
+   ],
+   "composes": true,
+   "source": "composer",
+   "sentences": 24,
+   "shown": [
+    "A chart cannot answer yes or no; what it shows is which way it leans for your career.",
+    "A chart gives no date for an event, but it does show stretches of time it reads as more or less favourable for your career.",
+    "For your career, most of what the chart shows agrees, and on balance it leans favourably.",
+    "The divisional chart for your career leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+    "The planets that signify your career lean favourably; among them, the Sun sits in Aquarius in your 10th house, in an unfriendly sign.",
+    "Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+    "Your chart holds Budhaditya, the Sun-and-Mercury pairing, formed by the Sun and Mercury in your 10th house and bearing on your career, though it is lessened by Mercury being in a feeble state.",
+    "Budhaditya, the pairing of Mercury and the Sun, is traditionally read as lending your career a bright mind and clear speech, though its promise is read as reduced by Mercury being in a feeble state.",
+    "Your chart holds raja yoga (the rulers of an angular house and of a trine house, together in one sign), formed by the Sun and Mercury in your 10th house, and it bears on your career.",
+    "Raja yoga, the royal combination, is traditionally read as a sign of authority and good standing in your career, and texts link it with a respected place in the world.",
+    "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your career, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "Ruchaka, the combination of Mars in a position of power, is traditionally read as lending courage and leadership to your career, though the promise is read as reduced by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "The ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.",
+    "With Saturn, the ruler of your 10th house, placed in your 1st house, a house that drains it, texts traditionally read your career as having less strength behind it than it needs.",
+    "The ruler of your 10th house, Saturn, is in a feeble state by its degree in Taurus.",
+    "When Saturn, the ruler of your 10th house, sits in Taurus in a feeble state by its degree, tradition reads your career as having less strength behind it than it needs.",
+    "The ruler of your 10th house, Saturn, has less strength than it needs to give fully what it promises for your career.",
+    "When Saturn, the ruler of your 10th house, sits in Taurus in your 1st house, texts link its low measured strength with your career giving less fully than it promises.",
+    "The main planet for your career, the Sun, is in a feeble state by its degree in Aquarius.",
+    "When the Sun, the main planet for your career, sits in Aquarius in a feeble state by its degree, tradition reads your career as having less strength behind it than it needs.",
+    "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in your career.",
+    "The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.",
+    "Looking at the stretches the chart shows, the least favourable one runs from November 2028 to August 2029.",
+    "Neither of these two stretches is a prediction of when you will act."
+   ],
+   "paragraphs": [
+    0,
+    3,
+    12,
+    20
+   ]
+  },
+  {
+   "question": "which field will i work in",
+   "areas": [
+    "career",
+    "marriage",
+    "debts_enemies"
+   ],
+   "areas_from": "top",
+   "kinds": [
+    "yes_no"
+   ],
+   "composes": false
+  },
+  {
+   "question": "when will i leave my current job",
+   "areas": [
+    "career"
+   ],
+   "areas_from": "named",
+   "kinds": [
+    "yes_no",
+    "when"
+   ],
+   "composes": true,
+   "source": "composer",
+   "sentences": 24,
+   "shown": [
+    "A chart cannot answer yes or no; what it shows is which way it leans for your career.",
+    "A chart gives no date for an event, but it does show stretches of time it reads as more or less favourable for your career.",
+    "For your career, most of what the chart shows agrees, and on balance it leans favourably.",
+    "The divisional chart for your career leans favourably; there Mars falls in Capricorn, exalted, where it is at its best.",
+    "The planets that signify your career lean favourably; among them, the Sun sits in Aquarius in your 10th house, in an unfriendly sign.",
+    "Taken together, the houses that govern your career lean favourably, though the main one, the 10th house from your rising sign, in Aquarius, is among the least supported of your twelve houses.",
+    "Your chart holds Budhaditya, the Sun-and-Mercury pairing, formed by the Sun and Mercury in your 10th house and bearing on your career, though it is lessened by Mercury being in a feeble state.",
+    "Budhaditya, the pairing of Mercury and the Sun, is traditionally read as lending your career a bright mind and clear speech, though its promise is read as reduced by Mercury being in a feeble state.",
+    "Your chart holds raja yoga (the rulers of an angular house and of a trine house, together in one sign), formed by the Sun and Mercury in your 10th house, and it bears on your career.",
+    "Raja yoga, the royal combination, is traditionally read as a sign of authority and good standing in your career, and texts link it with a respected place in the world.",
+    "Your chart holds Ruchaka (Mars in its own or exalted sign in an angular house), formed by Mars in your 7th house; the combination bears on your career, though it is held back by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "Ruchaka, the combination of Mars in a position of power, is traditionally read as lending courage and leadership to your career, though the promise is read as reduced by Saturn's aspect on it, an unhelpful star counted from your Moon and a house that drains it.",
+    "The ruler of your 10th house, Saturn, sits in your 1st house, a house that drains it, whatever the sign says.",
+    "With Saturn, the ruler of your 10th house, placed in your 1st house, a house that drains it, texts traditionally read your career as having less strength behind it than it needs.",
+    "The ruler of your 10th house, Saturn, is in a feeble state by its degree in Taurus.",
+    "When Saturn, the ruler of your 10th house, sits in Taurus in a feeble state by its degree, tradition reads your career as having less strength behind it than it needs.",
+    "The ruler of your 10th house, Saturn, has less strength than it needs to give fully what it promises for your career.",
+    "When Saturn, the ruler of your 10th house, sits in Taurus in your 1st house, texts link its low measured strength with your career giving less fully than it promises.",
+    "The main planet for your career, the Sun, is in a feeble state by its degree in Aquarius.",
+    "When the Sun, the main planet for your career, sits in Aquarius in a feeble state by its degree, tradition reads your career as having less strength behind it than it needs.",
+    "You are in the period of Jupiter, within that of Mercury, until November 2028; Jupiter and Mercury have a hand in your career.",
+    "The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.",
+    "Looking at the stretches the chart shows, the least favourable one runs from November 2028 to August 2029.",
+    "Neither of these two stretches is a prediction of when you will act."
+   ],
+   "paragraphs": [
+    0,
+    3,
+    12,
+    20
+   ]
+  }
+ ]
+}
