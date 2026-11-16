@@ -58,3 +58,43 @@ general; the stretches to timing. An item no section takes is held (`composed.he
 will I marry and how is my career" answers marriage's timing first, then career, and "whan and how" now gives the
 stretches before saying nothing new lies behind them (the seven-turn fixture's turn 7; turn 3's "when?" is now one
 paragraph).
+
+## 2. Shape
+
+`conversation.shape` cuts the placed sentences to the answer's shape before they are ordered. For one area, at most
+`SHAPE` (8) facts: the lean (with the stability line where the area depends on the birth time), the two things that
+help most (`HELPS_SHAPE`; the families as the plan ranks them by percentile, then the cited rules), what is hard (the
+hardest families, then one sentence per planet), the period now, and the stretches where a part asks when. Where the
+eight are short the hard part keeps one sentence and the helps give way first (the three-part question: the lean, two
+helps, Saturn, the period and the three stretch sentences). A question about what is against gives the hard part
+first and as much room as the eight leave after one help. Read here, since the SPEC sets the shape for one area only:
+over several areas each area gives its lean, one help and one hard sentence (a question about what is against, its
+hard sentence alone) and the period is said once; "what are the challanges in my life" went from 27 sentences to 8.
+The cannot-give line and a vocation section are outside the eight.
+
+Everything the shape leaves out is in `composed.held` with its key. "Tell me more" is a short follow-up, so it carries
+the areas and leaves out every key said (the layered answer's M4), and the shape is then made from what is left: the
+held helps, the cited rules and the other weaknesses come next (`test_2_tell_me_more_...`). A "why?" after a shaped
+answer now gives the reasons it held back, where it said there was nothing new before (the seven-turn fixture's turn 7,
+and the review's M3 and M4 tests, which now check that nothing said is said again rather than a count).
+
+**One sentence per planet.** `plan._weakness_items` makes one item per planet, `weakness.planet`, its weaknesses in one
+list slot `{weaknesses}` (`WEAKNESS_PLAIN`: "sits in your 1st house, which drains it", "is in a feeble state by its
+degree in Taurus", "has less strength than it needs to give fully what it promises"), with every weakness's facts.
+The per-kind rows (`weakness.mks`, `.mrita`, `.low_strength` and their nine meaning rows) composed nothing any more and
+were removed; with them goes the row that composed "no matter what Taurus says" (the engine's own "whatever the sign
+says" is gone too). The new fact row and its three meaning rows (`weakness.planet@career|marriage|wealth`) were drafted
+with `--only weakness.`; the fact row's first variant (which named the planet twice) and the meaning rows' variants
+(one repeated the whole list, two did not name the planet, which the layered review's M9 asked of these rows) were
+rewritten by Opus and say so in `drafted_by`; the fact row was rechecked on each slot shape (12 checks, all
+supported; USD 0.027 drafting and checking in all). Read here: a hard family about a planet that also has hidden
+weaknesses is still its own sentence; "one sentence per planet" was read as one sentence for a planet's weaknesses.
+
+**A meaning follows its fact.** One meaning a fact (a rule said for several areas gives its first area's), directly
+after it, and a meaning closes its paragraph, so no paragraph attributes to the tradition twice. Read here: "joins"
+was not done by splicing two rows into one sentence, since a verdict on a sentence is a verdict on one row; the
+meanings are outside the eight, so with draft meanings on the three-part question is 10 sentences (24 before).
+
+`compose(shaped=False)` composes every sentence the sections take, every meaning of a fact: the composed check and the
+tests of a row's variants, refusals and verdicts use it (the worksheet tests lift `SHAPE` in their fixture), since they
+are tests of the rows, not of the shape.

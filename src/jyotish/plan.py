@@ -74,6 +74,10 @@ RELATION_PLAIN = {"conjunction": "together in one sign", "mutual_aspect": "aspec
                   "exchange": "each in the other's sign"}
 # A hidden weakness of the main lord or significator: the body field, and its signature.
 WEAKNESSES = ("mks", "mrita", "low_strength")
+# Each weakness as said in the planet's one sentence ({weaknesses}; decision 2), with its own house or sign.
+WEAKNESS_PLAIN = {"mks": "sits in your {house} house, which drains it",
+                  "mrita": "is in a feeble state by its degree in {sign}",
+                  "low_strength": "has less strength than it needs to give fully what it promises"}
 # What a chart cannot give, said once for every part that needs it (SPEC Layer 8 rev 136, "The shaped answer",
 # decision 1: the three-part question opened on two such lines). The kinds that need a line, in this order; an amount
 # line also says there is no yes or no, and a change of job's line also says there is no date. The line's signature is
@@ -349,22 +353,25 @@ def _weakness_items(chart, area: str, label: str, data: dict | None, sheet: dict
         found = [("mks", b.marana_karaka_sthana, {"marana_karaka_sthana": True, "house": b.house}),
                  ("mrita", b.avastha_baladi == "Mrita", {"avastha_baladi": "Mrita"}),
                  ("low_strength", ratio is not None and ratio < 1, {"shadbala_ratio": round(ratio or 0, 2)})]
-        for w, on, fact in found:
-            if not on:
-                continue
-            slots = {"area": label, "planet": _the(planet), "role": role, "sign": b.sign_name, "house": _ORD[b.house]}
-            engine = {"mks": f"{role[0].upper() + role[1:]}, {_the(planet)}, sits in your {_ORD[b.house]} house, "
-                             f"a house that drains it, whatever the sign says.",
-                      "mrita": f"{role[0].upper() + role[1:]}, {_the(planet)}, is in a feeble state by its degree "
-                               f"in {b.sign_name}.",
-                      "low_strength": f"{role[0].upper() + role[1:]}, {_the(planet)}, has less strength than it "
-                                      f"needs to give fully what it promises."}[w]
-            notes = [n for n in [_sheet_note(sheet, 2 if "lord" in kind else 3, f"planets.{planet}", area)] if n]
-            out.append(PlanItem(part="weakness", signature=f"weakness.{w}", area=area, slots=slots,
-                                tags=[f"vote:{area}.{'lord' if 'lord' in kind else 'karaka'}"],
-                                facts={"planet": planet, "role": kind, "sign": b.sign_name, "house": b.house,
-                                       "about": about(chart, area, label)} | fact,
-                                engine=engine, notes=notes))
+        found = [(w, fact) for w, on, fact in found if on]
+        if not found:
+            continue
+        # One sentence per planet, its weaknesses in one list (SPEC Layer 8 rev 136, "The shaped answer", decision 2:
+        # the three-part question had three of Saturn's in a row). Each is said with its own place, never "whatever
+        # the sign says" (the row that composed "no matter what Taurus says").
+        said = [WEAKNESS_PLAIN[w].format(house=_ORD[b.house], sign=b.sign_name) for w, _ in found]
+        weaknesses = said[0] if len(said) == 1 else f"{said[0]}, and it {said[1]}" if len(said) == 2 else \
+            "; it ".join(said[:-1]) + f"; and it {said[-1]}"
+        slots = {"area": label, "planet": _the(planet), "role": role, "weaknesses": weaknesses}
+        engine = f"{role[0].upper() + role[1:]}, {_the(planet)}, {weaknesses}."
+        notes = [n for n in [_sheet_note(sheet, 2 if "lord" in kind else 3, f"planets.{planet}", area)] if n]
+        facts = {"planet": planet, "role": kind, "sign": b.sign_name, "house": b.house, "weaknesses": [w for w, _ in found],
+                 "about": about(chart, area, label)}
+        for _, fact in found:
+            facts |= fact
+        out.append(PlanItem(part="weakness", signature="weakness.planet", area=area, slots=slots,
+                            tags=[f"vote:{area}.{'lord' if 'lord' in kind else 'karaka'}"], facts=facts,
+                            engine=engine, notes=notes))
     return out
 
 
@@ -578,7 +585,7 @@ def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tu
                 continue
             rules[key] = i
         elif i.part == "weakness":
-            key = i.facts.get("planet"), i.signature
+            key = i.facts.get("planet"), i.slots.get("weaknesses")
             if key in weak:
                 left.append({"area": i.area, "what": f"{i.signature}:{i.facts.get('planet')}",
                              "why": "said for an earlier area of this answer"})

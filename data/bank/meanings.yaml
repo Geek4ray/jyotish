@@ -761,168 +761,54 @@
   drafted_by: claude-opus-5-5 (rewritten for review M9)
   drafted_on: '2026-11-16'
   status: draft
-- signature: weakness.low_strength@career
+- signature: weakness.planet@career
   kind: meaning
   slots:
   - area
-  - house
   - planet
-  - role
-  - sign
   variants:
-  - When {planet}, {role}, sits in {sign} in your {house} house, texts link its low measured strength with {area} giving less
-    fully than it promises.
-  - Tradition reads {planet}, {role}, as short of the strength it needs, so {area} is said to deliver its promise less than
-    fully.
-  - Classical texts say that when {planet}, {role}, falls below its required strength in {sign}, what it promises for {area}
-    is read as only partly given.
-  source: 'Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter 27'
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
-  status: draft
-- signature: weakness.low_strength@marriage
-  kind: meaning
-  slots:
-  - area
-  - house
-  - planet
-  - role
-  - sign
-  variants:
-  - When {planet}, {role}, sits in {sign} in your {house} house, texts link its low measured strength with {area} giving less
-    fully than it promises.
-  - Tradition reads {planet}, {role}, as short of the strength it needs, so {area} is said to deliver its promise less than
-    fully.
-  - Classical texts say that when {planet}, {role}, falls below its required strength in {sign}, what it promises for {area}
-    is read as only partly given.
-  source: 'Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter 27'
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
-  status: draft
-- signature: weakness.low_strength@wealth
-  kind: meaning
-  slots:
-  - area
-  - house
-  - planet
-  - role
-  - sign
-  variants:
-  - When {planet}, {role}, sits in {sign} in your {house} house, texts link its low measured strength with {area} giving less
-    fully than it promises.
-  - Tradition reads {planet}, {role}, as short of the strength it needs, so {area} is said to deliver its promise less than
-    fully.
-  - Classical texts say that when {planet}, {role}, falls below its required strength in {sign}, what it promises for {area}
-    is read as only partly given.
-  source: 'Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter 27'
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
-  status: draft
-- signature: weakness.mks@career
-  kind: meaning
-  slots:
-  - area
-  - house
-  - planet
-  - role
-  - sign
-  variants:
-  - With {planet}, {role}, placed in your {house} house, a house that drains it, texts traditionally read {area} as having
-    less strength behind it than it needs.
-  - When {planet}, {role}, sits in {sign} in a house that drains it, tradition reads its promise for {area} as reduced, whatever
-    the sign.
-  - Texts link {planet}, {role}, standing in your {house} house, a house that drains it whatever its sign, with {area} being
-    traditionally read as carrying less strength than it needs.
-  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA)'
-  drafted_by: claude-opus-5-5 (rewritten for review M9)
+  - When {planet} is held back like this, texts traditionally read the promise of {area} as slow to show itself in full.
+  - Tradition reads {planet}, held back in these ways, as giving {area} less than it promises.
+  - Classical texts link {planet}, held back in this way, with {area} that gives less than its promise; that reading is traditional,
+    not a prediction.
+  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA); Baladi avastha,
+    the Mrita state: BPHS (Santhanam 1984) 45.3-4; Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter
+    27'
+  drafted_by: 'claude-sonnet-5-5 (all three variants rewritten by claude-opus-5-5 for the shape, decision 2: the planet named,
+    review M9)'
   drafted_on: '2026-11-16'
   status: draft
-- signature: weakness.mks@marriage
+- signature: weakness.planet@marriage
   kind: meaning
   slots:
   - area
   - planet
-  - role
   variants:
-  - When {role}, {planet}, sits in a house counted as draining it, whatever its sign, tradition reads this as a reduced promise
-    for {area}.
-  - Texts link {role}, {planet}, placed in a house said to drain it, with a reduced promise for {area}.
-  - For {area}, {planet}, {role}, sits in a house said to drain it whatever its sign, and is traditionally read as giving
-    less than it promises.
-  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA)'
-  drafted_by: claude-opus-5-5 (rewritten for review M9)
+  - When {planet} is held back like this, texts traditionally read the promise of {area} as slow to show itself in full.
+  - Tradition reads {planet}, held back in these ways, as giving {area} less than it promises.
+  - Classical texts link {planet}, held back in this way, with {area} that gives less than its promise; that reading is traditional,
+    not a prediction.
+  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA); Baladi avastha,
+    the Mrita state: BPHS (Santhanam 1984) 45.3-4; Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter
+    27'
+  drafted_by: 'claude-sonnet-5-5 (all three variants rewritten by claude-opus-5-5 for the shape, decision 2: the planet named,
+    review M9)'
   drafted_on: '2026-11-16'
   status: draft
-- signature: weakness.mks@wealth
+- signature: weakness.planet@wealth
   kind: meaning
   slots:
   - area
   - planet
-  - role
   variants:
-  - When {role}, {planet}, sits in a house counted as draining it, whatever its sign, tradition reads this as a reduced promise
-    for {area}.
-  - Texts link {role}, {planet}, placed in a house said to drain it, with a reduced promise for {area}.
-  - For {area}, {planet}, {role}, sits in a house said to drain it whatever its sign, and is traditionally read as giving
-    less than it promises.
-  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA)'
-  drafted_by: claude-opus-5-5 (rewritten for review M9)
+  - When {planet} is held back like this, texts traditionally read the promise of {area} as slow to show itself in full.
+  - Tradition reads {planet}, held back in these ways, as giving {area} less than it promises.
+  - Classical texts link {planet}, held back in this way, with {area} that gives less than its promise; that reading is traditional,
+    not a prediction.
+  source: 'Marana karaka sthana: the Jaimini tradition as taught by Sanjay Rath (constants.MARANA_KARAKA_STHANA); Baladi avastha,
+    the Mrita state: BPHS (Santhanam 1984) 45.3-4; Shadbala below the planet''s required strength: BPHS (Santhanam 1984) chapter
+    27'
+  drafted_by: 'claude-sonnet-5-5 (all three variants rewritten by claude-opus-5-5 for the shape, decision 2: the planet named,
+    review M9)'
   drafted_on: '2026-11-16'
-  status: draft
-- signature: weakness.mrita@career
-  kind: meaning
-  slots:
-  - area
-  - house
-  - planet
-  - role
-  - sign
-  variants:
-  - When {planet}, {role}, sits in {sign} in a feeble state by its degree, tradition reads {area} as having less strength
-    behind it than it needs.
-  - Texts link a planet in this feeble state, like {planet} as {role} in your {house} house, with {area} being read as carrying
-    less strength than it needs.
-  - '{planet} as {role} stands in {sign} in your {house} house in a feeble state, and tradition reads the support for {area}
-    as reduced.'
-  source: 'Baladi avastha, the Mrita state: BPHS (Santhanam 1984) 45.3-4'
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
-  status: draft
-- signature: weakness.mrita@marriage
-  kind: meaning
-  slots:
-  - area
-  - house
-  - planet
-  - role
-  - sign
-  variants:
-  - When {planet}, {role}, sits in {sign} in a feeble state by its degree, tradition reads {area} as having less strength
-    behind it than it needs.
-  - Texts link a planet in this feeble state, like {planet} as {role} in your {house} house, with {area} being read as carrying
-    less strength than it needs.
-  - '{planet} as {role} stands in {sign} in your {house} house in a feeble state, and tradition reads the support for {area}
-    as reduced.'
-  source: 'Baladi avastha, the Mrita state: BPHS (Santhanam 1984) 45.3-4'
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
-  status: draft
-- signature: weakness.mrita@wealth
-  kind: meaning
-  slots:
-  - area
-  - house
-  - planet
-  - role
-  - sign
-  variants:
-  - When {planet}, {role}, sits in {sign} in a feeble state by its degree, tradition reads {area} as having less strength
-    behind it than it needs.
-  - Texts link a planet in this feeble state, like {planet} as {role} in your {house} house, with {area} being read as carrying
-    less strength than it needs.
-  - '{planet} as {role} stands in {sign} in your {house} house in a feeble state, and tradition reads the support for {area}
-    as reduced.'
-  source: 'Baladi avastha, the Mrita state: BPHS (Santhanam 1984) 45.3-4'
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
   status: draft

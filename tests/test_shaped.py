@@ -121,3 +121,92 @@ def test_1_the_parts_are_answered_in_the_order_asked(chart, monkeypatch):
     timing = [s for s in c["sentences"] if s["section"] == "timing"]
     assert {s["area"] for s in timing if s["part"] in ("verdict", "stretch")} == {"marriage"}
     assert {s["area"] for s in c["sentences"] if s["section"] == "general"} == {"career"}
+
+
+# --- 2. Shape -----------------------------------------------------------------------------------------------------
+
+ATTRIBUTION = __import__("re").compile(r"\b(?:tradition\w*|texts?)\b", __import__("re").I)
+
+
+def facts_per_area(c) -> dict:
+    """Facts (not meanings, not the cannot-give line, not a vocation section) per area, the period counted once."""
+    n: dict = {}
+    for s in c["sentences"]:
+        if (s["row"] or {}).get("kind") == "meaning" or s["part"] == "opening" or s["section"] == "vocation":
+            continue
+        n[s["area"]] = n.get(s["area"], 0) + 1
+    return n
+
+
+@pytest.mark.parametrize("message", ["how is my career", "how is my marriage", "will I be rich",
+                                     "what is hard in my career", "how is my career, and when will it rise",
+                                     THREE[0], THREE[2]])
+def test_2_one_area_is_at_most_eight_sentences_on_the_reference_chart(chart, monkeypatch, message):
+    from jyotish.conversation import SHAPE
+    for draft in (False, True):
+        c = compose_for(chart, message, monkeypatch, draft_meanings=draft)
+        assert all(v <= SHAPE for v in facts_per_area(c).values()), [s["text"] for s in c["sentences"]]
+        assert c["held"] or message == THREE[2]           # the rest is held for "tell me more"
+
+
+def test_2_what_is_hard_is_one_sentence_per_planet(chart, monkeypatch):
+    c = compose_for(chart, "how is my career", monkeypatch)
+    weak = [s for s in c["sentences"] if s["part"] == "weakness"]
+    assert [s["text"].split(",")[1].strip() for s in weak] == ["Saturn", "the Sun"]
+    saturn = weak[0]["text"]
+    assert "drains it" in saturn and "feeble state" in saturn and "less strength" in saturn
+    assert not any("whatever the sign" in s["text"] or "no matter what" in s["text"] for s in c["sentences"])
+
+
+def test_2_no_bank_row_says_what_a_sign_says():
+    """The row that composed "no matter what Taurus says" is gone with the per-kind weakness rows."""
+    from jyotish.bank import load_bank
+    assert not [v for r in load_bank().rows for v in r.variants if " says" in v and "{sign}" in v]
+    assert not [r.signature for r in load_bank().rows if r.base in ("weakness.mks", "weakness.mrita",
+                                                                    "weakness.low_strength")]
+
+
+def test_2_a_meaning_follows_its_fact_and_a_paragraph_attributes_to_the_tradition_once(chart, monkeypatch):
+    for message in ("how is my career", "how is my marriage", "will I be rich", THREE[0], "tell me about my money"):
+        c = compose_for(chart, message, monkeypatch, draft_meanings=True)
+        ss, paras = c["sentences"], c["paragraphs"] + [len(c["sentences"])]
+        for i, s in enumerate(ss):
+            if (s["row"] or {}).get("kind") == "meaning":
+                assert i > 0 and ss[i - 1]["item"] == s["item"] and (ss[i - 1]["row"] or {}).get("kind") != "meaning"
+        for a, b in zip(paras, paras[1:]):
+            assert sum(len(ATTRIBUTION.findall(s["text"])) > 0 for s in ss[a:b]) <= 1, [s["text"] for s in ss[a:b]]
+
+
+def test_2_tell_me_more_gives_what_the_shape_held_and_repeats_nothing(chart, monkeypatch):
+    from jyotish.conversation import said_keys_of
+    first = compose_for(chart, "how is my career", monkeypatch)
+    more = compose_for(chart, "tell me more", monkeypatch, last=route_turn("how is my career", chart),
+                       said_keys=said_keys_of({"composed": first}))
+    keys = {s["key"] for s in first["sentences"]}
+    assert more["sentences"] and not keys & {s["key"] for s in more["sentences"]}
+    assert {s["key"] for s in more["sentences"]} <= {h["key"] for h in first["held"]}
+    assert any(s["part"] == "rule" for s in more["sentences"])           # the yogas the first answer held
+
+
+def test_2_over_random_charts_one_area_is_at_most_eight_sentences():
+    """40 synthetic charts, every area asked how it goes (and when): the composer's shape holds on each."""
+    import sys
+    from datetime import datetime
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from synthetic_cohort import births
+    from jyotish.chart import compute
+    from jyotish.conversation import SHAPE, compose
+    from jyotish.plan import plan
+    n = 0
+    for b in births(40, 7):
+        c = compute(datetime.fromisoformat(f"{b['date']}T{b['time']}"), b["lat"], b["lon"], true_node=False)
+        for a in [x for x in c.scored.areas if x != "synastry"]:
+            for when in (False, True):
+                p = plan(c, "x", [a], "both", ["goes"], as_of=AS_OF, when=when,
+                         parts=[{"kind": "goes", "areas": [a]}] + ([{"kind": "when", "areas": [a]}] if when else []))
+                got = compose(p, session_key="r", draft_meanings=True)
+                assert all(v <= SHAPE for v in facts_per_area(got).values())
+                weak = [s["text"] for s in got["sentences"] if s["part"] == "weakness"]
+                assert len(weak) == len(set(weak))
+                n += 1
+    assert n > 500

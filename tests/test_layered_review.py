@@ -48,7 +48,8 @@ def composed(plans):
         for v in range(3):
             mp.setattr(conv, "variant_of", lambda key, signature, v=v: v)
             for c, p in plans:
-                for s in conv.compose(p, bank, session_key=f"v{v}", draft_meanings=True)["sentences"]:
+                # Every sentence the bank can write, not the answer's shape (SPEC rev 136, decision 2).
+                for s in conv.compose(p, bank, session_key=f"v{v}", draft_meanings=True, shaped=False)["sentences"]:
                     out.append((c, p, s))
     return out
 
@@ -223,7 +224,9 @@ def test_h3_a_public_client_reads_only_an_approved_variant_or_an_approved_siblin
     p = plan_turn(c, "how is my career", route_turn("how is my career", c), as_of=AS_OF)
     sig = "rule.yoga.ruchaka.reduced@career"
     keys = {variant_of(k, sig): k for k in (f"k{n}" for n in range(30))}
-    meaning = lambda bank, key: [s for s in compose(p, bank, session_key=key, draft_meanings=False)["sentences"]
+    # Approval, not the answer's shape (SPEC rev 136, decision 2, holds Ruchaka for "tell me more"): unshaped.
+    meaning = lambda bank, key: [s for s in compose(p, bank, session_key=key, draft_meanings=False,
+                                                    shaped=False)["sentences"]
                                  if s["row"] and s["row"]["kind"] == "meaning"]
     none = Bank([_meaning_row()], "v")
     assert all(meaning(none, keys[i]) == [] for i in range(3))                 # nothing approved: nothing shown
@@ -231,7 +234,8 @@ def test_h3_a_public_client_reads_only_an_approved_variant_or_an_approved_siblin
     for i in range(3):                                                         # every session reads variant 2
         got = meaning(one, keys[i])
         assert [s["row"]["variant"] for s in got] == [2] and got[0]["text"] == "Two for your career."
-    shown = [s["row"]["variant"] for s in compose(p, none, session_key=keys[0], draft_meanings=True)["sentences"]
+    shown = [s["row"]["variant"] for s in compose(p, none, session_key=keys[0], draft_meanings=True,
+                                                  shaped=False)["sentences"]
              if s["row"] and s["row"]["kind"] == "meaning"]
     assert shown == [0]                                                        # testing: the session's own pick
 
@@ -260,20 +264,20 @@ def test_h4_a_rewrite_starting_with_a_capitalised_value_is_templated():
 
 
 def test_h4_two_items_of_one_signature_keep_their_own_facts_on_the_worksheet():
-    """The reference chart's career: weakness.mrita for Saturn (the 10th lord) and for the Sun (the main
-    significator). Each sentence's worksheet row shows its own planet's facts and slots."""
+    """The reference chart's career: a weakness for Saturn (the 10th lord) and for the Sun (the main significator),
+    one sentence each since SPEC rev 136. Each sentence's worksheet row shows its own planet's facts and slots."""
     from jyotish.conversation import compose, plan_turn, route_turn, worksheet
     from jyotish.reference import REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON
     from jyotish.uncertainty import assess
     c = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
     p = plan_turn(c, "how is my career", route_turn("how is my career", c), as_of=AS_OF)
-    assert [i.facts["planet"] for i in p.items if i.signature == "weakness.mrita"] == ["Saturn", "Sun"]
+    assert [i.facts["planet"] for i in p.items if i.signature == "weakness.planet"] == ["Saturn", "Sun"]
     doc = {"source": "composer", "plan": p.model_dump(), "composed": compose(p, session_key="s")}
-    mrita = [s for s in worksheet(doc)["sentences"] if s["looked_at"]["signature"] == "weakness.mrita"]
+    mrita = [s for s in worksheet(doc)["sentences"] if s["looked_at"]["signature"] == "weakness.planet"]
     assert [s["looked_at"]["facts"]["planet"] for s in mrita] == ["Saturn", "Sun"]
     for s in mrita:
         planet = s["looked_at"]["facts"]["planet"]
-        assert planet in s["told"] and s["looked_at"]["slots"]["sign"] == c.bodies[planet].sign_name
+        assert planet in s["told"] and c.bodies[planet].sign_name in s["looked_at"]["slots"]["weaknesses"]
 
 
 def test_h4_a_rewrite_whose_slots_are_not_the_variants_is_refused():
@@ -524,7 +528,8 @@ def test_m3_a_second_conversation_reads_its_own_variants_and_its_follow_up_repea
     last = route_turn(m, c)
     why = answer_turn(c, "why?", route_turn("why?", c, last), as_of=AS_OF, session_key="conv-b", store=store,
                       history=[{"question": m, "answer": " ".join(b1["shown"])}])
-    assert len(why["shown"]) <= 2, why["shown"]
+    # Nothing turn 1 said is said again (since SPEC rev 136 the "why?" gives the reasons the shaped turn 1 held).
+    assert not [x for x in why["shown"] if x in b1["shown"]], why["shown"]
 
 
 # --- M4. A follow-up after a polished turn repeats everything --------------------------------------------------------
@@ -562,8 +567,10 @@ def test_m4_a_follow_up_after_a_polished_turn_leaves_out_what_was_composed(monke
                                             history=[{"question": m, "answer": " ".join(first["shown"]),
                                                       **({"said_keys": said_keys_of(first)} if keys else {})}])
     base = after(plain, keys=False)                       # the text filter, after a plain turn
-    assert len(base["shown"]) <= 2
-    assert len(after(pol, keys=False)["shown"]) >= len(base["shown"]) + 3   # the fault: the text filter misses it
+    assert not [x for x in base["shown"] if x in plain["shown"]]            # repeats nothing (rev 136: held reasons)
+    # The fault: the text filter misses what the polished turn composed, and the "why?" composes it again (since
+    # SPEC rev 136 the answer's shape caps how much, so the test is that it repeats, not how much).
+    assert set(said_keys_of(after(pol, keys=False))) & set(said_keys_of(pol))
     assert after(pol, keys=True)["shown"] == base["shown"]
 
 
@@ -657,7 +664,8 @@ def test_m7_a_rule_said_for_several_areas_reads_each_areas_own_meaning_row():
     rule = next(i for i in p.items if i.part == "rule" and len(i.facts.get("areas") or []) > 1)
     rows = [BankRow(signature=f"{rule.signature}@{a}", kind="meaning", slots=["area"], source="BPHS 1.1",
                     drafted_by="t", drafted_on=AS_OF, variants=[f"For {{area}} ({a})."] * 3) for a in rule.facts["areas"]]
-    told = [s for s in compose(p, Bank(rows, "v"), session_key="m7", draft_meanings=True)["sentences"]
+    # Each area's own row, unshaped (since SPEC rev 136 a shaped answer gives one meaning a fact: the first area's).
+    told = [s for s in compose(p, Bank(rows, "v"), session_key="m7", draft_meanings=True, shaped=False)["sentences"]
             if s["row"] and s["row"]["kind"] == "meaning"]
     labels = rule.facts["area_labels"]
     assert [s["text"] for s in told] == [f"For {labels[a]} ({a})." for a in rule.facts["areas"]]
@@ -721,9 +729,10 @@ def test_m9_the_meaning_rows_the_review_named_say_what_their_rule_and_weakness_a
     assert "lion" in gk and not re.search(r"the lion combination|means a lion", gk)   # the elephant and the lion
     assert "named for discipline" not in words("rule.yoga.sasa.")                       # Sasa is the hare
     assert "named for courage" not in words("rule.yoga.ruchaka.")                       # Ruchaka is radiant
-    assert "short of the strength" not in words("weakness.mks@")                        # that is low strength
-    for area in ("marriage", "wealth"):
-        assert all("{planet}" in v for v in rows[f"weakness.mks@{area}"].variants)        # the planet is named
+    # Since SPEC rev 136 one meaning row per area covers a planet's weaknesses together (decision 2): it names the
+    # planet in every variant, as the review asked of the per-kind rows it replaced.
+    for area in ("career", "marriage", "wealth"):
+        assert all("{planet}" in v for v in rows[f"weakness.planet@{area}"].variants)     # the planet is named
     for s in ("rule.yoga.gaja_kesari_bphs.reduced@career", "rule.yoga.gaja_kesari_bphs.reduced@wealth"):
         assert not any("Moon" in v for v in rows[s].variants)
 

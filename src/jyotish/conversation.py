@@ -962,6 +962,77 @@ PLACES = {"verdict": ("general", "why", "timing"), "stability": ("general", "why
           "vocation": ("vocation",)}
 
 
+# The shape of an answer (SPEC Layer 8 rev 136, "The shaped answer", decision 2). For one area, at most SHAPE facts by
+# default: the lean (and how far it depends on the birth time), the two things that help most (the families by
+# percentile, then the cited rules), what is hard (the hardest families, then one sentence per planet with its hidden
+# weaknesses), the period now, and the stretches where a part asks when. Where the budget is short the hard part keeps
+# one sentence and the helps give way first; a question about what is against keeps the hard part and gives one help.
+# Over several areas each area gives its lean, one help and one hard sentence (against: the hard one alone), the period
+# is said once. Everything else in the plan is held, by key, for "tell me more" (a follow-up leaves out what was said
+# and is shaped from what is left). A meaning follows its own fact, one meaning a fact, and closes its paragraph, so a
+# paragraph attributes to the tradition at most once. The cannot-give line and a vocation section are outside the
+# budget (decision 3 shapes the vocation section).
+SHAPE = 8
+HELPS_SHAPE = 2
+ROLE = {"verdict": "lean", "stability": "lean", "helps": "helps", "rule": "helps", "hard": "hard", "weakness": "hard",
+        "period": "period", "stretch": "stretch"}
+
+
+def _units(out: list[dict]) -> list[list[dict]]:
+    """The sentences as units: a fact with the meaning that follows it (one meaning a fact)."""
+    units: list[list[dict]] = []
+    for s in out:
+        meaning = s["row"] is not None and s["row"]["kind"] == "meaning"
+        if meaning and units and units[-1][0]["item"] == s["item"]:
+            if len(units[-1]) == 1:
+                units[-1].append(s)
+            continue
+        units.append([s])
+    return units
+
+
+def shape(out: list[dict], plan) -> tuple[list[dict], list[dict]]:
+    """(kept, held): the placed sentences cut to the answer's shape (the comment above)."""
+    units = _units(out)
+    against = plan.direction == "against"
+    by_area: dict[str, dict[str, list]] = {}
+    for u in units:
+        role = ROLE.get(u[0]["part"])
+        if role in ("lean", "helps", "hard", "stretch"):
+            by_area.setdefault(u[0]["area"], {}).setdefault(role, []).append(id(u[0]))
+    n = len(by_area)
+    period = sum(1 for u in units if u[0]["part"] == "period")
+    keep: set[int] = set()
+    for area, roles in by_area.items():
+        lean, helps, hard, stretch = (roles.get(k, []) for k in ("lean", "helps", "hard", "stretch"))
+        if n > 1:
+            hq, kq = (0, 1) if against else (1, 1)
+        else:
+            free = SHAPE - len(lean) - len(stretch) - period
+            if against:
+                kq = min(len(hard), max(1, free - (1 if helps else 0)))
+                hq = max(0, min(HELPS_SHAPE, free - kq))
+            else:
+                hq = min(HELPS_SHAPE, len(helps))
+                kq = max(0, free - hq)
+                if hard and kq < 1 and hq > 1:
+                    hq, kq = hq - 1, 1
+        keep |= set(lean) | set(stretch) | set(helps[:hq]) | set(hard[:kq])
+    kept, held = [], []
+    for u in units:
+        role = ROLE.get(u[0]["part"])
+        if role in (None, "period") or id(u[0]) in keep:
+            kept += u
+        else:
+            held += [{"key": x["key"], "signature": x["signature"], "area": x["area"],
+                      "why": "beyond the answer's shape: held for tell me more"} for x in u]
+    # A meaning past the first of its fact (a rule said for several areas) is held too.
+    seen = {id(x) for x in kept}
+    held += [{"key": x["key"], "signature": x["signature"], "area": x["area"], "why": "one meaning a fact"}
+             for x in out if id(x) not in seen and not any(h["key"] == x["key"] for h in held)]
+    return kept, held
+
+
 def sections_of(plan) -> list[dict[str, Any]]:
     """The answer's sections in the order asked, each {name, kinds, areas} (the comment above). A plan with no parts
     (made by a tool, or before rev 136) is one general ask, then the timing on a "when" plan, then why."""
@@ -1033,14 +1104,16 @@ def said_keys_of(doc: dict) -> list[str]:
 
 
 def compose(plan, bank=None, session_key: str = "", said_before: list[str] | None = None,
-            draft_meanings: bool | None = None, said_keys: list[str] | None = None) -> dict[str, Any]:
+            draft_meanings: bool | None = None, said_keys: list[str] | None = None,
+            shaped: bool = True) -> dict[str, Any]:
     """The plan filled from the bank (SPEC Layer 8, "The layered answer"): per item its fact row's variant for this
     session with the chart's values, else the engine's sentence; after a rule's or a weakness's fact, its meaning row
     for the area where approved (or where JYOTISH_SHOW_DRAFT_MEANINGS is on); ordered as PARAGRAPHS. No model call.
     `said_before`: a follow-up's earlier answers as the client read them; a sentence one of them holds is left out
     (the caveat closing a set of stretches excepted), and a why or how turn whose reasons were all given says so.
     Returns the sentences ({text, tagged, signature, part, area, row, tags, notes}), the paragraph starts, the
-    plan and the bank's version."""
+    plan and the bank's version. `shaped=False` (the composed check, and the tests of a row's variants, refusals and
+    verdicts) leaves out the answer's shape (decision 2): every sentence a section takes, every meaning of a fact."""
     from .bank import default_bank
     from .narrate import OPENING_SAID, _cap
     bank = bank if bank is not None else default_bank()
@@ -1107,7 +1180,11 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
                          "why": "no part of the message asks for it"})
         else:
             placed.append(s | {"section": sections[k]["name"]})
-    out = placed
+    if shaped:
+        out, cut = shape(placed, plan)
+        held += cut
+    else:
+        out = placed
     order = ["answer", "hard", "helps", "timing"] if plan.direction == "against" else ["answer", "helps", "hard", "timing"]
     rank = {part: n for n, para in enumerate(order) for part in PARAGRAPHS[para]} | {"vocation": len(order)}
     at = {x["name"]: i for i, x in enumerate(sections)}
@@ -1117,7 +1194,10 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
         r = rank["period"] if s["section"] == "timing" else rank["vocation"] if s["section"] == "vocation" else rank[s["part"]]
         return at[s["section"]], r
     out.sort(key=para)                                          # stable: the plan's order within a paragraph
-    paras = [i for i, s in enumerate(out) if i == 0 or para(s) != para(out[i - 1])]
+    # A new paragraph where the paragraph changes, and after a meaning: a paragraph attributes to the tradition once.
+    meaning = lambda s: s["row"] is not None and s["row"]["kind"] == "meaning"
+    paras = [i for i, s in enumerate(out) if i == 0 or para(s) != para(out[i - 1])
+             or (shaped and meaning(out[i - 1]))]
     return {"sentences": out, "paragraphs": paras, "bank": bank.version, "sections": [x["name"] for x in sections],
             "held": held, "from_bank": sum(1 for s in out if s["row"] is not None),
             "from_engine": sum(1 for s in out if s["row"] is None)}

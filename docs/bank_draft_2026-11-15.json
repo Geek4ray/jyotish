@@ -575,8 +575,33 @@
     "checker": 0.0064
    },
    "calls": 1
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 4,
+   "rows_kept": 134,
+   "left_out": {},
+   "usd": {
+    "writer": 0.0175,
+    "checker": 0.0103
+   },
+   "calls": 2
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 1,
+   "checks": 12,
+   "refused": {},
+   "no_sample": [],
+   "usd": {
+    "checker": 0.0047
+   }
   }
  ],
- "rows_in_bank": 134,
- "usd_total": 2.1732
+ "rows_in_bank": 126,
+ "usd_total": 2.2057
 }

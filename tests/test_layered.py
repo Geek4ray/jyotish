@@ -56,11 +56,12 @@ def test_1_the_career_plan_holds_the_yogas_with_their_reductions_and_saturns_hid
     assert ruchaka.signature == "rule.yoga.ruchaka.reduced"
     assert ruchaka.slots["reductions"] == ("Saturn's aspect on it, an unhelpful star counted from your Moon and a "
                                            "house that drains it")
-    mks = next(i for i in p.items if i.signature == "weakness.mks")
-    assert mks.facts["planet"] == "Saturn" and mks.facts["house"] == 1 and mks.slots["role"] == "the ruler of your 10th house"
-    assert "drains" in mks.engine and "friendly" not in mks.engine
-    assert {i.signature for i in p.items if i.facts.get("planet") == "Saturn"} == {
-        "weakness.mks", "weakness.mrita", "weakness.low_strength"}     # ratio 0.69, Mrita, 1st house
+    # Saturn's three hidden weaknesses in one item since SPEC rev 136 (decision 2: one sentence per planet).
+    sat = next(i for i in p.items if i.signature == "weakness.planet" and i.facts["planet"] == "Saturn")
+    assert sat.facts["house"] == 1 and sat.slots["role"] == "the ruler of your 10th house"
+    assert "drains" in sat.engine and "friendly" not in sat.engine
+    assert sat.facts["weaknesses"] == ["mks", "mrita", "low_strength"]     # 1st house, Mrita, ratio 0.69
+    assert [i.signature for i in p.items if i.facts.get("planet") == "Saturn"] == ["weakness.planet"]
 
 
 def test_1_the_plan_is_in_order_helps_by_the_most_unusual_terms_and_says_what_it_left_out(chart, data):
@@ -236,9 +237,10 @@ def test_3_the_drafted_rows_are_drafts_from_sonnet_and_every_fact_variant_was_ch
     from jyotish.bank import load_bank
     bank = load_bank()
     assert len(bank) > 60
-    # Drafted by Sonnet; rows rewritten after the review of 2026-11-15 name the model that rewrote them and why.
-    assert all(r.status == "draft" and (r.drafted_by == "claude-sonnet-5-5" or "review" in r.drafted_by)
-               for r in bank.rows)
+    # Drafted by Sonnet; rows rewritten after the review of 2026-11-15, or for the shaped answer (2026-11-16), name
+    # the model that rewrote them and why.
+    assert all(r.status == "draft" and (r.drafted_by == "claude-sonnet-5-5" or "review" in r.drafted_by
+                                        or "rewritten by" in r.drafted_by) for r in bank.rows)
     facts = [r for r in bank.rows if r.kind == "fact"]
     # Every fact variant was checked (on each slot shape since the review's H1); a variant refused on a shape is
     # never shown, and every fact row keeps at least one variant no check refused.
@@ -299,7 +301,7 @@ def test_4_the_composer_fills_the_plan_from_the_bank_and_falls_back_to_the_engin
     from jyotish.conversation import compose, variant_of
     bank = load_bank(write_bank(tmp_path, ruchaka_rows()))
     p = career(chart, data)
-    c = compose(p, bank, session_key="s1", draft_meanings=False)
+    c = compose(p, bank, session_key="s1", draft_meanings=False, shaped=False)
     by = {s["signature"]: s for s in c["sentences"]}
     r = by["rule.yoga.ruchaka.reduced"]
     v = variant_of("s1", "rule.yoga.ruchaka.reduced")
@@ -309,10 +311,10 @@ def test_4_the_composer_fills_the_plan_from_the_bank_and_falls_back_to_the_engin
     assert r["tagged"].endswith("[rule:yoga.ruchaka] [text:BPHS/Santhanam-1984/75/1-2] "
                                 "[text:Phaladeepika/Sastri-1937/6/1].")
     # No row: the engine's sentence. A draft meaning is not shown unless JYOTISH_SHOW_DRAFT_MEANINGS is on.
-    assert by["weakness.mks"]["row"] is None and by["weakness.mks"]["text"] == next(
-        i.engine for i in p.items if i.signature == "weakness.mks")
+    assert by["weakness.planet"]["row"] is None and by["weakness.planet"]["text"] in [      # Saturn's and the Sun's
+        i.engine for i in p.items if i.signature == "weakness.planet"]
     assert not [s for s in c["sentences"] if (s["row"] or {}).get("kind") == "meaning"]
-    shown = compose(p, bank, session_key="s1", draft_meanings=True)
+    shown = compose(p, bank, session_key="s1", draft_meanings=True, shaped=False)
     meant = [s for s in shown["sentences"] if (s["row"] or {}).get("kind") == "meaning"]
     assert [s["signature"] for s in meant] == ["rule.yoga.ruchaka.reduced"] and "Ruchaka" in meant[0]["text"]
     i = [s["signature"] for s in shown["sentences"]].index("rule.yoga.ruchaka.reduced")
@@ -325,7 +327,7 @@ def test_4_the_variant_is_a_hash_of_the_session_stable_across_turns(chart, data,
     from jyotish.conversation import compose, variant_of
     bank = load_bank(write_bank(tmp_path, ruchaka_rows()))
     p = career(chart, data)
-    texts = lambda key: [s["text"] for s in compose(p, bank, session_key=key)["sentences"]]
+    texts = lambda key: [s["text"] for s in compose(p, bank, session_key=key, shaped=False)["sentences"]]
     assert texts("a") == texts("a")
     keys = [f"s{n}" for n in range(12)]
     assert len({variant_of(k, "rule.yoga.ruchaka.reduced") for k in keys}) == 3
@@ -344,11 +346,11 @@ def test_4_a_row_refused_by_the_checker_or_wanting_a_slot_is_not_used(chart, dat
     wants = fact | {"slots": fact["slots"] + ["nakshatra"],                    # a slot the item does not fill
                     "variants": [v.replace("{placed}", "{placed} in {nakshatra}") for v in fact["variants"]]}
     for bad in (every, wants):
-        c = compose(career(chart, data), load_bank(write_bank(tmp_path, [bad])), session_key="s1")
+        c = compose(career(chart, data), load_bank(write_bank(tmp_path, [bad])), session_key="s1", shaped=False)
         assert next(s for s in c["sentences"] if s["signature"] == "rule.yoga.ruchaka.reduced")["row"] is None
     from jyotish.conversation import variant_of
     key = next(k for k in ("s0", "s1", "s2", "s3", "s4", "s5") if variant_of(k, fact["signature"]) == 0)
-    c = compose(career(chart, data), load_bank(write_bank(tmp_path, [refused])), session_key=key)
+    c = compose(career(chart, data), load_bank(write_bank(tmp_path, [refused])), session_key=key, shaped=False)
     assert next(s for s in c["sentences"] if s["signature"] == "rule.yoga.ruchaka.reduced")["row"]["variant"] == 1
 
 
@@ -411,10 +413,18 @@ def test_4_a_follow_up_repeats_nothing_and_a_why_with_nothing_new_says_so(chart,
     again = compose(plan_turn(chart, "whan and how", r, as_of=AS_OF, data=data), session_key="s", said_before=said)
     texts = [s["text"] for s in again["sentences"]]
     sigs = [s["signature"] for s in again["sentences"]]
-    # When, then how, in the order asked (SPEC rev 136, decision 1): the stretches, then that nothing is new.
-    assert sigs[-2] == "stretch.caveat.two" and sigs[-1] == "opening.said"
-    assert not set(texts) & {s["text"] for s in first["sentences"]} - {texts[-2]}
-    assert OPENING_SAID in texts
+    # When, then how, in the order asked (SPEC rev 136, decision 1): the stretches, then the reasons the first,
+    # shaped answer held (decision 2), none of them said before.
+    k = sigs.index("stretch.caveat.two")
+    assert sigs[k + 1] == "opening.why" and {"helps", "rule", "hard", "weakness"} & set(
+        s["part"] for s in again["sentences"][k + 1:])
+    assert not set(texts) & {s["text"] for s in first["sentences"]} - {texts[k]}
+    # After an answer that said everything (unshaped), a "how" with nothing new says so.
+    whole = compose(plan_turn(chart, m, route_turn(m, chart), as_of=AS_OF, data=data), session_key="s", shaped=False)
+    said = [" ".join(s["text"] for s in whole["sentences"])]
+    again = compose(plan_turn(chart, "whan and how", r, as_of=AS_OF, data=data), session_key="s", said_before=said)
+    texts = [s["text"] for s in again["sentences"]]
+    assert again["sentences"][-1]["signature"] == "opening.said" and OPENING_SAID in texts
 
 
 SEVEN = ["what are the challanges in my life", "and marriage?", "when?", "why do you say that?", "will I die early?",
@@ -586,7 +596,12 @@ def ws_app(tmp_path_factory, ws_bank):
     mp = pytest.MonkeyPatch()
     mp.setenv("JYOTISH_LAYERED", "1")
     import jyotish.bank
+    import jyotish.conversation
     mp.setattr(jyotish.bank, "BANK_DIR", ws_bank)
+    # These are tests of the worksheet and the verdicts on its rows, not of the answer's shape (SPEC rev 136,
+    # decision 2, which holds Ruchaka for "tell me more"): the turn here composes every sentence its sections take.
+    mp.setattr(jyotish.conversation, "SHAPE", 99)
+    mp.setattr(jyotish.conversation, "HELPS_SHAPE", 99)
     db = tmp_path_factory.mktemp("ws") / "jyotish.db"
 
     def passes(s, d):
@@ -625,7 +640,7 @@ def test_6_the_worksheet_shows_per_sentence_what_was_looked_at_derived_told_and_
     r = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
     assert r["bank_row"]["kind"] == "fact" and len(r["bank_row"]["variants"]) == 3 and r["bank_row"]["status"] == "draft"
     assert r["looked_at"]["facts"]["reductions"] and r["looked_at"]["tags"][0] == "rule:yoga.ruchaka"
-    mks = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.mks")
+    mks = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.planet")
     assert mks["bank_row"] is None and mks["engine"] == mks["told"] and mks["derived"]          # the sheet's points
     karaka = next(s for s in ws["sentences"] if s["looked_at"]["signature"] == "family.karaka.for")
     assert any(d["point"] == 3 for d in karaka["derived"])                     # the significators' point
@@ -642,13 +657,13 @@ def test_6_a_verdict_is_stored_against_the_bank_row_and_exported(ws_client, ws_a
     i = next(s["i"] for s in ws["sentences"] if s["looked_at"]["signature"] == "rule.yoga.ruchaka.reduced")
     bad = c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", json={"i": i, "verdict": "change"}, headers=AUTH)
     assert bad.status_code == 422 and "needs your words" in bad.json()["detail"]
-    j = next(s["i"] for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.mks")
+    j = next(s["i"] for s in ws["sentences"] if s["looked_at"]["signature"] == "weakness.planet")
     out = c.post(f"/sessions/{sid}/turns/1/worksheet/verdict", headers=AUTH,
                  json={"i": j, "verdict": "right"}).json()
     assert out["sentences"][j]["verdicts"][0]["verdict"] == "right"
     n = export_reviews(url, tmp_path)
     rows = [json.loads(x) for x in (tmp_path / "bank_reviews.jsonl").read_text().splitlines()][1:]
-    assert n["bank"] == 1 and rows[0]["signature"] == "weakness.mks" and rows[0]["kind"] is None
+    assert n["bank"] == 1 and rows[0]["signature"] == "weakness.planet" and rows[0]["kind"] is None
     assert rows[0]["reviewer"] == "astrologer-1" and "_i" not in rows[0]["slots"]
 
 
@@ -667,7 +682,7 @@ def test_6_apply_reviews_writes_approvals_rewrites_and_withdrawals_back_to_the_b
     rep = apply_reviews(url, ws_bank, today=AS_OF, checker=checker)
     assert [x["signature"] for x in rep["rewritten"]] == ["rule.yoga.ruchaka.reduced"]
     assert checker.asked and "Mars in your 7th house" in checker.asked[0][0]
-    assert [x["signature"] for x in rep["no_row"]] == ["weakness.mks"]          # the engine's sentence: for drafting
+    assert [x["signature"] for x in rep["no_row"]] == ["weakness.planet"]       # the engine's sentence: for drafting
     row = load_bank(ws_bank).fact("rule.yoga.ruchaka.reduced")
     v = fact["bank_row"]["variant"]
     assert row.variants[v] == ("{name}, a combination of courage, is in your chart, with {placed}, though "

@@ -155,6 +155,12 @@ WEAKNESS_WHAT = {
     "mks": "the planet sits in its marana karaka sthana, a house counted as draining it whatever its sign",
     "mrita": "the planet is in the Mrita (dead) state of the five Baladi age states by its degree in its sign",
     "low_strength": "the planet's six-fold strength is below what it needs to give fully what it promises"}
+# One planet's weaknesses in one sentence (SPEC rev 136, "The shaped answer", decision 2): any of the three above.
+WEAKNESS_SOURCE["planet"] = "; ".join(WEAKNESS_SOURCE[k] for k in ("mks", "mrita", "low_strength"))
+WEAKNESS_WHAT["planet"] = ("the planet, the area's main ruler or main significator, has one or more of these hidden "
+                           "weaknesses, listed in its {weaknesses} slot: " + "; ".join(
+                               WEAKNESS_WHAT[k] for k in ("mks", "mrita", "low_strength"))
+                           + ". The meaning is of the planet so held back, for the area, whichever of them it has")
 
 
 def _source(key: tuple[str, str]) -> str | None:
