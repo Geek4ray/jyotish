@@ -284,3 +284,34 @@ def test_3_the_vocation_rows_are_drafts_checked_as_the_others_were():
         r = rows[f"vocation.works.{p}@career"]
         assert r.kind == "meaning" and r.status == "draft" and r.source.startswith("Brihat Jataka 10")
         assert "not yet read" in r.source                                 # the verse was not read: said so
+
+
+# --- 4. A change of job -------------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("message", [
+    "when will i leave my current job", "I want to quit my job", "should I switch companies", "when will I resign",
+    "when will I change my career", "naukri kab chhodunga", "job badalni chahiye kya", "meri job kab chhutegi",
+    "company switch karu", "मैं नौकरी कब छोड़ूंगा"])
+def test_4_leaving_changing_or_switching_a_job_is_the_ask_change_about_career(chart, message):
+    from jyotish.conversation import kind_of
+    route = route_turn(message, chart)
+    assert kind_of(message) == "change" and route.areas == ["career"] and route.when
+
+
+def test_4_a_change_is_one_no_date_sentence_then_the_period_and_the_stretches(chart, monkeypatch):
+    for draft in (False, True):
+        c = compose_for(chart, THREE[2], monkeypatch, draft_meanings=draft)
+        sigs = [s["signature"] for s in c["sentences"]]
+        assert sigs[0] == "opening.change" and sigs[1].startswith("period.now")
+        assert sigs[2:] == ["stretch.most.first", "stretch.least.second", "stretch.caveat.two"]
+        assert "no date for leaving or changing a job" in c["sentences"][0]["text"].replace("cannot give a date", "no date")
+    # Asked with how it goes, the lean is the general part's and the change's line opens its own part.
+    c = compose_for(chart, THREE[0], monkeypatch)
+    timing = [s["signature"] for s in c["sentences"] if s["section"] == "timing"]
+    assert timing[0] == "opening.change" and timing[1].startswith("period.now")
+
+
+def test_4_no_rule_for_a_change_of_job_is_added():
+    from jyotish.rules import default_rules
+    assert not [r.id for r in default_rules() if any(w in r.id for w in ("job", "change", "resign", "switch"))]
+

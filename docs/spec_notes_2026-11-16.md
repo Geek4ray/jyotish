@@ -136,3 +136,15 @@ until the astrologer approves the meaning rows.
 The words are tolerant of spelling as the rest of the vocabulary is (`_near`), so "vacation" read as "vocation" and a
 vacation became a career question (the routing probe of the chat review caught it): "vacation", "yield", "fiend" and
 "vector" and their plurals are in `NOT_A_TYPO`.
+
+## 4. A change of job
+
+`CHANGE` reads leaving, quitting, changing, switching or resigning a job, work, company or employer (and "job change",
+"career switch"), in Hinglish ("naukri kab chhodunga", "job badalni", "meri job kab chhutegi", "company switch karu")
+and in Devanagari ("नौकरी छोड़", "नौकरी बदल", "जॉब छोड़"). Its part is the ask `change`, a message it matches names
+career, and the route gives the stretches (`Route.when`) whether or not the message says "when". The answer is the
+cannot-give line for a change (`opening.change`: "a chart cannot give a date for leaving or changing a job"), then the
+period now and the stretches: the timing section of a change takes no lean, where a when-only question's does
+(`_section_for`). Asked beside how the career goes, the lean is the general part's and the change's line opens its own
+part. No rule for a change of job was added (`test_4_no_rule_for_a_change_of_job_is_added`); the stretches are the
+career's timing windows as before, and the caveat closing them says they are not a prediction of when you will act.

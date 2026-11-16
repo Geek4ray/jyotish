@@ -235,7 +235,7 @@ def areas_of(message: str) -> list[str]:
         if any(t in v["words"] for t in toks) or any(t.startswith(st) for t in toks for st in v["stems"]) or \
                 any(_near(t, w) for t in toks for w in v["words"] if len(w) >= 5) or \
                 any(h in text for h in v["hindi"]) or \
-                (area == "career" and (CAREER_WORK.search(text) or VOCATION.search(text))):
+                (area == "career" and (CAREER_WORK.search(text) or VOCATION.search(text) or CHANGE.search(text))):
             out.append(area)
     return out
 
@@ -522,8 +522,14 @@ YES_NO_TAIL = re.compile(r"\b(?:hoga|hogi|honge|milega|milegi|milenge)$|(?:ह�
 # A change of job (decision 4) and the field of work (decision 3): English here, Hinglish and Devanagari with their
 # decisions.
 CHANGE = re.compile(r"\b(?:leave|leaving|left|quit|quitting|change|changing|switch|switching|resign|resigning)\b"
-                    r"[^,;?]{0,30}\b(?:job|jobs|work|company|employer|office|naukri|naukari|career)\b|\bresign\w*\b|"
-                    r"\b(?:job|career) (?:change|switch)\b")
+                    r"[^,;?]{0,30}\b(?:job|jobs|work|company|companies|employer|employers|office|naukri|naukari|"
+                    r"career)\b|\bresign\w*\b|"
+                    r"\b(?:job|career) (?:change|switch)\b|"
+                    # Hinglish (decision 4): "naukri kab chhodunga", "job badalni chahiye", "company switch karu"
+                    r"\b(?:naukri|naukari|job|company|kaam)\b[^,;?]{0,20}\b(?:chhod|chod|chhut|chhoot|badal|switch)\w*|"
+                    r"\b(?:chhod|chod|badal)\w* (?:du|doon|dun|dena|deni|na)?\s*(?:naukri|naukari|job)\b|"
+                    # Devanagari: "नौकरी छोड़", "नौकरी बदल", "जॉब छोड़"
+                    r"(?:नौकरी|जॉब|कंपनी)[^,;?।]{0,20}(?:छोड़|छोड|छूट|बदल)")
 VOCATION = re.compile(r"\b(?:which|what) (?:field|fields|line|sector|profession|kind of work|type of work|work)\b|"
                       r"\b(?:kind|type|line) of work\b|\bwork in\b|\bbusiness or (?:a )?job\b|"
                       r"\bjob or (?:a )?business\b|"
@@ -1082,6 +1088,10 @@ def _section_for(item, sections: list[dict]) -> int | None:
     areas = item.facts.get("areas") or [item.area]
     for name in PLACES.get(item.part, ("general",)):
         for i, x in enumerate(sections):
+            # A change of job is answered with the period now and the stretches (decision 4): its section takes no
+            # lean, where a "when" question's does.
+            if item.part in ("verdict", "stability") and set(x["kinds"]) == {"change"}:
+                continue
             if x["name"] == name and any(a in x["areas"] for a in areas):
                 return i
     return None
