@@ -200,3 +200,10 @@ family.panchanga.`: the first draft was refused for want of those facts, the sec
 once more, and two variants that wanted a comma after `{ruled}` were mended by Opus and rechecked; one variant ("the
 planets that rule these parts of your birth day") the recheck refused as ambiguous, so it is never shown. `row_errors`
 now refuses "ruler(s) of the day" in any row.
+
+**A greeting is not a follow-up.** A short message with neither an area nor a direction is carried as a follow-up
+(SPEC Layer 8, decided after the review of chat v1), so "hi" or "thanks" after a health turn was answered as a health
+follow-up. `conversation.GREETING` (hi, hello, hey, namaste, namaskar, good morning and its kin, thanks, thank you, ok,
+okay, shukriya, dhanyavad, नमस्ते, धन्यवाद, with "there", "ji", "so much" or "a lot" after them) is never carried: it is
+read as a first message is (the chart's top areas, the writer loop). Read here: only greetings, thanks and a bare "ok"
+were taken out; "what should I know" after a turn is still a follow-up under the SPEC's rule.

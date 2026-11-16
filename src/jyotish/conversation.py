@@ -92,6 +92,12 @@ def asks_how(message: str, short_follow_up: bool = False) -> bool:
                 return True
     return False
 FOLLOW_OPENER = re.compile(r"^\s*(?:and|but|also|so|what about|how about|and what about|aur)\b", re.I)
+# A greeting, a thanks or a bare "ok" asks nothing of the last turn (the layered answer's open item, fixed 2026-11-16:
+# "hi" after a health turn was answered as a health follow-up): it is read as a first message is.
+GREETING = re.compile(r"^(?:hi+|hello+|hey+|hiya|yo|namaste|namaskar|namaskaram|pranam|ram ram|sat sri akal|salaam|"
+                      r"good (?:morning|afternoon|evening|night|day)|thanks|thank you|thank u|thanku|thx|ty|ok|okay|"
+                      r"okk+|k|cool|great|nice|alright|all right|shukriya|dhanyavad|dhanyawad|नमस्ते|धन्यवाद)"
+                      r"(?:\s+(?:there|tatva|ji|so much|a lot))?[\s!.?,]*$")
 FOLLOW_MAX_WORDS = 6          # a message this short with neither an area nor a direction of its own is a follow-up
                               # (SPEC Layer 8, review M3: "what are my strengths" is a question of its own)
 # Areas no default route goes to, top or weakest (SPEC Layer 8, decided after the review of chat v1, C1): long life
@@ -435,7 +441,7 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     how = asks_how(message, short_follow_up=short and not named and direction is None)
     if refused and (why or how) and not named and short:
         return Route(areas=[], direction="both", why=True, how=how, follow_up=True, explains=refused)
-    follow = bool(last and not last.off_limits and last.areas and
+    follow = bool(last and not last.off_limits and last.areas and not GREETING.search(normalise(message)) and
                   (FOLLOW_OPENER.search(message) or why or how or (short and not named and direction is None)))
     carried: list[str] = []
     if named:

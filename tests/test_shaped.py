@@ -408,3 +408,12 @@ def test_w2_only_the_weekdays_lord_is_called_the_ruler_of_the_day(chart, monkeyp
     from jyotish.bank import load_bank
     assert not [v for r in load_bank().rows if r.base.startswith("family.panchanga.") for v in r.variants
                 if "rulers of the day" in v or "ruler of the day" in v]
+
+
+@pytest.mark.parametrize("message", ["hi", "Hello!", "hey there", "thanks", "thank you so much", "ok", "namaste",
+                                     "good morning", "धन्यवाद"])
+def test_w3_a_greeting_after_a_turn_is_not_a_follow_up(chart, message):
+    last = route_turn("how is my health", chart)
+    r = route_turn(message, chart, last)
+    assert not r.follow_up and "health" not in r.areas
+    assert route_turn("and money?", chart, last).follow_up and route_turn("why?", chart, last).follow_up
