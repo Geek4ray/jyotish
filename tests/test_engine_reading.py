@@ -27,7 +27,7 @@ CAREER = [
     "house, in an unfriendly sign.",
     "The divisional chart for your career leans favourably; there Mars falls in Capricorn, exalted, where it is at "
     "its best.",
-    "The rulers of the day you were born, Mars and the Moon, lean favourably for your career.",
+    "Mars, which rules the lunar day and your birth star, and the Moon, which rules the weekday, lean favourably for your career.",  # 2026-11-16
     "The most favourable stretch for your career, as the chart reads it, runs from October 2029 to June 2032.",
     "The least favourable stretch runs from November 2028 to August 2029.",
     "Neither stretch is a prediction of when you will act.",

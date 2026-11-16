@@ -397,3 +397,14 @@ def test_w1_a_varga_sentence_names_the_divisional_chart_it_rests_on(chart):
                     seen["own"] += 1
                     assert AREAS[a]["vargas"][0] in vargas and AREAS[a]["vargas"][0] != "D1", (a, i.engine)
     assert seen["own"] > 100 and seen["other"] > 10, seen
+
+
+def test_w2_only_the_weekdays_lord_is_called_the_ruler_of_the_day(chart, monkeypatch):
+    """On the reference chart's money: Mars rules the lunar day and the birth star, the Moon the weekday (a Monday)."""
+    c = compose_for(chart, "how is my money", monkeypatch, shaped=False)
+    s = next(x["text"] for x in c["sentences"] if x["signature"].startswith("family.panchanga."))
+    assert "Mars, which rules the lunar day and your birth star" in s and "the Moon, which rules the weekday" in s
+    assert "rulers of the day" not in s
+    from jyotish.bank import load_bank
+    assert not [v for r in load_bank().rows if r.base.startswith("family.panchanga.") for v in r.variants
+                if "rulers of the day" in v or "ruler of the day" in v]

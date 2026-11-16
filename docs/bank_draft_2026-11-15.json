@@ -643,8 +643,88 @@
     "checker": 0.0123
    },
    "calls": 1
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 0,
+   "rows_kept": 136,
+   "left_out": {
+    "family.panchanga.against.many": [
+     "variant 1 (\"When your attention turns to money, you will see that Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your birth star lean unfavourably.\") is not stated by the facts: the derivation row for Venus lists a role of \"yoga\", but the glossary has no entry for yoga or nitya yoga defining it as the combined motion of the Sun and Moon, so the gloss has nothing to match against; it is also not supported as a restatement of the tithi gloss, which describes a \"step of twelve degrees between the Sun and the Moon\", not a combined motion",
+     "variant 2 (\"In your chart, the planets that lean unfavourably for money are these: Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your birth star.\") is not stated by the facts: this is a gloss on Venus's role \"yoga\" (nitya yoga), but the glossary has no entry for yoga or nitya yoga; the panchanga entry merely names it as one of the five limbs of the day without defining it, so there is no glossary entry for the gloss to match",
+     "variant 1 (\"When your attention turns to brothers, sisters and courage, you will see that Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your birth star lean unfavourably.\") is not stated by the facts: the glossary has no entry for yoga or nitya yoga defining it this way, so the gloss has nothing to match",
+     "variant 3 (\"For brothers, sisters and courage, the lean in your chart is unfavourable, and the planets concerned are Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your birth star.\") is not stated by the facts: this renders the role \"yoga\" in the derivation, and the sentence glosses yoga as \"the day's combined motion of the Sun and Moon\"; the glossary has no entry for yoga, so by the gloss rule the gloss is unsupported. The fact that Venus has some second role is stated, but the meaning given to it is not."
+    ],
+    "family.panchanga.against.one": [
+     "variant 3 (\"For yourself and your temperament, the lean in your chart is unfavourable, and the planet concerned is Venus, which rules the day's combined motion of the Sun and Moon.\") is not stated by the facts: the clause glosses the term \"yoga\", but the glossary has no entry for \"yoga\" (only panchanga, lagna, Shadbala, Rahu, karaka), so this definition is unmatched",
+     "variant 3 ('For yourself and your temperament, the lean in your chart is unfavourable, and the planet concerned is Jupiter, which rules the lunar day.') is not stated by the facts: The derivation's \"rules\" field for Jupiter is empty (rules = []); the data marks Jupiter as a karaka for the tithi (role = [\"tithi\"], karaka = true), and the glossary defines karaka as a significator \u2014 a planet that naturally stands for a matter \u2014 not its ruler. So the data states that Jupiter is the significator for the lunar day, not that it rules it; the sentence attaches the role \"ruler\" where the data records \"significator\"",
+     "variant 2 (\"In your chart, the planet that leans unfavourably for children is this one: the Sun, which rules the lunar day and the day's combined motion of the Sun and Moon.\") is not stated by the facts: derivation role includes yoga, but yoga has no entry in the glossary, so the gloss combined motion of the Sun and Moon cannot be checked; the panchanga entry only lists nitya yoga as one of the five limbs without defining it, and the tithi entry describes degrees between Sun and Moon, not a combined motion",
+     "variant 3 (\"For children, the lean in your chart is unfavourable, and the planet concerned is the Sun, which rules the lunar day and the day's combined motion of the Sun and Moon.\") is not stated by the facts: derivation role does include \"yoga\", so the Sun's ruling of the yoga is stated; but the gloss \"the day's combined motion of the Sun and Moon\" has no matching entry \u2014 the glossary defines panchanga as including \"nitya yoga\" yet gives no entry for yoga itself, and the tithi entry describes separation (steps between the Sun and Moon), not combined motion. A gloss is unsupported when the term has no glossary entry."
+    ],
+    "family.panchanga.for.many": [
+     "variant 2 (\"In your chart, the planets that lean favourably for home and your mother are these: Saturn, which rules the lunar day and your birth star, Mars, which rules the weekday, and Venus, which rules the day's combined motion of the Sun and Moon.\") is not stated by the facts: Venus's role in the derivation is \"yoga\" (the panchanga's nitya yoga); the glossary lists nitya yoga among the panchanga's five limbs but has no entry defining it, so the gloss \"the day's combined motion of the Sun and Moon\" cannot be checked against the glossary and is unsupported",
+     "variant 3 (\"For home and your mother, the lean in your chart is favourable, and the planets concerned are Saturn, which rules the lunar day and your birth star, Mars, which rules the weekday, and Venus, which rules the day's combined motion of the Sun and Moon.\") is not stated by the facts: Venus's role is 'yoga', but the glossary has no entry for 'yoga' or 'nitya yoga'; the panchanga entry only lists 'nitya yoga' by name among the five limbs, without defining it, so the gloss cannot be checked against the data's glossary"
+    ],
+    "family.panchanga.for.one": [
+     "variant 3 (\"For yourself and your temperament, the lean in your chart is favourable, and the planet concerned is Saturn, which rules the day's combined motion of the Sun and Moon.\") is not stated by the facts: The derivation shows Saturn's role as \"yoga\" and rules with basis \"sun\", but neither the facts nor the glossary defines nitya yoga as \"the day's combined motion of the Sun and Moon\"; the glossary's only relevant entry (panchanga) merely lists nitya yoga among the five limbs without defining it, and the Moon appears nowhere in the data. The gloss has no matching entry, so it is unsupported.",
+     "variant 3 (\"For long life, the lean in your chart is favourable, and the planet concerned is Saturn, which rules the day's combined motion of the Sun and Moon.\") is not stated by the facts: the term \"yoga\" (nitya yoga) has no entry in the data's glossary; the panchanga entry only lists nitya yoga among the five limbs without defining it, so this gloss is not matched by the glossary"
+    ]
+   },
+   "usd": {
+    "writer": 0.0394,
+    "checker": 0.0655
+   },
+   "calls": 2
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 3,
+   "rows_kept": 136,
+   "left_out": {
+    "family.panchanga.against.many": [
+     "variant 3 (\"When it comes to brothers, sisters and courage, the planets that rule these parts of your birth day, Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your birth star, lean unfavourably.\") is not stated by the facts: Ambiguous between two readings, and one of them is unsupported. If 'these parts of your birth day' means the panchanga limbs (lunar day, combined motion, birth star), it is supported: family = \"panchanga\" and the glossary defines panchanga as \"the five limbs of the day at birth\", and the named planets do rule those limbs. But an ordinary reader will most likely take 'these parts' to refer back to 'brothers, sisters and courage' \u2014 the nearest antecedent \u2014 which would assert that siblings and courage are parts of the birth day; the data says nothing of the kind (they are read from houses 3 and 11 from the rising sign, not from day-limbs). Since the sentence is ambiguous between a supported and an unsupported reading, it is marked unsupported."
+    ]
+   },
+   "usd": {
+    "writer": 0.0224,
+    "checker": 0.0367
+   },
+   "calls": 2
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 1,
+   "rows_kept": 139,
+   "left_out": {},
+   "usd": {
+    "writer": 0.0132,
+    "checker": 0.0135
+   },
+   "calls": 2
+  },
+  {
+   "date": "2026-11-16",
+   "kind": "recheck",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_checked": 2,
+   "checks": 24,
+   "refused": {
+    "family.panchanga.for.many": [
+     "variant 3 (\"When it comes to home and your mother, the planets that rule these parts of your birth day, Saturn, which rules the lunar day and your birth star, Mars, which rules the weekday, and Venus, which rules the day's combined motion of the Sun and Moon, lean favourably.\") is not stated by the facts: Ambiguous. Read one way, \"these parts\" looks forward to the panchanga roles that follow (tithi, vara, nakshatra, yoga), which are indeed parts of the birth day \u2014 that reading is supported by facts.family. Read the other, more natural way after the opening clause, \"these parts\" refers back to home and your mother, which the data nowhere says are parts of the birth day. Since the sentence is ambiguous between a supported and an unsupported reading, it is marked unsupported."
+    ]
+   },
+   "no_sample": [],
+   "usd": {
+    "checker": 0.0127
+   }
   }
  ],
  "rows_in_bank": 140,
- "usd_total": 2.3154
+ "usd_total": 2.5188
 }

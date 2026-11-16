@@ -47,7 +47,9 @@ SAMPLE = {"planet": "Venus", "planets": "Venus and Mars", "helpers": "Jupiter", 
           "role": "the ruler of your 10th house", "maha": "Jupiter", "antar": "Mercury", "until": "November 2028",
           "touching": "Jupiter", "when": "from October 2029 to June 2032",
           "weaknesses": "sits in your 1st house, which drains it, and it is in a feeble state by its degree in Taurus",
-          "in_sign": "Taurus", "varga": "the divisional chart of comforts and vehicles"}
+          "in_sign": "Taurus", "varga": "the divisional chart of comforts and vehicles",
+          "ruled": "Mars, which rules the lunar day and your birth star, and the Moon, which rules the weekday",
+          "ruler": "Mars, which rules the lunar day and your birth star"}
 
 
 class BankError(ValueError):
@@ -139,7 +141,7 @@ def plural(value: str) -> bool:
 
 # Slots whose value is one thing whatever its words: a role ("the ruler of your 2nd house and the main planet for
 # money") is one planet (review 2026-11-15, M6: "...are the Sun"), an area or a name is one subject.
-ONE_THING = ("dignity", "area", "Area", "areas", "named", "name", "when", "until", "role", "varga")
+ONE_THING = ("dignity", "area", "Area", "areas", "named", "name", "when", "until", "role", "varga", "ruler")
 # A verb coordinated with the slot's own verb in the same clause ("{planets} sit in your 10th house and forms", M6).
 _SECOND_VERB = re.compile(r"^([^,;:.]*?\band\s+)([a-z]+)\b")
 
@@ -225,6 +227,10 @@ def row_errors(row: BankRow) -> list[str]:
                 if re.search(r"\bfrom (?:the|your) Moon\b", v):
                     out.append(f"{row.signature}: variant {i + 1} counts from the Moon a rule that fired from the "
                                f"rising sign here: {v!r}")
+    for i, v in enumerate(row.variants):
+        # Only the weekday's lord rules the day (2026-11-16: the nakshatra's lord was among "the rulers of the day").
+        if re.search(r"\brulers? of (?:the|your) (?:birth )?day\b", v):
+            out.append(f"{row.signature}: variant {i + 1} calls a planet a ruler of the day; say what it rules: {v!r}")
     if (row.status == "approved" or row.approved_variants) and not (row.approved_by and row.approved_on):
         out.append(f"{row.signature}: an approved row names who approved it and when")
     if any(i not in (0, 1, 2) for i in row.approved_variants) or len(set(row.approved_variants)) != len(row.approved_variants):

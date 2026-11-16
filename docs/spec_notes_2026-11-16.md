@@ -188,3 +188,15 @@ the bank's. The two new rows were drafted with `--only family.varga.` (draft_ban
 signatures, since `.other` arises outside career, marriage and wealth; meaning rows stay those three areas') and
 checked on four slot shapes each, all supported. A test over 40 random charts and every area holds every own-chart
 sentence to the area's own varga and every other one to its named chart.
+
+**Each ruler of the panchanga named with what it rules.** The panchanga vote's planets are the lords of the tithi, the
+weekday (vara), the nakshatra and the nitya yoga of the birth (scoring); the sentence called them all "the rulers of the
+day you were born", which only the weekday's lord is (on the reference chart Mars is the lord of the tithi and the
+nakshatra, the Moon of the weekday, a Monday). `narrate.panchanga_ruled` names each with what it rules
+(`PANCHANGA_ROLE`: the lunar day, the weekday, your birth star, the day's combined motion of the Sun and Moon), and the
+plan's slot is `{ruled}` for several, `{ruler}` for one, with no bare `{planets}`; each role's plain meaning is in the
+item's facts, which the checker reads (`panchanga_roles`). The four rows were removed and redrafted with `--only
+family.panchanga.`: the first draft was refused for want of those facts, the second stood but for one row redrafted
+once more, and two variants that wanted a comma after `{ruled}` were mended by Opus and rechecked; one variant ("the
+planets that rule these parts of your birth day") the recheck refused as ambiguous, so it is never shown. `row_errors`
+now refuses "ruler(s) of the day" in any row.

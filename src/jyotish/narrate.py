@@ -2745,9 +2745,8 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
         notes.append(_sheet_note(sheet, 7, f"areas.{area}.votes.kp.vote", area))
     elif fam == "panchanga" and rows:
         planets = list(dict.fromkeys(r["planet"] for r in rows))
-        text = (f"The rulers of the day you were born, {_and([_the(p) for p in planets])}, {leans(True, True)}."
-                if len(planets) > 1 else
-                f"{_cap(_the(planets[0]))}, a ruler of the day you were born, {leans(False, True)}.")
+        ruled = panchanga_ruled(rows)
+        text = (f"{_cap(ruled)}, {leans(len(planets) > 1, True)}.")
         notes.append(_sheet_note(sheet, 9, f"areas.{area}.votes.panchanga.derivation", area))
     else:
         return None
@@ -2778,6 +2777,25 @@ def varga_row(rows: list[dict], vote: int, area: str) -> tuple[dict, bool]:
     mine = [x for x in side if x.get("varga") == own]
     r = max(mine or side, key=lambda x: abs(x.get("score") or 0))
     return r, r.get("varga") == own and own != "D1"
+
+
+# What each planet of the panchanga vote rules on the day of birth (scoring: tithi, vara, nakshatra and yoga lords), in
+# plain words. Only the weekday's lord is "the ruler of the day"; the nakshatra's lord rules the birth star (the
+# layered answer's open wording, fixed 2026-11-16: "the rulers of the day you were born, Mars and the Moon").
+PANCHANGA_ROLE = {"vara": "the weekday", "tithi": "the lunar day", "nakshatra": "your birth star",
+                  "yoga": "the day's combined motion of the Sun and Moon"}
+
+
+def panchanga_ruled(rows: list[dict]) -> str:
+    """Each planet of a panchanga vote with what it rules on the day of birth: "Mars, which rules the lunar day and
+    your birth star, and the Moon, which rules the weekday"."""
+    roles: dict[str, list[str]] = {}
+    for r in rows:
+        roles.setdefault(r["planet"], [])
+        roles[r["planet"]] += [x for x in r.get("role") or [] if x not in roles[r["planet"]]]
+    parts = [f"{_the(p)}, which rules {_and([PANCHANGA_ROLE.get(x, x) for x in rs])}" if rs else _the(p)
+             for p, rs in roles.items()]
+    return parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + ", and " + parts[-1]
 
 
 # Areas whose stretches never reach the client, on any route (SPEC Layer 8, decided after the review of chat v1, C1):

@@ -1267,207 +1267,427 @@
   kind: fact
   slots:
   - area
-  - planets
+  - ruled
   variants:
-  - The rulers of the day you were born, {planets}, lean unfavourably for {area}.
-  - Looking at the rulers of the day you were born, {planets}, they lean unfavourably where {area} is concerned.
-  - The day you were born is ruled by {planets}, and together they lean unfavourably for {area}.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
-  status: draft
-  checks:
-  - variant: 0
-    sentence: The rulers of the day you were born, Mercury and Saturn, lean unfavourably for your career.
-    supported: true
-    evidence: ''
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many
-  - variant: 1
-    sentence: Looking at the rulers of the day you were born, Mercury and Saturn, they lean unfavourably where your career
-      is concerned.
-    supported: true
-    evidence: ''
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many
-  - variant: 2
-    sentence: The day you were born is ruled by Mercury and Saturn, and together they lean unfavourably for your career.
-    supported: true
-    evidence: ''
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many
-  - variant: 0
-    sentence: The rulers of the day you were born, Mercury, the Sun and Saturn, lean unfavourably for marriage.
-    supported: true
-    evidence: ''
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many+lum
-  - variant: 1
-    sentence: Looking at the rulers of the day you were born, Mercury, the Sun and Saturn, they lean unfavourably where marriage
-      is concerned.
-    supported: true
-    evidence: ''
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many+lum
-  - variant: 2
-    sentence: The day you were born is ruled by Mercury, the Sun and Saturn, and together they lean unfavourably for marriage.
-    supported: true
-    evidence: ''
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many+lum
-- signature: family.panchanga.against.one
-  kind: fact
-  slots:
-  - area
-  - planets
-  variants:
-  - '{planets}, a ruler of the day you were born, leans unfavourably for {area}.'
-  - Among the rulers of the day you were born, {planets} leans unfavourably when it comes to {area}.
-  - For {area}, one ruler of the day you were born, {planets}, leans in an unfavourable direction.
-  drafted_by: claude-opus-5-5 (rewritten for review M6)
+  - For {area}, {ruled}, lean unfavourably.
+  - '{ruled}, lean unfavourably when it comes to {area}.'
+  - Where {area} is concerned, you have {ruled}, leaning unfavourably.
+  drafted_by: claude-sonnet-5-5 (variants rewritten by claude-opus-5-5 for the comma after {ruled}, 2026-11-16)
   drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
-    sentence: the Sun, a ruler of the day you were born, leans unfavourably for marriage.
+    sentence: For money, Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which
+      rules your birth star, lean unfavourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
-    shape: area:one,planets:one+lum
+    shape: area:one,ruled:many+lum
   - variant: 1
-    sentence: Among the rulers of the day you were born, the Sun leans unfavourably when it comes to marriage.
+    sentence: Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your
+      birth star, lean unfavourably when it comes to money.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
-    shape: area:one,planets:one+lum
+    shape: area:one,ruled:many+lum
   - variant: 2
-    sentence: For marriage, one ruler of the day you were born, the Sun, leans in an unfavourable direction.
+    sentence: Where money is concerned, you have Venus, which rules the lunar day and the day's combined motion of the Sun
+      and Moon, and Mars, which rules your birth star, leaning unfavourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-16'
-    shape: area:one,planets:one+lum
+    shape: area:one,ruled:many+lum
+  - variant: 0
+    sentence: For brothers, sisters and courage, Venus, which rules the lunar day and the day's combined motion of the Sun
+      and Moon, and Mars, which rules your birth star, lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many+lum
+  - variant: 1
+    sentence: Venus, which rules the lunar day and the day's combined motion of the Sun and Moon, and Mars, which rules your
+      birth star, lean unfavourably when it comes to brothers, sisters and courage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many+lum
+  - variant: 2
+    sentence: Where brothers, sisters and courage is concerned, you have Venus, which rules the lunar day and the day's combined
+      motion of the Sun and Moon, and Mars, which rules your birth star, leaning unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many+lum
+  - variant: 0
+    sentence: For health, Jupiter, which rules the lunar day, and Mars, which rules the weekday, lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruled:many
+  - variant: 1
+    sentence: Jupiter, which rules the lunar day, and Mars, which rules the weekday, lean unfavourably when it comes to health.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruled:many
+  - variant: 2
+    sentence: Where health is concerned, you have Jupiter, which rules the lunar day, and Mars, which rules the weekday, leaning
+      unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruled:many
+  - variant: 0
+    sentence: For brothers, sisters and courage, Mars, which rules the lunar day, Mercury, which rules the weekday, and Saturn,
+      which rules your birth star, lean unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many
+  - variant: 1
+    sentence: Mars, which rules the lunar day, Mercury, which rules the weekday, and Saturn, which rules your birth star,
+      lean unfavourably when it comes to brothers, sisters and courage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many
+  - variant: 2
+    sentence: Where brothers, sisters and courage is concerned, you have Mars, which rules the lunar day, Mercury, which rules
+      the weekday, and Saturn, which rules your birth star, leaning unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many
+- signature: family.panchanga.against.one
+  kind: fact
+  slots:
+  - area
+  - ruler
+  variants:
+  - '{ruler}, leans unfavourably for {area}.'
+  - For {area}, the planet in question is {ruler}, and it leans unfavourably.
+  - Looking at {area}, you have {ruler}, and it leans unfavourably.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Venus, which rules the day's combined motion of the Sun and Moon, leans unfavourably for yourself and your temperament.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many+lum
+  - variant: 1
+    sentence: For yourself and your temperament, the planet in question is Venus, which rules the day's combined motion of
+      the Sun and Moon, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many+lum
+  - variant: 2
+    sentence: Looking at yourself and your temperament, you have Venus, which rules the day's combined motion of the Sun and
+      Moon, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many+lum
+  - variant: 0
+    sentence: Mercury, which rules the weekday, leans unfavourably for money.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many
+  - variant: 1
+    sentence: For money, the planet in question is Mercury, which rules the weekday, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many
+  - variant: 2
+    sentence: Looking at money, you have Mercury, which rules the weekday, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many
+  - variant: 0
+    sentence: Jupiter, which rules the lunar day, leans unfavourably for yourself and your temperament.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many
+  - variant: 1
+    sentence: For yourself and your temperament, the planet in question is Jupiter, which rules the lunar day, and it leans
+      unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many
+  - variant: 2
+    sentence: Looking at yourself and your temperament, you have Jupiter, which rules the lunar day, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many
+  - variant: 0
+    sentence: the Sun, which rules the lunar day and the day's combined motion of the Sun and Moon, leans unfavourably for
+      children.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many+lum
+  - variant: 1
+    sentence: For children, the planet in question is the Sun, which rules the lunar day and the day's combined motion of
+      the Sun and Moon, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many+lum
+  - variant: 2
+    sentence: Looking at children, you have the Sun, which rules the lunar day and the day's combined motion of the Sun and
+      Moon, and it leans unfavourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many+lum
 - signature: family.panchanga.for.many
   kind: fact
   slots:
   - area
-  - planets
+  - ruled
   variants:
-  - The rulers of the day you were born, {planets}, lean favourably for {area}.
-  - Among the rulers of the day you were born, {planets} lean favourably when it comes to {area}.
-  - For {area}, the planets that rule the day you were born, {planets}, lean in a favourable direction.
-  drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  - Looking at {area}, {ruled}, lean favourably.
+  - For {area}, you have {ruled}, and these planets lean favourably.
+  - When it comes to {area}, the planets that rule these parts of your birth day, {ruled}, lean favourably.
+  drafted_by: claude-sonnet-5-5 (variants rewritten by claude-opus-5-5 for the comma after {ruled}, 2026-11-16)
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
-    sentence: The rulers of the day you were born, Saturn, Mars and Venus, lean favourably for your career.
+    sentence: Looking at money, Mars, which rules the lunar day and your birth star, and the Moon, which rules the weekday,
+      lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many
+    'on': '2026-11-16'
+    shape: area:one,ruled:many+lum
   - variant: 1
-    sentence: Among the rulers of the day you were born, Saturn, Mars and Venus lean favourably when it comes to your career.
+    sentence: For money, you have Mars, which rules the lunar day and your birth star, and the Moon, which rules the weekday,
+      and these planets lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many
+    'on': '2026-11-16'
+    shape: area:one,ruled:many+lum
   - variant: 2
-    sentence: For your career, the planets that rule the day you were born, Saturn, Mars and Venus, lean in a favourable direction.
+    sentence: When it comes to money, the planets that rule these parts of your birth day, Mars, which rules the lunar day
+      and your birth star, and the Moon, which rules the weekday, lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many
+    'on': '2026-11-16'
+    shape: area:one,ruled:many+lum
   - variant: 0
-    sentence: The rulers of the day you were born, the Moon, Venus and Saturn, lean favourably for your career.
+    sentence: Looking at home and your mother, Saturn, which rules the lunar day and your birth star, Mars, which rules the
+      weekday, and Venus, which rules the day's combined motion of the Sun and Moon, lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many+lum
+    'on': '2026-11-16'
+    shape: area:many,ruled:many+lum
   - variant: 1
-    sentence: Among the rulers of the day you were born, the Moon, Venus and Saturn lean favourably when it comes to your
-      career.
+    sentence: For home and your mother, you have Saturn, which rules the lunar day and your birth star, Mars, which rules
+      the weekday, and Venus, which rules the day's combined motion of the Sun and Moon, and these planets lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many+lum
+    'on': '2026-11-16'
+    shape: area:many,ruled:many+lum
   - variant: 2
-    sentence: For your career, the planets that rule the day you were born, the Moon, Venus and Saturn, lean in a favourable
-      direction.
+    sentence: When it comes to home and your mother, the planets that rule these parts of your birth day, Saturn, which rules
+      the lunar day and your birth star, Mars, which rules the weekday, and Venus, which rules the day's combined motion of
+      the Sun and Moon, lean favourably.
+    supported: false
+    evidence: Ambiguous. Read one way, "these parts" looks forward to the panchanga roles that follow (tithi, vara, nakshatra,
+      yoga), which are indeed parts of the birth day — that reading is supported by facts.family. Read the other, more natural
+      way after the opening clause, "these parts" refers back to home and your mother, which the data nowhere says are parts
+      of the birth day. Since the sentence is ambiguo
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many+lum
+  - variant: 0
+    sentence: Looking at your father, Saturn, which rules the lunar day and your birth star, and Mars, which rules the weekday,
+      lean favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:many+lum
+    'on': '2026-11-16'
+    shape: area:one,ruled:many
+  - variant: 1
+    sentence: For your father, you have Saturn, which rules the lunar day and your birth star, and Mars, which rules the weekday,
+      and these planets lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruled:many
+  - variant: 2
+    sentence: When it comes to your father, the planets that rule these parts of your birth day, Saturn, which rules the lunar
+      day and your birth star, and Mars, which rules the weekday, lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruled:many
+  - variant: 0
+    sentence: Looking at fortune and faith, Saturn, which rules the lunar day and your birth star, and Mars, which rules the
+      weekday, lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many
+  - variant: 1
+    sentence: For fortune and faith, you have Saturn, which rules the lunar day and your birth star, and Mars, which rules
+      the weekday, and these planets lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many
+  - variant: 2
+    sentence: When it comes to fortune and faith, the planets that rule these parts of your birth day, Saturn, which rules
+      the lunar day and your birth star, and Mars, which rules the weekday, lean favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruled:many
 - signature: family.panchanga.for.one
   kind: fact
   slots:
   - area
-  - planets
+  - ruler
   variants:
-  - '{planets}, one of the planets linked with the day you were born, leans favourably for {area}.'
-  - Among the planets tied to the day of your birth, {planets} leans favourably for {area}.
-  - For {area}, {planets}, a planet linked with your birth day, leans favourably.
+  - '{ruler}, leans favourably for {area}.'
+  - For {area}, the planet in question is {ruler}, and it leans favourably.
+  - Looking at {area}, you have {ruler}, and it leans favourably.
   drafted_by: claude-sonnet-5-5
-  drafted_on: '2026-11-15'
+  drafted_on: '2026-11-16'
   status: draft
   checks:
   - variant: 0
-    sentence: Saturn, one of the planets linked with the day you were born, leans favourably for money.
+    sentence: Saturn, which rules the day's combined motion of the Sun and Moon, leans favourably for yourself and your temperament.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:one
+    'on': '2026-11-16'
+    shape: area:many,ruler:many+lum
   - variant: 1
-    sentence: Among the planets tied to the day of your birth, Saturn leans favourably for money.
-    supported: false
-    evidence: The data lists only one planet, Saturn, in the derivation. The glossary's generic note that the panchanga limbs
-      are each ruled by a planet is not a statement about this chart, so no fact or finding states that other planets tied
-      to the day exist here.
-    model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:one
-  - variant: 2
-    sentence: For money, Saturn, a planet linked with your birth day, leans favourably.
+    sentence: For yourself and your temperament, the planet in question is Saturn, which rules the day's combined motion of
+      the Sun and Moon, and it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:one
+    'on': '2026-11-16'
+    shape: area:many,ruler:many+lum
+  - variant: 2
+    sentence: Looking at yourself and your temperament, you have Saturn, which rules the day's combined motion of the Sun
+      and Moon, and it leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many+lum
   - variant: 0
-    sentence: the Sun, one of the planets linked with the day you were born, leans favourably for your career.
+    sentence: Saturn, which rules the day's combined motion of the Sun and Moon, leans favourably for long life.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:one+lum
+    'on': '2026-11-16'
+    shape: area:one,ruler:many+lum
   - variant: 1
-    sentence: Among the planets tied to the day of your birth, the Sun leans favourably for your career.
+    sentence: For long life, the planet in question is Saturn, which rules the day's combined motion of the Sun and Moon,
+      and it leans favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:one+lum
+    'on': '2026-11-16'
+    shape: area:one,ruler:many+lum
   - variant: 2
-    sentence: For your career, the Sun, a planet linked with your birth day, leans favourably.
+    sentence: Looking at long life, you have Saturn, which rules the day's combined motion of the Sun and Moon, and it leans
+      favourably.
     supported: true
     evidence: ''
     model: zai-org/GLM-5.3-Flash
-    'on': '2026-11-15'
-    shape: area:one,planets:one+lum
+    'on': '2026-11-16'
+    shape: area:one,ruler:many+lum
+  - variant: 0
+    sentence: Saturn, which rules the lunar day, leans favourably for long life.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many
+  - variant: 1
+    sentence: For long life, the planet in question is Saturn, which rules the lunar day, and it leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many
+  - variant: 2
+    sentence: Looking at long life, you have Saturn, which rules the lunar day, and it leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,ruler:many
+  - variant: 0
+    sentence: Jupiter, which rules the weekday, leans favourably for brothers, sisters and courage.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many
+  - variant: 1
+    sentence: For brothers, sisters and courage, the planet in question is Jupiter, which rules the weekday, and it leans
+      favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many
+  - variant: 2
+    sentence: Looking at brothers, sisters and courage, you have Jupiter, which rules the weekday, and it leans favourably.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,ruler:many
 - signature: family.varga.against
   kind: fact
   slots:

@@ -55,7 +55,7 @@ TURNS = [
       "exalted, where it is at its best.",
       "The divisional chart for marriage leans favourably; there Saturn falls in Capricorn, in its own sign.",
       "The reading of the exact start of each house leans favourably for marriage.",
-      "Mars, a ruler of the day you were born, leans favourably for marriage."]),
+      "Mars, which rules the lunar day and your birth star, leans favourably for marriage."]),       # 2026-11-16
     ("will I die early?",
      dict(areas=["marriage"], direction="against", when=False, why=False, how=False, follow_up=True, carried=["areas", "direction"],
           areas_from="carried", off_limits="death", third_party=False, explains=None,
@@ -73,7 +73,7 @@ TURNS = [
       "in your 10th house, in a neutral sign.",
       "The planets that signify money lean favourably; the main one, Jupiter, sits in Taurus in your 1st house, in an "
       "unfriendly sign.",
-      "The rulers of the day you were born, Mars and the Moon, lean favourably for money.",
+      "Mars, which rules the lunar day and your birth star, and the Moon, which rules the weekday, lean favourably for money.",
       "The signs that show how others see money, Libra and Cancer, lean unfavourably: the Moon sits there, with no "
       "helpful planet beside."]),
     ("whan and how",

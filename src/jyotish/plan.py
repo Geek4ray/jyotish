@@ -280,12 +280,22 @@ def _family_item(chart, fam: str, v: dict, area: str, label: str, part: str, dat
         else:
             sig += f".{n}.plain"
     elif fam == "panchanga":
+        from .narrate import panchanga_ruled
         planets = list(dict.fromkeys(r["planet"] for r in rows))
         sig += ".many" if len(planets) > 1 else ".one"
-        slots["planets"] = _and([_the(p) for p in planets])
+        # Each with what it rules on the day of birth (2026-11-16): {ruled} for several, {ruler} for one; no bare
+        # {planets}, so no row can call them all "the rulers of the day".
+        slots["ruled" if len(planets) > 1 else "ruler"] = panchanga_ruled(rows)
+    extra = {}
+    if fam == "panchanga":
+        # What each role is, so "which rules the lunar day" is checked against a stated fact (2026-11-16).
+        from .narrate import PANCHANGA_ROLE
+        extra["panchanga_roles"] = {r: f"the planet in this role is the lord (ruler) of the {r}: in plain words, it "
+                                       f"rules {w}" for r, w in PANCHANGA_ROLE.items()}
+        extra["panchanga_roles"]["vara"] += " (the weekday of birth: only this lord is the ruler of the day)"
     return PlanItem(part=part, signature=sig, area=area, slots=slots, tags=[f"vote:{area}.{fam}"],
                     facts={"family": fam, "lean": "favourable" if v["vote"] > 0 else "unfavourable", "term": term,
-                           "derivation": der, "about": about(chart, area, label)}, engine=s.text,
+                           "derivation": der, "about": about(chart, area, label)} | extra, engine=s.text,
                     notes=s.notes)
 
 
