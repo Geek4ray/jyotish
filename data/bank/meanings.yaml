@@ -761,6 +761,158 @@
   drafted_by: claude-opus-5-5 (rewritten for review M9)
   drafted_on: '2026-11-16'
   status: draft
+- signature: vocation.works.jupiter@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, tradition links it with teaching, law, counselling, banking and religious work,
+    and that is how texts read it for {area}.
+  - Texts associate {planet} with work in teaching, law, advising, banking and temple or religious service, and they read
+    this for {area} when it shapes the house of work.
+  - For {area}, {planet} is traditionally linked with teaching, legal work, counselling, finance and religious duties wherever
+    it shapes the house of work.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.ketu@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, tradition links it with research, spiritual work, astrology, investigation and
+    detailed solitary craft, and that is how texts read it for {area}.
+  - Texts associate {planet} with work in research, spiritual practice, astrology and investigation, and they read this for
+    {area} when it shapes the house of work.
+  - For {area}, {planet} is traditionally linked with research, spiritual teaching, astrology, investigation and quiet, detailed
+    work wherever it shapes the house of work.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.mars@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, tradition links it with soldiering, policing, engineering, sport and work in
+    metal or land, and that is how texts read it for {area}.
+  - Texts associate {planet} with work in the armed services, police duty, engineering, athletics and property, and they read
+    this for {area} when it shapes the house of work.
+  - For {area}, {planet} is traditionally linked with soldiering, policing, engineering, sport and work with metal or land
+    wherever it shapes the house of work.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.mercury@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, tradition links it with writing, trade, accounting, teaching and speaking, and
+    that is how texts read it for {area}.
+  - Texts associate {planet} with work in writing, commerce, bookkeeping, teaching and messaging, and they read this for {area}
+    when it shapes the house of work.
+  - For {area}, {planet} is traditionally linked with writing, trading, accounts, teaching and work done through speech wherever
+    it shapes the house of work.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.moon@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, tradition links it with nursing, hospitality, dairy, work with water and travel,
+    and that is how texts read it for {area}.
+  - Texts associate {planet} with work in caring roles, hospitality, food and dairy, water trades and travel, and they read
+    this for {area} when it shapes the house of work.
+  - For {area}, {planet} is traditionally linked with nursing, catering, dairy, work on or near water and the care of the
+    public wherever it shapes the house of work.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.rahu@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, tradition links it with foreign dealings, technology, politics, chemicals and
+    unusual trades, and that is how texts read it for {area}.
+  - Texts associate {planet} with work abroad, in technology, in politics, with chemicals and in unconventional trades, and
+    they read this for {area} when it shapes the house of work.
+  - For {area}, {planet} is traditionally linked with foreign trade, technology, political life, chemical work and unusual
+    lines of business wherever it shapes the house of work.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.saturn@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes the house of work, it is traditionally linked with work in farming, mining, construction, labour
+    and service, and texts associate these with {area}.
+  - Texts associate {planet} with kinds of work such as land and farming, building, mining, craft and public service, when
+    it shapes the house of work in {area}.
+  - When {planet} shapes the house of work, tradition links it with livelihoods in iron and metal trades, construction, agriculture,
+    oil and long, steady service, all of which touch {area}.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.sun@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes {area}, tradition links it with work in government, administration, leadership, medicine and positions
+    of public authority.
+  - Texts associate {planet} in the house of work with governing, managing, healing, and holding roles that carry authority
+    and public standing.
+  - In {area}, {planet} is traditionally linked with work in public office, administration, politics, medicine and guiding
+    or leading others.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+- signature: vocation.works.venus@career
+  kind: meaning
+  slots:
+  - area
+  - planet
+  variants:
+  - Where {planet} shapes {area}, tradition links it with work in the arts, music, fashion, beauty, design and hospitality.
+  - Texts associate {planet} in the house of work with creative and pleasing trades such as art, music, jewellery, fashion
+    and luxury goods.
+  - In {area}, {planet} is traditionally linked with work in design, entertainment, beauty, decoration and the making of fine
+    things.
+  source: Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a named
+    edition
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
 - signature: weakness.planet@career
   kind: meaning
   slots:

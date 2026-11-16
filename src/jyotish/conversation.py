@@ -118,7 +118,9 @@ def _distance(a: str, b: str) -> int:
 # Common words a letter away from a listed form, never read as it ("rather" is not "father").
 NOT_A_TYPO = frozenset({"farther", "horse", "count", "county", "merry", "states", "string", "strings", "honey",
                         "money", "bother", "other", "mothers", "worse", "words", "world", "carer", "pubic", "lucky",
-                        "properly", "medication", "mary", "friend"})
+                        "properly", "medication", "mary", "friend",
+                        # near the field-of-work words (decision 3): a vacation is not a vocation, a yield not a field
+                        "vacation", "vacations", "yield", "yields", "fiend", "fiends", "vector", "vectors"})
 
 
 def _near(token: str, form: str) -> bool:
@@ -169,10 +171,14 @@ def direction_of(message: str) -> str | None:
 # more counts (_near), except the common words in NOT_A_TYPO ("properly" is not property). "Love" is marriage, and
 # "will they hire me" a career question (H1). The readings' router (narrate.route) is unchanged.
 AREA_VOCAB: dict[str, dict[str, tuple[str, ...]]] = {
-    "career": {"words": ("career", "careers", "job", "jobs", "profession", "promotion", "promotions", "business",
-                         "status", "office", "hire", "hired", "hiring", "interview", "employer", "employment",
-                         "naukri", "naukari", "vyapar", "vyapaar", "dhandha", "kaam"),
-               "stems": ("promot", "employ"), "hindi": ("नौकरी", "करियर", "व्यापार", "काम")},
+    "career": {"words": ("career", "careers", "job", "jobs", "profession", "professions", "promotion", "promotions",
+                         "business", "status", "office", "hire", "hired", "hiring", "interview", "employer",
+                         "employment", "naukri", "naukari", "vyapar", "vyapaar", "dhandha", "kaam",
+                         # the field of work (SPEC rev 136, "The shaped answer", decision 3)
+                         "field", "fields", "sector", "sectors", "occupation", "vocation", "kshetra", "pesha",
+                         "vyavsay", "vyavsaay", "vyavasay"),
+               "stems": ("promot", "employ"),
+               "hindi": ("नौकरी", "करियर", "व्यापार", "काम", "क्षेत्र", "पेशा", "व्यवसाय", "धंधा")},
     "marriage": {"words": ("marriage", "marry", "married", "spouse", "partner", "wedding", "relationship",
                            "relationships", "love", "romance", "romantic", "husband", "wife", "shaadi", "shadi",
                            "vivah", "rishta", "rishte", "pyar", "pyaar", "prem", "patni", "pati"),
@@ -228,7 +234,8 @@ def areas_of(message: str) -> list[str]:
     for area, v in AREA_VOCAB.items():
         if any(t in v["words"] for t in toks) or any(t.startswith(st) for t in toks for st in v["stems"]) or \
                 any(_near(t, w) for t in toks for w in v["words"] if len(w) >= 5) or \
-                any(h in text for h in v["hindi"]) or (area == "career" and CAREER_WORK.search(text)):
+                any(h in text for h in v["hindi"]) or \
+                (area == "career" and (CAREER_WORK.search(text) or VOCATION.search(text))):
             out.append(area)
     return out
 
@@ -519,7 +526,14 @@ CHANGE = re.compile(r"\b(?:leave|leaving|left|quit|quitting|change|changing|swit
                     r"\b(?:job|career) (?:change|switch)\b")
 VOCATION = re.compile(r"\b(?:which|what) (?:field|fields|line|sector|profession|kind of work|type of work|work)\b|"
                       r"\b(?:kind|type|line) of work\b|\bwork in\b|\bbusiness or (?:a )?job\b|"
-                      r"\bjob or (?:a )?business\b")
+                      r"\bjob or (?:a )?business\b|"
+                      # Hinglish: "kaun sa field", "kis line mein", "kya kaam karunga", "naukri ya business"
+                      r"\b(?:kaun ?sa|kaunsa|konsa|kon sa|kis) (?:field|line|kshetra|kaam|profession|sector|pesha)\b|"
+                      r"\bkya kaam\b|\b(?:naukri|naukari|job) ya (?:business|vyapar|vyapaar|dhandha)\b|"
+                      r"\b(?:business|vyapar|vyapaar|dhandha) ya (?:naukri|naukari|job)\b|"
+                      # Devanagari: "कौन सा काम", "किस क्षेत्र", "नौकरी या व्यापार"
+                      r"(?:कौन सा|कौनसा|किस) (?:काम|क्षेत्र|पेशा|लाइन)|नौकरी या (?:व्यापार|व्यवसाय|धंधा)|"
+                      r"(?:व्यापार|व्यवसाय|धंधा) या नौकरी")
 
 
 class Part(BaseModel):
@@ -974,8 +988,10 @@ PLACES = {"verdict": ("general", "why", "timing"), "stability": ("general", "why
 # budget (decision 3 shapes the vocation section).
 SHAPE = 8
 HELPS_SHAPE = 2
+# The vocation section (decision 3): at most four facts, in the plan's order of preference (plan._vocation_items).
+VOCATION_SHAPE = 4
 ROLE = {"verdict": "lean", "stability": "lean", "helps": "helps", "rule": "helps", "hard": "hard", "weakness": "hard",
-        "period": "period", "stretch": "stretch"}
+        "period": "period", "stretch": "stretch", "vocation": "vocation"}
 
 
 def _units(out: list[dict]) -> list[list[dict]]:
@@ -1018,6 +1034,7 @@ def shape(out: list[dict], plan) -> tuple[list[dict], list[dict]]:
                 if hard and kq < 1 and hq > 1:
                     hq, kq = hq - 1, 1
         keep |= set(lean) | set(stretch) | set(helps[:hq]) | set(hard[:kq])
+    keep |= {id(u[0]) for u in [u for u in units if u[0]["part"] == "vocation"][:VOCATION_SHAPE]}
     kept, held = [], []
     for u in units:
         role = ROLE.get(u[0]["part"])
@@ -1134,6 +1151,7 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
                 {"signature": row.signature, "kind": row.kind, "variant": variant,
                  "status": row.status, "file": row.file}}
     index = {id(it): n for n, it in enumerate(plan.items)}      # each sentence's plan item (the worksheet's, H4)
+    meant: set[tuple] = set()
     for item in plan.items:
         row = bank.fact(item.signature)
         if _usable(row, item):
@@ -1143,13 +1161,16 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
             out.append(sentence(item, None, item.engine))
         else:
             continue
-        if item.part not in ("rule", "weakness"):
+        if item.part not in ("rule", "weakness", "vocation"):
             continue
         # A rule said once for several areas reads each area's own meaning row with its own area's words (review M7:
         # the first area's row was filled with every area, so career's reading was told as money's).
         own = item.facts.get("area_labels") or {item.area: item.slots.get("area")}
         for area, label in own.items():
-            meaning = bank.meaning(item.signature, area)
+            # A planet's kinds of work are said once in an answer, though it is the 10th's ruler and strong in the D10.
+            if item.meaning and (item.meaning, area) in meant:
+                continue
+            meaning = bank.meaning(item.meaning or item.signature, area)
             slots = item.slots | {"area": label}
             if meaning is None or not set(meaning.slots) <= set(slots):
                 continue
@@ -1159,6 +1180,7 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
             i = pick if draft_meanings else meaning.approved_pick(pick)
             if i is not None:
                 out.append(sentence(item, meaning, meaning.fill(i, slots), i) | {"area": area})
+                meant.add((item.meaning, area))
     said_keys = set(said_keys or [])
     if said_before or said_keys:
         keep = ("Neither stretch is", "This stretch is not")

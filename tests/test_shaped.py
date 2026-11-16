@@ -210,3 +210,77 @@ def test_2_over_random_charts_one_area_is_at_most_eight_sentences():
                 assert len(weak) == len(set(weak))
                 n += 1
     assert n > 500
+
+
+# --- 3. Vocation --------------------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("message", [
+    "which field will i work in", "what kind of work suits me", "which line should I go into", "business or job?",
+    "which profession is good for me", "kaun sa field mere liye sahi hai", "naukri ya business", "kya kaam karunga",
+    "मैं कौन सा काम करूंगा", "किस क्षेत्र में जाऊं"])
+def test_3_which_field_is_career_with_the_ask_vocation(chart, message):
+    from jyotish.conversation import composes, kinds_of
+    route = route_turn(message, chart)
+    assert route.areas == ["career"] and route.areas_from == "named" and composes(route)
+    assert "vocation" in kinds_of(message, route)
+
+
+def test_3_the_vocation_items_are_what_the_engine_computes_on_the_reference_chart(chart, monkeypatch):
+    from jyotish.conversation import plan_turn
+    p = plan_turn(chart, THREE[1], route_turn(THREE[1], chart), as_of=AS_OF)
+    voc = [(i.signature, i.facts.get("planet") or i.facts.get("tenth_house_ruler")) for i in p.items if i.part == "vocation"]
+    # The 10th is Aquarius ruled by Saturn (in Taurus, the 1st); the Sun and Mercury sit in it; the D10 holds Mars
+    # exalted (Capricorn) and Saturn in its own sign (Capricorn).
+    assert voc == [("vocation.tenth", "Saturn"), ("vocation.in_tenth", "Sun"), ("vocation.d10", "Mars"),
+                   ("vocation.in_tenth", "Mercury"), ("vocation.d10", "Saturn")]
+    tenth = next(i for i in p.items if i.signature == "vocation.tenth")
+    assert tenth.facts | {"about": None} == {"tenth_house_sign": "Aquarius", "tenth_house_ruler": "Saturn",
+                                              "ruler_sign": "Taurus", "ruler_house": 1, "about": None}
+    # Nothing here weighs: no vote or rule tag, and no karmajiva item (its method was not read in a named edition).
+    assert all(not i.tags for i in p.items if i.part == "vocation")
+    assert not [i for i in p.items if "karmajiva" in i.signature]
+    c = compose_for(chart, THREE[1], monkeypatch)
+    assert [s["section"] for s in c["sentences"]] == ["vocation"] * 4         # at most four; Saturn's D10 held
+    assert [h["signature"] for h in c["held"] if h["signature"].startswith("vocation.")] == ["vocation.d10"]
+    on = compose_for(chart, THREE[1], monkeypatch, draft_meanings=True)
+    meanings = [s["row"]["signature"] for s in on["sentences"] if s["row"]["kind"] == "meaning"]
+    assert meanings == ["vocation.works.saturn@career", "vocation.works.sun@career", "vocation.works.mars@career",
+                        "vocation.works.mercury@career"]                # each planet's kinds of work, once
+
+
+def test_3_over_random_charts_a_vocation_item_states_only_the_chart():
+    import sys
+    from datetime import datetime
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from synthetic_cohort import births
+    from jyotish.chart import compute
+    from jyotish.constants import SIGN_LORD, SIGNS
+    from jyotish.plan import plan
+    from jyotish.scoring import varga_dignity_word
+    for b in births(60, 3):
+        c = compute(datetime.fromisoformat(f"{b['date']}T{b['time']}"), b["lat"], b["lon"], true_node=False)
+        p = plan(c, "x", ["career"], "both", ["vocation"], as_of=AS_OF, parts=[{"kind": "vocation", "areas": ["career"]}])
+        tenth = (c.lagnas.asc_sign + 9) % 12
+        for i in p.items:
+            f = i.facts
+            if i.signature == "vocation.tenth":
+                assert f["tenth_house_sign"] == SIGNS[tenth] and f["tenth_house_ruler"] == SIGN_LORD[tenth]
+                assert c.bodies[SIGN_LORD[tenth]].house == f["ruler_house"]
+            elif i.signature == "vocation.in_tenth":
+                assert c.bodies[f["planet"]].house == 10
+            elif i.signature == "vocation.d10":
+                assert varga_dignity_word(f["planet"], c.vargas["D10"][f["planet"]]) in ("own", "exalted")
+
+
+def test_3_the_vocation_rows_are_drafts_checked_as_the_others_were():
+    from jyotish.bank import load_bank
+    rows = {r.signature: r for r in load_bank().rows if r.base.startswith("vocation.")}
+    for sig in ("vocation.tenth", "vocation.in_tenth", "vocation.d10"):
+        r = rows[sig]
+        assert r.kind == "fact" and r.status == "draft" and {c.variant for c in r.checks} == {0, 1, 2}
+        assert all(c.supported and c.model == "zai-org/GLM-5.3-Flash" for c in r.checks)
+    planets = ("sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu")
+    for p in planets:
+        r = rows[f"vocation.works.{p}@career"]
+        assert r.kind == "meaning" and r.status == "draft" and r.source.startswith("Brihat Jataka 10")
+        assert "not yet read" in r.source                                 # the verse was not read: said so

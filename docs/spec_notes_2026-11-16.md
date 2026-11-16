@@ -98,3 +98,41 @@ meanings are outside the eight, so with draft meanings on the three-part questio
 `compose(shaped=False)` composes every sentence the sections take, every meaning of a fact: the composed check and the
 tests of a row's variants, refusals and verdicts use it (the worksheet tests lift `SHAPE` in their fixture), since they
 are tests of the rows, not of the shape.
+
+## 3. Vocation
+
+**The ask.** `AREA_VOCAB` gives career the words field, fields, sector, sectors, occupation, vocation, profession(s),
+kshetra, pesha, vyavsay (and its spellings), क्षेत्र, पेशा, व्यवसाय, धंधा; `VOCATION` reads the phrases ("which field",
+"which line", "what kind of work", "work in", "business or job", "line of work"; "kaun sa field", "kis line", "kya
+kaam", "naukri ya business"; "कौन सा काम", "किस क्षेत्र", "नौकरी या व्यापार"), and a message it matches names career
+(`areas_of`) and its part is the ask `vocation`. "which field will i work in" is now career, named, and composed.
+
+**The items** (`plan._vocation_items`), only what the engine computes, on a vocation part about career: the 10th house
+from the rising sign (its sign, its ruler, the ruler's sign and house), each planet in the 10th, and each of the seven
+planets the D10 holds in its own or exalted sign (`scoring.varga_dignity_word`, the varga vote's words; a varga has
+no degree, so moolatrikona is not read). In that order of preference, the first of each kind before the second of
+any; the vocation section keeps four (`VOCATION_SHAPE`) and holds the rest. Each item's meaning is its planet's kinds
+of work, `vocation.works.<planet>@career`, said once in an answer though the planet is the 10th's ruler and strong in
+the D10. The items carry no vote or rule tag and nothing of them weighs in scoring.
+
+**Karmajiva left out.** The classical karmajiva lord (the ruler of the navamsa sign the 10th lord occupies, counted
+from the stronger of the rising sign, the Moon and the Sun) was not built: I did not read the method in a named
+edition, and the editions differ on which point it is counted from. It needs the astrologer, or a verse read in
+Brihat Jataka 10 or Phaladeepika 5 in a named translation, before it is a rule; then it is `draft` and weighs nothing
+until its verse is read, as every placement is.
+
+**The rows.** Three fact rows (`vocation.tenth`, `.in_tenth`, `.d10`) and nine meaning rows (one per planet, the nodes
+included) were drafted with `--only vocation.` and checked as the others were (every fact variant on each slot shape,
+all supported); Saturn's first draft said "long-term", refused for "term", and was redrafted alone. The meaning rows'
+source is "Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a
+named edition": the drafting model wrote the kinds of work from the tradition as it knows it, and nobody has read them
+against the verse. All twelve are draft. USD 0.11 drafting and checking.
+
+Read here: the vocation section is its own; a placement the career's lean already named (the Sun in the 10th as the
+main significator, Mars exalted in the D10 as the varga's lean) is named again there, because its meaning (the kinds
+of work) hangs on it. With draft meanings off the vocation answer is the four placements only, with no kind of work,
+until the astrologer approves the meaning rows.
+
+The words are tolerant of spelling as the rest of the vocabulary is (`_near`), so "vacation" read as "vocation" and a
+vacation became a career question (the routing probe of the chat review caught it): "vacation", "yield", "fiend" and
+"vector" and their plurals are in `NOT_A_TYPO`.

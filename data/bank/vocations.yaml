@@ -1,0 +1,252 @@
+# The sentence bank: vocations (SPEC Layer 8, The layered answer). Drafted by scripts/draft_bank.py;
+# a draft row is shown as fact only after its checks, a meaning only where JYOTISH_SHOW_DRAFT_MEANINGS is on.
+- signature: vocation.d10
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - planet
+  - sign
+  variants:
+  - In the divisional chart for work, which speaks to {area}, {planet} is in {sign}, {dignity}.
+  - Looking at the divisional chart for work, the one that touches {area}, you have {planet} in {sign}, {dignity}.
+  - In your chart of work, the divisional chart read for {area}, {planet} sits in {sign}, {dignity}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: In the divisional chart for work, which speaks to your career, Mars is in Capricorn, exalted, where it is at
+      its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for work, the one that touches your career, you have Mars in Capricorn, exalted,
+      where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 2
+    sentence: In your chart of work, the divisional chart read for your career, Mars sits in Capricorn, exalted, where it
+      is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:many,planet:one,sign:one
+  - variant: 0
+    sentence: In the divisional chart for work, which speaks to your career, Saturn is in Capricorn, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for work, the one that touches your career, you have Saturn in Capricorn, in
+      its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 2
+    sentence: In your chart of work, the divisional chart read for your career, Saturn sits in Capricorn, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:one,planet:one,sign:one
+  - variant: 0
+    sentence: In the divisional chart for work, which speaks to your career, the Sun is in Aries, exalted, where it is at
+      its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for work, the one that touches your career, you have the Sun in Aries, exalted,
+      where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 2
+    sentence: In your chart of work, the divisional chart read for your career, the Sun sits in Aries, exalted, where it is
+      at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:many,planet:one+lum,sign:one
+  - variant: 0
+    sentence: In the divisional chart for work, which speaks to your career, the Moon is in Cancer, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 1
+    sentence: Looking at the divisional chart for work, the one that touches your career, you have the Moon in Cancer, in
+      its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+  - variant: 2
+    sentence: In your chart of work, the divisional chart read for your career, the Moon sits in Cancer, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,dignity:one,planet:one+lum,sign:one
+- signature: vocation.in_tenth
+  kind: fact
+  slots:
+  - area
+  - planet
+  variants:
+  - In your 10th house, the house of work, you have {planet}, and that house is the place read for {area}.
+  - Your 10th house, the house of work that speaks of {area}, is where {planet} sits.
+  - In the house of work, your 10th, which speaks of {area}, you have {planet}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: In your 10th house, the house of work, you have the Sun, and that house is the place read for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one+lum
+  - variant: 1
+    sentence: Your 10th house, the house of work that speaks of your career, is where the Sun sits.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one+lum
+  - variant: 2
+    sentence: In the house of work, your 10th, which speaks of your career, you have the Sun.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one+lum
+  - variant: 0
+    sentence: In your 10th house, the house of work, you have Mercury, and that house is the place read for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one
+  - variant: 1
+    sentence: Your 10th house, the house of work that speaks of your career, is where Mercury sits.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one
+  - variant: 2
+    sentence: In the house of work, your 10th, which speaks of your career, you have Mercury.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one
+  - variant: 0
+    sentence: In your 10th house, the house of work, you have Rahu, and that house is the place read for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one+node
+  - variant: 1
+    sentence: Your 10th house, the house of work that speaks of your career, is where Rahu sits.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one+node
+  - variant: 2
+    sentence: In the house of work, your 10th, which speaks of your career, you have Rahu.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,planet:one+node
+- signature: vocation.tenth
+  kind: fact
+  slots:
+  - area
+  - house
+  - in_sign
+  - planet
+  - sign
+  variants:
+  - Your 10th house, the house of work and {area}, is in {sign}, and its ruler, {planet}, sits in {in_sign} in your {house}
+    house.
+  - The sign on your 10th house, which speaks of {area}, is {sign}, and its ruler {planet} is placed in {in_sign}, in your
+    {house} house.
+  - Your house of work, the 10th, is in {sign}; its ruler {planet} is in {in_sign}, in your {house} house, and that 10th house
+    speaks of {area}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: Your 10th house, the house of work and your career, is in Aquarius, and its ruler, Saturn, sits in Taurus in
+      your 1st house.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,house:one,in_sign:one,planet:one,sign:one
+  - variant: 1
+    sentence: The sign on your 10th house, which speaks of your career, is Aquarius, and its ruler Saturn is placed in Taurus,
+      in your 1st house.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,house:one,in_sign:one,planet:one,sign:one
+  - variant: 2
+    sentence: Your house of work, the 10th, is in Aquarius; its ruler Saturn is in Taurus, in your 1st house, and that 10th
+      house speaks of your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,house:one,in_sign:one,planet:one,sign:one
+  - variant: 0
+    sentence: Your 10th house, the house of work and your career, is in Leo, and its ruler, the Sun, sits in Aquarius in your
+      4th house.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,house:one,in_sign:one,planet:one+lum,sign:one
+  - variant: 1
+    sentence: The sign on your 10th house, which speaks of your career, is Leo, and its ruler the Sun is placed in Aquarius,
+      in your 4th house.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,house:one,in_sign:one,planet:one+lum,sign:one
+  - variant: 2
+    sentence: Your house of work, the 10th, is in Leo; its ruler the Sun is in Aquarius, in your 4th house, and that 10th
+      house speaks of your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one,house:one,in_sign:one,planet:one+lum,sign:one

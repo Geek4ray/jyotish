@@ -600,8 +600,38 @@
    "usd": {
     "checker": 0.0047
    }
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 11,
+   "rows_kept": 126,
+   "left_out": {
+    "vocation.works.saturn@career": [
+     "vocation.works.saturn@career: variant 3: engine vocabulary ('term') in the client's text: say it in plain words: 'For your career, Venus is traditionally linked with farming, mining, construction, manual labour and patient long-term service wherever it shapes the house of work.'"
+    ]
+   },
+   "usd": {
+    "writer": 0.0704,
+    "checker": 0.0096
+   },
+   "calls": 3
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 1,
+   "rows_kept": 137,
+   "left_out": {},
+   "usd": {
+    "writer": 0.0051,
+    "checker": 0.0
+   },
+   "calls": 1
   }
  ],
- "rows_in_bank": 126,
- "usd_total": 2.2057
+ "rows_in_bank": 138,
+ "usd_total": 2.2908
 }

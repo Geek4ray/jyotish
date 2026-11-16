@@ -46,7 +46,8 @@ SAMPLE = {"planet": "Venus", "planets": "Venus and Mars", "helpers": "Jupiter", 
           "named": "Ruchaka (Mars in its own or exalted sign in an angular house)", "reductions": "Saturn's aspect on it",
           "role": "the ruler of your 10th house", "maha": "Jupiter", "antar": "Mercury", "until": "November 2028",
           "touching": "Jupiter", "when": "from October 2029 to June 2032",
-          "weaknesses": "sits in your 1st house, which drains it, and it is in a feeble state by its degree in Taurus"}
+          "weaknesses": "sits in your 1st house, which drains it, and it is in a feeble state by its degree in Taurus",
+          "in_sign": "Taurus"}
 
 
 class BankError(ValueError):

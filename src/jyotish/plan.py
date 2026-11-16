@@ -122,6 +122,9 @@ class PlanItem(BaseModel):
     facts: dict[str, Any] = Field(default_factory=dict)   # what the chart states for it: what a fact row is checked against
     engine: str                                     # the engine's own sentence: the fallback when no row is found
     notes: list[dict[str, Any]] = Field(default_factory=list)   # notes into the area's sheet
+    # The meaning row's signature, where it is not the item's own (a vocation item reads its planet's kinds of work,
+    # `vocation.works.<planet>`; decision 3).
+    meaning: str | None = None
 
 
 class AnswerPlan(BaseModel):
@@ -375,6 +378,58 @@ def _weakness_items(chart, area: str, label: str, data: dict | None, sheet: dict
     return out
 
 
+# The field of work (SPEC Layer 8 rev 136, "The shaped answer", decision 3): what the engine computes and nothing
+# else, nothing of it weighing in scoring. The 10th house from the rising sign (its sign and its ruler, with the
+# ruler's sign and house), each planet in it, and each of the seven planets the D10 holds in its own or exalted sign
+# (scoring.varga_dignity_word, the varga vote's words). In that order of preference, the first of each kind before
+# the second of any: the 10th and its ruler, a planet in it, a strong D10 planet, then the rest. Each item's meaning
+# is its planet's kinds of work (`vocation.works.<planet>@career`, draft until the astrologer approves it). The
+# classical karmajiva lord (the ruler of the navamsa the 10th lord occupies) is left out: its method was not read in
+# a named edition (docs/spec_notes_2026-11-16.md).
+VOCATION_DIGNITY = {"exalted": "exalted, where it is at its best", "own": "in its own sign"}
+
+
+def _vocation_items(chart, label: str) -> list[PlanItem]:
+    from .constants import SIGNS
+    from .narrate import _ORD
+    from .scoring import varga_dignity_word
+    asc = chart.lagnas.asc_sign
+    tenth = (asc + 9) % 12
+    ruler = SIGN_LORD[tenth]
+    rb = chart.bodies[ruler]
+    about_ = about(chart, "career", label)
+    first = PlanItem(part="vocation", signature="vocation.tenth", area="career", meaning=f"vocation.works.{ruler.lower()}",
+                     slots={"area": label, "sign": SIGNS[tenth], "planet": _the(ruler), "in_sign": rb.sign_name,
+                            "house": _ORD[rb.house]},
+                     facts={"tenth_house_sign": SIGNS[tenth], "tenth_house_ruler": ruler, "ruler_sign": rb.sign_name,
+                            "ruler_house": rb.house, "about": about_},
+                     engine=f"Your 10th house, the house of work, is in {SIGNS[tenth]}, and its ruler, {_the(ruler)}, "
+                            f"sits in {rb.sign_name} in your {_ORD[rb.house]} house.")
+    order = ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu")
+    inside = [PlanItem(part="vocation", signature="vocation.in_tenth", area="career",
+                       meaning=f"vocation.works.{p.lower()}", slots={"area": label, "planet": _the(p)},
+                       facts={"planet": p, "house": 10, "sign": chart.bodies[p].sign_name, "about": about_},
+                       engine=f"{_the(p)[0].upper() + _the(p)[1:]} sits in your 10th house, the house of work.")
+              for p in order if p in chart.bodies and chart.bodies[p].house == 10]
+    d10 = chart.vargas.get("D10") or {}
+    strong = []
+    for p in order[:7]:
+        if p not in d10:
+            continue
+        word = varga_dignity_word(p, d10[p])
+        if word in VOCATION_DIGNITY:
+            strong.append(PlanItem(part="vocation", signature="vocation.d10", area="career",
+                                   meaning=f"vocation.works.{p.lower()}",
+                                   slots={"area": label, "planet": _the(p), "sign": SIGNS[d10[p]],
+                                          "dignity": VOCATION_DIGNITY[word]},
+                                   facts={"planet": p, "varga": "D10", "varga_sign": SIGNS[d10[p]],
+                                          "varga_dignity_label": word, "about": about_},
+                                   engine=f"In the divisional chart for work, {_the(p)} is in {SIGNS[d10[p]]}, "
+                                          f"{VOCATION_DIGNITY[word]}."))
+    rest = inside[1:] + strong[1:]
+    return [first] + inside[:1] + strong[:1] + rest
+
+
 def _period_item(chart, area: str, label: str, as_of: date) -> PlanItem | None:
     import swisseph as swe
     from .chains import current_lords
@@ -555,6 +610,8 @@ def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str
         for f in shaky:
             left.append({"area": area, "what": f["finding_id"], "why": "depends on the exact birth time"})
         items += _weakness_items(chart, area, label, data, sheet)
+        if area == "career" and any(p.get("kind") == "vocation" and area in (p.get("areas") or areas) for p in parts):
+            items += _vocation_items(chart, label)
         if (it := _period_item(chart, area, label, as_of)):
             items.append(it)
         if when:

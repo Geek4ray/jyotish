@@ -86,10 +86,15 @@ derivation, rupa, strong, strongest, weak, weakest, moderate, mixed, "I". A Sans
 said with its plain meaning in the same sentence: in a rule's row write {named} where the rule is named (its name with \
 its plain meaning in brackets, filled by the engine), never {name} alone. A weakness's meaning says "a house that \
 drains it", "a feeble state" or "less strength than it needs", never its Sanskrit name. Return one row for each \
-signature asked, with its signature as given."""
+signature asked, with its signature as given.
+
+A VOCATION meaning row (vocation.works.<planet>@career) is given one planet: each variant says the kinds of work \
+tradition links with that planet where it shapes the house of work, as tradition ("is traditionally linked with work \
+in", "texts associate it with"), naming three to five kinds of work in plain words. Never a promise about the \
+client's own job, never advice, never a figure."""
 
 FILES = {"opening": "openings", "verdict": "verdicts", "stability": "stability", "family": "families", "rule": "rules",
-         "weakness": "weaknesses", "period": "periods", "stretch": "stretches"}
+         "weakness": "weaknesses", "period": "periods", "stretch": "stretches", "vocation": "vocations"}
 REDRAFT_NOTE = "Your last draft of these rows could not stand. Redraft each, for the reasons given:"
 
 
@@ -118,6 +123,11 @@ def _signatures(n: int, seed: int) -> dict[tuple[str, str], dict]:
                 first["shapes"].append(sample)
             if i.part in ("rule", "weakness") and i.area in AREAS:
                 found.setdefault((f"{i.signature}@{i.area}", "meaning"), sample)
+            if i.part == "vocation" and i.meaning:
+                # A planet's kinds of work: its row may use the planet and the area only, the slots every vocation
+                # item has (decision 3).
+                found.setdefault((f"{i.meaning}@career", "meaning"),
+                                 sample | {"slots": {k: i.slots[k] for k in ("planet", "area")}})
     ref = assess(REFERENCE_BIRTH_UTC, REFERENCE_LAT, REFERENCE_LON, true_node=False)
     data = cached_payload(ref, AS_OF, *full_range(AS_OF), AREAS)
     for direction in ("both", "against"):
@@ -127,9 +137,12 @@ def _signatures(n: int, seed: int) -> dict[tuple[str, str], dict]:
     for key in CANNOT_LINE:
         take(plan(ref, "draft", AREAS[:1], "both", key.split("."), as_of=AS_OF, when=True, data=data))
     take(plan(ref, "draft", AREAS, "against", kinds, as_of=AS_OF, weakest=True, data=data))
+    vocation = [{"kind": "vocation", "areas": ["career"]}]          # the field of work (SPEC rev 136, decision 3)
+    take(plan(ref, "draft", ["career"], "both", ["vocation"], as_of=AS_OF, data=data, parts=vocation))
     for b in births(n, seed):
         c = compute(datetime.fromisoformat(f"{b['date']}T{b['time']}"), b["lat"], b["lon"], true_node=False)
         take(plan(c, "draft", AREAS, "both", kinds, as_of=AS_OF, weakest=False))
+        take(plan(c, "draft", ["career"], "both", ["vocation"], as_of=AS_OF, parts=vocation))
         take(plan(c, "draft", AREAS, "against", kinds, as_of=AS_OF, weakest=True))
     return found
 
@@ -163,11 +176,21 @@ WEAKNESS_WHAT["planet"] = ("the planet, the area's main ruler or main significat
                            + ". The meaning is of the planet so held back, for the area, whichever of them it has")
 
 
+# A planet's kinds of work (decision 3): the classical lists of livelihood by planet. The verse was not read in a named
+# edition, so the source says so, and every row is draft until the astrologer approves it.
+VOCATION_SOURCE = ("Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet "
+                   "read in a named edition")
+VOCATION_WHAT = ("the kinds of work tradition links with this planet where it rules the 10th house, sits in it or is "
+                 "strong in the D10, the divisional chart for work")
+
+
 def _source(key: tuple[str, str]) -> str | None:
     sig, kind = key
     if kind != "meaning":
         return None
     base = sig.split("@")[0]
+    if base.startswith("vocation.works."):
+        return VOCATION_SOURCE
     if base.startswith("rule."):
         return _rule_context(base).get("source") or None
     return WEAKNESS_SOURCE.get(base.split(".")[1])
@@ -184,6 +207,8 @@ def _ask(key: tuple[str, str], sample: dict) -> dict:
         item |= {"area": area, "example_values": sample["slots"]}
         if base.startswith("rule."):
             item |= {"rule": _rule_context(base), "reduced": base.split(".")[-1] == "reduced" or ".reduced." in base}
+        elif base.startswith("vocation.works."):
+            item |= {"vocation_planet": base.split(".")[-1].capitalize(), "what": VOCATION_WHAT, "source": VOCATION_SOURCE}
         else:
             w = base.split(".")[1]
             item |= {"weakness": WEAKNESS_WHAT[w], "source": WEAKNESS_SOURCE[w]}
