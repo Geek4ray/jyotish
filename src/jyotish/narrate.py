@@ -2714,10 +2714,14 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
                 f"your {_ORD[r['house']]} house{dig(r.get('dignity'))}.")
         notes.append(_sheet_note(sheet, 3, f"planets.{r['planet']}", area))
     elif fam == "varga" and rows:
-        side = [x for x in rows if (x.get("score") or 0) * vote > 0] or rows
-        r = max(side, key=lambda x: abs(x.get("score") or 0))
-        text = (f"The divisional chart for {label} {leans(False)}; there {_the(r['planet'])} falls in "
-                f"{r['varga_sign']}{dig(r.get('varga_dignity_label'))}.")
+        r, own = varga_row(rows, vote, area)
+        if own:
+            text = (f"The divisional chart for {label} {leans(False)}; there {_the(r['planet'])} falls in "
+                    f"{r['varga_sign']}{dig(r.get('varga_dignity_label'))}.")
+        else:
+            # Another of the area's vargas, or the birth chart itself: named as what it is (2026-11-16).
+            text = (f"The divisional charts read for {label} {leans(True)}; in {VARGA_PLAIN.get(r['varga'], 'a divisional chart')}, "
+                    f"{_the(r['planet'])} falls in {r['varga_sign']}{dig(r.get('varga_dignity_label'))}.")
         notes.append(_sheet_note(sheet, 5, f"vargas.{r['varga']}", area))
     elif fam == "arudha" and isinstance(der, dict) and der.get("padas"):
         padas = der["padas"]
@@ -2748,6 +2752,32 @@ def _family_sentence(fam: str, v: dict, label: str, data: dict, area: str, sheet
     else:
         return None
     return EngineSentence(text=text, notes=[n for n in notes if n])
+
+
+# The divisional charts by what they are read for, in plain words, for a varga sentence resting on a varga that is not
+# the area's own (the layered answer's open wording, fixed 2026-11-16: "the divisional chart for your money" was said
+# of the D16, which scoring.AREAS lists second for wealth, and "the divisional chart for your personality" of the D1).
+VARGA_PLAIN = {"D1": "the birth chart itself", "D2": "the divisional chart of wealth",
+               "D3": "the divisional chart of brothers, sisters and courage", "D4": "the divisional chart of home and property",
+               "D7": "the divisional chart of children", "D9": "the divisional chart of marriage",
+               "D10": "the divisional chart of work", "D11": "the divisional chart of gains",
+               "D12": "the divisional chart of parents", "D16": "the divisional chart of comforts and vehicles",
+               "D20": "the divisional chart of spiritual life", "D24": "the divisional chart of learning",
+               "D27": "the divisional chart of strengths and weaknesses", "D30": "the divisional chart of misfortunes",
+               "D40": "the divisional chart of the mother's line", "D45": "the divisional chart of the father's line",
+               "D60": "the divisional chart of past actions"}
+
+
+def varga_row(rows: list[dict], vote: int, area: str) -> tuple[dict, bool]:
+    """The row a varga sentence rests on, and whether it is the area's own divisional chart (the first varga
+    scoring.AREAS lists for it, the birth chart excepted): on the vote's side, from the area's own varga where one
+    is, else the row of the greatest score."""
+    from .scoring import AREAS
+    own = ((AREAS.get(area) or {}).get("vargas") or [None])[0]
+    side = [x for x in rows if (x.get("score") or 0) * vote > 0] or rows
+    mine = [x for x in side if x.get("varga") == own]
+    r = max(mine or side, key=lambda x: abs(x.get("score") or 0))
+    return r, r.get("varga") == own and own != "D1"
 
 
 # Areas whose stretches never reach the client, on any route (SPEC Layer 8, decided after the review of chat v1, C1):

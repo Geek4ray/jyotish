@@ -174,3 +174,17 @@ GET /health carries `"draft_meanings"`, true where `JYOTISH_SHOW_DRAFT_MEANINGS`
 docs/definition_of_done.md gains, beside its two standing rules, that the flag is off on every deployment an outside
 client can reach and /health says `"draft_meanings": false` there; Ray's and the astrologer's own deployment may run with
 it on while the meaning rows are drafts.
+
+## The wordings left open at rev 135
+
+**The varga sentence names the divisional chart it rests on.** `family.varga.*` said "the divisional chart for <area>"
+of the row of greatest score, which could be the area's second varga (the D16 of wealth, the D9 of fortune) or the
+birth chart itself (the D1 of personality and of the mind), which the layered answer's recheck refused once.
+`narrate.varga_row` now takes the row from the area's own divisional chart (the first `scoring.AREAS` lists, the birth
+chart excepted) where one lies on the vote's side, else the row of greatest score; a sentence on another chart says
+"the divisional charts read for <area> lean ...; in <that chart, in plain words>, <planet> falls in ..."
+(`narrate.VARGA_PLAIN`, `family.varga.for.other` / `.against.other` with a `{varga}` slot), in the engine's sentence and
+the bank's. The two new rows were drafted with `--only family.varga.` (draft_bank.py now gathers every area's fact
+signatures, since `.other` arises outside career, marriage and wealth; meaning rows stay those three areas') and
+checked on four slot shapes each, all supported. A test over 40 random charts and every area holds every own-chart
+sentence to the area's own varga and every other one to its named chart.

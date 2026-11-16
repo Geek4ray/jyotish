@@ -1580,6 +1580,118 @@
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
     shape: area:one,dignity:one,planet:one,sign:one
+- signature: family.varga.against.other
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - planet
+  - sign
+  - varga
+  variants:
+  - The divisional charts read for {area} lean unfavourably, and in {varga}, {planet} falls in {sign}, {dignity}.
+  - When the divisional charts are read for {area}, they lean unfavourably; in {varga}, {planet} sits in {sign}, {dignity}.
+  - For {area}, the divisional charts lean unfavourably, and {varga} places {planet} in {sign}, {dignity}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The divisional charts read for your mind and feelings lean unfavourably, and in the birth chart itself, the
+      Sun falls in Libra, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one+lum,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for your mind and feelings, they lean unfavourably; in the birth chart itself,
+      the Sun sits in Libra, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one+lum,sign:one,varga:one
+  - variant: 2
+    sentence: For your mind and feelings, the divisional charts lean unfavourably, and the birth chart itself places the Sun
+      in Libra, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one+lum,sign:one,varga:one
+  - variant: 0
+    sentence: The divisional charts read for yourself and your temperament lean unfavourably, and in the birth chart itself,
+      Mercury falls in Pisces, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for yourself and your temperament, they lean unfavourably; in the birth
+      chart itself, Mercury sits in Pisces, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one,sign:one,varga:one
+  - variant: 2
+    sentence: For yourself and your temperament, the divisional charts lean unfavourably, and the birth chart itself places
+      Mercury in Pisces, debilitated, where it is least at ease.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one,sign:one,varga:one
+  - variant: 0
+    sentence: The divisional charts read for yourself and your temperament lean unfavourably, and in the birth chart itself,
+      Jupiter falls in Libra, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for yourself and your temperament, they lean unfavourably; in the birth
+      chart itself, Jupiter sits in Libra, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one,sign:one,varga:one
+  - variant: 2
+    sentence: For yourself and your temperament, the divisional charts lean unfavourably, and the birth chart itself places
+      Jupiter in Libra, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one,sign:one,varga:one
+  - variant: 0
+    sentence: The divisional charts read for yourself and your temperament lean unfavourably, and in the birth chart itself,
+      the Sun falls in Capricorn, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one+lum,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for yourself and your temperament, they lean unfavourably; in the birth
+      chart itself, the Sun sits in Capricorn, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one+lum,sign:one,varga:one
+  - variant: 2
+    sentence: For yourself and your temperament, the divisional charts lean unfavourably, and the birth chart itself places
+      the Sun in Capricorn, in an unfriendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one+lum,sign:one,varga:one
 - signature: family.varga.for
   kind: fact
   slots:
@@ -1687,3 +1799,115 @@
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
     shape: area:one,dignity:one,planet:one+lum,sign:one
+- signature: family.varga.for.other
+  kind: fact
+  slots:
+  - area
+  - dignity
+  - planet
+  - sign
+  - varga
+  variants:
+  - The divisional charts read for {area} lean favourably, and in {varga}, {planet} falls in {sign}, {dignity}.
+  - When the divisional charts are read for {area}, they lean favourably; in {varga}, {planet} sits in {sign}, {dignity}.
+  - For {area}, the divisional charts lean favourably, and {varga} places {planet} in {sign}, {dignity}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: The divisional charts read for yourself and your temperament lean favourably, and in the birth chart itself,
+      Jupiter falls in Sagittarius, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for yourself and your temperament, they lean favourably; in the birth chart
+      itself, Jupiter sits in Sagittarius, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one,sign:one,varga:one
+  - variant: 2
+    sentence: For yourself and your temperament, the divisional charts lean favourably, and the birth chart itself places
+      Jupiter in Sagittarius, in its own sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one,sign:one,varga:one
+  - variant: 0
+    sentence: The divisional charts read for your mind and feelings lean favourably, and in the birth chart itself, Mars falls
+      in Capricorn, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for your mind and feelings, they lean favourably; in the birth chart itself,
+      Mars sits in Capricorn, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one,sign:one,varga:one
+  - variant: 2
+    sentence: For your mind and feelings, the divisional charts lean favourably, and the birth chart itself places Mars in
+      Capricorn, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one,sign:one,varga:one
+  - variant: 0
+    sentence: The divisional charts read for your mind and feelings lean favourably, and in the birth chart itself, the Moon
+      falls in Taurus, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one+lum,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for your mind and feelings, they lean favourably; in the birth chart itself,
+      the Moon sits in Taurus, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one+lum,sign:one,varga:one
+  - variant: 2
+    sentence: For your mind and feelings, the divisional charts lean favourably, and the birth chart itself places the Moon
+      in Taurus, exalted, where it is at its best.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:many,planet:one+lum,sign:one,varga:one
+  - variant: 0
+    sentence: The divisional charts read for yourself and your temperament lean favourably, and in the birth chart itself,
+      the Moon falls in Gemini, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one+lum,sign:one,varga:one
+  - variant: 1
+    sentence: When the divisional charts are read for yourself and your temperament, they lean favourably; in the birth chart
+      itself, the Moon sits in Gemini, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one+lum,sign:one,varga:one
+  - variant: 2
+    sentence: For yourself and your temperament, the divisional charts lean favourably, and the birth chart itself places
+      the Moon in Gemini, in a friendly sign.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many,dignity:one,planet:one+lum,sign:one,varga:one

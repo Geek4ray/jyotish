@@ -47,7 +47,7 @@ SAMPLE = {"planet": "Venus", "planets": "Venus and Mars", "helpers": "Jupiter", 
           "role": "the ruler of your 10th house", "maha": "Jupiter", "antar": "Mercury", "until": "November 2028",
           "touching": "Jupiter", "when": "from October 2029 to June 2032",
           "weaknesses": "sits in your 1st house, which drains it, and it is in a feeble state by its degree in Taurus",
-          "in_sign": "Taurus"}
+          "in_sign": "Taurus", "varga": "the divisional chart of comforts and vehicles"}
 
 
 class BankError(ValueError):
@@ -139,7 +139,7 @@ def plural(value: str) -> bool:
 
 # Slots whose value is one thing whatever its words: a role ("the ruler of your 2nd house and the main planet for
 # money") is one planet (review 2026-11-15, M6: "...are the Sun"), an area or a name is one subject.
-ONE_THING = ("dignity", "area", "Area", "areas", "named", "name", "when", "until", "role")
+ONE_THING = ("dignity", "area", "Area", "areas", "named", "name", "when", "until", "role", "varga")
 # A verb coordinated with the slot's own verb in the same clause ("{planets} sit in your 10th house and forms", M6).
 _SECOND_VERB = re.compile(r"^([^,;:.]*?\band\s+)([a-z]+)\b")
 

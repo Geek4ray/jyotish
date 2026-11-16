@@ -143,6 +143,11 @@ def _signatures(n: int, seed: int) -> dict[tuple[str, str], dict]:
         c = compute(datetime.fromisoformat(f"{b['date']}T{b['time']}"), b["lat"], b["lon"], true_node=False)
         take(plan(c, "draft", AREAS, "both", kinds, as_of=AS_OF, weakest=False))
         take(plan(c, "draft", ["career"], "both", ["vocation"], as_of=AS_OF, parts=vocation))
+        # Every other area's fact signatures too (2026-11-16: the varga sentence on another divisional chart,
+        # family.varga.*.other, arises in personality, mind and the areas with two vargas); meaning rows stay the
+        # three areas' (`take`).
+        take(plan(c, "draft", [x for x in c.scored.areas if x not in AREAS and x != "synastry"], "both", kinds,
+                  as_of=AS_OF))
         take(plan(c, "draft", AREAS, "against", kinds, as_of=AS_OF, weakest=True))
     return found
 

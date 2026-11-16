@@ -238,9 +238,14 @@ def _family_item(chart, fam: str, v: dict, area: str, label: str, part: str, dat
         r = next((x for x in rows if x["planet"] == main), rows[0])
         slots |= {"planet": _the(r["planet"]), "sign": r["sign"], "house": _ORD[r["house"]], "dignity": dig(r.get("dignity"))}
     elif fam == "varga":
-        sided = [x for x in rows if (x.get("score") or 0) * v["vote"] > 0] or rows
-        r = max(sided, key=lambda x: abs(x.get("score") or 0))
+        from .narrate import VARGA_PLAIN, varga_row
+        r, own = varga_row(rows, v["vote"], area)
         slots |= {"planet": _the(r["planet"]), "sign": r["varga_sign"], "dignity": dig(r.get("varga_dignity_label"))}
+        if not own:
+            # Not the area's own divisional chart: named as what it is (`.other`, {varga}; the open wording of
+            # 2026-11-15, fixed 2026-11-16).
+            sig += ".other"
+            slots["varga"] = VARGA_PLAIN.get(r["varga"], "a divisional chart")
     elif fam == "arudha":
         padas = der["padas"]
         signs = list(dict.fromkeys(p["sign"] for p in padas))

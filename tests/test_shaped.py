@@ -366,3 +366,34 @@ def test_6_the_definition_of_done_says_draft_meanings_are_off_before_the_first_o
     dod = (ROOT / "docs" / "definition_of_done.md").read_text()
     assert "Before the first outside client" in dod and "JYOTISH_SHOW_DRAFT_MEANINGS" in dod
     assert '"draft_meanings": false' in dod
+
+
+# --- The wordings left open at rev 135, "hi", and the day a turn is read at ---------------------------------------
+
+def test_w1_a_varga_sentence_names_the_divisional_chart_it_rests_on(chart):
+    """Over random charts and every area: a sentence saying "the divisional chart for <area>" rests on the area's own
+    varga (the first scoring.AREAS lists, not the birth chart); another is named as what it is."""
+    import sys
+    from datetime import datetime
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from synthetic_cohort import births
+    from jyotish.chart import compute
+    from jyotish.plan import plan
+    from jyotish.scoring import AREAS
+    seen = {"own": 0, "other": 0}
+    for b in births(40, 5):
+        c = compute(datetime.fromisoformat(f"{b['date']}T{b['time']}"), b["lat"], b["lon"], true_node=False)
+        for a in [x for x in c.scored.areas if x != "synastry"]:
+            for i in plan(c, "x", [a], "both", ["goes"], as_of=AS_OF).items:
+                if not i.signature.startswith("family.varga."):
+                    continue
+                rows = [r for r in i.facts["derivation"] if r["planet"] == i.slots["planet"].replace("the ", "")
+                        and r["varga_sign"] == i.slots["sign"]]
+                vargas = {r["varga"] for r in rows}
+                if i.signature.endswith(".other"):
+                    seen["other"] += 1
+                    assert "the divisional chart for" not in i.engine and i.slots["varga"] in i.engine
+                else:
+                    seen["own"] += 1
+                    assert AREAS[a]["vargas"][0] in vargas and AREAS[a]["vargas"][0] != "D1", (a, i.engine)
+    assert seen["own"] > 100 and seen["other"] > 10, seen
