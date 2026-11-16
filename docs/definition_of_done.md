@@ -38,3 +38,8 @@ docs/definition_of_done.md", and the independent review checks against this list
 Two standing rules beside the ten: no content prompt (rules, effects, text) without a
 scorecard number it is meant to move, and nothing the product says is ever ahead of the
 evidence the validation layer has for it.
+
+Before the first outside client (SPEC Layer 8 rev 136, "The shaped answer", decision 6):
+`JYOTISH_SHOW_DRAFT_MEANINGS` is off on every deployment an outside client can reach, and
+GET /health says `"draft_meanings": false` there. Ray's and the astrologer's own deployment
+may run with it on, so that they see the whole answer while the meaning rows are drafts.

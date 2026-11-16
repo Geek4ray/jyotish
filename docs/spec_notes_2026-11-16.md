@@ -166,3 +166,11 @@ question names is the question's, whatever it is.
 will, would, can, could, should, need, want, got or feel, or a contraction) is refused in every text held to
 `client_errors`: every paragraph at every depth, the client's layer, the curious summary, a reviewer's edit of the
 client's words. It is a refusal whatever `WORD_RULES` says; a bare "I" (the writer's) stays a warning as before.
+
+## 6. Draft meanings while there is no outside client
+
+GET /health carries `"draft_meanings"`, true where `JYOTISH_SHOW_DRAFT_MEANINGS` is on (`conversation.show_draft_meanings`:
+1, true, yes, on), so whoever runs a deployment sees at a glance whether a client is reading unapproved meaning rows.
+docs/definition_of_done.md gains, beside its two standing rules, that the flag is off on every deployment an outside
+client can reach and /health says `"draft_meanings": false` there; Ray's and the astrologer's own deployment may run with
+it on while the meaning rows are drafts.

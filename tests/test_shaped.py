@@ -349,3 +349,20 @@ def test_5_a_readings_default_areas_leave_out_health_longevity_and_synastry(char
 def test_5_a_paragraph_in_the_clients_first_person_is_refused(text, refused):
     from jyotish.client import client_errors
     assert bool([e for e in client_errors(text) if "first person" in e]) == refused
+
+
+# --- 6. Draft meanings while there is no outside client -----------------------------------------------------------
+
+@pytest.mark.parametrize("flag,shown", [("", False), ("0", False), ("1", True), ("on", True)])
+def test_6_health_says_whether_draft_meanings_are_shown(tmp_path, monkeypatch, flag, shown):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    monkeypatch.setenv("JYOTISH_SHOW_DRAFT_MEANINGS", flag)
+    with TestClient(create_app(f"sqlite:///{tmp_path / 'h.db'}")) as c:
+        assert c.get("/health").json()["draft_meanings"] is shown
+
+
+def test_6_the_definition_of_done_says_draft_meanings_are_off_before_the_first_outside_client():
+    dod = (ROOT / "docs" / "definition_of_done.md").read_text()
+    assert "Before the first outside client" in dod and "JYOTISH_SHOW_DRAFT_MEANINGS" in dod
+    assert '"draft_meanings": false' in dod

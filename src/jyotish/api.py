@@ -1392,7 +1392,10 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                               else "no key"),
                 "backends": backends,
                 "source": os.environ.get("JYOTISH_SOURCE_URL") or None}
-        from .conversation import polish_on
+        from .conversation import polish_on, show_draft_meanings
+        # Whether a client reads unapproved meaning rows (SPEC Layer 8 rev 136, "The shaped answer", decision 6): on for
+        # Ray's and the astrologer's testing only, off before the first outside client (docs/definition_of_done.md).
+        body["draft_meanings"] = show_draft_meanings()
         if polish_on():                         # the polisher's role (review M2); a turn it fails shows the composed text
             from .narrate import role_status
             body["polisher"] = role_status("polisher")
