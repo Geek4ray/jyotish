@@ -562,8 +562,21 @@
    "usd": {
     "checker": 0.008
    }
+  },
+  {
+   "date": "2026-11-16",
+   "model": "claude-sonnet-5-5",
+   "checker": "zai-org/GLM-5.3-Flash",
+   "rows_written": 5,
+   "rows_kept": 129,
+   "left_out": {},
+   "usd": {
+    "writer": 0.0134,
+    "checker": 0.0064
+   },
+   "calls": 1
   }
  ],
- "rows_in_bank": 129,
- "usd_total": 2.1534
+ "rows_in_bank": 134,
+ "usd_total": 2.1732
 }

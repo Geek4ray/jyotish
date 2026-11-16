@@ -122,6 +122,10 @@ def _signatures(n: int, seed: int) -> dict[tuple[str, str], dict]:
     data = cached_payload(ref, AS_OF, *full_range(AS_OF), AREAS)
     for direction in ("both", "against"):
         take(plan(ref, "draft", AREAS, direction, kinds, as_of=AS_OF, when=True, data=data))
+    # One cannot-give line for every combination of asks that needs one (SPEC rev 136, "The shaped answer", decision 1).
+    from jyotish.plan import CANNOT_LINE
+    for key in CANNOT_LINE:
+        take(plan(ref, "draft", AREAS[:1], "both", key.split("."), as_of=AS_OF, when=True, data=data))
     take(plan(ref, "draft", AREAS, "against", kinds, as_of=AS_OF, weakest=True, data=data))
     for b in births(n, seed):
         c = compute(datetime.fromisoformat(f"{b['date']}T{b['time']}"), b["lat"], b["lon"], true_node=False)
@@ -283,6 +287,8 @@ def main(argv=None) -> int:
     ap.add_argument("--recheck", action="store_true",
                     help="draft nothing: check every fact row (or --signatures) on each sample shape, and write its checks")
     ap.add_argument("--signatures", nargs="*", default=None, help="with --recheck: only these signatures")
+    ap.add_argument("--only", nargs="*", default=None,
+                    help="draft only the signatures starting with one of these (a decision's own rows)")
     a = ap.parse_args(argv)
     from jyotish import envfile
     from jyotish.bank import BANK_DIR, BankRow, Check, dump_rows, load_bank, row_errors
@@ -294,7 +300,8 @@ def main(argv=None) -> int:
     have = load_bank(strict=False)
     keep = {(r.signature, r.kind): r for r in have.rows if r.status == "approved" or not a.redraft}
     found = _signatures(a.charts, a.seed)
-    todo = {k: v for k, v in sorted(found.items()) if k not in keep}
+    todo = {k: v for k, v in sorted(found.items()) if k not in keep
+            and (a.only is None or any(k[0].startswith(x) for x in a.only))}
     usd, parts = estimate(todo)
     print(f"{len(found)} signatures from {a.charts} random charts and the reference chart; {len(todo)} to draft")
     print("expected cost (worst case, every call and check sent twice): "

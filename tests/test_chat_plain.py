@@ -321,9 +321,12 @@ def test_3_a_follow_up_naming_an_area_is_new_by_its_area(chart):
 
 @pytest.mark.parametrize("message,kinds", [
     (MONEY, ["amount"]), ("will i be rich", ["amount"]), ("kitna paisa milega", ["amount"]),
-    ("will i marry", ["yes_no"]), ("kya meri shaadi hogi", ["yes_no"]), ("when will i marry", ["yes_no", "when"]),
-    ("whan and how", ["when", "why"]), ("why?", ["why"]), ("what are the challanges in my life", []),
-    ("how is my career", []), ("tell me about my marriage", [])])
+    ("will i marry", ["yes_no"]), ("kya meri shaadi hogi", ["yes_no"]),
+    # Yes or no only when a part opens on an auxiliary (SPEC rev 136, "The shaped answer", decision 1): "when will I
+    # marry" is a when question, and a question of how it goes is "goes" (before rev 136, yes_no and when, and none).
+    ("when will i marry", ["when"]),
+    ("whan and how", ["when", "why"]), ("why?", ["why"]), ("what are the challanges in my life", ["goes"]),
+    ("how is my career", ["goes"]), ("tell me about my marriage", ["goes"])])
 def test_4_the_questions_kinds_are_read_from_its_words(chart, message, kinds):
     from jyotish.conversation import kinds_of
     assert kinds_of(message, route_turn(message, chart, route_turn(MONEY, chart))) == kinds

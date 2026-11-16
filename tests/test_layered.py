@@ -354,13 +354,21 @@ def test_4_a_row_refused_by_the_checker_or_wanting_a_slot_is_not_used(chart, dat
 
 def test_4_paragraphs_are_the_answer_what_helps_what_is_hard_then_the_timing(chart, data):
     from jyotish.conversation import PARAGRAPHS, compose
-    m = "when will my career rise"
+    # How it goes, then when (SPEC rev 136, decision 1: a when-only question is its lean and its timing alone).
+    m = "how is my career, and when will it rise"
     c = compose(plan_turn(chart, m, route_turn(m, chart), as_of=AS_OF, data=data), session_key="s")
     parts = [s["part"] for s in c["sentences"]]
     groups = [next(k for k, v in PARAGRAPHS.items() if p in v) for p in parts]
     starts = [i for i in range(len(groups)) if i == 0 or groups[i] != groups[i - 1]]
+    # The cannot-give line opens the timing paragraph, the part that needs it.
+    groups = ["timing" if s["section"] == "timing" else g for s, g in zip(c["sentences"], groups)]
+    starts = [i for i in range(len(groups)) if i == 0 or groups[i] != groups[i - 1]]
     assert c["paragraphs"] == starts and [groups[i] for i in starts] == ["answer", "helps", "hard", "timing"]
     assert parts[-1] == "stretch" and c["sentences"][-1]["signature"] == "stretch.caveat.two"
+    m = "when will my career rise"
+    alone = compose(plan_turn(chart, m, route_turn(m, chart), as_of=AS_OF, data=data), session_key="s")
+    assert [s["part"] for s in alone["sentences"]][:2] == ["opening", "verdict"] and alone["paragraphs"] == [0]
+    assert not {"helps", "hard", "rule", "weakness"} & {s["part"] for s in alone["sentences"]}
     against = compose(plan_turn(chart, "what is hard in my career", route_turn("what is hard in my career", chart),
                                 as_of=AS_OF, data=data))
     order = list(dict.fromkeys(next(k for k, v in PARAGRAPHS.items() if s["part"] in v) for s in against["sentences"]))
@@ -402,8 +410,10 @@ def test_4_a_follow_up_repeats_nothing_and_a_why_with_nothing_new_says_so(chart,
     r = route_turn("whan and how", chart, last)
     again = compose(plan_turn(chart, "whan and how", r, as_of=AS_OF, data=data), session_key="s", said_before=said)
     texts = [s["text"] for s in again["sentences"]]
-    assert again["sentences"][-1]["signature"] == "stretch.caveat.two"
-    assert not set(texts) & {s["text"] for s in first["sentences"]} - {texts[-1]}
+    sigs = [s["signature"] for s in again["sentences"]]
+    # When, then how, in the order asked (SPEC rev 136, decision 1): the stretches, then that nothing is new.
+    assert sigs[-2] == "stretch.caveat.two" and sigs[-1] == "opening.said"
+    assert not set(texts) & {s["text"] for s in first["sentences"]} - {texts[-2]}
     assert OPENING_SAID in texts
 
 

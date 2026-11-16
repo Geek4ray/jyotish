@@ -36,6 +36,147 @@
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
     shape: area:many
+- signature: opening.amount.change
+  kind: fact
+  slots:
+  - area
+  variants:
+  - A chart cannot name an amount, promise an outcome or set a date for leaving or changing a job; it shows how well it supports
+    {area}, the period you are in, and the more and less favourable stretches.
+  - Please know that a chart offers no figure, no promise and no date for leaving or changing a job; what it does show is
+    its support for {area}, your current period, and the stretches it reads as more or less favourable.
+  - No amount, no promise and no date for a job change can come from a chart; it can only show how well it supports {area},
+    the period you are in, and where the more and less favourable stretches fall.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: A chart cannot name an amount, promise an outcome or set a date for leaving or changing a job; it shows how
+      well it supports your career, the period you are in, and the more and less favourable stretches.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 1
+    sentence: Please know that a chart offers no figure, no promise and no date for leaving or changing a job; what it does
+      show is its support for your career, your current period, and the stretches it reads as more or less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 2
+    sentence: No amount, no promise and no date for a job change can come from a chart; it can only show how well it supports
+      your career, the period you are in, and where the more and less favourable stretches fall.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+- signature: opening.amount.when
+  kind: fact
+  slots:
+  - area
+  variants:
+  - A chart cannot name an amount or a date, and it makes no promise; it shows how well it supports {area}, along with the
+    stretches it reads as more and less favourable.
+  - You will not find an amount, a date or a promise in a chart; what it shows is how well it supports {area} and which stretches
+    it reads as more or less favourable.
+  - No figure, no date and no promise can come from a chart; it can only show its support for {area} and the stretches it
+    reads as more and less favourable.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: A chart cannot name an amount or a date, and it makes no promise; it shows how well it supports your career,
+      marriage and money, along with the stretches it reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many
+  - variant: 1
+    sentence: You will not find an amount, a date or a promise in a chart; what it shows is how well it supports your career,
+      marriage and money and which stretches it reads as more or less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many
+  - variant: 2
+    sentence: No figure, no date and no promise can come from a chart; it can only show its support for your career, marriage
+      and money and the stretches it reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:many
+  - variant: 0
+    sentence: A chart cannot name an amount or a date, and it makes no promise; it shows how well it supports your career,
+      along with the stretches it reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 1
+    sentence: You will not find an amount, a date or a promise in a chart; what it shows is how well it supports your career
+      and which stretches it reads as more or less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 2
+    sentence: No figure, no date and no promise can come from a chart; it can only show its support for your career and the
+      stretches it reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+- signature: opening.change
+  kind: fact
+  slots:
+  - area
+  variants:
+  - A chart cannot give a date for leaving or changing a job; it shows the period you are in and the stretches it reads as
+    more and less favourable for {area}.
+  - There is no date for leaving or changing a job in a chart; what it shows is your current period and the stretches it reads
+    as more and less favourable for {area}.
+  - When it comes to leaving or changing a job, a chart offers no date; it shows the period you are in and the more and less
+    favourable stretches for {area}.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: A chart cannot give a date for leaving or changing a job; it shows the period you are in and the stretches it
+      reads as more and less favourable for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 1
+    sentence: There is no date for leaving or changing a job in a chart; what it shows is your current period and the stretches
+      it reads as more and less favourable for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 2
+    sentence: When it comes to leaving or changing a job, a chart offers no date; it shows the period you are in and the more
+      and less favourable stretches for your career.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
 - signature: opening.weakest.adverse
   kind: fact
   slots:
@@ -228,3 +369,81 @@
     model: zai-org/GLM-5.3-Flash
     'on': '2026-11-15'
     shape: area:many
+- signature: opening.yes_no.change
+  kind: fact
+  slots:
+  - area
+  variants:
+  - A chart cannot answer yes or no, or give a date for leaving or changing a job; it shows which way it leans for {area},
+    your current period, and the more and less favourable stretches.
+  - A plain yes or no, and a date for leaving or changing a job, are beyond a chart; it shows which way it leans for {area},
+    the period you are in, and the stretches it reads as more or less favourable.
+  - No yes or no and no date for a job change can come from a chart; what it shows is its lean for {area}, the period you
+    are in, and the stretches it reads as more and less favourable.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: A chart cannot answer yes or no, or give a date for leaving or changing a job; it shows which way it leans for
+      your career, your current period, and the more and less favourable stretches.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 1
+    sentence: A plain yes or no, and a date for leaving or changing a job, are beyond a chart; it shows which way it leans
+      for your career, the period you are in, and the stretches it reads as more or less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 2
+    sentence: No yes or no and no date for a job change can come from a chart; what it shows is its lean for your career,
+      the period you are in, and the stretches it reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+- signature: opening.yes_no.when
+  kind: fact
+  slots:
+  - area
+  variants:
+  - A chart cannot answer yes or no or give a date; it shows which way it leans for {area} and the stretches it reads as more
+    and less favourable.
+  - You will not get a plain yes or no or a date from a chart; what it shows is which way it leans for {area} and which stretches
+    it reads as more or less favourable.
+  - A chart gives neither a yes or no nor a date; it can only show its lean for {area} and the stretches it reads as more
+    and less favourable.
+  drafted_by: claude-sonnet-5-5
+  drafted_on: '2026-11-16'
+  status: draft
+  checks:
+  - variant: 0
+    sentence: A chart cannot answer yes or no or give a date; it shows which way it leans for your career and the stretches
+      it reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 1
+    sentence: You will not get a plain yes or no or a date from a chart; what it shows is which way it leans for your career
+      and which stretches it reads as more or less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one
+  - variant: 2
+    sentence: A chart gives neither a yes or no nor a date; it can only show its lean for your career and the stretches it
+      reads as more and less favourable.
+    supported: true
+    evidence: ''
+    model: zai-org/GLM-5.3-Flash
+    'on': '2026-11-16'
+    shape: area:one

@@ -23,15 +23,18 @@ MONEY_TIER = "For money, most of what the chart shows agrees, and on balance it 
 TURNS = [
     ("what are the challanges in my life",
      dict(areas=["father", "reputation", "siblings"], direction="against", when=False, why=False, how=False, follow_up=False, carried=[],
-          areas_from="weakest", off_limits=None, third_party=False, explains=None),
+          areas_from="weakest", off_limits=None, third_party=False, explains=None,
+          parts=[{"kind": "goes", "areas": ["father", "reputation", "siblings"]}]),
      None),                                          # frozen in tests/test_engine_reading.py (CHALLENGES)
     ("and marriage?",
      dict(areas=["marriage"], direction="against", when=False, why=False, how=False, follow_up=True, carried=["direction"],
-          areas_from="named", off_limits=None, third_party=False, explains=None),
+          areas_from="named", off_limits=None, third_party=False, explains=None,
+          parts=[{"kind": "goes", "areas": ["marriage"]}]),
      [MARRIAGE_TIER, MARRIAGE_AGAINST]),
     ("when?",
      dict(areas=["marriage"], direction="against", when=True, why=False, how=False, follow_up=True, carried=["areas", "direction"],
-          areas_from="carried", off_limits=None, third_party=False, explains=None),
+          areas_from="carried", off_limits=None, third_party=False, explains=None,
+          parts=[{"kind": "when", "areas": ["marriage"]}]),
      ["A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for "
       "marriage.",                                   # the question as asked (2026-11-02)
       MARRIAGE_TIER,                                 # the hard part was said in the last turn: left out (2026-11-02)
@@ -40,7 +43,8 @@ TURNS = [
       "Neither stretch is a prediction of when you will act."]),
     ("why do you say that?",
      dict(areas=["marriage"], direction="against", when=False, why=True, how=False, follow_up=True, carried=["areas", "direction"],
-          areas_from="carried", off_limits=None, third_party=False, explains=None),
+          areas_from="carried", off_limits=None, third_party=False, explains=None,
+          parts=[{"kind": "why", "areas": ["marriage"]}]),
      ["Here is what in your chart lies behind it.",  # what the last turns said is left out (2026-11-02)
       MARRIAGE_TIER,
       "Taken together, the houses that govern marriage lean favourably, though the main one, the 7th house from your "
@@ -54,11 +58,13 @@ TURNS = [
       "Mars, a ruler of the day you were born, leans favourably for marriage."]),
     ("will I die early?",
      dict(areas=["marriage"], direction="against", when=False, why=False, how=False, follow_up=True, carried=["areas", "direction"],
-          areas_from="carried", off_limits="death", third_party=False, explains=None),
+          areas_from="carried", off_limits="death", third_party=False, explains=None,
+          parts=[{"kind": "yes_no", "areas": ["marriage"]}]),
      None),
     (MONEY,
      dict(areas=["wealth"], direction="both", when=False, why=False, how=False, follow_up=False, carried=[],
-          areas_from="named", off_limits=None, third_party=False, explains=None),
+          areas_from="named", off_limits=None, third_party=False, explains=None,
+          parts=[{"kind": "amount", "areas": ["wealth"]}, {"kind": "amount", "areas": ["wealth"]}]),
      ["A chart gives no amount and makes no promise; what it shows is how well it supports money.",
       MONEY_TIER,
       "Taken together, the houses that govern money lean favourably: the main one, the 2nd house from your rising "
@@ -72,7 +78,8 @@ TURNS = [
       "helpful planet beside."]),
     ("whan and how",
      dict(areas=["wealth"], direction="both", when=True, why=False, how=True, follow_up=True,
-          carried=["areas", "direction"], areas_from="carried", off_limits=None, third_party=False, explains=None),
+          carried=["areas", "direction"], areas_from="carried", off_limits=None, third_party=False, explains=None,
+          parts=[{"kind": "when", "areas": ["wealth"]}, {"kind": "why", "areas": ["wealth"]}]),
      ["A chart gives no date for an event; what it shows are the stretches it reads as more and less favourable for "
       "money.",
       "What lies behind it is what the answer before set out; the chart has no further reason to add.",

@@ -74,6 +74,39 @@ RELATION_PLAIN = {"conjunction": "together in one sign", "mutual_aspect": "aspec
                   "exchange": "each in the other's sign"}
 # A hidden weakness of the main lord or significator: the body field, and its signature.
 WEAKNESSES = ("mks", "mrita", "low_strength")
+# What a chart cannot give, said once for every part that needs it (SPEC Layer 8 rev 136, "The shaped answer",
+# decision 1: the three-part question opened on two such lines). The kinds that need a line, in this order; an amount
+# line also says there is no yes or no, and a change of job's line also says there is no date. The line's signature is
+# "opening." and its kinds joined by dots, its engine sentence one of these.
+CANNOT_GIVE = ("amount", "yes_no", "when", "change")
+CANNOT_LINE = {
+    "amount": "A chart gives no amount and makes no promise; what it shows is how well it supports {label}.",
+    "yes_no": "A chart cannot answer yes or no; what it shows is which way it leans for {label}.",
+    "when": "A chart gives no date for an event; what it shows are the stretches it reads as more and less "
+            "favourable for {label}.",
+    "change": "A chart gives no date for leaving or changing a job; what it shows are the period you are in and the "
+              "stretches it reads as more and less favourable for {label}.",
+    "amount.when": "A chart gives no amount and no date and makes no promise; what it shows is how well it supports "
+                   "{label} and the stretches it reads as more and less favourable.",
+    "yes_no.when": "A chart cannot answer yes or no or give a date; what it shows is which way it leans for {label} "
+                   "and the stretches it reads as more and less favourable.",
+    "amount.change": "A chart gives no amount, makes no promise and gives no date for leaving or changing a job; what "
+                     "it shows is how well it supports {label}, the period you are in and the stretches it reads as "
+                     "more and less favourable.",
+    "yes_no.change": "A chart cannot answer yes or no or give a date for leaving or changing a job; what it shows is "
+                     "which way it leans for {label}, the period you are in and the stretches it reads as more and "
+                     "less favourable.",
+}
+
+
+def cannot_give(kinds: list[str], when: bool = True) -> list[str]:
+    """The kinds a cannot-give line says, in CANNOT_GIVE's order: "when" only on a turn that gives stretches."""
+    need = [k for k in CANNOT_GIVE if k in kinds and (k not in ("when", "change") or when)]
+    if "amount" in need and "yes_no" in need:
+        need.remove("yes_no")
+    if "change" in need and "when" in need:
+        need.remove("when")
+    return need
 
 
 class PlanItem(BaseModel):
@@ -96,6 +129,9 @@ class AnswerPlan(BaseModel):
     as_of: str
     items: list[PlanItem]
     left_out: list[dict[str, Any]] = Field(default_factory=list)   # {area, what, why}: the worksheet's last column
+    # The message's asks in the order asked, {kind, areas} (conversation.parts_of; decision 1). Empty for a plan made
+    # with none (the coverage and drafting tools): the composer reads it as one general ask, then "when", then "why".
+    parts: list[dict[str, Any]] = Field(default_factory=list)
 
     def signatures(self) -> list[str]:
         return [i.signature for i in self.items]
@@ -410,19 +446,30 @@ def _percentiles(chart, a, area: str) -> dict[str, float | None]:
 
 
 def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str], *, as_of: date,
-         when: bool = False, weakest: bool = False, data: dict | None = None) -> AnswerPlan:
+         when: bool = False, weakest: bool = False, data: dict | None = None,
+         parts: list[dict] | None = None) -> AnswerPlan:
     """The plan for one turn (the module docstring)."""
     from .narrate import CLIENT_AREA, OPENING, STABILITY_PLAIN, TIER_SENTENCE, _and as n_and, _cap, _sheet_note, findings
     from .sheet import build
     items: list[PlanItem] = []
     left: list[dict[str, Any]] = []
+    parts = [dict(p) for p in parts or []]
     labels = {a: CLIENT_AREA.get(a, a.replace("_", " ")) for a in areas}
     joined = n_and([labels[a] for a in areas]) if areas else "this part of your life"
-    for k in OPENING:
-        if k in kinds and (k != "when" or when):
-            items.append(PlanItem(part="opening", signature=f"opening.{k}", slots={"area": joined},
-                                  facts={"question_kind": k, "areas": list(areas), "area_words": joined},
-                                  engine=OPENING[k].format(label=joined)))
+    # One line of what a chart cannot give, for every part that needs it, about those parts' areas (decision 1).
+    need = cannot_give(kinds, when)
+    if need:
+        asked = [a for p in parts if cannot_give([p["kind"]], when) for a in p.get("areas") or areas]
+        asked = [a for a in dict.fromkeys(asked) if a in labels] or list(areas)
+        said = n_and([labels[a] for a in asked]) if asked else "this part of your life"
+        key = ".".join(need)
+        items.append(PlanItem(part="opening", signature=f"opening.{key}", slots={"area": said},
+                              facts={"question_kinds": need, "areas": asked, "area_words": said},
+                              engine=CANNOT_LINE[key].format(label=said)))
+    if "why" in kinds:
+        items.append(PlanItem(part="opening", signature="opening.why", slots={"area": joined},
+                              facts={"question_kind": "why", "areas": list(areas), "area_words": joined},
+                              engine=OPENING["why"].format(label=joined)))
     if weakest and areas:
         adverse = [a for a in areas if _area_data(chart, a, data).get("direction") == "adverse"]
         if adverse:
@@ -507,7 +554,7 @@ def plan(chart, question: str, areas: list[str], direction: str, kinds: list[str
             items += _stretch_items(area, label, data, sheet, hard_first=direction == "against")
     items, left = _once(items, left, labels)
     return AnswerPlan(question=question, areas=list(areas), direction=direction, kinds=list(kinds), when=when,
-                      as_of=as_of.isoformat(), items=items, left_out=left)
+                      as_of=as_of.isoformat(), items=items, left_out=left, parts=parts)
 
 
 def _once(items: list[PlanItem], left: list[dict], labels: dict[str, str]) -> tuple[list[PlanItem], list[dict]]:

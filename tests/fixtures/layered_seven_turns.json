@@ -1,5 +1,5 @@
 {
- "bank": "56cbc319cf01",
+ "bank": "35a3eab9d31d",
  "variants": {
   "0": [
    {
@@ -70,8 +70,7 @@
      "Neither of these two stretches is a prediction of when you will act."
     ],
     "paragraphs": [
-     0,
-     1
+     0
     ]
    },
    {
@@ -119,14 +118,14 @@
     "source": "composer",
     "shown": [
      "A chart gives no date for an event, but it does show stretches of time it reads as more or less favourable for money.",
-     "What lies behind it is what the answer before set out; the chart has no further reason to add.",
      "The most favourable stretch for money, as the chart reads it, runs from October 2029 to June 2032.",
      "Looking at the stretches the chart shows, the least favourable one runs from November 2028 to October 2029.",
-     "Neither of these two stretches is a prediction of when you will act."
+     "Neither of these two stretches is a prediction of when you will act.",
+     "What lies behind it is what the answer before set out; the chart has no further reason to add."
     ],
     "paragraphs": [
      0,
-     2
+     4
     ]
    }
   ],
@@ -199,8 +198,7 @@
      "Please read neither stretch as a prediction of the moment you will act."
     ],
     "paragraphs": [
-     0,
-     1
+     0
     ]
    },
    {
@@ -248,14 +246,14 @@
     "source": "composer",
     "shown": [
      "What your chart offers is not a date but stretches of time read as more and less favourable for money.",
-     "What lies behind it is what the answer before set out; the chart has no further reason to add.",
      "As the chart reads it, the most favourable stretch for money runs from October 2029 to June 2032.",
      "The least favourable stretch, as the chart reads it, is the one that runs from November 2028 to October 2029.",
-     "Please read neither stretch as a prediction of the moment you will act."
+     "Please read neither stretch as a prediction of the moment you will act.",
+     "What lies behind it is what the answer before set out; the chart has no further reason to add."
     ],
     "paragraphs": [
      0,
-     2
+     4
     ]
    }
   ],
@@ -328,8 +326,7 @@
      "Neither stretch tells you when you will act, and neither is meant as a prediction of it."
     ],
     "paragraphs": [
-     0,
-     1
+     0
     ]
    },
    {
@@ -377,14 +374,14 @@
     "source": "composer",
     "shown": [
      "Rather than naming a date for any event, your chart points to stretches it reads as more and less favourable for money.",
-     "What lies behind it is what the answer before set out; the chart has no further reason to add.",
      "For money, the chart reads the most favourable stretch as running from October 2029 to June 2032.",
      "Running from November 2028 to October 2029, this is the stretch the chart reads as least favourable.",
-     "Neither stretch tells you when you will act, and neither is meant as a prediction of it."
+     "Neither stretch tells you when you will act, and neither is meant as a prediction of it.",
+     "What lies behind it is what the answer before set out; the chart has no further reason to add."
     ],
     "paragraphs": [
      0,
-     2
+     4
     ]
    }
   ]

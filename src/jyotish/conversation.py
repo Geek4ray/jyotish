@@ -408,6 +408,9 @@ class Route(BaseModel):
     off_limits: str | None = None
     third_party: bool = False                              # "will she marry me": THIRD_PARTY_LINE follows the answer
     explains: str | None = None                            # "why?" after a fixed reply: the kind it explains (L1)
+    # The message's asks in the order asked, each {kind, areas} (parts_of; SPEC Layer 8 rev 136, "The shaped
+    # answer", decision 1): a part's areas are the ones it names, else the route's.
+    parts: list[dict] = Field(default_factory=list)
 
 
 def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: bool = False,
@@ -443,8 +446,12 @@ def route_turn(message: str, chart, last: Route | dict | None = None, *, minor: 
     direction = direction or "both"
     assert direction in DIRECTIONS
     kind = off_limits(message, minor=minor, areas=areas)
+    parts = [{"kind": p.kind, "areas": [a for a in p.areas if a in areas] or list(areas)} for p in parts_of(message)]
+    # A change of job asks for the period now and the stretches, whether or not it says "when" (decision 4).
+    when = when or any(p["kind"] == "change" for p in parts)
     return Route(areas=areas, direction=direction, when=when, why=why, how=how, follow_up=follow, carried=carried,
-                 areas_from=areas_from, off_limits=kind, third_party=bool(THIRD_PARTY.search(normalise(message))))
+                 areas_from=areas_from, off_limits=kind, third_party=bool(THIRD_PARTY.search(normalise(message))),
+                 parts=parts)
 
 
 # --- the question as asked (2026-11-02) ---------------------------------------------------------------------------
@@ -487,18 +494,73 @@ def _opening_line(text: str) -> bool:
     return any(text.startswith(v.split("{")[0]) for v in OPENING.values())
 
 
-def kinds_of(message: str, route: Route) -> list[str]:
-    """The question's kinds (the comment above), in narrate.OPENING's order; an amount question is not also asked
-    yes or no, its line saying both."""
+# --- the parts of a message (SPEC Layer 8 rev 136, "The shaped answer", decision 1) ----------------------------------
+# A message is split into its asks, in the order asked: at a comma, a semicolon, a question or exclamation mark, a
+# full stop or the danda, and at "and", "but", "also", "aur" or "or" where a question word follows ("whan and how",
+# "...and when will I marry"); never inside "your career and marriage". Each part has one kind, read in this order:
+# why (a "why", or a "how" that asks what in the chart does it), change (leaving, changing or switching a job),
+# vocation (which field, line or kind of work), when, amount, yes_no (only a part opening on an auxiliary, "will I",
+# "can I", "should I", "is", "do", or "kya", or closing on "hoga" and its forms: "how will" and "which" are not), and
+# goes (how it goes: everything else). An amount part is not also yes or no, its line saying both.
+PART_KINDS = ("goes", "vocation", "change", "when", "amount", "yes_no", "why")
+_QWORD = (r"when|whan|wen|which|what|how|why|will|shall|would|can|could|should|is|are|am|do|does|did|kab|kya|kaun|"
+          r"kaunsa|kis|kaise|kyun|kyon|kitna|kitni|kitne")
+_QWORD_HI = r"कब|क्या|कौन|कैसे|क्यों|कितन|किस"
+PART_SPLIT = re.compile(rf"\s*(?:[,;?!\u0964]+|\.(?=\s|$))\s*|\s+(?:and|but|also|aur|or)\s+(?=(?:{_QWORD})\b)|"
+                        rf"\s+और\s+(?={_QWORD_HI})")
+PART_OPENER = re.compile(r"^(?:and|but|also|so|plus|then|aur|or)\s+|^और\s+")
+AUXILIARY = re.compile(r"^(?:will|shall|would|can|could|should|may|might|must|am|is|are|was|were|do|does|did|have|"
+                       r"has)\b|^kya\b|^क्या")
+YES_NO_TAIL = re.compile(r"\b(?:hoga|hogi|honge|milega|milegi|milenge)$|(?:होगा|होगी|होंगे|मिलेगा|मिलेगी)$")
+# A change of job (decision 4) and the field of work (decision 3): English here, Hinglish and Devanagari with their
+# decisions.
+CHANGE = re.compile(r"\b(?:leave|leaving|left|quit|quitting|change|changing|switch|switching|resign|resigning)\b"
+                    r"[^,;?]{0,30}\b(?:job|jobs|work|company|employer|office|naukri|naukari|career)\b|\bresign\w*\b|"
+                    r"\b(?:job|career) (?:change|switch)\b")
+VOCATION = re.compile(r"\b(?:which|what) (?:field|fields|line|sector|profession|kind of work|type of work|work)\b|"
+                      r"\b(?:kind|type|line) of work\b|\bwork in\b|\bbusiness or (?:a )?job\b|"
+                      r"\bjob or (?:a )?business\b")
+
+
+class Part(BaseModel):
+    kind: str
+    areas: list[str] = Field(default_factory=list)
+    text: str = ""
+
+
+def kind_of(text: str) -> str:
+    """One part's kind (the comment above)."""
+    t = PART_OPENER.sub("", normalise(text).strip())
+    if asks_why(t) or asks_how(t):
+        return "why"
+    if CHANGE.search(t):
+        return "change"
+    if VOCATION.search(t):
+        return "vocation"
+    if asks_when(t):
+        return "when"
+    if AMOUNT.search(t):
+        return "amount"
+    if AUXILIARY.search(t) or YES_NO_TAIL.search(t.rstrip(" ?।.!")):
+        return "yes_no"
+    return "goes"
+
+
+def parts_of(message: str) -> list[Part]:
+    """A message's asks in the order asked (the comment above), each with its kind and the areas it names."""
     text = normalise(message)
-    out = []
-    if AMOUNT.search(text):
-        out.append("amount")
-    elif YES_NO.search(text):
-        out.append("yes_no")
-    if route.when:
+    pieces = [x.strip() for x in PART_SPLIT.split(text) if x and x.strip()]
+    pieces = [x for x in pieces if tokens(x) or re.search(r"[\u0900-\u097F]", x)] or [text]
+    return [Part(kind=kind_of(x), areas=areas_of(x), text=x) for x in pieces]
+
+
+def kinds_of(message: str, route: Route) -> list[str]:
+    """The question's kinds: its parts' kinds in the order asked, each once (decision 1), and "when" or "why" where
+    the route reads one the parts did not ("timing of my marriage", a short "how?")."""
+    out = list(dict.fromkeys(p.kind for p in parts_of(message)))
+    if route.when and not {"when", "change"} & set(out):
         out.append("when")
-    if route.why or route.how:
+    if (route.why or route.how) and "why" not in out:
         out.append("why")
     return out
 
@@ -546,7 +608,8 @@ def plan_turn(chart, message: str, route: Route, *, as_of: date, data: dict | No
     kinds = kinds_of(message, route) if kinds is None else kinds
     direction = "both" if (route.why or route.how) else route.direction
     return plan(chart, message, route.areas, direction, kinds, as_of=as_of, when=route.when,
-                weakest=route.areas_from == "weakest" and not (route.why or route.how), data=data)
+                weakest=route.areas_from == "weakest" and not (route.why or route.how), data=data,
+                parts=route.parts)
 
 
 # --- the composer (SPEC Layer 8, "The layered answer", step 4) -------------------------------------------------------
@@ -762,7 +825,7 @@ def answer_key(chart, route, kinds: list[str], as_of: date, bank_version: str, s
     body = {"birth": {"utc": b.utc.isoformat() if hasattr(b.utc, "isoformat") else str(b.utc), "lat": b.lat, "lon": b.lon},
             "meta": chart.meta.model_dump(mode="json"), "engine": _ENGINE["h"],
             "route": {k: getattr(route, k) for k in ("areas", "direction", "when", "why", "how", "areas_from",
-                                                     "third_party")},
+                                                     "third_party", "parts")},
             "kinds": kinds, "as_of": as_of.isoformat(), "bank": bank_version,
             "said": hashlib.sha256("\n".join(said).encode()).hexdigest() if said else None,
             "polish": polish, "draft_meanings": draft_meanings, "session": session_key}
@@ -885,7 +948,55 @@ def _default_checker_role() -> dict:
 # the timing (the period running now and, on a "when" turn, the stretches). A question asking what is against puts
 # the hard part before what helps.
 PARAGRAPHS = {"answer": ("opening", "verdict", "stability"), "helps": ("helps", "rule"), "hard": ("hard", "weakness"),
-              "timing": ("period", "stretch")}
+              "timing": ("period", "stretch"), "vocation": ("vocation",)}
+# The answer's sections, one per kind of ask, in the order the message asks them (SPEC Layer 8 rev 136, "The shaped
+# answer", decision 1): how it goes (a yes-or-no or an amount ask is answered by the same lean), which field, the
+# timing (when, or a change of job) and why. Each plan item goes to the first section, in its order of preference
+# here, that the message asks and whose areas hold its area; an item no section takes is held for "tell me more"
+# (`held`, by key). A "when"-only question takes the lean into its timing; a vocation-only one is the vocation alone.
+SECTION_OF = {"goes": "general", "yes_no": "general", "amount": "general", "vocation": "vocation", "when": "timing",
+              "change": "timing", "why": "why"}
+PLACES = {"verdict": ("general", "why", "timing"), "stability": ("general", "why", "timing"),
+          "helps": ("general", "why"), "rule": ("general", "why"), "hard": ("general", "why"),
+          "weakness": ("general", "why"), "period": ("timing", "general", "why"), "stretch": ("timing",),
+          "vocation": ("vocation",)}
+
+
+def sections_of(plan) -> list[dict[str, Any]]:
+    """The answer's sections in the order asked, each {name, kinds, areas} (the comment above). A plan with no parts
+    (made by a tool, or before rev 136) is one general ask, then the timing on a "when" plan, then why."""
+    parts = list(plan.parts) or ([{"kind": "goes", "areas": list(plan.areas)}]
+                                 + ([{"kind": "when", "areas": list(plan.areas)}] if plan.when else [])
+                                 + ([{"kind": "why", "areas": list(plan.areas)}] if "why" in plan.kinds else []))
+    out: list[dict[str, Any]] = []
+    for p in parts:
+        name = SECTION_OF.get(p["kind"], "general")
+        sec = next((x for x in out if x["name"] == name), None)
+        if sec is None:
+            sec = {"name": name, "kinds": [], "areas": []}
+            out.append(sec)
+        sec["kinds"].append(p["kind"])
+        sec["areas"] += [a for a in (p.get("areas") or plan.areas) if a not in sec["areas"]]
+    return out
+
+
+def _section_for(item, sections: list[dict]) -> int | None:
+    """The index of the section an item goes to (the comment above SECTION_OF), or None: held."""
+    from .plan import cannot_give
+    names = [x["name"] for x in sections]
+    if item.part == "opening":
+        if item.signature == "opening.why":
+            return names.index("why") if "why" in names else None
+        if item.signature.startswith("opening.weakest"):
+            return names.index("general") if "general" in names else 0
+        # The cannot-give line opens the first section with a part that needs it.
+        return next((i for i, x in enumerate(sections) if cannot_give(x["kinds"])), 0)
+    areas = item.facts.get("areas") or [item.area]
+    for name in PLACES.get(item.part, ("general",)):
+        for i, x in enumerate(sections):
+            if x["name"] == name and any(a in x["areas"] for a in areas):
+                return i
+    return None
 
 
 def show_draft_meanings() -> bool:
@@ -985,12 +1096,31 @@ def compose(plan, bank=None, session_key: str = "", said_before: list[str] | Non
             for s in out:
                 if s["signature"] == "opening.why":
                     s.update(text=OPENING_SAID, tagged=OPENING_SAID, signature="opening.said", row=None)
+    # The parts in the order asked (decision 1): each sentence in its item's section, the rest held.
+    sections = sections_of(plan)
+    held: list[dict[str, Any]] = []
+    placed = []
+    for s in out:
+        k = _section_for(plan.items[s["item"]], sections)
+        if k is None:
+            held.append({"key": s["key"], "signature": s["signature"], "area": s["area"],
+                         "why": "no part of the message asks for it"})
+        else:
+            placed.append(s | {"section": sections[k]["name"]})
+    out = placed
     order = ["answer", "hard", "helps", "timing"] if plan.direction == "against" else ["answer", "helps", "hard", "timing"]
-    rank = {part: n for n, para in enumerate(order) for part in PARAGRAPHS[para]}
-    out.sort(key=lambda s: rank[s["part"]])                     # stable: the plan's order within a paragraph
-    paras = [i for i, s in enumerate(out) if i == 0 or rank[s["part"]] != rank[out[i - 1]["part"]]]
-    return {"sentences": out, "paragraphs": paras, "bank": bank.version,
-            "from_bank": sum(1 for s in out if s["row"] is not None), "from_engine": sum(1 for s in out if s["row"] is None)}
+    rank = {part: n for n, para in enumerate(order) for part in PARAGRAPHS[para]} | {"vocation": len(order)}
+    at = {x["name"]: i for i, x in enumerate(sections)}
+
+    def para(s) -> tuple[int, int]:
+        # A timing section is one paragraph (its lean, the period, the stretches); a vocation section another.
+        r = rank["period"] if s["section"] == "timing" else rank["vocation"] if s["section"] == "vocation" else rank[s["part"]]
+        return at[s["section"]], r
+    out.sort(key=para)                                          # stable: the plan's order within a paragraph
+    paras = [i for i, s in enumerate(out) if i == 0 or para(s) != para(out[i - 1])]
+    return {"sentences": out, "paragraphs": paras, "bank": bank.version, "sections": [x["name"] for x in sections],
+            "held": held, "from_bank": sum(1 for s in out if s["row"] is not None),
+            "from_engine": sum(1 for s in out if s["row"] is None)}
 
 
 def history_of(earlier: list[dict], keep: int = 3) -> list[dict]:
