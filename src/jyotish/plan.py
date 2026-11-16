@@ -412,7 +412,10 @@ def _vocation_items(chart, label: str) -> list[PlanItem]:
     tenth = (asc + 9) % 12
     ruler = SIGN_LORD[tenth]
     rb = chart.bodies[ruler]
-    about_ = about(chart, "career", label)
+    # "The house of work" is the 10th as the glossary gives it (career, public standing, authority and deeds), stated so
+    # the checker reads it (the composed check of 2026-11-16 refused it once, unstated).
+    about_ = about(chart, "career", label) | {"the_10th_house": "the house of work: career, public standing, "
+                                                                "authority and deeds (the glossary's 10th house)"}
     first = PlanItem(part="vocation", signature="vocation.tenth", area="career", meaning=f"vocation.works.{ruler.lower()}",
                      slots={"area": label, "sign": SIGNS[tenth], "planet": _the(ruler), "in_sign": rb.sign_name,
                             "house": _ORD[rb.house]},
