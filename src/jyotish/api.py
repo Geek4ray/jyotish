@@ -1517,6 +1517,15 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
+    @app.get("/", include_in_schema=False)
+    def client_entry():
+        """The client's entry is the conversation (SPEC Layer 8 rev 136, "The shaped answer", decision 5); the
+        reading's form, the astrologer's and the reviewer's, is /readings.html."""
+        from fastapi.responses import FileResponse
+        if web_dir is None or not (Path(web_dir) / "chat.html").exists():
+            raise HTTPException(status_code=404, detail="the website is not part of this deployment")
+        return FileResponse(Path(web_dir) / "chat.html")
+
     # Static files last, so /readings is never shadowed.
     if examples_dir is not None and Path(examples_dir).is_dir():
         app.mount("/examples", StaticFiles(directory=examples_dir), name="examples")

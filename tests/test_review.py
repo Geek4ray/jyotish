@@ -332,8 +332,7 @@ def test_blind_mode_withholds_each_area_until_answered_from_the_chart_alone(guid
     assert v["mode"] == "blind" and v["shown"] == [] and v["units"] == [] and "page" not in v
     assert all(p[:60] not in text for p in paragraph.values())                     # not sent at all
     assert v["reading"]["areas"] == [{"name": "career", "has_windows": True, "hidden": True},
-                                     {"name": "marriage", "has_windows": False, "hidden": True},
-                                     {"name": "longevity", "has_windows": False, "hidden": True}]
+                                     {"name": "marriage", "has_windows": False, "hidden": True}]   # rev 136
     assert "summary" not in v["reading"] and "2029-10-23" not in text                   # no windows either
     with app.state.Session() as s:                                                      # opening blind is not seeing
         assert s.get(ExclusionRow, v["chart_id"]) is None
@@ -357,7 +356,7 @@ def test_blind_mode_withholds_each_area_until_answered_from_the_chart_alone(guid
     # An area without windows needs only the reading from the chart alone.
     assert post({"step": "blind_reading", "area": "marriage", "answer": "mixed"}).json()["shown"] == ["career", "marriage"]
     # The review mode of the same reviewer sees everything, as before.
-    assert len(c.get(f"/readings/{rid}/review", headers=J2).json()["shown"]) == 3
+    assert len(c.get(f"/readings/{rid}/review", headers=J2).json()["shown"]) == 2         # two areas since rev 136
 
 
 def test_a_rewrite_keeps_its_tags_and_a_refusal_comes_in_plain_words(guided):

@@ -54,6 +54,11 @@ SANSKRIT_TERMS = ("Pancha Mahapurusha yoga", "Ruchaka yoga", "Bhadra yoga", "Ham
 ENGLISH_ALIASES = {"exchange", "trine", "angular house", "star", "weekday", "bala", "D9", "D10", "D30"}
 GLOSS_AFTER = re.compile(r"^\s*(?:yoga\b)?\s*(?:,|\(|—|–|:)\s*\S")
 FIRST_PERSON = re.compile(r"\bI\b|\bI'(?:m|d|ve|ll)\b")
+# The client's own first person (SPEC Layer 8 rev 136, "The shaped answer", decision 5: a reading paragraph opened "In
+# my chart"): the client's text speaks to the client as "you", so "my", "mine", "myself" and "I" with a verb of
+# having or being are refused, wherever WORD_RULES leaves a bare "I" a warning.
+CLIENT_FIRST_PERSON = re.compile(r"\b(?:[Mm]y|[Mm]ine|[Mm]yself)\b|\bI (?:have|had|am|was|will|would|can|could|"
+                                 r"should|need|want|got|feel)\b|\bI'(?:m|ve|ll|d)\b")
 # A sentence that ranks or weighs evidence: in the client's text it is the reading's view, said so.
 WEIGHING = re.compile(r"\b(?:more|most|greater|less) weight\b|\boutweigh\w*|\bweigh(?:s|ed|ing)?\b|"
                       r"\bcounts? for (?:more|most)\b|\bmatters? (?:more|most)\b|\btips? the balance\b", re.I)
@@ -266,6 +271,9 @@ def client_errors(text: str | None, accepted: set[str] | None = None, dates: boo
             errors += client_warnings(s)
         if not dates and (m := DATE.search(bare)):
             errors.append(f"a date ({m.group(0)!r}) in 'What the chart says for you': dates go under When: {s!r}")
+        if (m := CLIENT_FIRST_PERSON.search(bare)):
+            errors.append(f"the client's own first person ({m.group(0)!r}): the client's text speaks to the client "
+                          f"as 'you' ('your chart', 'you have'): {s!r}")
         if FIRST_PERSON.search(bare):
             pass                                         # "I" is a client's-word rule (client_warnings)
         elif (m := WEIGHING.search(bare)) and not VIEW.search(bare):

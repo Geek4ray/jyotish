@@ -39,18 +39,19 @@ def test_birth_time_from_iana_name_or_offset():
 
 def test_reading_json_is_the_output_schema(page):
     reading, _ = page
-    assert [a.name for a in reading.areas] == ["career", "marriage", "longevity"]   # asked, then the top three
+    # Asked, then the top areas without longevity, health or synastry (SPEC rev 136, "The shaped answer", decision 5).
+    assert [a.name for a in reading.areas] == ["career", "marriage"]
     assert reading.narration_source.endswith("narration_career_edited.json")
     assert reading.summary.current_period == "Jupiter-Mercury" and reading.summary.time_window_min == 2
     assert all(a.probability is None and not a.calibrated for a in reading.areas)
-    assert sorted(reading.disclaimers) == ["longevity", "third_party"]
+    assert sorted(reading.disclaimers) == ["third_party"]                  # no longevity area, no longevity disclaimer
     # The edited fixture has no checker calls: every sentence on the page is unchecked, and says so.
     assert reading.unchecked_sentences == 2 + 8
 
 
 def test_page_sections_in_order(page):
     _, md = page
-    heads = ["## Summary", "## Career", "## Marriage", "## Longevity", "## Depends on exact birth time",
+    heads = ["## Summary", "## Career", "## Marriage", "## Depends on exact birth time",
              "## Learner: what each claim rests on", "## Disclaimers"]
     pos = [md.index(h) for h in heads]
     assert pos == sorted(pos)
@@ -64,17 +65,17 @@ def test_page_sections_in_order(page):
     assert "- Stability: time 1.00 · ayanamsa 1.00 · house 1.00 (stable)" in career
     assert "- Polarity: intensity (house H10, lord Saturn, karaka Sun)" in career
     assert "School conflict" not in career                    # KP v2 abstains on career
-    assert "the Jaimini family (arudha) is against" in md[md.index("## Marriage"):md.index("## Longevity")]
+    assert "the Jaimini family (arudha) is against" in md[md.index("## Marriage"):md.index("## Depends on exact birth time")]
     assert "| avoid | 2028-11-17 | 2029-08-08 |" in career and "strongest piece" in career
-    # Windows only for the area the question routes to: none for marriage or longevity.
+    # Windows only for the area the question routes to: none for marriage.
     others = md[md.index("## Marriage"):md.index("## Depends on exact birth time")]
     assert "Windows" not in others and "| avoid |" not in others
 
 
 def test_windows_only_for_the_routed_area(page):
     reading, _ = page
-    assert [bool(a.windows) for a in reading.areas] == [True, False, False]
-    assert [a.avoid_window is not None for a in reading.areas] == [True, False, False]
+    assert [bool(a.windows) for a in reading.areas] == [True, False]                 # career, marriage (rev 136)
+    assert [a.avoid_window is not None for a in reading.areas] == [True, False]
 
 
 def test_chart_header_reproduces_the_page(page, tmp_path):
@@ -275,7 +276,9 @@ def test_curious_page_puts_the_paragraph_first_and_the_claims_behind_a_toggle(tm
     assert e.value.code == 0
     reading = Reading(**json.loads(out.with_suffix(".json").read_text()))
     assert reading.depth == "curious" and reading.chart["depth"] == "curious" and "--depth curious" in reading.chart["command"]
-    assert reading.attempts == 2 and reading.unchecked_sentences == 0                                # live verdicts
+    # The recording was made over career, marriage and longevity; over the two areas a reading has since SPEC rev 136
+    # it replays in three attempts (two before), its last draft replayed for the third.
+    assert reading.attempts == 3 and reading.unchecked_sentences == 0                                # live verdicts
     # The recording predates the placement library: its placement findings are the only gaps.
     gaps = [g for a in reading.areas for g in a.narration_gaps]
     assert gaps and all(g["finding_id"].startswith(("place.", "chain:")) and g["last_error"].startswith("no claim was drafted")
@@ -310,7 +313,7 @@ def test_curious_paragraph_gap_opens_the_claims_under_the_gap_note(tmp_path):
     assert note < career.index(line) < career.index("<details open><summary>For the astrologer") \
         < career.index("1. ") < career.index("</details>")
     assert career.count(line) == 1 and "the house of career" not in career     # once, above the claims; no error
-    marriage = md[md.index("## Marriage"):md.index("## Longevity")]
+    marriage = md[md.index("## Marriage"):md.index("## Depends on exact birth time")]
     assert "<details><summary>For the astrologer" in marriage and "did not pass the checks" not in marriage
     assert marriage.index("</details>") < marriage.index("could not be written within the checks.")
 

@@ -172,12 +172,12 @@ def make_reading(birth: BirthInput, question: str, *, chart: Chart, as_of: str |
     `usage.timeline` has the seconds from the start to the instant page, the first sentence shown,
     the first sentence verified, the first area finished and the reading done. NarrationError
     propagates."""
-    from .narrate import FixtureChecker, FixtureDrafter, TAG, narrate, route, sentences
+    from .narrate import FixtureChecker, FixtureDrafter, TAG, default_top, narrate, route, sentences
     from .page import render
     if chart.scored is None:
         raise ValueError("this chart cannot be scored (no birth moment)")
     asked, _ = route(question, chart)
-    areas = list(dict.fromkeys(asked + list(chart.scored.top)))
+    areas = list(dict.fromkeys(asked + default_top(chart)))         # decision 5: no health unasked
     day = date.fromisoformat(as_of) if as_of else date.today()
     import time as _time
     started = _time.perf_counter()

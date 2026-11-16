@@ -857,12 +857,20 @@ AREA_WORDS = {
 }
 
 
+def default_top(chart: Chart) -> list[str]:
+    """The chart's top areas as a reading offers them unasked: without longevity, health or synastry
+    (conversation.NOT_DEFAULT; SPEC Layer 8 rev 136, "The shaped answer", decision 5: a career question's reading
+    offered health beside it). An area the question names is the question's, whatever it is."""
+    from .conversation import NOT_DEFAULT
+    return [a for a in chart.scored.top if a not in NOT_DEFAULT]
+
+
 def route(question: str, chart: Chart) -> tuple[list[str], bool]:
-    """(areas, is a "when" question). With no area named, the chart's top areas."""
+    """(areas, is a "when" question). With no area named, the chart's top areas (default_top)."""
     q = question.lower()
     areas = [a for a, words in AREA_WORDS.items() if any(w in q for w in words)]
     when = bool(re.search(r"\bwhen\b|\bwhich year\b|\bwhat year\b|\btiming\b", q))
-    return (areas or list(chart.scored.top)), when
+    return (areas or default_top(chart)), when
 
 
 def _text_tag(src: dict) -> str:
@@ -3994,7 +4002,7 @@ def _narrate_parallel(chart: Chart, question: str, *, as_of: date, config: Narra
     summary = base.summary.model_copy(update={
         "timing_line": when_line, "source": source, "text": text, "cites": [f"{k}:{v}" for k, v in TAG.findall(text)],
         "timing_note": note,
-        "client_text": client_summary(reading_areas, routed, list(chart.scored.top)) if source == "engine" else None,
+        "client_text": client_summary(reading_areas, routed, default_top(chart)) if source == "engine" else None,
         "client_when": client_windows(reading_areas)})
     metas = lambda role: [m for name in areas for m in collect[name].get(role, [])]
     # Every check the pool ran, the ones no loop consumed included (review R8).

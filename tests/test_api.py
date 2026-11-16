@@ -54,7 +54,7 @@ def done(client):
 def test_post_then_get_returns_the_reading_and_page(done):
     assert done["status"] == "done", done.get("error")
     reading = Reading(**done["reading"])
-    assert [a.name for a in reading.areas] == ["career", "marriage", "longevity"]
+    assert [a.name for a in reading.areas] == ["career", "marriage"]       # no longevity unasked (rev 136, decision 5)
     assert reading.summary.timing_line.startswith("Best window for career")
     assert done["page"].startswith(f"# Reading: {QUESTION}") and "**When (engine):**" in done["page"]
     assert reading.chart["command"].startswith("jyotish read --date 2001-03-12")
@@ -222,7 +222,7 @@ def test_a_reading_stored_before_the_sheet_gets_it_when_read(app, client, done):
         row = s.get(ReadingRow, done["id"])
         row.document = dict(row.document, areas=[{k: v for k, v in a.items() if k != "sheet"} for a in row.document["areas"]])
     r = client.get(f"/readings/{done['id']}").json()
-    assert [a["sheet"]["points"][0]["title"] for a in r["reading"]["areas"]] == ["Houses (bhava)"] * 3
+    assert [a["sheet"]["points"][0]["title"] for a in r["reading"]["areas"]] == ["Houses (bhava)"] * 2
     with app.state.Session() as s:
         assert all("sheet" not in a for a in s.get(ReadingRow, done["id"]).document["areas"])
 

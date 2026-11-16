@@ -315,3 +315,37 @@ def test_4_no_rule_for_a_change_of_job_is_added():
     from jyotish.rules import default_rules
     assert not [r.id for r in default_rules() if any(w in r.id for w in ("job", "change", "resign", "switch"))]
 
+
+# --- 5. Which page is the client's --------------------------------------------------------------------------------
+
+def test_5_the_site_opens_on_the_conversation_and_the_readings_form_is_the_astrologers(tmp_path):
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    with TestClient(create_app(f"sqlite:///{tmp_path / 'p.db'}")) as c:
+        root = c.get("/")
+        assert root.status_code == 200 and root.text == (ROOT / "web" / "chat.html").read_text()
+        form = c.get("/readings.html")
+        assert form.status_code == 200 and 'id="birth-form"' in form.text
+    chrome = (ROOT / "web" / "js" / "chrome.js").read_text()
+    assert '["conversation", "/", "Conversation"]' in chrome and '["home", "/readings.html", "Readings"]' in chrome
+    assert 'class="brand" href="/"' in (ROOT / "web" / "chat.html").read_text()
+    assert not (ROOT / "web" / "index.html").exists()
+
+
+def test_5_a_readings_default_areas_leave_out_health_longevity_and_synastry(chart, monkeypatch):
+    from jyotish.narrate import default_top, route
+    monkeypatch.setattr(chart.scored, "top", ["health", "career", "longevity", "marriage"])
+    assert default_top(chart) == ["career", "marriage"]
+    assert route("tell me about my life", chart) == (["career", "marriage"], False)
+    assert route("how is my health", chart)[0] == ["health"]                    # asked, it is the question's
+
+
+@pytest.mark.parametrize("text,refused", [
+    ("In my chart, the career leans favourably [vote:career.house].", True),
+    ("I have a strong career ahead [vote:career.house].", True),
+    ("My marriage is supported [vote:marriage.house].", True),
+    ("In your chart, the career leans favourably [vote:career.house].", False),
+    ("You have the Sun in the 10th house [vote:career.karaka].", False)])
+def test_5_a_paragraph_in_the_clients_first_person_is_refused(text, refused):
+    from jyotish.client import client_errors
+    assert bool([e for e in client_errors(text) if "first person" in e]) == refused

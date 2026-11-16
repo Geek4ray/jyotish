@@ -148,3 +148,21 @@ period now and the stretches: the timing section of a change takes no lean, wher
 (`_section_for`). Asked beside how the career goes, the lean is the general part's and the change's line opens its own
 part. No rule for a change of job was added (`test_4_no_rule_for_a_change_of_job_is_added`); the stretches are the
 career's timing windows as before, and the caveat closing them says they are not a prediction of when you will act.
+
+## 5. Which page is the client's
+
+GET / serves `web/chat.html`, the conversation (`api.client_entry`); the reading's form, which was `web/index.html`, is
+`web/readings.html`, the astrologer's and the reviewer's, with the reading, timing and review pages as before. The
+site's navigation (`web/js/chrome.js`) opens the conversation from the brand and a "Conversation" link, and lists
+"Readings" for the form; the conversation's own brand links to /. The Playwright tests that drive the form open
+/readings.html.
+
+**The reading's default areas.** `narrate.default_top` is the chart's top areas without longevity, health and synastry
+(`conversation.NOT_DEFAULT`); the reading's router falls back to it, the service adds it to the asked areas (where
+health was offered beside career on Ray's first three-part reading), and the engine's own summary names it. An area the
+question names is the question's, whatever it is.
+
+**The client's first person.** `client.CLIENT_FIRST_PERSON` ("my", "mine", "myself", and "I" with have, had, am, was,
+will, would, can, could, should, need, want, got or feel, or a contraction) is refused in every text held to
+`client_errors`: every paragraph at every depth, the client's layer, the curious summary, a reviewer's edit of the
+client's words. It is a refusal whatever `WORD_RULES` says; a bare "I" (the writer's) stays a warning as before.

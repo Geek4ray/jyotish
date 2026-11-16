@@ -299,7 +299,8 @@ def test_routing():
         class scored:
             top = ["health", "career", "marriage"]
     assert route("When will I change jobs?", C) == (["career"], True)
-    assert route("Tell me about my chart", C) == (["health", "career", "marriage"], False)
+    # Health, longevity and synastry are never a default area (SPEC rev 136, "The shaped answer", decision 5).
+    assert route("Tell me about my chart", C) == (["career", "marriage"], False)
 
 
 def test_vote_rows_name_their_basis(chart):

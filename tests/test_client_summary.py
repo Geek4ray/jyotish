@@ -138,7 +138,8 @@ def test_the_page_outside_the_toggles_is_in_the_clients_words(chart, depth, fixt
     lines = _face(page)
     assert lines and not [(x, client_errors(x)) for x in lines if client_errors(x)]
     tier = [x for x in lines if x.startswith("- Tier: **")]                    # the tier line stays on the face
-    assert len(tier) == 3 and not [x for x in lines if x not in tier and ENGINE_WORDS.search(x.replace("**", ""))]
+    assert len(tier) == len(reading.areas) and not [x for x in lines if x not in tier
+                                                     and ENGINE_WORDS.search(x.replace("**", ""))]
     assert not [x for x in lines if re.search(r"\b(?:ayanamsa|Vimshottari|score|samples?|family|families)\b", x, re.I)]
 
 

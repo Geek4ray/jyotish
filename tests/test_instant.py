@@ -23,7 +23,7 @@ BODY = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": R
         "node": "mean", "place": "Rewari, Haryana", "question": QUESTION, "as_of": "2026-10-21",
         "depth": "astrologer"}
 AUTH = {"Authorization": "Bearer test-token-1"}
-AREAS = ["career", "marriage", "longevity"]
+AREAS = ["career", "marriage"]           # no longevity unasked (SPEC rev 136, decision 5)
 
 
 @pytest.fixture(scope="module")

@@ -56,7 +56,7 @@ def base_url(servers):
 
 def submit_reference(page, url, question="How will my career go, and when is the best time for a job change?",
                      depth="astrologer"):
-    page.goto(f"{url}/")
+    page.goto(f"{url}/readings.html")
     page.fill("#date", "2001-03-12")
     page.fill("#time", "10:10:25")
     page.select_option("#tz", "Asia/Kolkata")
@@ -181,19 +181,21 @@ def test_phone_layout(browser, base_url):
     pg.wait_for_selector("#reading[data-state=done]")
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")             # no sideways scroll
     assert pg.locator("#tabbar").is_visible() and not pg.locator(".site-nav").is_visible()
-    assert pg.locator("#tabbar a").all_inner_texts() == ["Home", "Reading", "When"]
+    # The conversation first, then the reading's form (SPEC rev 136, "The shaped answer", decision 5).
+    assert pg.locator("#tabbar a").all_inner_texts() == ["Conversation", "Readings", "Reading", "When"]
     ctx.close()
 
 
 def test_home_form_runs_a_reading_through_the_api(page, base_url):
-    page.goto(f"{base_url}/")
+    page.goto(f"{base_url}/readings.html")
     assert "What the engine will not claim" in page.inner_text("#honest")
     submit_reference(page, base_url)
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
     assert page.inner_text(".question") == "How will my career go, and when is the best time for a job change?"
     assert "Rewari, Haryana (28.1989, 76.617)" in page.text_content(".identity details.for-astrologer .header-line")
     # The windows in the client's words on the face; the engine's timing line under the toggle (review Q4).
-    assert page.locator("section.area").count() == 3 and page.locator(".summary p.client-when").is_visible()
+    # Career and marriage: longevity is never a default area (SPEC rev 136, decision 5).
+    assert page.locator("section.area").count() == 2 and page.locator(".summary p.client-when").is_visible()
     assert page.inner_text(".summary p.client-when").startswith("The period the engine scores most favourable for career")
 
 
@@ -203,7 +205,7 @@ def test_home_form_runs_a_reading_through_the_api(page, base_url):
 def test_timezone_defaults_to_the_browsers_with_kolkata_first(browser, base_url, zone, expected):
     ctx = browser.new_context(timezone_id=zone)
     pg = ctx.new_page()
-    pg.goto(f"{base_url}/")
+    pg.goto(f"{base_url}/readings.html")
     options = pg.eval_on_selector_all("#tz option", "els => els.map(e => e.value)")
     assert options[0] == "Asia/Kolkata" and len(options) > 100 and "Asia/Calcutta" not in options
     assert pg.input_value("#tz") == expected
@@ -241,7 +243,7 @@ def test_failed_job_still_shows_the_chart(page, servers):
 
 
 def test_place_autocomplete_fills_coordinates_and_timezone(page, base_url):
-    page.goto(f"{base_url}/")
+    page.goto(f"{base_url}/readings.html")
     page.fill("#place", "rewar")
     page.wait_for_selector("#place-list li")
     first = page.locator("#place-list li").first
@@ -264,7 +266,7 @@ def test_place_autocomplete_fills_coordinates_and_timezone(page, base_url):
 
 
 def test_form_refuses_empty_and_null_island_coordinates(page, base_url):
-    page.goto(f"{base_url}/")
+    page.goto(f"{base_url}/readings.html")
     assert page.get_attribute("#lat", "placeholder") == "e.g. 28.1989"
     assert page.get_attribute("#lon", "placeholder") == "e.g. 76.6170"
     assert page.input_value("#node") == "mean"                                       # the form's default
@@ -284,7 +286,7 @@ def test_form_refuses_empty_and_null_island_coordinates(page, base_url):
     page.fill("#lon", "76.6")
     page.click("button[type=submit]")
     assert "Latitude must be between -90 and 90" in page.inner_text("#form-error")
-    assert posts == [] and page.url.endswith("/")
+    assert posts == [] and page.url.endswith("/readings.html")     # the reading's form (rev 136: "/" is the conversation)
 
 
 def test_check_line_after_chart_names_place_and_coordinates(page, servers):
@@ -296,7 +298,7 @@ def test_check_line_after_chart_names_place_and_coordinates(page, servers):
 
 
 def test_footer_carries_the_geonames_attribution(page, base_url):
-    for path in ("/", "/reading.html?src=/examples/reference_reading.json"):
+    for path in ("/readings.html", "/reading.html?src=/examples/reference_reading.json"):
         page.goto(f"{base_url}{path}")
         footer = page.inner_text("#site-footer")
         assert "GeoNames" in footer and "CC BY 4.0" in footer
@@ -334,7 +336,7 @@ def test_the_site_outside_the_toggles_is_in_the_clients_words(page, curious_url,
 
 
 def test_curious_reading_on_the_site(page, curious_url):
-    page.goto(f"{curious_url}/")
+    page.goto(f"{curious_url}/readings.html")
     assert page.input_value("#depth") == "curious"                        # the form's default
     submit_reference(page, curious_url, depth="curious")
     page.wait_for_selector("#reading[data-state=done]", timeout=60_000)
@@ -349,7 +351,7 @@ def test_curious_reading_on_the_site(page, curious_url):
                         for g in gaps)
     assert "no claim was drafted" not in page.inner_text("#reading")             # counted, not quoted
     assert "Offline replay" not in page.inner_text("#reading")
-    assert page.locator('section.area[data-area="longevity"] p.paragraph').count() == 1
+    assert page.locator('section.area[data-area="marriage"] p.paragraph').count() == 1   # no longevity (rev 136)
     toggle = career.locator("details.astrologer")
     assert toggle.count() == 1 and toggle.get_attribute("open") is None    # the claims are one click away
     assert toggle.locator(":scope > summary").inner_text() == "For the astrologer"
@@ -604,7 +606,7 @@ def test_guided_review_whole_flow(browser, guided_url):
     rev.fill("#yours-to", "2028-12")
     rev.press("#yours-to", "Enter")
     # The other areas: Agree needs no "what is off", and neither has a period.
-    for area in ("marriage", "longevity"):
+    for area in ("marriage",):                              # longevity is no default area since SPEC rev 136
         at(rev, f"match:{area}")
         key(rev, "1")
         rev.keyboard.press("Enter")
@@ -655,7 +657,7 @@ def test_guided_review_whole_flow(browser, guided_url):
     log = rev.evaluate(f"""fetch('/readings/{rid}/review', {{headers: {{Authorization: 'Bearer tok-1'}}}}).then(r => r.json())""")["history"]
     answers = [(h["step"], h["area"]) for h in log if h["action"] == "answer"]
     for step in [("intro", None), ("match", "career"), ("off", "career"), ("sentences", "career"), ("note", "career"),
-                 ("period", "career"), ("match", "marriage"), ("note", "longevity")]:
+                 ("period", "career"), ("match", "marriage"), ("note", "marriage")]:
         assert step in answers, step
     period = next(h for h in log if h["step"] == "period")
     assert period["answer"] == {"choice": "earlier", "from": "2027-10", "to": "2028-12"}
@@ -725,15 +727,7 @@ def test_judge_page_hides_the_reading_until_answered_from_the_chart(browser, gui
     for step in ("sentences:marriage", "note:marriage"):
         at(rev, step)
         rev.keyboard.press("Enter")
-    at(rev, "blind_reading:longevity")
-    key(rev, "2")
-    rev.keyboard.press("Enter")
-    at(rev, "match:longevity")
-    key(rev, "1")
-    for step in ("match:longevity", "sentences:longevity", "note:longevity"):
-        at(rev, step)
-        rev.keyboard.press("Enter")
-    at(rev, "whole")
+    at(rev, "whole")                                        # career and marriage only since SPEC rev 136
     rev.fill("#whole-text", "Close to my own reading.")
     rev.press("#whole-text", "Control+Enter")
     at(rev, "summary")
