@@ -416,4 +416,26 @@ stored answer is per conversation; a follow-up leaves out by key what was compos
 percentile; bank verdicts need an `astrologer` credential (`jyotish astrologer add`); the scorecard reports
 `layered.composer_share.messages` and `bank.composed_supported` (scripts/composed_check.py,
 docs/composed_check_<date>.json). 129 rows, all draft; benchmark 187 rows.
+The shaped answer (SPEC Layer 8 rev 136, 2026-11-16, docs/spec_notes_2026-11-16.md; tests in tests/test_shaped.py, the
+failing case frozen in tests/fixtures/shaped_three_parts.json): a message is split into its asks in the order asked
+(`conversation.parts_of`, `kind_of`: goes, vocation, change, when, amount, yes_no, why; yes_no only on an auxiliary;
+`Route.parts`), one cannot-give line for every part that needs it (`plan.cannot_give`, `opening.<kinds>`), and the
+composer answers the parts in order, one section per kind of ask (`sections_of`, `PLACES`; an item no part asks for is
+held, `composed.held`). The shape (`conversation.shape`): one area at most `SHAPE` (8) facts, the lean, two helps by
+percentile, what is hard (one sentence per planet: `weakness.planet` with a `{weaknesses}` list slot), the period, the
+stretches on a timing part; several areas a lean, a help and a hard sentence each; a meaning follows its fact, one a fact,
+and closes its paragraph; `compose(shaped=False)` for the row tests and the composed check. Vocation ("which field",
+Hinglish, Devanagari; career, ask vocation): `plan._vocation_items` from the 10th's sign and ruler, the planets in the
+10th and the D10's own or exalted planets, four kept (`VOCATION_SHAPE`), each with its planet's kinds of work
+(`vocation.works.<planet>@career`, draft, source Brihat Jataka 10 unread); no karmajiva lord (its method unread). A change
+of job (`CHANGE`) is the no-date line, the period and the stretches, no lean, no rule. "/" is the conversation
+(`api.client_entry`), the reading's form is web/readings.html; a reading's default areas leave out NOT_DEFAULT
+(`narrate.default_top`), and `client.CLIENT_FIRST_PERSON` ("my chart", "I have") is refused in every client's text.
+/health reports `draft_meanings`; the definition of done says it is off before the first outside client. The varga
+sentence names the divisional chart it rests on (`narrate.varga_row`, `family.varga.*.other`), each panchanga ruler what
+it rules (`panchanga_ruled`), a greeting is no follow-up (`GREETING`), and a turn is read at the day it is asked
+(`sessions.as_of_fixed`, Alembic 0009; a reviewer's date stays fixed). Measured (docs/shaped_2026-11-16.json, scripts/shaped_measure.py): the three-part question 13 sentences (18
+with draft meanings; 17 and 24 before), "which field" composed in 4 (8), the first of the seven turns 8 (27); the
+composer's share of the 20 varied questions 12 of 20, unchanged; coverage 99.9%; the new rows' composed check 120 of
+120 (`bank.composed_supported.new`). 140 rows, all draft.
 Next (SPEC Layer 6b order of work): outcome capture, the judge page.

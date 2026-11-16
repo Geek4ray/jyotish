@@ -1,0 +1,14 @@
+{
+ "date": "2026-11-16",
+ "checker": "zai-org/GLM-5.3-Flash",
+ "charts": 60,
+ "seed": 21,
+ "rows": "new",
+ "sentences": 120,
+ "checked": 120,
+ "unchecked": 0,
+ "supported": 120,
+ "share": 1.0,
+ "refused": [],
+ "usd": 0.0482
+}

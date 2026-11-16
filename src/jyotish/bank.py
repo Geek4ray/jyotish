@@ -362,8 +362,11 @@ def _plan_for(birth: dict, as_of: date) -> list[tuple[str, str | None, dict, str
     from .plan import plan
     c = compute(datetime.fromisoformat(f"{birth['date']}T{birth['time']}"), birth["lat"], birth["lon"], true_node=False)
     areas = [a for a in c.scored.areas if a != "synastry"]
-    p = plan(c, "coverage", areas, "both", KINDS, as_of=as_of, when=True)
-    return [(i.signature, i.area, dict(i.slots), i.part) for i in p.items]
+    # Every ask: how each area goes, which field (SPEC rev 136, decision 3: the vocation items), when, why.
+    parts = [{"kind": "goes", "areas": areas}, {"kind": "vocation", "areas": ["career"]},
+             {"kind": "when", "areas": areas}, {"kind": "why", "areas": areas}]
+    p = plan(c, "coverage", areas, "both", KINDS, as_of=as_of, when=True, parts=parts)
+    return [(i.signature, i.area, dict(i.slots), i.part, i.meaning) for i in p.items]
 
 
 def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date = date(2026, 11, 15),
@@ -385,7 +388,7 @@ def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date
     total, found, missing = Counter(), Counter(), Counter()
     can_mean, meant = 0, 0
     for items in plans:
-        for sig, area, slots, part in items:
+        for sig, area, slots, part, meaning in items:
             total[part] += 1
             # What the composer would show, slot values included; a stretch's dates come from the payload, which this
             # tool does not make (its plans carry "when" empty), so they are taken as given (the scorecard of 2026-11-16
@@ -395,9 +398,9 @@ def coverage(n: int = 1000, seed: int = 0, bank: Bank | None = None, as_of: date
                 found[part] += 1
             else:
                 missing[sig] += 1
-            if part in ("rule", "weakness"):
+            if part in ("rule", "weakness", "vocation"):
                 can_mean += 1
-                meant += bank.meaning(sig, area) is not None
+                meant += bank.meaning(meaning or sig, area) is not None
     n_items = sum(total.values())
     return {"charts": n, "seed": seed, "items": n_items, "found": sum(found.values()),
             "share": round(sum(found.values()) / n_items, 4) if n_items else None,

@@ -1,0 +1,279 @@
+{
+ "note": "scripts/shaped_measure.py on e66a526 (before this batch) and on the batch's head; no model call",
+ "before": {
+  "seven": {
+   "draft_off": [
+    {
+     "question": "what are the challanges in my life",
+     "source": "composer",
+     "sentences": 27
+    },
+    {
+     "question": "and marriage?",
+     "source": "composer",
+     "sentences": 7
+    },
+    {
+     "question": "when?",
+     "source": "composer",
+     "sentences": 4
+    },
+    {
+     "question": "why do you say that?",
+     "source": "composer",
+     "sentences": 1
+    },
+    {
+     "question": "will I die early?",
+     "source": "fixed",
+     "sentences": 1
+    },
+    {
+     "question": "how much money will i earn in my life, will i be rich",
+     "source": "composer",
+     "sentences": 8
+    },
+    {
+     "question": "whan and how",
+     "source": "composer",
+     "sentences": 5
+    }
+   ],
+   "draft_on": [
+    {
+     "question": "what are the challanges in my life",
+     "source": "composer",
+     "sentences": 27
+    },
+    {
+     "question": "and marriage?",
+     "source": "composer",
+     "sentences": 8
+    },
+    {
+     "question": "when?",
+     "source": "composer",
+     "sentences": 4
+    },
+    {
+     "question": "why do you say that?",
+     "source": "composer",
+     "sentences": 1
+    },
+    {
+     "question": "will I die early?",
+     "source": "fixed",
+     "sentences": 1
+    },
+    {
+     "question": "how much money will i earn in my life, will i be rich",
+     "source": "composer",
+     "sentences": 9
+    },
+    {
+     "question": "whan and how",
+     "source": "composer",
+     "sentences": 5
+    }
+   ]
+  },
+  "three": {
+   "draft_off": [
+    {
+     "question": "How will my career go, which field will i work in, when will i leave my current job",
+     "source": "composer",
+     "sentences": 17,
+     "areas": [
+      "career"
+     ]
+    },
+    {
+     "question": "which field will i work in",
+     "source": "not composed (the writer loop)",
+     "sentences": null,
+     "areas": [
+      "career",
+      "marriage",
+      "debts_enemies"
+     ]
+    },
+    {
+     "question": "when will i leave my current job",
+     "source": "composer",
+     "sentences": 17,
+     "areas": [
+      "career"
+     ]
+    }
+   ],
+   "draft_on": [
+    {
+     "question": "How will my career go, which field will i work in, when will i leave my current job",
+     "source": "composer",
+     "sentences": 24,
+     "areas": [
+      "career"
+     ]
+    },
+    {
+     "question": "which field will i work in",
+     "source": "not composed (the writer loop)",
+     "sentences": null,
+     "areas": [
+      "career",
+      "marriage",
+      "debts_enemies"
+     ]
+    },
+    {
+     "question": "when will i leave my current job",
+     "source": "composer",
+     "sentences": 24,
+     "areas": [
+      "career"
+     ]
+    }
+   ]
+  },
+  "composer_share": {
+   "asked": 20,
+   "composed": 12
+  }
+ },
+ "after": {
+  "seven": {
+   "draft_off": [
+    {
+     "question": "what are the challanges in my life",
+     "source": "composer",
+     "sentences": 8
+    },
+    {
+     "question": "and marriage?",
+     "source": "composer",
+     "sentences": 6
+    },
+    {
+     "question": "when?",
+     "source": "composer",
+     "sentences": 4
+    },
+    {
+     "question": "why do you say that?",
+     "source": "composer",
+     "sentences": 2
+    },
+    {
+     "question": "will I die early?",
+     "source": "fixed",
+     "sentences": 1
+    },
+    {
+     "question": "how much money will i earn in my life, will i be rich",
+     "source": "composer",
+     "sentences": 6
+    },
+    {
+     "question": "whan and how",
+     "source": "composer",
+     "sentences": 7
+    }
+   ],
+   "draft_on": [
+    {
+     "question": "what are the challanges in my life",
+     "source": "composer",
+     "sentences": 8
+    },
+    {
+     "question": "and marriage?",
+     "source": "composer",
+     "sentences": 7
+    },
+    {
+     "question": "when?",
+     "source": "composer",
+     "sentences": 4
+    },
+    {
+     "question": "why do you say that?",
+     "source": "composer",
+     "sentences": 2
+    },
+    {
+     "question": "will I die early?",
+     "source": "fixed",
+     "sentences": 1
+    },
+    {
+     "question": "how much money will i earn in my life, will i be rich",
+     "source": "composer",
+     "sentences": 6
+    },
+    {
+     "question": "whan and how",
+     "source": "composer",
+     "sentences": 8
+    }
+   ]
+  },
+  "three": {
+   "draft_off": [
+    {
+     "question": "How will my career go, which field will i work in, when will i leave my current job",
+     "source": "composer",
+     "sentences": 13,
+     "areas": [
+      "career"
+     ]
+    },
+    {
+     "question": "which field will i work in",
+     "source": "composer",
+     "sentences": 4,
+     "areas": [
+      "career"
+     ]
+    },
+    {
+     "question": "when will i leave my current job",
+     "source": "composer",
+     "sentences": 5,
+     "areas": [
+      "career"
+     ]
+    }
+   ],
+   "draft_on": [
+    {
+     "question": "How will my career go, which field will i work in, when will i leave my current job",
+     "source": "composer",
+     "sentences": 18,
+     "areas": [
+      "career"
+     ]
+    },
+    {
+     "question": "which field will i work in",
+     "source": "composer",
+     "sentences": 8,
+     "areas": [
+      "career"
+     ]
+    },
+    {
+     "question": "when will i leave my current job",
+     "source": "composer",
+     "sentences": 5,
+     "areas": [
+      "career"
+     ]
+    }
+   ]
+  },
+  "composer_share": {
+   "asked": 20,
+   "composed": 12
+  }
+ }
+}

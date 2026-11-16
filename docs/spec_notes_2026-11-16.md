@@ -87,7 +87,7 @@ says" is gone too). The new fact row and its three meaning rows (`weakness.plane
 with `--only weakness.`; the fact row's first variant (which named the planet twice) and the meaning rows' variants
 (one repeated the whole list, two did not name the planet, which the layered review's M9 asked of these rows) were
 rewritten by Opus and say so in `drafted_by`; the fact row was rechecked on each slot shape (12 checks, all
-supported; USD 0.027 drafting and checking in all). Read here: a hard family about a planet that also has hidden
+supported; USD 0.032 drafting and checking in all). Read here: a hard family about a planet that also has hidden
 weaknesses is still its own sentence; "one sentence per planet" was read as one sentence for a planet's weaknesses.
 
 **A meaning follows its fact.** One meaning a fact (a rule said for several areas gives its first area's), directly
@@ -95,8 +95,8 @@ after it, and a meaning closes its paragraph, so no paragraph attributes to the 
 was not done by splicing two rows into one sentence, since a verdict on a sentence is a verdict on one row; the
 meanings are outside the eight, so with draft meanings on the three-part question is 10 sentences (24 before).
 
-`compose(shaped=False)` composes every sentence the sections take, every meaning of a fact: the composed check and the
-tests of a row's variants, refusals and verdicts use it (the worksheet tests lift `SHAPE` in their fixture), since they
+`compose(shaped=False)` composes every sentence the sections take, every meaning of a fact: the tests of a row's
+variants, refusals and verdicts use it, and since the measurement commit so does scripts/composed_check.py (the worksheet tests lift `SHAPE` in their fixture), since they
 are tests of the rows, not of the shape.
 
 ## 3. Vocation
@@ -126,7 +126,7 @@ included) were drafted with `--only vocation.` and checked as the others were (e
 all supported); Saturn's first draft said "long-term", refused for "term", and was redrafted alone. The meaning rows'
 source is "Brihat Jataka 10 (Karmajiva), the kinds of livelihood linked with each planet; the verse not yet read in a
 named edition": the drafting model wrote the kinds of work from the tradition as it knows it, and nobody has read them
-against the verse. All twelve are draft. USD 0.11 drafting and checking.
+against the verse. All twelve are draft. USD 0.085 drafting and checking.
 
 Read here: the vocation section is its own; a placement the career's lean already named (the Sun in the 10th as the
 main significator, Mars exalted in the D10 as the varga's lean) is named again there, because its meaning (the kinds
@@ -220,3 +220,47 @@ server's today. A turn is read at `session_day` when it runs, the session's payl
 conversation review page say that day. A reviewer's rewrite of a turn is checked at the date the turn's own document
 records. `test_w4_...`: a conversation begun on 1 November and asked on 16 November is answered as of 16 November (its
 document and its plan say so), and one a reviewer fixed at 1 November stays there.
+
+## Measured, not promised
+
+`scripts/shaped_measure.py` (no model call) on the reference chart, run on e66a526 (the head before this batch) and on
+the batch's head; both outputs are in docs/shaped_2026-11-16.json. Sentences per answer, with the session's own variants:
+
+| answer | before, draft meanings off | before, on | after, off | after, on |
+| --- | --- | --- | --- | --- |
+| "what are the challanges in my life" | 27 | 27 | 8 | 8 |
+| "and marriage?" | 7 | 8 | 6 | 7 |
+| "when?" | 4 | 4 | 4 | 4 |
+| "why do you say that?" | 1 | 1 | 2 | 2 |
+| "will I die early?" (fixed reply) | 1 | 1 | 1 | 1 |
+| "how much money will i earn in my life, will i be rich" | 8 | 9 | 6 | 6 |
+| "whan and how" | 5 | 5 | 7 | 8 |
+| "How will my career go, which field will i work in, when will i leave my current job" | 17 | 24 | 13 | 18 |
+| "which field will i work in" | not composed | not composed | 4 | 8 |
+| "when will i leave my current job" | 17 | 24 | 5 | 5 |
+
+The three-part question is 13 sentences with draft meanings off: the lean, two helps, Saturn's one sentence, four
+vocation placements, the change's line, the period and three stretch sentences; on, it is 18, each vocation placement
+and Saturn's weaknesses followed by a meaning. "why do you say that?" and "whan and how" now give reasons the shaped
+answers before them held back, where they said nothing new.
+
+- **The composer's share** of the twenty varied first questions (scripts/evaluate.py `COMPOSER_MESSAGES`): 12 of 20,
+  as before. The eight it does not answer name no area ("tell me about my life", "what should I know", "hi", "is
+  this a good year for me", "what are my strengths", "why?", "what does my chart say", "what will happen next year")
+  and keep the writer loop; none of this batch's decisions places them.
+- **Bank coverage** on 1,000 random charts (`bank.coverage`, now with a vocation part): 156,162 of 156,294 plan items
+  find a fact row (99.9%); every part 100% but cited rules (96%, the Gaja Kesari BPHS and Neecha Bhanga rows never
+  drafted); the meaning share among the items that can take one, 61%. 140 rows, all draft.
+- **The composed check on the new rows** (`scripts/composed_check.py --new`, the gate checker GLM-5.3-Flash at
+  temperature 0, 120 sentences from 60 random charts, only the rows this batch added or redrafted): 119 of 120 on the
+  first run, the refusal `vocation.tenth`'s "the house of work", unstated in its facts; the facts now state the 10th
+  as the glossary gives it (da93079) and the run after is 120 of 120 (docs/composed_check_2026-11-16_new.json, USD
+  0.048). Reported in the scorecard as `bank.composed_supported.new`, never gated.
+- **Drafting and checking cost** of the batch's rows: USD 0.42 in all (docs/bank_draft_2026-11-15.json, the ten runs
+  of 2026-11-16 from the openings' draft on), and USD 0.10 for the two composed checks.
+
+Found and not fixed: the Devanagari split at "और" before a noun (decision 1); a hard family about a planet with
+hidden weaknesses is its own sentence beside the planet's (decision 2); a vocation placement the lean already named is
+named again (decision 3); one `family.panchanga.for.many` variant is refused and never shown; the composer's share is
+unchanged; every bank row, the twelve vocation rows among them, still waits for the astrologer, and no person has read
+the shaped answer on the client's page (DoD 8).

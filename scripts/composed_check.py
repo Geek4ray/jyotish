@@ -24,9 +24,17 @@ sys.path.insert(0, str(ROOT / "scripts"))
 AS_OF = date(2026, 11, 15)
 
 
-def sample(charts: int, per_chart: int, seed: int) -> list[dict]:
+# The rows the shaped answer added or redrafted (SPEC Layer 8 rev 136, docs/spec_notes_2026-11-16.md): `--new` samples
+# only these, from plans that ask how the career goes, which field and a change of job, so each kind is reached.
+NEW = ("opening.change", "opening.yes_no.when", "opening.amount.when", "opening.yes_no.change", "opening.amount.change",
+       "weakness.planet", "vocation.", "family.panchanga.", "family.varga.")
+
+
+def sample(charts: int, per_chart: int, seed: int, new: bool = False) -> list[dict]:
     """Up to `per_chart` composed fact sentences (from the bank, not the engine's own) of one random area of each
-    chart, each with what it is checked against; the same charts, areas and sentences for the same seed."""
+    chart, each with what it is checked against; the same charts, areas and sentences for the same seed. Every
+    sentence the bank can write is sampled, not only the answer's shape (`compose(shaped=False)`). With `new`, only
+    the rows of NEW, from a career plan with every part of the three-part question and from one random area."""
     from synthetic_cohort import births
     from jyotish.chart import compute
     from jyotish.conversation import compose
@@ -39,9 +47,15 @@ def sample(charts: int, per_chart: int, seed: int) -> list[dict]:
         areas = sorted(a for a in c.scored.areas if a not in ("synastry", "longevity", "health")
                        and c.scored.areas[a].score_classical is not None)
         area = rng.choice(areas)
-        p = plan(c, "check", [area], "both", ["why"], as_of=AS_OF)
-        got = [s for s in compose(p, session_key=f"cc{n}")["sentences"] if s["row"] and s["row"]["kind"] == "fact"]
-        for s in rng.sample(got, min(per_chart, len(got))):
+        plans = [plan(c, "check", [area], "both", ["why"], as_of=AS_OF)]
+        if new:
+            kinds = rng.choice([["goes", "vocation", "change"], ["yes_no", "when"], ["amount", "when"],
+                                ["yes_no", "change"], ["amount", "change"]])
+            parts = [{"kind": k, "areas": ["career"]} for k in kinds] + [{"kind": "vocation", "areas": ["career"]}]
+            plans.append(plan(c, "check", ["career"], "both", kinds, as_of=AS_OF, when=True, parts=parts))
+        got = [(p, s) for p in plans for s in compose(p, session_key=f"cc{n}", shaped=False)["sentences"]
+               if s["row"] and s["row"]["kind"] == "fact" and (not new or s["signature"].startswith(NEW))]
+        for p, s in rng.sample(got, min(per_chart, len(got))):
             item = p.items[s["item"]]
             out.append({"chart": n, "area": area, "signature": s["signature"], "variant": s["row"]["variant"],
                         "sentence": s["text"], "data": check_data({"facts": item.facts, "engine": item.engine})})
@@ -55,12 +69,13 @@ def main(argv=None) -> int:
     ap.add_argument("--seed", type=int, default=21)
     ap.add_argument("--budget", type=float, default=0.5)
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--new", action="store_true", help="only the rows the shaped answer added or redrafted (NEW)")
     a = ap.parse_args(argv)
     from jyotish import envfile
     print(f"read from .env: {envfile.load(ROOT / '.env')}")                # names only, never a value
     from jyotish.costs import cost, price
     from jyotish.narrate import CONFIG, ModelChecker, make_backend
-    rows = sample(a.charts, a.per_chart, a.seed)
+    rows = sample(a.charts, a.per_chart, a.seed, new=a.new)
     pc = price("zai-org/GLM-5.3-Flash", "api.deepinfra.com")
     usd = len(rows) * (4200 * pc[0] + 1800 * pc[1]) / 1e6
     print(f"{len(rows)} composed sentences from {a.charts} random charts; expected USD {usd:.3f} (budget {a.budget})")
@@ -82,10 +97,11 @@ def main(argv=None) -> int:
                             "evidence": "; ".join(p.evidence for p in res.propositions if not p.supported)[:400]})
     checked = len(rows) - unchecked
     report = {"date": date.today().isoformat(), "checker": model, "charts": a.charts, "seed": a.seed,
+              "rows": "new" if a.new else "all",
               "sentences": len(rows), "checked": checked, "unchecked": unchecked, "supported": checked - len(refused),
               "share": round((checked - len(refused)) / checked, 4) if checked else None, "refused": refused,
               "usd": round(spent, 4)}
-    out = a.out or ROOT / "docs" / f"composed_check_{date.today().isoformat()}.json"
+    out = a.out or ROOT / "docs" / f"composed_check_{date.today().isoformat()}{'_new' if a.new else ''}.json"
     out.write_text(json.dumps(report, indent=1) + "\n")
     print(f"{report['supported']} of {checked} checked sentences supported ({report['share']}); {unchecked} unchecked; "
           f"USD {spent:.4f} -> {out.relative_to(ROOT)}")

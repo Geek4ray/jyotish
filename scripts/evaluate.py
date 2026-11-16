@@ -348,7 +348,7 @@ def layered(card: Card, charts: int = 1000):
     lines.append(f"Of {asked} varied questions on the reference chart, each a first turn (scripts/evaluate.py "
                  f"COMPOSER_MESSAGES; off-limits ones left out), the composer answers {placed} ({placed / asked:.0%}); "
                  "the rest have no area of their own and keep the writer loop.")
-    checks = sorted(DOCS.glob("composed_check_*.json"))
+    checks = sorted(p for p in DOCS.glob("composed_check_*.json") if not p.stem.endswith("_new"))
     if checks:
         cc = json.loads(checks[-1].read_text())
         card.num("bank.composed_supported", cc["share"], "higher", gate=False)
@@ -356,6 +356,13 @@ def layered(card: Card, charts: int = 1000):
                      f"{cc['supported']} of {cc['checked']} on {cc['charts']} random charts ({cc['share']:.1%}).")
     else:
         card.skip("bank.composed_supported", "no docs/composed_check_*.json; run scripts/composed_check.py")
+    # The rows a batch added or redrafted (scripts/composed_check.py --new; the shaped answer, 2026-11-16).
+    new = sorted(DOCS.glob("composed_check_*_new.json"))
+    if new:
+        cc = json.loads(new[-1].read_text())
+        card.num("bank.composed_supported.new", cc["share"], "higher", gate=False)
+        lines.append(f"The rows the shaped answer added or redrafted ({new[-1].name}): {cc['supported']} of "
+                     f"{cc['checked']} composed sentences on {cc['charts']} random charts supported ({cc['share']:.1%}).")
     card.sections.append(("The layered answer (reported, not gated)", lines))
 
 
