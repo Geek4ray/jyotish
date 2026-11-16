@@ -533,14 +533,20 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
     payloads_lock = threading.Lock()
     app.state.payload_pool = payload_pool
 
+    def session_day(row) -> "_date":
+        """The day a conversation's turns are read at: a reviewer's fixed date, else the server's today (a client's
+        turn on 16 November is read at 16 November, whatever day the conversation began)."""
+        from datetime import date as _d
+        return _d.fromisoformat(row.as_of) if row.as_of_fixed else (today or _d.today)()
+
     def session_payload(sid: str, chart, as_of):
         from .fullchart import cached_payload
         from .narrate import full_range
         with payloads_lock:
-            fut = PAYLOADS.get(sid)
-            if fut is None:
-                fut = PAYLOADS[sid] = payload_pool.submit(cached_payload, chart, as_of, *full_range(as_of),
-                                                          list(_AREAS))
+            held_day, fut = PAYLOADS.get(sid) or (None, None)
+            if fut is None or held_day != as_of:          # made for its day: the period now and the stretches
+                fut = payload_pool.submit(cached_payload, chart, as_of, *full_range(as_of), list(_AREAS))
+                PAYLOADS[sid] = (as_of, fut)
             PAYLOADS.move_to_end(sid)
             while len(PAYLOADS) > max(1, held):
                 PAYLOADS.popitem(last=False)
@@ -630,7 +636,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         """The conversation as the client sees it: the check line and each turn's question and shown answer; no
         chart id (a hash of birth data), the chart's drawing and table under the conversation's own routes."""
         turns = s.query(TurnRow).filter_by(session_id=row.id).order_by(TurnRow.n).all()
-        return {"id": row.id, "check": row.check, "as_of": row.as_of, "chart_svg": f"/sessions/{row.id}/chart.svg",
+        return {"id": row.id, "check": row.check, "as_of": session_day(row).isoformat(),
+                "chart_svg": f"/sessions/{row.id}/chart.svg",
                 "tables": f"/sessions/{row.id}/tables.json", "turns": [client_turn(t) for t in turns]}
 
     def client_turn(t: TurnRow) -> dict:
@@ -684,7 +691,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             pass
         with Session.begin() as s:
             s.add(SessionRow(id=sid, chart_id=chart_id, birth_key=bkey, birth=birth.model_dump(),
-                             as_of=as_of.isoformat(), check=check, secret_hash=secret_hash(secret),
+                             as_of=as_of.isoformat(), as_of_fixed=bool(req.as_of), check=check,
+                             secret_hash=secret_hash(secret),
                              minor=is_minor(_date.fromisoformat(birth.date), as_of)))
         session_payload(sid, chart, as_of)
         logs.event("session.created")
@@ -735,7 +743,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         from .display import tables
         with Session() as s:
             row = client_session(s, sid, request)
-        return tables(chart_of(row.chart_id), _date.fromisoformat(row.as_of))
+        return tables(chart_of(row.chart_id), session_day(row))
 
     def run_turn(turn_id: str) -> None:
         from datetime import date as _date
@@ -745,7 +753,8 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             srow = s.get(SessionRow, t.session_id)
             earlier = s.query(TurnRow).filter(TurnRow.session_id == t.session_id, TurnRow.n < t.n,
                                               TurnRow.status == "done").order_by(TurnRow.n).all()
-            message, chart_id, as_of, minor = t.question, srow.chart_id, _date.fromisoformat(srow.as_of), srow.minor
+            # Read at the day it is asked (2026-11-16): the period now and the stretches are that day's.
+            message, chart_id, as_of, minor = t.question, srow.chart_id, session_day(srow), srow.minor
             last = next((x.route for x in reversed(earlier) if x.route and not x.route.get("off_limits")), None)
             refused = (earlier[-1].route or {}).get("off_limits") if earlier else None
             # The writer is given the accepted text of the last three earlier turns only: what the client read.
@@ -966,7 +975,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
         from .conversation import turn_units
         from .db import LedgerRow
         from .sheet import build
-        as_of = _date.fromisoformat(srow.as_of)
+        as_of = session_day(srow)
         chart = chart_of(srow.chart_id)
         data = session_payload(srow.id, chart, as_of).result()
         turns = s.query(TurnRow).filter_by(session_id=srow.id).order_by(TurnRow.n).all()
@@ -989,7 +998,7 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
                         "cost_usd": led.cost_usd if led else None, "writer": doc.get("writer"),
                         "checker": doc.get("checker"), "edits": edits, "edited": doc.get("edits") or [],
                         "replayed": str(doc.get("narration_source", "")).startswith("fixture:")})
-        return {"id": srow.id, "chart_id": srow.chart_id, "check": srow.check, "as_of": srow.as_of, "reviewer": who,
+        return {"id": srow.id, "chart_id": srow.chart_id, "check": srow.check, "as_of": as_of.isoformat(), "reviewer": who,
                 "turns": out, "sheets": {a: x for a, x in sheets.items() if x}}
 
     def log_turn(s, srow, who: str, action: str, turn_id: str | None = None, **fields) -> None:
@@ -1036,7 +1045,9 @@ def create_app(database_url: str | None = None, *, model_fixture: str | None = N
             if unit is None:
                 raise HTTPException(status_code=404, detail=f"no sentence {req.target!r} in this turn")
             text_ = with_tags(unit["tagged"], req.text) if req.keep_tags else req.text
-            result = check_turn_edit(chart_of(srow.chart_id), t.document, _date.fromisoformat(srow.as_of), text_,
+            # Checked at the day the turn was answered for, as its document records it.
+            day = _date.fromisoformat((t.document or {}).get("as_of") or session_day(srow).isoformat())
+            result = check_turn_edit(chart_of(srow.chart_id), t.document, day, text_,
                                      turn_checker_for_review())
             log_turn(s, srow, who, "edit", turn_id=t.id, target=req.target, before=unit["tagged"],
                      after=text_.strip(), accepted=result["accepted"], errors=result["errors"], mode="review",

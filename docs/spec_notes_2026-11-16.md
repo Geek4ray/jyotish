@@ -207,3 +207,16 @@ follow-up. `conversation.GREETING` (hi, hello, hey, namaste, namaskar, good morn
 okay, shukriya, dhanyavad, नमस्ते, धन्यवाद, with "there", "ji", "so much" or "a lot" after them) is never carried: it is
 read as a first message is (the chart's top areas, the writer loop). Read here: only greetings, thanks and a bare "ok"
 were taken out; "what should I know" after a turn is still a follow-up under the SPEC's rule.
+
+## The day a turn is read at
+
+GET /sessions/current returned `as_of` 2026-11-01 on 2026-11-16 for a conversation begun on 1 November, and it was not
+only the field: every turn was answered as of the session's `as_of` (`api.run_turn` read `srow.as_of`), so the period
+now and the stretches were read at the day the conversation began, and the session's payload was made once for that
+day. Now `sessions.as_of_fixed` (Alembic 0009, false for every conversation begun before it) says whether a reviewer
+fixed the date (POST /sessions with `as_of` and a reviewer's token); `api.session_day` is that date where fixed, else the
+server's today. A turn is read at `session_day` when it runs, the session's payload is made again when the day changes
+(`PAYLOADS` holds it with its day), and GET /sessions/{id}, /sessions/current, the session's chart tables and the
+conversation review page say that day. A reviewer's rewrite of a turn is checked at the date the turn's own document
+records. `test_w4_...`: a conversation begun on 1 November and asked on 16 November is answered as of 16 November (its
+document and its plan say so), and one a reviewer fixed at 1 November stays there.

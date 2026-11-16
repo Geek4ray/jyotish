@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import (JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, create_engine,
+from sqlalchemy import (JSON, Boolean, false, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, create_engine,
                         inspect, text)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
@@ -279,7 +279,10 @@ class SessionRow(Base):
     chart_id: Mapped[str | None] = mapped_column(ForeignKey("charts.id"), nullable=True)
     birth_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     birth: Mapped[dict] = mapped_column(DOCUMENT)
-    as_of: Mapped[str] = mapped_column(String(10))                      # YYYY-MM-DD: the date every turn is read for
+    # YYYY-MM-DD: the day the conversation began, or, where `as_of_fixed`, a reviewer's (or a test's) date every turn
+    # is read for. A client's turn is read at the server's today (2026-11-16: every turn was read at the first day).
+    as_of: Mapped[str] = mapped_column(String(10))
+    as_of_fixed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())   # revision 0009
     check: Mapped[dict | None] = mapped_column(DOCUMENT, nullable=True)  # rising sign, the Moon's sign and nakshatra
     minor: Mapped[bool] = mapped_column(Boolean, default=False)         # the chart is a minor's (conversation.MINOR_AGE)
     # The hash of the conversation's secret, which the client's browser holds in an HttpOnly cookie (revision 0006).

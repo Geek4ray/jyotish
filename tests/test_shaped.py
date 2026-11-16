@@ -417,3 +417,47 @@ def test_w3_a_greeting_after_a_turn_is_not_a_follow_up(chart, message):
     r = route_turn(message, chart, last)
     assert not r.follow_up and "health" not in r.areas
     assert route_turn("and money?", chart, last).follow_up and route_turn("why?", chart, last).follow_up
+
+
+def test_w4_a_turn_is_read_at_the_day_it_is_asked_and_a_reviewers_date_stays_fixed(tmp_path, monkeypatch):
+    """A conversation begun on 1 November and asked on 16 November is answered as of 16 November (the period now and
+    the stretches are that day's), and GET /sessions/current says so; a reviewer's date stays as given."""
+    import time
+    from fastapi.testclient import TestClient
+    from jyotish.api import create_app
+    from jyotish.conversation import OfflineTurnWriter
+    from jyotish.narrate import CheckResult, Proposition
+    monkeypatch.setenv("JYOTISH_LAYERED", "1")                          # composed: its plan records its date
+
+    def passes(sentence, data):
+        return CheckResult(propositions=[Proposition(text=sentence, supported=True, evidence="stub")])
+    day = {"d": date(2026, 11, 1)}
+    app = create_app(f"sqlite:///{tmp_path / 'd.db'}", turn_writer=OfflineTurnWriter, turn_checker=lambda: passes,
+                     today=lambda: day["d"], reviewers={"tok": "r1"})
+    birth = {"date": "2001-03-12", "time": "10:10:25", "tz": "Asia/Kolkata", "lat": 28.1989, "lon": 76.617,
+             "node": "mean"}
+
+    def ask(c, sid, m):
+        n = c.post(f"/sessions/{sid}/turns", json={"message": m}).json()["n"]
+        t = time.monotonic()
+        while (got := c.get(f"/sessions/{sid}/turns/{n}").json())["status"] not in ("done", "failed"):
+            assert time.monotonic() - t < 90
+            time.sleep(0.05)
+        return n
+    with TestClient(app) as c:
+        sid = c.post("/sessions", json=birth).json()["id"]
+        assert c.get("/sessions/current").json()["as_of"] == "2026-11-01"
+        day["d"] = date(2026, 11, 16)
+        assert c.get("/sessions/current").json()["as_of"] == "2026-11-16"
+        ask(c, sid, "when will i leave my current job")
+        fixed = c.post("/sessions", json=birth | {"as_of": "2026-11-01"}, headers={"Authorization": "Bearer tok"})
+        fid = fixed.json()["id"]
+        ask(c, fid, "when will i leave my current job")
+        assert c.get(f"/sessions/{fid}").json()["as_of"] == "2026-11-01"
+    from jyotish.db import TurnRow
+    with app.state.Session() as s:
+        rows = s.query(TurnRow).all()
+        docs = {t.session_id: t.document for t in rows}
+    assert all(t.status == "done" for t in rows), [(t.status, t.error) for t in rows]
+    assert docs[sid]["as_of"] == "2026-11-16" and docs[fid]["as_of"] == "2026-11-01"
+    assert docs[sid]["plan"]["as_of"] == "2026-11-16"
