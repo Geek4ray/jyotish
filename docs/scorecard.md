@@ -1,6 +1,6 @@
 # Scorecard
 
-Run 2026-11-16 at commit `a04471a` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
+Run 2026-11-16 at commit `6dbb622` by `scripts/evaluate.py`. CI fails when any gated number is worse than in the committed `docs/scorecard.json`; a sampled statistic is reported with its direction and not gated.
 
 ## Reference acceptance tests
 
@@ -8,7 +8,7 @@ Run 2026-11-16 at commit `a04471a` by `scripts/evaluate.py`. CI fails when any g
 
 ## Phase 0 cross-check
 
-1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 20 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
+1,000 births (seed 0) against PyJHora 4.8.7, ephemeris Moshier (no ephemeris files), in 9 s: 0 beyond the 1″ / one-day gate, 0 listed at an edge. Per-quantity maxima and means are in the table; docs/crosscheck.md has the full report.
 
 ## Metamorphic tests
 
@@ -113,19 +113,20 @@ From docs/comparison_2026-11-01_curious_r2 (6 curious paragraphs, one live run p
 
 ## The layered answer (reported, not gated)
 
-Bank 56cbc319cf01: 129 rows, 0% approved. On 1000 random synthetic charts (every area, every question kind, a "when" turn), 155387 of 155519 plan items find a fact row whose slots they fill (99.9%); by part: hard 100%, helps 100%, opening 100%, period 100%, rule 96%, stretch 100%, verdict 100%, weakness 100%. Meaning rows for 41% of the rule and weakness items. Missing most often: rule.yoga.neecha_bhanga.reduced (54), rule.yoga.gaja_kesari_bphs.full (33), rule.yoga.gaja_kesari_bphs.full.nohouse (25), rule.yoga.gaja_kesari_bphs.reduced.nohouse (11), rule.yoga.gaja_kesari_bphs.reduced (9).
+Bank 7a1af4130795: 140 rows, 0% approved. On 1000 random synthetic charts (every area, every question kind, a "when" turn), 156162 of 156294 plan items find a fact row whose slots they fill (99.9%); by part: hard 100%, helps 100%, opening 100%, period 100%, rule 96%, stretch 100%, verdict 100%, vocation 100%, weakness 100%. Meaning rows for 61% of the rule and weakness items. Missing most often: rule.yoga.neecha_bhanga.reduced (54), rule.yoga.gaja_kesari_bphs.full (33), rule.yoga.gaja_kesari_bphs.full.nohouse (25), rule.yoga.gaja_kesari_bphs.reduced.nohouse (11), rule.yoga.gaja_kesari_bphs.reduced (9).
 Composed turns (2026-11-15, 6): USD 0.00000 and 0.09 s per turn on average.
 Polished turns (2026-11-15, 6): USD 0.00169 and 20.81 s per turn on average; the polished text shown on 5 of 6.
 The composer answered 100% of the 12 answered turns of 2026-11-15.
 Of 20 varied questions on the reference chart, each a first turn (scripts/evaluate.py COMPOSER_MESSAGES; off-limits ones left out), the composer answers 12 (60%); the rest have no area of their own and keep the writer loop.
 Composed sentences true of their chart (composed_check_2026-11-16.json, the gate checker zai-org/GLM-5.3-Flash): 118 of 120 on 60 random charts (98.3%).
+The rows the shaped answer added or redrafted (composed_check_2026-11-16_new.json): 120 of 120 composed sentences on 60 random charts supported (100.0%).
 
 ## Synthetic validation (the pipeline, not the engine)
 
-Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 68 s.
-Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 24 s.
-Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 566 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
-Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 287 s. Gated check: at most one area and three rules survive: passes.
+Planted, N = 2,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 0.41, recovered 0.38 (p < 0.05), 0.38 surviving BH; the timing effect recovered in 1.00; 0 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map; 32 s.
+Null, N = 2,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 10 s.
+Planted, N = 20,000 (odds ratio 1.2 per SD of the area score, timing weight 2.0): 8 planted areas; predicted power 1.00, recovered 1.00 (p < 0.05), 1.00 surviving BH; the timing effect recovered in 1.00; 3 of the 3 unplanted areas (father, gains, reputation: they own none of their events) also survive BH, lift inherited through the shared outcome map (father, gains, reputation); 288 s. Gated check: at least three quarters of the planted areas recovered, surviving BH and timing-recovered: passes.
+Null, N = 20,000: 0 of 11 areas survive BH; 0 of 360 rules show an effect after BH; 116 s. Gated check: at most one area and three rules survive: passes.
 The shares and counts are sampled statistics and are reported, not gated: the planted events are drawn from the engine's own scores, so any change to scoring redraws them. The two pass/fail checks at N = 20,000, where the planted effect is near-certain, gate.
 Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading says synthetic).
 
@@ -593,9 +594,9 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `paragraph.sentences_held_attempt_2` | 6 |  | informational | no |
 | `paragraph.sentences_held_attempt_3` | 7 |  | informational | no |
 | `bank.coverage` | 0.9992 |  | higher | no |
-| `bank.rows` | 129 |  | informational | no |
+| `bank.rows` | 140 |  | informational | no |
 | `bank.approved_share` | 0.0 |  | higher | no |
-| `bank.meaning_share` | 0.4139 |  | higher | no |
+| `bank.meaning_share` | 0.6146 |  | higher | no |
 | `bank.coverage.hard` | 1.0 |  | higher | no |
 | `bank.coverage.helps` | 1.0 |  | higher | no |
 | `bank.coverage.opening` | 1.0 |  | higher | no |
@@ -603,6 +604,7 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `bank.coverage.rule` | 0.96 |  | higher | no |
 | `bank.coverage.stretch` | 1.0 |  | higher | no |
 | `bank.coverage.verdict` | 1.0 |  | higher | no |
+| `bank.coverage.vocation` | 1.0 |  | higher | no |
 | `bank.coverage.weakness` | 1.0 |  | higher | no |
 | `layered.composer_share` | 1.0 |  | higher | no |
 | `layered.composed.cost_usd` | 0.0 |  | lower | no |
@@ -611,6 +613,7 @@ Each run's full report: docs/validation_synthetic_<mode>_<n>.md (every heading s
 | `layered.polished.done_s` | 20.808167 |  | lower | no |
 | `layered.composer_share.messages` | 0.6 |  | higher | no |
 | `bank.composed_supported` | 0.9833 |  | higher | no |
+| `bank.composed_supported.new` | 1.0 |  | higher | no |
 | `synthetic.planted.2000.predicted_power` | 0.4101 |  | informational | no |
 | `synthetic.planted.2000.recovered_share` | 0.375 |  | higher | no |
 | `synthetic.planted.2000.survived_bh_share` | 0.375 |  | higher | no |

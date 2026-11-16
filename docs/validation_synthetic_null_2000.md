@@ -7,7 +7,7 @@ Run 2026-11-16 by `scripts/validate.py` on a synthetic cohort: these numbers pro
 - rule set `8f86556c59c29d96491790ac386e9b168b795fbcf31ee835bb93bbe98ab62af0`
 - weight set `4b551c99e2a9de896fcbcdf761dc91ea8a976d648b3f9e2226dbc3c0de3301b6`
 - (the analysis code is validate.py with jyotish.cohort, jyotish.outcomes and the outcome map; the lift interval resamples households)
-- split definition `0a937458ca9499b2a58019466e11d00a7ae25bf6a2507f11719650dd68216c6b` ({"salt_sha256": "19287501b03b53760b7a0eac16e4af0438c9bde072eec135d455423dcaaa3cb9", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "ef667acb1edead1958769c72a0ff7a539ef79f6fc2549d3d9cc1e392552e2c13"})
+- split definition `662e1ec54ff89c5d95fa5dbf1e1939a435f58e13b47914d03bf4f1561350cfdd` ({"salt_sha256": "19287501b03b53760b7a0eac16e4af0438c9bde072eec135d455423dcaaa3cb9", "fraction": 0.25, "k": 5, "unit": "household", "groups": "household and birthplace cluster, connected components", "strata": "birth decade x sex x region", "sequestered_file_sha256": "2286ed45adbbcdae12989b306d63696718aa8b05e036200c7b223cb5659eaa9d"})
 - analysis code `b587da42ef8a467704235f3a42725d7abc2e44ca930cd177ae5379c3bfe1db82`
 
 ## Synthetic — Lift of the tier, per area (tests 2 and 5)

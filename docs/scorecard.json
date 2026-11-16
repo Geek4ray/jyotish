@@ -1,6 +1,6 @@
 {
   "date": "2026-11-16",
-  "commit": "a04471a",
+  "commit": "6dbb622",
   "numbers": {
     "reference.passed": {
       "value": 25,
@@ -2763,7 +2763,7 @@
       "gate": false
     },
     "bank.rows": {
-      "value": 129,
+      "value": 140,
       "better": null,
       "unit": "",
       "gate": false
@@ -2775,7 +2775,7 @@
       "gate": false
     },
     "bank.meaning_share": {
-      "value": 0.4139,
+      "value": 0.6146,
       "better": "higher",
       "unit": "",
       "gate": false
@@ -2817,6 +2817,12 @@
       "gate": false
     },
     "bank.coverage.verdict": {
+      "value": 1.0,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.coverage.vocation": {
       "value": 1.0,
       "better": "higher",
       "unit": "",
@@ -2866,6 +2872,12 @@
     },
     "bank.composed_supported": {
       "value": 0.9833,
+      "better": "higher",
+      "unit": "",
+      "gate": false
+    },
+    "bank.composed_supported.new": {
+      "value": 1.0,
       "better": "higher",
       "unit": "",
       "gate": false
